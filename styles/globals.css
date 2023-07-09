@@ -8,6 +8,8 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  background-color: #f2f2f2;
+  overflow-x: hidden;
 }
 
 a {
@@ -18,3 +20,57 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.radius {
+  border-radius: 75px;
+}
+/* Color Theme Swatches in Hex */
+.color-1 {
+  color: #8b65bf;
+}
+.color-2 {
+  color: #bfadd9;
+}
+.color-3 {
+  color: #262626;
+}
+.color-4 {
+  color: #f2f2f2;
+}
+.color-5 {
+  color: #8c8c8c;
+}
+
+/* Color Theme Swatches in RGBA
+.UI/UX-1-rgba {
+  color: rgba(138, 101, 191, 1);
+}
+.UI/UX-2-rgba {
+  color: rgba(191, 173, 216, 1);
+}
+.UI/UX-3-rgba {
+  color: rgba(38, 38, 37, 1);
+}
+.UI/UX-4-rgba {
+  color: rgba(242, 242, 242, 1);
+}
+.UI/UX-5-rgba {
+  color: rgba(140, 140, 140, 1);
+}
+
+Color Theme Swatches in HSLA
+.UI/UX-1-hsla {
+  color: hsla(264, 41, 57, 1);
+}
+.UI/UX-2-hsla {
+  color: hsla(264, 36, 76, 1);
+}
+.UI/UX-3-hsla {
+  color: hsla(56, 0, 14, 1);
+}
+.UI/UX-4-hsla {
+  color: hsla(0, 0, 95, 1);
+}
+.UI/UX-5-hsla {
+  color: hsla(0, 0, 55, 1);
+} */
