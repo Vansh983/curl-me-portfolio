@@ -12,7 +12,7 @@ interface ScrollAnimationProps {
   children: React.ReactNode;
 }
 
-const ScrollAnimation: React.FC<ScrollAnimationProps> = ({ children }) => {
+const Brand: React.FC<ScrollAnimationProps> = () => {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -20,23 +20,17 @@ const ScrollAnimation: React.FC<ScrollAnimationProps> = ({ children }) => {
       scrollTrigger: {
         trigger: ref.current,
         start: "top center",
-        // end: "bottom center",
+        end: "bottom center",
         scrub: true,
       },
       width: "100%",
-      marginLeft: "0",
       borderRadius: "0",
-      marginTop: "0",
-      height: "100vh",
-      // position: "relative",
     });
   }, []);
 
   return (
-    <div ref={ref} className="fixed w-[80%] bg-[#0D0D0D] mt-36 mx-[10%] radius">
-      {children}
-    </div>
+    <div ref={ref} className="h-screen w-3/4 bg-[#0D0D0D] mx-auto radius"></div>
   );
 };
 
-export default ScrollAnimation;
+export default Brand;
