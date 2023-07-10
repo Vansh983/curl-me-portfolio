@@ -15,7 +15,7 @@ interface CardProps {
 
 const ProjectCard: FC<CardProps> = ({ data }) => {
   return (
-    <div className="flex flex-wrap -mx-2 overflow-hidden px-32">
+    <div className="flex flex-wrap -mx-2 overflow-hidden">
       {data.map((card, index) => (
         <div key={index} className="p-4 rounded-md relative group ">
           <a href={card.url} target="_blank" rel="noopener noreferrer">

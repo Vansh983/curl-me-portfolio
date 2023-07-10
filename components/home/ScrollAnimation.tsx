@@ -1,6 +1,6 @@
 // Components/ScrollAnimation.tsx
 
-import React, { useEffect, useRef } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
@@ -9,10 +9,10 @@ if (typeof window !== "undefined") {
 }
 
 interface ScrollAnimationProps {
-  children: React.ReactNode;
+  setCounter: Dispatch<SetStateAction<number>>;
 }
 
-const ScrollAnimation: React.FC<ScrollAnimationProps> = ({ children }) => {
+const ScrollAnimation: React.FC<ScrollAnimationProps> = ({ setCounter }) => {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -29,13 +29,16 @@ const ScrollAnimation: React.FC<ScrollAnimationProps> = ({ children }) => {
       marginTop: "0",
       height: "100vh",
       // position: "relative",
+      onComplete: () => setCounter(1),
     });
   }, []);
 
   return (
-    <div ref={ref} className="fixed w-[80%] bg-[#0D0D0D] mt-36 mx-[10%] radius">
-      {children}
-    </div>
+    <div
+      ref={ref}
+      className="fixed w-[90%] bg-[#0D0D0D] mt-32 mx-[5%] radius h-[80vh]"
+      style={{ zIndex: 0 }}
+    />
   );
 };
 
