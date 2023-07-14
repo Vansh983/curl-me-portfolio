@@ -40,7 +40,7 @@ export const Roadmap: React.FC = () => {
   useEffect(() => {
     if (RoadmapElement.current) {
       gsap.from(RoadmapElement.current.children, {
-        duration: 0.5,
+        // duration: 1,
         y: 100,
         stagger: 0.2,
         opacity: 0,
@@ -48,7 +48,7 @@ export const Roadmap: React.FC = () => {
         ease: "power3.out",
         scrollTrigger: {
           trigger: RoadmapElement.current,
-          start: 550,
+          start: () => 550,
           // end: "bottom center",
           scrub: true,
         },

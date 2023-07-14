@@ -36,7 +36,7 @@ const ScrollAnimation: React.FC<ScrollAnimationProps> = ({ setCounter }) => {
   return (
     <div
       ref={ref}
-      className="fixed w-[90%] bg-[#0D0D0D] mt-32 mx-[5%] radius h-[80vh]"
+      className="fixed w-[90%] mt-32 mx-[5%] radius h-[80vh]"
       style={{ zIndex: 0 }}
     />
   );
