@@ -8,14 +8,14 @@ import Landing from "../components/home/Landing";
 import ZoomSection from "../components/home/ZoomSection";
 import ScrollAnimation from "../components/home/ScrollAnimation";
 import ProjectCard from "../components/home/ProjectCard";
-import { projects } from "../data/projects";
+import { projects, code_proj } from "../data/projects";
 import { about } from "../data/about";
-import { Roadmap } from "../components/about/Roadmap";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 // import Particles from "../components/complex/Particles";
 
 import dynamic from "next/dynamic";
+import SideProj from "../components/home/SideProj";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -158,6 +158,7 @@ const Home: NextPage = () => {
           <div className="button">See all projects</div>
         </div>
         <ProjectCard data={projects} />
+        <SideProj data={code_proj} />
       </div>
       <div className="h-[1000px]"></div>
     </div>

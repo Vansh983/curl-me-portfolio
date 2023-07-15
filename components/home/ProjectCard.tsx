@@ -7,7 +7,7 @@ interface CardProps {
   data: {
     imgSrc: string;
     title: string;
-    pills: string[];
+    tags: string[];
     grad: string[];
     url: string;
     year: string;

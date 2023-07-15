@@ -10,7 +10,7 @@ import ScrollAnimation from "../components/home/ScrollAnimation";
 import ProjectCard from "../components/home/ProjectCard";
 import { projects } from "../data/projects";
 import { about } from "../data/about";
-import Roadmap from "../components/about/Roadmap";
+import { Roadmap } from "../components/about/Roadmap";
 
 const Home: NextPage = () => {
   const [counter, setCounter] = useState(0);
