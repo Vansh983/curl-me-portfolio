@@ -48,6 +48,38 @@ export const projects = [
     url: "https://utique-web.vercel.app/",
     year: "2022",
   },
+  {
+    imgSrc: "/assets/projects/q-learning.png",
+    title: "Q Learning: Machine Learning 3D Maze Solving",
+    tags: ["tag1", "tag2", "tag3"],
+    grad: ["#4D4FC3", "#AACBFF"],
+    url: "https://github.com/Vansh983/room-problem",
+    year: "2022",
+  },
+  {
+    imgSrc: "/assets/projects/rpg.png",
+    title: "Multiplayer Terminal Role Playing Game",
+    tags: ["tag1", "tag2", "tag3"],
+    grad: ["#005C00", "#CDBA00"],
+    url: "https://github.com/Vansh983/clash-rpg",
+    year: "2022",
+  },
+  {
+    imgSrc: "/assets/projects/redefined.png",
+    title: "Re-defined: Web Platform for a Canadian NPO",
+    tags: ["tag1", "tag2", "tag3"],
+    grad: ["#457fca", "#5691c8"],
+    url: "https://redefined.social/",
+    year: "2022",
+  },
+  {
+    imgSrc: "/assets/projects/blog.png",
+    title: "Tech and Drupal Blog for using different modules",
+    tags: ["tag1", "tag2", "tag3"],
+    grad: ["#eeeeee", "#ffffff"],
+    url: "https://blog.vanshsood.com/",
+    year: "2022",
+  },
 ];
 
 export const code_proj = [

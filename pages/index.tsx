@@ -9,13 +9,14 @@ import ZoomSection from "../components/home/ZoomSection";
 import ScrollAnimation from "../components/home/ScrollAnimation";
 import ProjectCard from "../components/home/ProjectCard";
 import { projects, code_proj } from "../data/projects";
-import { about } from "../data/about";
+import { about, story } from "../data/about";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 // import Particles from "../components/complex/Particles";
 
 import dynamic from "next/dynamic";
 import SideProj from "../components/home/SideProj";
+import StoryGrid from "../components/home/StoryGrid";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -144,7 +145,7 @@ const Home: NextPage = () => {
       </div>
       {/* <div className="h-[1000px]></div> */}
       <div
-        className="flex flex-col bg-[#000000e0] w-full px-24 relative radius py-24 mt-64"
+        className="flex flex-col bg-[#000000e0] w-full px-48 relative radius py-24 mt-64"
         style={{ zIndex: 0 }}
       >
         <div className="flex justify-between">
@@ -158,9 +159,29 @@ const Home: NextPage = () => {
           <div className="button">See all projects</div>
         </div>
         <ProjectCard data={projects} />
-        <SideProj data={code_proj} />
+        {/* <SideProj data={code_proj} /> */}
       </div>
-      <div className="h-[1000px]"></div>
+      <div className="flex flex-col relative px-48 py-24">
+        <h1 className="text-7xl text-white">Empower</h1>
+        <div className="py-4">
+          <div
+            className="relative h-64 radius shadow-md bg-cover bg-center my-4 overflow-hidden"
+            style={{
+              backgroundImage: `url(${story[0].img})`,
+              height: "400px",
+              boxShadow: "0px 4px 4px 500px rgba(0, 0, 0, 0.25) inset",
+            }}
+          >
+            <div className="absolute inset-0  flex flex-col justify-end py-8 px-16">
+              <h2 className="text-4xl font-bold text-white">
+                {story[0].title}
+              </h2>
+              <p className="text-white w-5/6">{story[0].description}</p>
+            </div>
+          </div>
+          <StoryGrid cards={story.slice(1)} />
+        </div>
+      </div>
     </div>
   );
 };
