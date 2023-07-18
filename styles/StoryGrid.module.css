@@ -1,0 +1,20 @@
+.card {
+  --spacing: 4rem;
+  position: relative;
+  width: 90vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-bottom: 50px;
+  border-radius: 30px;
+  /*   box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.2); */
+  background-color: #fff;
+  border: solid 3px #232323;
+  /*   not needed right now - but needed when JS kicks in */
+  top: var(--spacing);
+  z-index: 3;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+

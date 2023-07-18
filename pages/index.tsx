@@ -16,7 +16,8 @@ import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
 import dynamic from "next/dynamic";
 import SideProj from "../components/home/SideProj";
-import StoryGrid from "../components/home/StoryGrid";
+import { StoryGrid } from "../components/home/StoryGrid";
+import CustomCursor from "../components/layout/CustomCursor";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -98,6 +99,7 @@ const Home: NextPage = () => {
 
       <Navbar />
       <Particles />
+      {/* <CustomCursor /> */}
       <ScrollAnimation setCounter={setCounter} />
       <div className="min-h-screen px-24">
         <div
