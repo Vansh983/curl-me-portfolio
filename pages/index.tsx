@@ -16,7 +16,7 @@ import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
 import dynamic from "next/dynamic";
 import SideProj from "../components/home/SideProj";
-import { StoryGrid } from "../components/home/StoryGrid";
+import StoryGrid from "../components/home/StoryGrid";
 import CustomCursor from "../components/layout/CustomCursor";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {

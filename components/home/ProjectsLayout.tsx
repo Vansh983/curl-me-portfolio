@@ -19,7 +19,6 @@ function ProjectsLayout() {
           end: "bottom bottom",
           scrub: true,
         },
-        position: "fixed",
       });
     }
   }, []);

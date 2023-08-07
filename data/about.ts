@@ -2,7 +2,7 @@ export const about = {
   title: "Embrace it",
   paragraphs: [
     "Currently, I am pursuing my Bachelor of Computer Science degree at Dalhousie University, where I also serve as a Software Developer Co-op. Alongside my studies and work, I've stepped into the role of Academic Technology Support for the School of Health, further solidifying my commitment to leveraging technology for academic betterment. Parallely, I'm the Undergraduate Student Ambassador for Shiftkey Labs, the tech entrepreneurship sandbox of Nova Scotia.",
-    "My entrepreneurial endeavor took root with Webcube, where I collaborated with startups and businesses to transform their ideas into business solutions using software. Fresh out of high school, I spearheaded the development of 6 production level software and managed a team of over 25 developers across the country, running my own software firm.",
+    // "My entrepreneurial endeavor took root with Webcube, where I collaborated with startups and businesses to transform their ideas into business solutions using software. Fresh out of high school, I spearheaded the development of 6 production level software and managed a team of over 25 developers across the country, running my own software firm.",
     "Now, as a tech founder and freelance specialist in web and mobile app development, marketing, and business consultancy, I'm on a mission to empower international students to navigate the world of freelancing. Instead of relying on conventional jobs, I believe that students can leverage freelancing to fund their daily expenses, gain valuable exposure, and learn new skills. I'm excited to use my experiences to help others on their journey.",
   ],
   condensed_paragraphs: [
