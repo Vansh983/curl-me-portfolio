@@ -3,12 +3,13 @@
 @tailwind utilities;
 
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=DM+Serif+Display&family=Playfair+Display:wght@600&display=swap");
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Playfair Display", serif;
   background-color: #0d0d0d;
   /* background-color: #f2f2f2; */
   /* bg-[#0D0D0D] */
@@ -87,4 +88,22 @@ Color Theme Swatches in HSLA
 
 .bs {
   box-shadow: 0px 4px 4px 500px rgba(0, 0, 0, 0.25) inset;
+}
+
+/* h1,
+h2,
+h3,
+h4 {
+  font-family: "DM Serif Display", serif;
+}*/
+
+p {
+  font-family: "Montserrat", sans-serif;
+}
+
+.subhead {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-decoration: none;
+  font-size: 48px;
 }

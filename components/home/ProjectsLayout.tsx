@@ -35,7 +35,7 @@ function ProjectsLayout() {
             leverage Freelancing over conventional part-time
           </p>
         </div>
-        <div className="button">See all projects</div>
+        {/* <div className="button">See all projects</div> */}
       </div>
       <ProjectCard data={projects} />
     </div>

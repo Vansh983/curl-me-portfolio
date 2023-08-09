@@ -1,0 +1,108 @@
+.card-container {
+  display: grid;
+  grid-gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(23rem, 1fr));
+  margin: 0 auto;
+  max-width: 100%;
+  padding: 2rem;
+  width: 55rem;
+}
+
+.card {
+  align-items: center;
+  border-radius: 0.25rem;
+  box-shadow: 2px 3px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  height: 23rem;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.ball {
+  border-radius: 50%;
+  height: 5rem;
+  position: absolute;
+  width: 5rem;
+  background-color: rgb(49, 145, 231);
+  box-shadow: inset -25px -15px 40px rgba(0, 0, 0, 0.3);
+  background-image: linear-gradient(
+    -45deg,
+    rgba(255, 255, 220, 0.3) 0%,
+    transparent 100%
+  );
+  transition: 1s;
+}
+
+/* Ball bouncing */
+.ballBouncing {
+  align-items: center;
+  border-radius: 0.25rem;
+  display: flex;
+  height: 23rem;
+  justify-content: center;
+  position: fixed;
+  z-index: 300;
+  margin-top: 10vh;
+  margin-left: 70vw;
+}
+
+.ballBouncing::before {
+  animation: shadowBouncing 1.2s ease-in infinite;
+  background-color: rgba(0, 200, 255, 0.2);
+  border-radius: 1rem;
+  bottom: 2rem;
+  content: "";
+  height: 0.15rem;
+  position: absolute;
+  width: 2rem;
+  z-index: 300;
+}
+
+.ballBouncing .ball {
+  animation: ballBouncing 1.2s ease-in infinite;
+  bottom: 2.1rem;
+  transform-origin: bottom;
+  z-index: 300;
+}
+
+@keyframes ballBouncing {
+  0%,
+  100% {
+    transform: scale(1.5, 0.5);
+  }
+  20% {
+    transform: scaleY(1.2);
+  }
+  40%,
+  80% {
+    transform: -14rem;
+  }
+  70% {
+    transform: translateY(-15rem);
+  }
+  90% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes shadowBouncing {
+  0%,
+  100% {
+    transform: scale(2, 0.8);
+  }
+  20% {
+    transform: scale(1.2, 0.8);
+  }
+  40%,
+  80% {
+    transform: scale(0.5, 0.2);
+  }
+  70% {
+    transform: scale(0.5, 0.15);
+  }
+  90% {
+    transform: scale(1.5, 0.6);
+  }
+}
+/* End ball bouncing */

@@ -172,7 +172,7 @@ const Particles: React.FC = () => {
       scrollTrigger: {
         trigger: document.body, // you can specify the trigger element here
         start: "top top",
-        end: 500,
+        end: 100,
         scrub: true,
       },
       //@ts-ignore

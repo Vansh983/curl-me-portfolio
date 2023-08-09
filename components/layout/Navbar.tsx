@@ -3,6 +3,7 @@ import { Dialog } from "@headlessui/react";
 import { GrClose } from "react-icons/gr";
 import { HiMiniBars3BottomRight } from "react-icons/hi2";
 import Link from "next/link";
+import { bebas, mont } from "../../utils/fonts";
 
 const navigation = [
   { name: "Projects", href: "#" },
@@ -35,7 +36,9 @@ export default function Navbar() {
           <div className="hidden lg:flex lg:gap-x-12 ">
             {navigation.map((item) => (
               <Link key={item.name} href={item.href}>
-                <span className="text-sm font-semibold leading-6 text-gray-900  rounded-full px-3 py-1 bg-[rgba(0,0,0,0.1)]">
+                <span
+                  className={`text-sm font-semibold leading-6 text-gray-300 uppercase rounded-full px-4 py-2 bg-[rgba(255,255,255,0.1)] ${mont.className}`}
+                >
                   {item.name}
                 </span>
               </Link>
