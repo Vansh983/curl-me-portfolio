@@ -23,6 +23,7 @@ import { mont } from "../utils/fonts";
 import Link from "next/link";
 import FuckBall from "../components/complex/FuckBall";
 import Timeline from "../components/complex/Timeline";
+import Facts from "../components/home/Facts";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -182,7 +183,8 @@ const Home: NextPage = () => {
 
       {/* <div className="h-[1000px]></div> */}
       <ProjectsLayout />
-      <div className="flex flex-col relative px-48 py-24">
+      <Facts />
+      {/* <div className="flex flex-col relative px-48 py-24">
         <h1 className="text-7xl text-white">Empower</h1>
         <div className="py-4">
           <div
@@ -202,7 +204,8 @@ const Home: NextPage = () => {
           </div>
           <StoryGrid cards={story.slice(1)} />
         </div>
-      </div>
+      </div> */}
+      <div className="h-[1000px]"></div>
     </div>
   );
 };

@@ -14,6 +14,7 @@ body {
   /* background-color: #f2f2f2; */
   /* bg-[#0D0D0D] */
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 a {
@@ -106,4 +107,8 @@ p {
   letter-spacing: normal;
   text-decoration: none;
   font-size: 48px;
+}
+
+.n-wrap {
+  text-wrap: nowrap;
 }

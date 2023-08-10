@@ -1,0 +1,60 @@
+.line {
+  width: 70%;
+  height: 70px;
+  position: relative;
+  overflow: hidden;
+}
+.line span {
+  position: absolute;
+  font-size: 3rem;
+  line-height: 4.2rem;
+}
+
+/* Facts.module.css */
+
+.wrapper {
+  min-height: 100vh;
+  background: #1d373f;
+  overflow-x: hidden;
+}
+
+.factsContainer {
+  padding: 0em 2em;
+  text-align: center;
+  line-height: 10vh;
+}
+
+.factsContainer h2 {
+  font-size: 1.8em;
+  transform: scale(0);
+  padding: 2em 0em;
+  margin-bottom: 15vh;
+  color: #f0c368;
+}
+
+.factsContainer_sm {
+  display: flex;
+  width: 300vw;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  height: 40vh;
+  flex: 1;
+  justify-content: space-between;
+  padding: 1em;
+  align-items: center;
+  color: #f0c368;
+}
+
+.fact img {
+  width: 25vw;
+  height: 25vh;
+  margin: 1em;
+}
+
+.socialContainer {
+  width: 100vw;
+  height: 100vh;
+}

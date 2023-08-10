@@ -3,6 +3,7 @@ import "tailwindcss/tailwind.css";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { bebas, mont } from "../../utils/fonts";
+import styles from "../../styles/Projects.module.css";
 
 interface CardProps {
   data: {
@@ -20,29 +21,43 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
 
   // useEffect(() => {
   //   if (ref.current) {
-  //     gsap.from(ref.current.children, {
-  //       duration: 0.5,
-  //       y: 100,
-  //       stagger: 0.2,
-  //       opacity: 0,
-  //       delay: 0.9,
-  //       ease: "power1.out",
-  //       scrollTrigger: {
-  //         trigger: ref.current,
-  //         start: "top 90%",
-  //         // start: 550,
-  //         end: "bottom center",
-  //         // markers: true,
-  //         scrub: true,
-  //       },
-  //       zIndex: 2,
-  //       x: 0,
-  //     });
-  //   }
+  //     // gsap.from(ref.current.children, {
+  //     //   duration: 0.5,
+  //     //   y: 100,
+  //     //   stagger: 0.2,
+  //     //   opacity: 0,
+  //     //   delay: 0.9,
+  //     //   ease: "power1.out",
+  //     //   scrollTrigger: {
+  //     //     trigger: ref.current,
+  //     //     start: "top 90%",
+  //     //     // start: 550,
+  //     //     end: "bottom center",
+  //     //     // markers: true,
+  //     //     scrub: true,
+  //     //   },
+  //     //   zIndex: 2,
+  //     //   x: 0,
+  //     // });
+  //   //   gsap.to(ref.current, 1.8, {
+  //   //     y: 100,
+  //   //     ease: "power4.out",
+  //   //     delay: 1,
+  //   //     skewY: 6,
+  //   //     stagger: {
+  //   //       amount: 0.3,
+  //   //     },
+  //   //     scrollTrigger: {
+  //   //       trigger: ref.current,
+  //   //       start: "top top",
+  //   //     },
+  //   //   });
+  //   // }
   //   // }
   // }, []);
+
   return (
-    <div className="flex flex-wrap mt-8 justify-between" ref={ref}>
+    <div className="flex flex-wrap mt-24 justify-between" ref={ref}>
       {data.map((card, index) => (
         <div
           key={index}
@@ -78,7 +93,7 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                {card.title}
+                <span>{card.title}</span>
               </h2>
               <div className="flex items-center">
                 <button
