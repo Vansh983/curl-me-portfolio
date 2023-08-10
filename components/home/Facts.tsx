@@ -3,6 +3,7 @@ import ScrollTrigger from "gsap/dist/ScrollTrigger";
 import { useLayoutEffect, useRef } from "react";
 import { story } from "../../data/about";
 import { mont, play } from "../../utils/fonts";
+import Link from "next/link";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -35,9 +36,12 @@ export default function Scene() {
   });
 
   return (
-    <div ref={componentRef}>
+    <div ref={componentRef} id="exp">
       <div ref={sliderRef} className="containerRR">
-        <h1 className="text-7xl text-white ml-16" style={{ width: "500px" }}>
+        <h1
+          className="text-7xl text-white ml-16 font-bold"
+          style={{ width: "500px" }}
+        >
           Some things I like to flaunt
         </h1>
         {story.map((card, index) => (
@@ -60,6 +64,35 @@ export default function Scene() {
             </div>
           </div>
         ))}
+        <div
+          className="relative ml-4 panelR flex flex-col justify-center"
+          style={{ zIndex: 30 }}
+        >
+          <h1 className="text-7xl text-white ml-6 font-bold">
+            Enjoyed my work?
+          </h1>
+          <p className={`text-3xl my-8 text-white ml-6 ${mont.className}`}>
+            Lets work together! Drop a{" "}
+            <Link href="https://www.linkedin.com/in/vanshsood/">
+              <span style={{ cursor: "pointer", textDecoration: "underline" }}>
+                text
+              </span>
+            </Link>
+            , schedule a quick{" "}
+            <Link href="topmate.io/vansh_sood">
+              <span style={{ cursor: "pointer", textDecoration: "underline" }}>
+                call
+              </span>
+            </Link>{" "}
+            or send an{" "}
+            <Link href="mailto:vanshsood@dal.ca">
+              <span style={{ cursor: "pointer", textDecoration: "underline" }}>
+                email
+              </span>
+            </Link>{" "}
+            - whatever works best!
+          </p>
+        </div>
       </div>
     </div>
   );

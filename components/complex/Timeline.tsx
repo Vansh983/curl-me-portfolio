@@ -52,7 +52,7 @@ function Timeline() {
   }, []);
 
   return (
-    <div style={{ position: "relative", zIndex: 200 }}>
+    <div style={{ position: "relative", zIndex: 200 }} id="about">
       <svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1200">
         <path className="line01 line" d="M 10 200  600 200"></path>
         <path className="line02 line" d="M 10 400  600 400"></path>

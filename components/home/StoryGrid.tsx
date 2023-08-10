@@ -31,7 +31,7 @@ const StoryGrid: FC<StoryGridProps> = ({ cards }) => {
           scrub: 1,
           start: "top top",
           end: `+=500`,
-          markers: true,
+          // markers: true,
         },
       });
     }

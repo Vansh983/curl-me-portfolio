@@ -18,7 +18,6 @@ function ProjectsLayout() {
           start: "top bottom",
           end: "top -200%",
           scrub: true,
-          markers: true,
         },
       });
     }
@@ -45,6 +44,7 @@ function ProjectsLayout() {
     <div
       className="flex flex-col bg-[#000000e0] relative w-full px-24 py-24"
       style={{ zIndex: 40 }}
+      id="projects"
       ref={ref}
     >
       <div className="flex justify-between mb-16">

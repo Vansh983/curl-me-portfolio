@@ -24,6 +24,7 @@ import Link from "next/link";
 import FuckBall from "../components/complex/FuckBall";
 import Timeline from "../components/complex/Timeline";
 import Facts from "../components/home/Facts";
+import Footer from "../components/home/Footer";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -34,10 +35,14 @@ if (typeof window !== "undefined") {
 }
 
 const navigation = [
-  { name: "Projects", href: "#" },
-  { name: "About", href: "#" },
-  { name: "Experience", href: "#" },
-  { name: "Clients", href: "#" },
+  { name: "Linkedin", href: "https://www.linkedin.com/in/vanshsood/" },
+  { name: "Github", href: "https://github.com/Vansh983" },
+  { name: "Mail", href: "mailto:vanshsood@dal.ca" },
+  { name: "Blog", href: "https://blog.vanshsood.com/" },
+  {
+    name: "Resume",
+    href: "https://vanshsood.com/assets/Resume_Vansh_Sood.pdf",
+  },
 ];
 
 const Home: NextPage = () => {
@@ -78,6 +83,7 @@ const Home: NextPage = () => {
           top: 150,
           // left: 10,
           opacity: 0,
+          visibility: "hidden",
           // background: "#eee",
         });
         gsap.to(ref.current, {
@@ -149,7 +155,12 @@ const Home: NextPage = () => {
           </h1>
           <p
             className={`${mont.className} fixed color-4 text-lg mt-36 pl-2 w-2/5 text-justify`}
-            style={{ fontSize: 20, opacity: 0.7, transition: "0.8s" }}
+            style={{
+              fontSize: 20,
+              opacity: 0.7,
+              transition: "0.8s",
+              zIndex: 3,
+            }}
             ref={landingParaRef}
           >
             Trying to bring a change by empowering international students to
@@ -159,10 +170,13 @@ const Home: NextPage = () => {
             discussions around tech and entrepreneurship.
           </p>
         </div>
-        <div className="socio-links fixed" style={{ bottom: 50, right: 50 }}>
+        <div
+          className="socio-links fixed"
+          style={{ bottom: 50, right: 50, zIndex: 4000 }}
+        >
           <div className="hidden lg:flex lg:gap-x-12 justify-end">
             {navigation.map((item) => (
-              <Link key={item.name} href={item.href}>
+              <Link key={item.name} href={item.href} target="_blank">
                 <span
                   className={`text-sm font-semibold leading-6 text-gray-300 uppercase ${mont.className}`}
                 >
@@ -206,7 +220,7 @@ const Home: NextPage = () => {
         </div>
       </div> */}
       <Facts />
-      <div className="h-[1000px]"></div>
+      {/* <Footer /> */}
     </div>
   );
 };

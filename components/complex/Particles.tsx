@@ -157,9 +157,9 @@ const Particles: React.FC = () => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const particleInstance = new ParticleClass(canvas);
     particleInstance.init();
-
+    const tl = gsap.timeline({ reversed: true });
     // GSAP Animation with ScrollTrigger
-    gsap.to(particleInstance.particle, {
+    tl.to(particleInstance.particle, {
       radius: 1000,
       //   radius: (i: number) => particleInstance.particle[i].radius * 100,
       blurAmount: 1,
@@ -179,6 +179,23 @@ const Particles: React.FC = () => {
       //   onComplete: () => (particleInstance.particle = []), // remove particles after the animation
     });
 
+    // tl.to(particleInstance.particle, {
+    //   radius: 10,
+    //   //   radius: (i: number) => particleInstance.particle[i].radius * 100,
+    //   blurAmount: 1,
+    //   xVelocity: (i: number) =>
+    //     particleInstance.particle[i].xVelocity /
+    //     arr[Math.floor(Math.random() * arr.length)], // this will scatter particles in random directions
+    //   yVelocity: (i: number) =>
+    //     particleInstance.particle[i].yVelocity /
+    //     arr[Math.floor(Math.random() * arr.length)],
+    //   scrollTrigger: {
+    //     trigger: "#footer",
+    //     start: "top bottom",
+    //     end: "bottom bottom",
+    //     scrub: true,
+    //   },
+    // });
     return () => {
       window.removeEventListener("resize", particleInstance.render);
     };

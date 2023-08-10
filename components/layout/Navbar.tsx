@@ -6,10 +6,9 @@ import Link from "next/link";
 import { bebas, mont } from "../../utils/fonts";
 
 const navigation = [
-  { name: "Projects", href: "#" },
-  { name: "About", href: "#" },
-  { name: "Experience", href: "#" },
-  { name: "Clients", href: "#" },
+  { name: "About", href: "#about" },
+  { name: "Projects", href: "#projects" },
+  { name: "Experience", href: "#exp" },
 ];
 
 export default function Navbar() {
