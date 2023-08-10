@@ -183,7 +183,7 @@ const Home: NextPage = () => {
 
       {/* <div className="h-[1000px]></div> */}
       <ProjectsLayout />
-      <Facts />
+      {/* <Facts /> */}
       {/* <div className="flex flex-col relative px-48 py-24">
         <h1 className="text-7xl text-white">Empower</h1>
         <div className="py-4">
@@ -205,6 +205,7 @@ const Home: NextPage = () => {
           <StoryGrid cards={story.slice(1)} />
         </div>
       </div> */}
+      <Facts />
       <div className="h-[1000px]"></div>
     </div>
   );

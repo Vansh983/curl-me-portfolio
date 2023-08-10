@@ -17,6 +17,32 @@ body {
   scroll-behavior: smooth;
 }
 
+html {
+  overflow-y: scroll;
+  height: 100%;
+}
+body {
+  overflow-y: visible;
+  position: relative;
+  overflow-x: hidden;
+}
+html,
+body {
+  margin: 0;
+}
+
+.containerRR {
+  width: 600vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.panelR {
+  width: 50vw;
+  height: 70vh;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -107,8 +133,4 @@ p {
   letter-spacing: normal;
   text-decoration: none;
   font-size: 48px;
-}
-
-.n-wrap {
-  text-wrap: nowrap;
 }
