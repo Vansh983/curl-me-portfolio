@@ -164,7 +164,7 @@ const Home: NextPage = () => {
           style={{ zIndex: 1 }}
         >
           <h1
-            className={`text-4xl font-bold text-white fixed`}
+            className={`${play.className} text-4xl font-bold text-white fixed`}
             style={{
               zIndex: 20,
               opacity: 0,
@@ -177,7 +177,7 @@ const Home: NextPage = () => {
             Vansh Sood
           </h1>
           <h1
-            className={`text-6xl md:block hidden md:text-8xl font-bold mt-16 text-white fixed`}
+            className={`${play.className} text-6xl md:block hidden md:text-8xl font-bold mt-16 text-white fixed`}
             style={{
               zIndex: 20,
               opacity: 0.7,
@@ -208,7 +208,7 @@ const Home: NextPage = () => {
             bridge creativity, technology, and business.
           </p>
           <h1
-            className={`text-6xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
+            className={`${play.className} text-6xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
             style={{
               zIndex: 20,
               opacity: 1,

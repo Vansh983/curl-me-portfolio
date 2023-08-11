@@ -1,9 +1,7 @@
-import { FC, useRef, useEffect } from "react";
+import { FC, useRef } from "react";
 import "tailwindcss/tailwind.css";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { bebas, mont } from "../../utils/fonts";
-import styles from "../../styles/Projects.module.css";
+import Link from "next/link";
 
 interface CardProps {
   data: {
@@ -19,43 +17,6 @@ interface CardProps {
 const ProjectCard: FC<CardProps> = ({ data }) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  // useEffect(() => {
-  //   if (ref.current) {
-  //     // gsap.from(ref.current.children, {
-  //     //   duration: 0.5,
-  //     //   y: 100,
-  //     //   stagger: 0.2,
-  //     //   opacity: 0,
-  //     //   delay: 0.9,
-  //     //   ease: "power1.out",
-  //     //   scrollTrigger: {
-  //     //     trigger: ref.current,
-  //     //     start: "top 90%",
-  //     //     // start: 550,
-  //     //     end: "bottom center",
-  //     //     // markers: true,
-  //     //     scrub: true,
-  //     //   },
-  //     //   zIndex: 2,
-  //     //   x: 0,
-  //     // });
-  //   //   gsap.to(ref.current, 1.8, {
-  //   //     y: 100,
-  //   //     ease: "power4.out",
-  //   //     delay: 1,
-  //   //     skewY: 6,
-  //   //     stagger: {
-  //   //       amount: 0.3,
-  //   //     },
-  //   //     scrollTrigger: {
-  //   //       trigger: ref.current,
-  //   //       start: "top top",
-  //   //     },
-  //   //   });
-  //   // }
-  //   // }
-  // }, []);
-
   return (
     <div className="flex flex-wrap mt-8 md:mt-24 justify-between" ref={ref}>
       {data.map((card, index) => (
@@ -64,7 +25,7 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
           className="relative group card w-full md:w-[48%] my-4"
           style={{ opacity: 1 }}
         >
-          <a href={card.url} target="_blank" rel="noopener noreferrer">
+          <Link href={card.url} target="_blank">
             <div className="">
               <img
                 src={card.imgSrc}
@@ -107,7 +68,7 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
                 </button>
               </div>
             </div>
-          </a>
+          </Link>
         </div>
       ))}
     </div>

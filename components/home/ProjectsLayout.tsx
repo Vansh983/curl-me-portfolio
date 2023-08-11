@@ -3,6 +3,7 @@ import ProjectCard from "./ProjectCard";
 import { projects } from "../../data/projects";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { play } from "../../utils/fonts";
 
 function ProjectsLayout() {
   const ref = useRef<HTMLDivElement>(null);
@@ -50,7 +51,7 @@ function ProjectsLayout() {
       <div className="flex justify-between mb-16">
         <div className="w-3/4">
           <h1
-            className={`text-5xl md:text-7xl font-bold text-white  absolute`}
+            className={`${play.className} text-5xl md:text-7xl font-bold text-white  absolute`}
             style={{ zIndex: 100, whiteSpace: "nowrap" }}
             ref={headingRef}
           >

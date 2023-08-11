@@ -40,7 +40,7 @@ export default function Scene() {
     <div ref={componentRef} id="exp">
       <div ref={sliderRef} className="containerRR">
         <h1
-          className="text-7xl text-white ml-16 font-bold"
+          className={`${play.className} text-7xl text-white ml-16 font-bold`}
           style={{ width: "500px" }}
         >
           Some things I like to flaunt
@@ -69,7 +69,9 @@ export default function Scene() {
           className="relative ml-4 panelR flex flex-col justify-center"
           style={{ zIndex: 30 }}
         >
-          <h1 className="text-7xl text-white ml-6 font-bold">
+          <h1
+            className={`text-7xl text-white ml-6 font-bold ${play.className}`}
+          >
             Enjoyed my work?
           </h1>
           <p className={`text-3xl my-8 text-white ml-6 ${mont.className}`}>
