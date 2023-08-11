@@ -25,7 +25,7 @@ export const projects = [
   },
   {
     imgSrc: "/assets/projects/nutrition-defined.png",
-    title: "Nutririon Defined: Platform for a Healthy System",
+    title: "Nutrition Defined: Platform for a Healthy System",
     tags: ["tag1", "tag2", "tag3"],
     grad: ["#CEE07C", "#79823A"],
     url: "https://www.nutritiondefined.in/",

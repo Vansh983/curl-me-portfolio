@@ -93,8 +93,10 @@ function Timeline() {
         >
           2023
         </text>
-        <image href="/assets/timeline/gci.png" x="330" y="120" width="250" />
-        <image href="/assets/timeline/2020.png" x="330" y="480" width="250" />
+        <image href="/assets/timeline/2018.png" x="330" y="120" width="250" />
+        <image href="/assets/timeline/2020.png" x="330" y="470" width="250" />
+        <image href="/assets/timeline/2022.png" x="230" y="680" width="300" />
+        <image href="/assets/timeline/2023.png" x="330" y="900" width="250" />
         <path
           className="theLine"
           d="M -5,0
@@ -104,7 +106,7 @@ function Timeline() {
                T 150 1200"
           fill="none"
           stroke="white"
-          stroke-width="10px"
+          stroke-width="7px"
         />
 
         <circle

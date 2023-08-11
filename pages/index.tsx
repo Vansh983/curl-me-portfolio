@@ -203,17 +203,20 @@ const Home: NextPage = () => {
             }}
             ref={landingParaRef}
           >
-            Trying to bring a change by empowering international students to
-            leverage Freelancing over conventional part-time Driven by a passion
-            for technology and entrepreneurship, I am a problem-solver at heart.
-            I'm an avid reader, a music enthusiast, and an active participant in
-            discussions around tech and entrepreneurship.
+            I'm a creative developer on a mission to ignite change and
+            innovation. I assist startups by building their software as a
+            founding engineer, applying my skills to uplift local businesses and
+            helping them resolve their tech issues. I am a problem-solver at
+            heart, with a passion for reading, music, and active engagement in
+            discussions surrounding tech and entrepreneurship. My endeavors go
+            beyond conventional paths, as I continue to explore new avenues that
+            bridge creativity, technology, and business.
           </p>
           <h1
-            className={`text-6xl md:text-8xl font-bold mt-16 text-white block md:hidden lg:hidden `}
+            className={`text-6xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
             style={{
               zIndex: 20,
-              opacity: 0.7,
+              opacity: 1,
               transition: "0.5s ease-in-out",
             }}
             id="logo"
@@ -222,23 +225,26 @@ const Home: NextPage = () => {
             Vansh Sood
           </h1>
           <p
-            className={`${mont.className} md:hidden block  color-4 text-lg mt-12 w-[92vw] md:pl-2 md:w-1/2 text-justify`}
+            className={`${mont.className} md:hidden block  color-4 text-lg mt-12 w-[92vw] md:pl-2 md:w-1/2`}
             style={{
               fontSize: 20,
-              opacity: 0.7,
+              opacity: 0.8,
               transition: "0.8s",
               zIndex: 3,
             }}
           >
-            Trying to bring a change by empowering international students to
-            leverage Freelancing over conventional part-time Driven by a passion
-            for technology and entrepreneurship, I am a problem-solver at heart.
-            I'm an avid reader, a music enthusiast, and an active participant in
-            discussions around tech and entrepreneurship.
+            I'm a creative developer on a mission to ignite change and
+            innovation. I assist startups by building their software as a
+            founding engineer, applying my skills to uplift local businesses and
+            helping them resolve their tech issues. I am a problem-solver at
+            heart, with a passion for reading, music, and active engagement in
+            discussions surrounding tech and entrepreneurship. My endeavors go
+            beyond conventional paths, as I continue to explore new avenues that
+            bridge creativity, technology, and business.
           </p>
         </div>
         <div
-          className="scroll-to-see fixed flex md: l-[100]"
+          className="scroll-to-see relative md:fixed flex"
           style={{
             bottom: 50,
             zIndex: 40,
@@ -280,7 +286,7 @@ const Home: NextPage = () => {
       <div className="hidden md:block">
         <Timeline />
       </div>
-      <div className="block md:hidden">
+      <div className="block mt-16 md:hidden">
         <TimelineResponsive />
       </div>
 

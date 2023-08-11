@@ -9,12 +9,22 @@ import Image from "next/image";
 const links = [
   {
     img: "/assets/icons/linkedin.png",
+    icon: FaLinkedin,
     href: "https://www.linkedin.com/in/vanshsood/",
   },
-  { img: "/assets/icons/github.png", href: "https://github.com/Vansh983" },
-  { img: "/assets/icons/mail.png", href: "mailto:vanshsood@dal.ca" },
+  {
+    img: "/assets/icons/github.png",
+    icon: FaGithub,
+    href: "https://github.com/Vansh983",
+  },
+  {
+    img: "/assets/icons/mail.png",
+    icon: FiMail,
+    href: "mailto:vanshsood@dal.ca",
+  },
   {
     img: "/assets/icons/doc.png",
+    icon: PiFileDocDuotone,
     href: "https://vanshsood.com/assets/Resume_Vansh_Sood.pdf",
   },
 ];
@@ -25,8 +35,11 @@ const Footer = () => (
     id="footer"
     style={{ zIndex: 10 }}
   >
-    <h1 className="text-6xl text-white  font-bold">Enjoyed my work?</h1>
-    <p className={`text-3xl my-8 text-white  ${mont.className}`}>
+    <h1 className="text-6xl text-white font-bold">Enjoyed my work?</h1>
+    <p
+      className={`text-2xl my-8 text-white  ${mont.className}`}
+      style={{ opacity: 0.8 }}
+    >
       Lets work together! Drop a{" "}
       <Link href="https://www.linkedin.com/in/vanshsood/">
         <span style={{ cursor: "pointer", textDecoration: "underline" }}>
@@ -50,7 +63,7 @@ const Footer = () => (
     <div className="flex flex-wrap items-center justify-between mt-8">
       {links.map((link) => (
         <Link href={link.href} target="_blank">
-          <img src={link.img} className="w-16" />
+          <link.icon color="white" className="text-6xl" />
         </Link>
       ))}
     </div>
