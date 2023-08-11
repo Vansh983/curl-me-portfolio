@@ -20,6 +20,7 @@ import Facts from "../components/home/Facts";
 import Footer from "../components/home/Footer";
 import StoryGrid from "../components/home/StoryGrid";
 import TimelineResponsive from "../components/complex/TimelineResponsive";
+import Script from "next/script";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -146,12 +147,6 @@ const Home: NextPage = () => {
 
   return (
     <div className={styles.main}>
-      <Head>
-        <title>Vansh Sood</title>
-        <meta name="description" content="developer" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <Navbar />
       <Particles />
       {/* <CustomCursor /> */}

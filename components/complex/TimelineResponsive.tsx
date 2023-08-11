@@ -4,6 +4,7 @@ import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/dist/MotionPathPlugin";
 import styles from "../../styles/Timeline.module.css";
 import { bebas, mont, play } from "../../utils/fonts";
+import Image from "next/image";
 
 const about = [
   {
@@ -53,7 +54,7 @@ function TimelineResponsive() {
         {about.map((a) => (
           <div key={a.year} className="flex flex-col my-4">
             <div className="flex items-end">
-              <img src={a.img} width={70} />
+              <Image src={a.img} alt="Timeline" width={70} height={70} />
               <p className={`${bebas.className} text-5xl ml-4 text-white`}>
                 {a.year}
               </p>

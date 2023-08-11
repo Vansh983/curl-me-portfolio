@@ -2,6 +2,7 @@ import { FC, useRef } from "react";
 import "tailwindcss/tailwind.css";
 import { bebas, mont } from "../../utils/fonts";
 import Link from "next/link";
+import Image from "next/image";
 
 interface CardProps {
   data: {
@@ -27,9 +28,11 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
         >
           <Link href={card.url} target="_blank">
             <div className="">
-              <img
+              <Image
                 src={card.imgSrc}
                 alt={card.title}
+                width={500}
+                height={500}
                 className="w-full rounded"
               />
               {/* <div className="absolute bottom-0 flex justify-between left-0 w-full bg-black bg-opacity-40 text-white text-center py-2 transition-opacity opacity-0 group-hover:opacity-100 px-4">

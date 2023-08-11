@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { projects } from "../../data/projects";
+import Image from "next/image";
 
 interface Project {
   imgSrc: string;
@@ -26,7 +27,7 @@ export default function ProjectSlide() {
       >
         {/* <a href={project.url} target="_blank" rel="noopener noreferrer"> */}
         <div className="">
-          <img
+          <Image
             src={project.imgSrc}
             alt={project.title}
             className="w-full rounded"

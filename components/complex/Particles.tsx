@@ -157,9 +157,8 @@ const Particles: React.FC = () => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const particleInstance = new ParticleClass(canvas);
     particleInstance.init();
-    const tl = gsap.timeline({ reversed: true });
     // GSAP Animation with ScrollTrigger
-    tl.to(particleInstance.particle, {
+    gsap.to(particleInstance.particle, {
       radius: 1000,
       //   radius: (i: number) => particleInstance.particle[i].radius * 100,
       blurAmount: 1,
