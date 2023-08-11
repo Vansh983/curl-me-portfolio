@@ -10,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 interface CardProps {
   id: number;
   title: string;
-  description: string;
+  description: string[];
   img: string;
   link: string;
 }

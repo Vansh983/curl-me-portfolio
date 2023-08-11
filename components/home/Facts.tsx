@@ -14,6 +14,7 @@ export default function Scene() {
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
       const pixelsPause = 300;
+      //@ts-ignore
       let panels = gsap.utils.toArray(sliderRef.current.children);
       gsap.to(panels, {
         xPercent: -100 * (panels.length - 1),

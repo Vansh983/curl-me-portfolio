@@ -51,7 +51,7 @@ function TimelineResponsive() {
 
       <div className="content mx-4 mt-8">
         {about.map((a) => (
-          <div className="flex flex-col my-4">
+          <div key={a.year} className="flex flex-col my-4">
             <div className="flex items-end">
               <img src={a.img} width={70} />
               <p className={`${bebas.className} text-5xl ml-4 text-white`}>

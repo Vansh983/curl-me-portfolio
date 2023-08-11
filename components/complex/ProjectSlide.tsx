@@ -10,7 +10,7 @@ interface Project {
   year: string;
 }
 
-export default function ProjectSlide({ select, setSelect }) {
+export default function ProjectSlide() {
   const project = projects[0];
   return (
     <div

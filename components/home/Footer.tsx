@@ -61,8 +61,8 @@ const Footer = () => (
       - whatever works best!
     </p>
     <div className="flex flex-wrap items-center justify-between mt-8">
-      {links.map((link) => (
-        <Link href={link.href} target="_blank">
+      {links.map((link, index) => (
+        <Link href={link.href} key={index} target="_blank">
           <link.icon color="white" className="text-6xl" />
         </Link>
       ))}

@@ -4,11 +4,7 @@ import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import Navbar from "../components/layout/Navbar";
-import Landing from "../components/home/Landing";
-import ZoomSection from "../components/home/ZoomSection";
 import ScrollAnimation from "../components/home/ScrollAnimation";
-import ProjectCard from "../components/home/ProjectCard";
-import { projects, code_proj } from "../data/projects";
 import { about, story } from "../data/about";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
@@ -19,7 +15,6 @@ import dynamic from "next/dynamic";
 import ProjectsLayout from "../components/home/ProjectsLayout";
 import { mont, play } from "../utils/fonts";
 import Link from "next/link";
-import FuckBall from "../components/complex/FuckBall";
 import Timeline from "../components/complex/Timeline";
 import Facts from "../components/home/Facts";
 import Footer from "../components/home/Footer";
@@ -203,7 +198,7 @@ const Home: NextPage = () => {
             }}
             ref={landingParaRef}
           >
-            I'm a creative developer on a mission to ignite change and
+            I&apos;m a creative developer on a mission to ignite change and
             innovation. I assist startups by building their software as a
             founding engineer, applying my skills to uplift local businesses and
             helping them resolve their tech issues. I am a problem-solver at
@@ -233,7 +228,7 @@ const Home: NextPage = () => {
               zIndex: 3,
             }}
           >
-            I'm a creative developer on a mission to ignite change and
+            I&apos;m a creative developer on a mission to ignite change and
             innovation. I assist startups by building their software as a
             founding engineer, applying my skills to uplift local businesses and
             helping them resolve their tech issues. I am a problem-solver at
