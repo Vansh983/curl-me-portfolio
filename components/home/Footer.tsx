@@ -1,18 +1,60 @@
 import React from "react";
 import { mont, play } from "../../utils/fonts";
+import Link from "next/link";
+import { FaLinkedin, FaGithub } from "react-icons/fa";
+import { FiMail } from "react-icons/fi";
+import { PiFileDocDuotone } from "react-icons/pi";
+import Image from "next/image";
 
-const Footer = () => {
-  return (
-    <div className="relative w-3/4 m-auto" id="footer" style={{ zIndex: 10 }}>
-      <h1 className={`text-5xl font-bold text-white ${mont.className}`}>
-        Enjoying my work? Let's work together
-      </h1>
-      <p className={`text-xl my-8 text-white w-3/4 ${mont.className}`}>
-        Happy to create one of your own! Drop a text, schedule a quick call or
-        send an email - whatever works best!
-      </p>
+const links = [
+  {
+    img: "/assets/icons/linkedin.png",
+    href: "https://www.linkedin.com/in/vanshsood/",
+  },
+  { img: "/assets/icons/github.png", href: "https://github.com/Vansh983" },
+  { img: "/assets/icons/mail.png", href: "mailto:vanshsood@dal.ca" },
+  {
+    img: "/assets/icons/doc.png",
+    href: "https://vanshsood.com/assets/Resume_Vansh_Sood.pdf",
+  },
+];
+
+const Footer = () => (
+  <div
+    className="bg-[#000000e0] pt-16 pb-12 relative flex flex-col px-4 md:hidden m-auto"
+    id="footer"
+    style={{ zIndex: 10 }}
+  >
+    <h1 className="text-6xl text-white  font-bold">Enjoyed my work?</h1>
+    <p className={`text-3xl my-8 text-white  ${mont.className}`}>
+      Lets work together! Drop a{" "}
+      <Link href="https://www.linkedin.com/in/vanshsood/">
+        <span style={{ cursor: "pointer", textDecoration: "underline" }}>
+          text
+        </span>
+      </Link>
+      , schedule a quick{" "}
+      <Link href="topmate.io/vansh_sood">
+        <span style={{ cursor: "pointer", textDecoration: "underline" }}>
+          call
+        </span>
+      </Link>{" "}
+      or send an{" "}
+      <Link href="mailto:vanshsood@dal.ca">
+        <span style={{ cursor: "pointer", textDecoration: "underline" }}>
+          email
+        </span>
+      </Link>{" "}
+      - whatever works best!
+    </p>
+    <div className="flex flex-wrap items-center justify-between mt-8">
+      {links.map((link) => (
+        <Link href={link.href} target="_blank">
+          <img src={link.img} className="w-16" />
+        </Link>
+      ))}
     </div>
-  );
-};
+  </div>
+);
 
 export default Footer;

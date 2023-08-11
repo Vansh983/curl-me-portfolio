@@ -57,11 +57,11 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
   // }, []);
 
   return (
-    <div className="flex flex-wrap mt-24 justify-between" ref={ref}>
+    <div className="flex flex-wrap mt-8 md:mt-24 justify-between" ref={ref}>
       {data.map((card, index) => (
         <div
           key={index}
-          className="relative group card w-[48%] my-4"
+          className="relative group card w-full md:w-[48%] my-4"
           style={{ opacity: 1 }}
         >
           <a href={card.url} target="_blank" rel="noopener noreferrer">
@@ -84,9 +84,9 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
               </div>
             </div> */}
             </div>
-            <div className="flex justify-between mt-2">
+            <div className="flex justify-between mt-2 flex-wrap">
               <h2
-                className={`font-bold text-5xl my-8 w-3/4 ${bebas.className}`}
+                className={`font-bold text-5xl my-8 w-full md:w-3/4 ${bebas.className}`}
                 style={{
                   background: `-webkit-linear-gradient(${card.grad})`,
                   WebkitBackgroundClip: "text",
@@ -95,10 +95,10 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
               >
                 <span>{card.title}</span>
               </h2>
-              <div className="flex items-center">
+              <div className="md:flex items-center hidden">
                 <button
                   type="button"
-                  className={`text-white font-bold py-2 px-4 rounded`}
+                  className={`text-white font-bold py-2 px-4 rounded ${mont.className}`}
                   style={{
                     background: `-webkit-linear-gradient(${card.grad})`,
                   }}

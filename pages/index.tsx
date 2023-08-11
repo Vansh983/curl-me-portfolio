@@ -17,12 +17,14 @@ import { BsMouse } from "react-icons/bs";
 
 import dynamic from "next/dynamic";
 import ProjectsLayout from "../components/home/ProjectsLayout";
-import { mont } from "../utils/fonts";
+import { mont, play } from "../utils/fonts";
 import Link from "next/link";
 import FuckBall from "../components/complex/FuckBall";
 import Timeline from "../components/complex/Timeline";
 import Facts from "../components/home/Facts";
 import Footer from "../components/home/Footer";
+import StoryGrid from "../components/home/StoryGrid";
+import TimelineResponsive from "../components/complex/TimelineResponsive";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -48,6 +50,7 @@ const Home: NextPage = () => {
   const ref = useRef<HTMLDivElement>(null);
   const landingParaRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
+  const titleResRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const [vanish, setVanish] = useState(false);
   const tl = useRef();
@@ -86,6 +89,20 @@ const Home: NextPage = () => {
           ease: "power1.out",
           scrollTrigger: {
             trigger: titleRef.current,
+            start: 10,
+            end: 10,
+            scrub: true,
+          },
+          top: 100,
+          // left: 10,
+          opacity: 0,
+          visibility: "hidden",
+          // background: "#eee",
+        });
+        gsap.to(titleResRef.current, {
+          ease: "power1.out",
+          scrollTrigger: {
+            trigger: titleResRef.current,
             start: 10,
             end: 10,
             scrub: true,
@@ -144,7 +161,7 @@ const Home: NextPage = () => {
       <Particles />
       {/* <CustomCursor /> */}
       <ScrollAnimation setCounter={setCounter} />
-      <div className="min-h-screen px-24">
+      <div className="min-h-screen px-4 md:px-24">
         <div
           className={`flex flex-col relative py-36 h-full ${
             counter < 1 ? "fixed" : "relative"
@@ -165,7 +182,7 @@ const Home: NextPage = () => {
             Vansh Sood
           </h1>
           <h1
-            className={`text-8xl font-bold mt-16 text-white fixed`}
+            className={`text-6xl md:block hidden md:text-8xl font-bold mt-16 text-white fixed`}
             style={{
               zIndex: 20,
               opacity: 0.7,
@@ -177,7 +194,7 @@ const Home: NextPage = () => {
             Vansh Sood
           </h1>
           <p
-            className={`${mont.className} fixed color-4 text-lg mt-48 pl-2 w-1/2 text-justify`}
+            className={`${mont.className} md:block hidden fixed color-4 text-lg mt-40 md:mt-48 w-[92vw] md:pl-2 md:w-1/2 text-justify`}
             style={{
               fontSize: 20,
               opacity: 0.7,
@@ -192,13 +209,39 @@ const Home: NextPage = () => {
             I'm an avid reader, a music enthusiast, and an active participant in
             discussions around tech and entrepreneurship.
           </p>
+          <h1
+            className={`text-6xl md:text-8xl font-bold mt-16 text-white block md:hidden lg:hidden `}
+            style={{
+              zIndex: 20,
+              opacity: 0.7,
+              transition: "0.5s ease-in-out",
+            }}
+            id="logo"
+            ref={titleResRef}
+          >
+            Vansh Sood
+          </h1>
+          <p
+            className={`${mont.className} md:hidden block  color-4 text-lg mt-12 w-[92vw] md:pl-2 md:w-1/2 text-justify`}
+            style={{
+              fontSize: 20,
+              opacity: 0.7,
+              transition: "0.8s",
+              zIndex: 3,
+            }}
+          >
+            Trying to bring a change by empowering international students to
+            leverage Freelancing over conventional part-time Driven by a passion
+            for technology and entrepreneurship, I am a problem-solver at heart.
+            I'm an avid reader, a music enthusiast, and an active participant in
+            discussions around tech and entrepreneurship.
+          </p>
         </div>
         <div
-          className="scroll-to-see fixed flex"
+          className="scroll-to-see fixed flex md: l-[100]"
           style={{
             bottom: 50,
-            left: 100,
-            zIndex: 4000,
+            zIndex: 40,
             color: "#ffffff",
             opacity: 0.7,
             alignItems: "center",
@@ -234,34 +277,29 @@ const Home: NextPage = () => {
          
         </div>
       </div> */}
-      <Timeline />
+      <div className="hidden md:block">
+        <Timeline />
+      </div>
+      <div className="block md:hidden">
+        <TimelineResponsive />
+      </div>
 
       {/* <div className="h-[1000px]></div> */}
       <ProjectsLayout />
       {/* <Facts /> */}
-      {/* <div className="flex flex-col relative px-48 py-24">
-        <h1 className="text-7xl text-white">Empower</h1>
+      <div className="flex md:hidden flex-col relative px-2 py-24">
+        <h1 className={`${play.className} text-6xl font-bold text-white`}>
+          Some things i like to flaunt
+        </h1>
         <div className="py-4">
-          <div
-            className="relative h-64 radius shadow-md bg-cover bg-center my-4 overflow-hidden"
-            style={{
-              backgroundImage: `url(${story[0].img})`,
-              height: "400px",
-              boxShadow: "0px 4px 4px 500px rgba(0, 0, 0, 0.25) inset",
-            }}
-          >
-            <div className="absolute inset-0  flex flex-col justify-end py-8 px-16">
-              <h2 className="text-4xl font-bold text-white">
-                {story[0].title}
-              </h2>
-              <p className="text-white w-5/6">{story[0].description}</p>
-            </div>
-          </div>
-          <StoryGrid cards={story.slice(1)} />
+          <StoryGrid cards={story} />
         </div>
-      </div> */}
-      <Facts />
-      {/* <Footer /> */}
+      </div>
+      <div className="hidden md:block">
+        <Facts />
+      </div>
+
+      <Footer />
     </div>
   );
 };

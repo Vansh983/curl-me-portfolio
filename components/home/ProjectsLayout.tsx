@@ -42,7 +42,7 @@ function ProjectsLayout() {
   }, []);
   return (
     <div
-      className="flex flex-col bg-[#000000e0] relative w-full px-24 py-24"
+      className="flex flex-col bg-[#000000e0] relative w-full px-2 md:px-24 py-24"
       style={{ zIndex: 40 }}
       id="projects"
       ref={ref}
@@ -50,7 +50,7 @@ function ProjectsLayout() {
       <div className="flex justify-between mb-16">
         <div className="w-3/4">
           <h1
-            className={`text-7xl font-bold text-white  absolute`}
+            className={`text-5xl md:text-7xl font-bold text-white  absolute`}
             style={{ zIndex: 100, whiteSpace: "nowrap" }}
             ref={headingRef}
           >
