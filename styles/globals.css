@@ -130,3 +130,17 @@ p {
   text-decoration: none;
   font-size: 48px;
 }
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.scroll-to-see {
+  animation: blink 3s linear infinite;
+}

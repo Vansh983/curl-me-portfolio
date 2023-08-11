@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/dist/MotionPathPlugin";
 import styles from "../../styles/Timeline.module.css";
+import { bebas } from "../../utils/fonts";
 
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 gsap.defaults({ ease: "none" });
@@ -59,17 +60,37 @@ function Timeline() {
         <path className="line03 line" d="M 10 600  600 600"></path>
         <path className="line04 line" d="M 10 800  600 800"></path>
         <path className="line05 line" d="M 10 1000  600 1000"></path>
-        <text className="text01" x="30" y="190">
+        <text
+          className={`text01 ${bebas.className}`}
+          style={{ fill: "#ffffff" }}
+          x="30"
+          y="190"
+        >
           2018
         </text>
 
-        <text className="text02" x="30" y="470">
+        <text
+          className={`text02 ${bebas.className}`}
+          style={{ fill: "#ffffff" }}
+          x="30"
+          y="470"
+        >
           2020
         </text>
-        <text className="text03" x="30" y="720">
-          2021
+        <text
+          className={`text03 ${bebas.className}`}
+          style={{ fill: "#ffffff" }}
+          x="30"
+          y="720"
+        >
+          2022
         </text>
-        <text className="text04" x="30" y="990">
+        <text
+          className={`text04 ${bebas.className}`}
+          style={{ fill: "#ffffff" }}
+          x="30"
+          y="990"
+        >
           2023
         </text>
         <image href="/assets/timeline/gci.png" x="330" y="120" width="250" />
@@ -106,24 +127,30 @@ function Timeline() {
           width="40" // And these to scale the image
           height="40"
         />
-        <circle
+        <image
+          href="/assets/timeline/webcube.png"
           className={`${styles.ball} ball03`}
-          r="20"
-          cx="267"
-          cy="481"
-        ></circle>
-        <circle
+          x="247"
+          y="481"
+          width="40" // And these to scale the image
+          height="40"
+        ></image>
+        <image
+          href="/assets/timeline/dal.png"
           className={`${styles.ball} ball04`}
-          r="20"
-          cx="143"
-          cy="721"
-        ></circle>
-        <circle
+          x="120"
+          y="721"
+          width="40" // And these to scale the image
+          height="40"
+        ></image>
+        <image
+          href="/assets/timeline/rocket1.png"
           className={`${styles.ball} ball05`}
-          r="20"
-          cx="260"
-          cy="971"
-        ></circle>
+          x="260"
+          y="971"
+          width="40" // And these to scale the image
+          height="40"
+        ></image>
       </svg>
     </div>
   );

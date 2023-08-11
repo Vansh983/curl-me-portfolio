@@ -12,12 +12,10 @@ import { projects, code_proj } from "../data/projects";
 import { about, story } from "../data/about";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { BsMouse } from "react-icons/bs";
 // import Particles from "../components/complex/Particles";
 
 import dynamic from "next/dynamic";
-import SideProj from "../components/home/SideProj";
-import StoryGrid from "../components/home/StoryGrid";
-import CustomCursor from "../components/layout/CustomCursor";
 import ProjectsLayout from "../components/home/ProjectsLayout";
 import { mont } from "../utils/fonts";
 import Link from "next/link";
@@ -49,7 +47,7 @@ const Home: NextPage = () => {
   const [counter, setCounter] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const landingParaRef = useRef<HTMLDivElement>(null);
-  const ref2 = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const [vanish, setVanish] = useState(false);
   const tl = useRef();
@@ -66,21 +64,33 @@ const Home: NextPage = () => {
             end: 10,
             scrub: true,
           },
-          top: 15,
           // left: 10,
-          fontSize: 40,
-
+          opacity: 0.7,
           // background: "#eee",
         });
         gsap.to(landingParaRef.current, {
           ease: "power3.out",
           scrollTrigger: {
             trigger: landingParaRef.current,
+            start: 50,
+            end: 50,
+            scrub: true,
+          },
+          top: 150,
+          // left: 10,
+          opacity: 0,
+          visibility: "hidden",
+          // background: "#eee",
+        });
+        gsap.to(titleRef.current, {
+          ease: "power1.out",
+          scrollTrigger: {
+            trigger: titleRef.current,
             start: 10,
             end: 10,
             scrub: true,
           },
-          top: 150,
+          top: 100,
           // left: 10,
           opacity: 0,
           visibility: "hidden",
@@ -142,19 +152,32 @@ const Home: NextPage = () => {
           style={{ zIndex: 1 }}
         >
           <h1
-            className={`text-8xl font-bold text-white fixed`}
+            className={`text-4xl font-bold text-white fixed`}
             style={{
               zIndex: 20,
-              opacity: 0.7,
+              opacity: 0,
               transition: "1s ease-in-out",
+              top: 15,
             }}
             id="logo"
             ref={logoRef}
           >
             Vansh Sood
           </h1>
+          <h1
+            className={`text-8xl font-bold mt-16 text-white fixed`}
+            style={{
+              zIndex: 20,
+              opacity: 0.7,
+              transition: "0.5s ease-in-out",
+            }}
+            id="logo"
+            ref={titleRef}
+          >
+            Vansh Sood
+          </h1>
           <p
-            className={`${mont.className} fixed color-4 text-lg mt-36 pl-2 w-2/5 text-justify`}
+            className={`${mont.className} fixed color-4 text-lg mt-48 pl-2 w-1/2 text-justify`}
             style={{
               fontSize: 20,
               opacity: 0.7,
@@ -169,6 +192,24 @@ const Home: NextPage = () => {
             I'm an avid reader, a music enthusiast, and an active participant in
             discussions around tech and entrepreneurship.
           </p>
+        </div>
+        <div
+          className="scroll-to-see fixed flex"
+          style={{
+            bottom: 50,
+            left: 100,
+            zIndex: 4000,
+            color: "#ffffff",
+            opacity: 0.7,
+            alignItems: "center",
+          }}
+        >
+          <BsMouse style={{ fontSize: 40 }} />
+          <span
+            className={`text-sm font-semibold leading-6 text-gray-300 uppercase ml-6 ${mont.className}`}
+          >
+            Scroll to know about me
+          </span>
         </div>
         <div
           className="socio-links fixed"

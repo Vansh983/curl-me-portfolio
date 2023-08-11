@@ -58,9 +58,9 @@ export default function Scene() {
               <h2 className={`text-5xl font-bold text-white ${mont.className}`}>
                 {card.title}
               </h2>
-              <p className={`text-white w-5/6 ${mont.className}`}>
+              {/* <p className={`text-white w-5/6 ${mont.className}`}>
                 {card.description}
-              </p>
+              </p> */}
             </div>
           </div>
         ))}
