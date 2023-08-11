@@ -291,11 +291,11 @@ const Home: NextPage = () => {
           <StoryGrid cards={story} />
         </div>
       </div>
+
+      <Footer />
       <div className="hidden md:block">
         <Facts />
       </div>
-
-      <Footer />
     </div>
   );
 };

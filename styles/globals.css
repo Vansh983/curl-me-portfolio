@@ -14,7 +14,6 @@ body {
   /* background-color: #f2f2f2; */
   /* bg-[#0D0D0D] */
   overflow-x: hidden;
-  scroll-behavior: smooth !important;
 }
 
 html {
