@@ -1,6 +1,6 @@
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
-import { useLayoutEffect, useRef, useEffect } from "react";
+import { useLayoutEffect, useRef, useEffect, useState } from "react";
 import { story } from "../../data/about";
 import { mont, play } from "../../utils/fonts";
 import Link from "next/link";
@@ -10,6 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Scene() {
   const componentRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState(false);
 
   useEffect(() => {
     let ctx = gsap.context(() => {
@@ -22,22 +23,25 @@ export default function Scene() {
         scrollTrigger: {
           trigger: sliderRef.current,
           scrub: 1,
-          snap: 1 / (panels.length - 1),
           start: `top top`,
+          pin: true,
+          onEnter: () => setState(true),
+          invalidateOnRefresh: true,
+          anticipatePin: 1,
           end: () => "+=" + window.innerWidth * panels.length,
         },
       });
-      ScrollTrigger.create({
-        trigger: sliderRef.current,
-        end: () => "+=" + (window.innerWidth * panels.length + pixelsPause),
-        pin: true,
-      });
     }, componentRef);
     return () => ctx.revert();
-  });
+  }, []);
 
   return (
-    <div ref={componentRef}>
+    <div
+      ref={componentRef}
+      // style={{
+      //   overflowY: state ? "scroll" : "hidden",
+      // }}
+    >
       <div ref={sliderRef} className="containerRR">
         <h1
           className={`${play.className} text-7xl text-white ml-16 font-bold`}

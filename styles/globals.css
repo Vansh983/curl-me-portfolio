@@ -18,7 +18,7 @@ body {
   background-color: #0d0d0d;
   /* background-color: #f2f2f2; */
   /* bg-[#0D0D0D] */
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 ::selection {
@@ -34,7 +34,7 @@ body {
 }
 
 .containerRR {
-  width: 600vw;
+  width: 600%;
   height: 100vh;
   display: flex;
   align-items: center;
