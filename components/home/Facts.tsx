@@ -12,7 +12,7 @@ export default function Scene() {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let ctx = gsap.context(() => {
       const pixelsPause = 300;
       //@ts-ignore
@@ -23,25 +23,22 @@ export default function Scene() {
         scrollTrigger: {
           trigger: sliderRef.current,
           scrub: 1,
-          start: `top top`,
-          pin: true,
-          onEnter: () => setState(true),
-          invalidateOnRefresh: true,
-          anticipatePin: 1,
+          snap: 1 / (panels.length - 1),
+          start: `top+=${pixelsPause} top`,
           end: () => "+=" + window.innerWidth * panels.length,
         },
+      });
+      ScrollTrigger.create({
+        trigger: componentRef.current,
+        end: () => "+=" + (window.innerWidth * panels.length + pixelsPause),
+        pin: true,
       });
     }, componentRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <div
-      ref={componentRef}
-      // style={{
-      //   overflowY: state ? "scroll" : "hidden",
-      // }}
-    >
+    <div ref={componentRef}>
       <div ref={sliderRef} className="containerRR">
         <h1
           className={`${play.className} text-7xl text-white ml-16 font-bold`}
