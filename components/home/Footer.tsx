@@ -35,7 +35,9 @@ const Footer = () => (
     id="footer"
     style={{ zIndex: 10 }}
   >
-    <h1 className={`${play.className} text-6xl text-white font-bold`}>
+    <h1
+      className={`${play.className} text-5xl md:text-6xl text-white font-bold`}
+    >
       Enjoyed my work?
     </h1>
     <p

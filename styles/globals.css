@@ -5,7 +5,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=DM+Serif+Display&family=Playfair+Display:wght@600&display=swap");
 
-html,
+html {
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
 body {
   padding: 0;
   margin: 0;
@@ -16,14 +21,16 @@ body {
   overflow-x: hidden;
 }
 
-html {
-  overflow-y: scroll;
-  height: 100%;
+::selection {
+  color: #dedede;
+  background-color: #13171c;
 }
-body {
-  overflow-y: visible;
-  position: relative;
-  overflow-x: hidden;
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1c;
 }
 
 .containerRR {

@@ -1,6 +1,6 @@
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useEffect } from "react";
 import { story } from "../../data/about";
 import { mont, play } from "../../utils/fonts";
 import Link from "next/link";
@@ -11,7 +11,7 @@ export default function Scene() {
   const componentRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     let ctx = gsap.context(() => {
       const pixelsPause = 300;
       //@ts-ignore
@@ -23,7 +23,7 @@ export default function Scene() {
           trigger: sliderRef.current,
           scrub: 1,
           snap: 1 / (panels.length - 1),
-          start: `top+=${pixelsPause} top`,
+          start: `top top`,
           end: () => "+=" + window.innerWidth * panels.length,
         },
       });
@@ -37,7 +37,7 @@ export default function Scene() {
   });
 
   return (
-    <div ref={componentRef} id="exp">
+    <div ref={componentRef}>
       <div ref={sliderRef} className="containerRR">
         <h1
           className={`${play.className} text-7xl text-white ml-16 font-bold`}

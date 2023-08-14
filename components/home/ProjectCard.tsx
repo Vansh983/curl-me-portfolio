@@ -50,7 +50,7 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
             </div>
             <div className="flex justify-between mt-2 flex-wrap">
               <h2
-                className={`font-bold text-5xl my-8 w-full md:w-3/4 ${bebas.className}`}
+                className={`font-bold text-4xl md:text-5xl my-8 w-full md:w-3/4 ${bebas.className}`}
                 style={{
                   background: `-webkit-linear-gradient(${card.grad})`,
                   WebkitBackgroundClip: "text",

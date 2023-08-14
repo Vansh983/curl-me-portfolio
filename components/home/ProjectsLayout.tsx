@@ -43,7 +43,7 @@ function ProjectsLayout() {
   }, []);
   return (
     <div
-      className="flex flex-col bg-[#000000e0] relative w-full px-2 md:px-24 py-24"
+      className="flex flex-col bg-[#000000e0] relative w-full px-2 md:px-24 py-12 md:py-24"
       style={{ zIndex: 40 }}
       id="projects"
       ref={ref}

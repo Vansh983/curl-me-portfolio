@@ -284,7 +284,9 @@ const Home: NextPage = () => {
       <ProjectsLayout />
       {/* <Facts /> */}
       <div className="flex md:hidden flex-col relative px-2 py-24">
-        <h1 className={`${play.className} text-6xl font-bold text-white`}>
+        <h1
+          className={`${play.className} text-5xl md:text-6xl font-bold text-white`}
+        >
           Some things i like to flaunt
         </h1>
         <div className="py-4">

@@ -8,7 +8,7 @@ import { bebas, mont } from "../../utils/fonts";
 const navigation = [
   { name: "About", href: "#about" },
   { name: "Projects", href: "#projects" },
-  { name: "Experience", href: "#exp" },
+  { name: "Linkedin", href: "https://www.linkedin.com/in/vanshsood/" },
 ];
 
 export default function Navbar() {
