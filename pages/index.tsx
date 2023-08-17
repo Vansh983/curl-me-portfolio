@@ -50,7 +50,7 @@ const Home: NextPage = () => {
   const logoRef = useRef<HTMLDivElement>(null);
   const [vanish, setVanish] = useState(false);
   const tl = useRef();
-  useLayoutEffect(() => {
+  useEffect(() => {
     const ctx = gsap.context((self) => {
       // .from(box, { y: 150, opacity: 0 })
 
@@ -295,9 +295,7 @@ const Home: NextPage = () => {
       </div>
 
       <Footer />
-      <div className="hidden md:block">
-        <Facts />
-      </div>
+      <Facts />
     </div>
   );
 };

@@ -12,7 +12,7 @@ export default function Scene() {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     let ctx = gsap.context(() => {
       const pixelsPause = 300;
       //@ts-ignore
@@ -23,7 +23,6 @@ export default function Scene() {
         scrollTrigger: {
           trigger: sliderRef.current,
           scrub: 1,
-          snap: 1 / (panels.length - 1),
           start: `top+=${pixelsPause} top`,
           end: () => "+=" + window.innerWidth * panels.length,
         },
