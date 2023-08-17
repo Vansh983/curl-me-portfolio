@@ -1,6 +1,6 @@
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
-import { useLayoutEffect, useRef, useEffect, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { story } from "../../data/about";
 import { mont, play } from "../../utils/fonts";
 import Link from "next/link";
@@ -10,9 +10,8 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Scene() {
   const componentRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
-  const [state, setState] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let ctx = gsap.context(() => {
       const pixelsPause = 300;
       //@ts-ignore
@@ -23,24 +22,25 @@ export default function Scene() {
         scrollTrigger: {
           trigger: sliderRef.current,
           scrub: 1,
+          snap: 1 / (panels.length - 1),
           start: `top+=${pixelsPause} top`,
           end: () => "+=" + window.innerWidth * panels.length,
         },
       });
       ScrollTrigger.create({
-        trigger: componentRef.current,
+        trigger: sliderRef.current,
         end: () => "+=" + (window.innerWidth * panels.length + pixelsPause),
         pin: true,
       });
     }, componentRef);
     return () => ctx.revert();
-  }, []);
+  });
 
   return (
-    <div ref={componentRef}>
+    <div ref={componentRef} id="exp">
       <div ref={sliderRef} className="containerRR">
         <h1
-          className={`${play.className} text-7xl text-white ml-16 font-bold`}
+          className="text-7xl text-white ml-16 font-bold"
           style={{ width: "500px" }}
         >
           Some things I like to flaunt
@@ -69,9 +69,7 @@ export default function Scene() {
           className="relative ml-4 panelR flex flex-col justify-center"
           style={{ zIndex: 30 }}
         >
-          <h1
-            className={`text-7xl text-white ml-6 font-bold ${play.className}`}
-          >
+          <h1 className="text-7xl text-white ml-6 font-bold">
             Enjoyed my work?
           </h1>
           <p className={`text-3xl my-8 text-white ml-6 ${mont.className}`}>

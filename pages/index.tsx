@@ -295,7 +295,9 @@ const Home: NextPage = () => {
       </div>
 
       <Footer />
-      <Facts />
+      <div className="hidden md:block">
+        <Facts />
+      </div>
     </div>
   );
 };
