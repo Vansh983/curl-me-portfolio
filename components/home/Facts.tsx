@@ -21,20 +21,17 @@ export default function Scene() {
         ease: "none",
         scrollTrigger: {
           trigger: sliderRef.current,
+          pin: true,
           scrub: 1,
-          snap: 1 / (panels.length - 1),
-          start: `top+=${pixelsPause} top`,
-          end: () => "+=" + window.innerWidth * panels.length,
+          end: () => "+=" + sliderRef.current.offsetWidth,
         },
-      });
-      ScrollTrigger.create({
-        trigger: sliderRef.current,
-        end: () => "+=" + (window.innerWidth * panels.length + pixelsPause),
-        pin: true,
       });
     }, componentRef);
     return () => ctx.revert();
   });
+
+  // start: `top+=${pixelsPause} top`,
+  // end: () => "+=" + window.innerWidth * panels.length,
 
   return (
     <div ref={componentRef} id="exp">
