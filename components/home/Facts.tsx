@@ -23,6 +23,7 @@ export default function Scene() {
           trigger: sliderRef.current,
           pin: true,
           scrub: 1,
+          //@ts-ignore
           end: () => "+=" + sliderRef.current.offsetWidth,
         },
       });
