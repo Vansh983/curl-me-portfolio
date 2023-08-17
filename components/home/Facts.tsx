@@ -20,9 +20,10 @@ export default function Scene() {
         xPercent: -100 * (panels.length - 1),
         ease: "none",
         scrollTrigger: {
-          trigger: sliderRef.current,
+          trigger: ".containerRR",
           pin: true,
           scrub: 1,
+          start: "top top",
           //@ts-ignore
           end: () => "+=" + sliderRef.current.offsetWidth,
         },
