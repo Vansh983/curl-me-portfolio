@@ -33,18 +33,6 @@ body {
   background: #1e1e1c;
 }
 
-.containerRR {
-  width: 600%;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-}
-
-.panelR {
-  width: 50vw;
-  height: 70vh;
-}
-
 a {
   color: inherit;
   text-decoration: none;
@@ -149,4 +137,16 @@ p {
 
 .scroll-to-see {
   animation: blink 3s linear infinite;
+}
+
+.containerRR {
+  width: 600%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.panelR {
+  width: 50vw;
+  height: 70vh;
 }

@@ -1,46 +1,34 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import ProjectCard from "./ProjectCard";
 import { projects } from "../../data/projects";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { play } from "../../utils/fonts";
+gsap.registerPlugin(ScrollTrigger);
 
 function ProjectsLayout() {
   const ref = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (headingRef.current) {
-      gsap.to(headingRef.current, {
-        delay: 0.5,
-        ease: "power3.out",
-        marginLeft: -2000,
-        scrollTrigger: {
-          trigger: ref.current,
-          start: "top bottom",
-          end: "top -200%",
-          scrub: true,
-        },
-      });
-    }
-    // if (ref.current) {
-    //   gsap.to(ref.current, {
-    //     // y: 100,
-    //     ease: "power3.out",
-    //     // delay: 1,
-    //     skewY: -6,
-    //     // stagger: {
-    //     //   amount: 0.3,
-    //     // },
-    //     scrollTrigger: {
-    //       trigger: ref.current,
-    //       start: "top center",
-    //       end: "bottom center",
-    //       scrub: true,
-    //       markers: true,
-    //     },
-    //   });
-    // }
-  }, []);
+
+  useLayoutEffect(() => {
+    let ctx = gsap.context(() => {
+      if (headingRef.current) {
+        gsap.to(headingRef.current, {
+          delay: 0.5,
+          ease: "power3.out",
+          marginLeft: -2000,
+          scrollTrigger: {
+            trigger: ref.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+      }
+    }, ref);
+    return () => ctx.revert();
+  });
+
   return (
     <div
       className="flex flex-col bg-[#000000e0] relative w-full px-2 md:px-24 py-12 md:py-24"
