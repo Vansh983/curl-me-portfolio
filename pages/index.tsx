@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense, useLayoutEffect } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
@@ -21,6 +21,7 @@ import Footer from "../components/home/Footer";
 import StoryGrid from "../components/home/StoryGrid";
 import TimelineResponsive from "../components/complex/TimelineResponsive";
 import Script from "next/script";
+import Loading from "../components/layout/loading";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -49,6 +50,7 @@ const Home: NextPage = () => {
   const titleResRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const [complete, setComplete] = useState(false);
+  const [loading, setLoading] = useState(false);
   const tl = useRef();
   useEffect(() => {
     const ctx = gsap.context((self) => {
@@ -127,167 +129,167 @@ const Home: NextPage = () => {
       }
     }, ref); // <- Scope!
     return () => ctx.revert(); // <- Cleanup!
-  }, []);
+  });
 
-  useEffect(() => {
-    console.log("done");
-  }, [complete]);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setLoading(true);
+  //   }, 5000);
+  // }, []);
 
   return (
     <div className={styles.main}>
-      <Suspense fallback={<p>Loading feed...</p>}>
-        <Navbar />
-        <Particles />
-        {/* <CustomCursor /> */}
-        <ScrollAnimation setCounter={setCounter} />
-        <div className="min-h-screen px-4 md:px-24">
-          <div
-            className={`flex flex-col relative py-36 h-full ${
-              counter < 1 ? "fixed" : "relative"
-            }`}
-            style={{ zIndex: 1 }}
-          >
-            <h1
-              className={`${play.className} text-4xl font-bold text-white fixed`}
-              style={{
-                zIndex: 20,
-                opacity: 0,
-                transition: "1s ease-in-out",
-                top: 15,
-              }}
-              id="logo"
-              ref={logoRef}
-            >
-              Vansh Sood
-            </h1>
-            <h1
-              className={`${play.className} text-6xl md:block hidden md:text-8xl font-bold mt-16 text-white fixed`}
-              style={{
-                zIndex: 20,
-                opacity: 0.7,
-                transition: "0.5s ease-in-out",
-              }}
-              id="logo"
-              ref={titleRef}
-            >
-              Vansh Sood
-            </h1>
-            <p
-              className={`${mont.className} md:block hidden fixed color-4 text-lg mt-40 md:mt-48 w-[92vw] md:pl-2 md:w-1/2 text-justify`}
-              style={{
-                fontSize: 20,
-                opacity: 0.7,
-                transition: "0.8s",
-                zIndex: 3,
-              }}
-              ref={landingParaRef}
-            >
-              I&apos;m a creative developer on a mission to ignite change and
-              innovation. I assist startups by building their software as a
-              founding engineer, applying my skills to uplift local businesses
-              and helping them resolve their tech issues. I am a problem-solver
-              at heart, with a passion for reading, music, and active engagement
-              in discussions surrounding tech and entrepreneurship. My endeavors
-              go beyond conventional paths, as I continue to explore new avenues
-              that bridge creativity, technology, and business.
-            </p>
-            <h1
-              className={`${play.className} text-6xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
-              style={{
-                zIndex: 20,
-                opacity: 1,
-                transition: "0.5s ease-in-out",
-              }}
-              id="logo"
-              ref={titleResRef}
-            >
-              Vansh Sood
-            </h1>
-            <p
-              className={`${mont.className} md:hidden block  color-4 text-lg mt-12 w-[92vw] md:pl-2 md:w-1/2`}
-              style={{
-                fontSize: 20,
-                opacity: 0.8,
-                transition: "0.8s",
-                zIndex: 3,
-              }}
-            >
-              I&apos;m a creative developer on a mission to ignite change and
-              innovation. I assist startups by building their software as a
-              founding engineer, applying my skills to uplift local businesses
-              and helping them resolve their tech issues. I am a problem-solver
-              at heart, with a passion for reading, music, and active engagement
-              in discussions surrounding tech and entrepreneurship. My endeavors
-              go beyond conventional paths, as I continue to explore new avenues
-              that bridge creativity, technology, and business.
-            </p>
-          </div>
-          <div
-            className="scroll-to-see relative md:fixed flex"
+      <Navbar />
+      <Particles />
+      {/* <CustomCursor /> */}
+      <ScrollAnimation setCounter={setCounter} />
+      <div className="min-h-screen px-4 md:px-24">
+        <div
+          className={`flex flex-col relative py-36 h-full ${
+            counter < 1 ? "fixed" : "relative"
+          }`}
+          style={{ zIndex: 1 }}
+        >
+          <h1
+            className={`${play.className} text-4xl font-bold text-white fixed`}
             style={{
-              bottom: 50,
-              zIndex: 40,
-              color: "#ffffff",
+              zIndex: 20,
+              opacity: 0,
+              transition: "1s ease-in-out",
+              top: 15,
+            }}
+            id="logo"
+            ref={logoRef}
+          >
+            Vansh Sood
+          </h1>
+          <h1
+            className={`${play.className} text-6xl md:block hidden md:text-8xl font-bold mt-16 text-white fixed`}
+            style={{
+              zIndex: 20,
               opacity: 0.7,
-              alignItems: "center",
+              transition: "0.5s ease-in-out",
+            }}
+            id="logo"
+            ref={titleRef}
+          >
+            Vansh Sood
+          </h1>
+          <p
+            className={`${mont.className} md:block hidden fixed color-4 text-lg mt-40 md:mt-48 w-[92vw] md:pl-2 md:w-1/2 text-justify`}
+            style={{
+              fontSize: 20,
+              opacity: 0.7,
+              transition: "0.8s",
+              zIndex: 3,
+            }}
+            ref={landingParaRef}
+          >
+            I&apos;m a creative developer on a mission to ignite change and
+            innovation. I assist startups by building their software as a
+            founding engineer, applying my skills to uplift local businesses and
+            helping them resolve their tech issues. I am a problem-solver at
+            heart, with a passion for reading, music, and active engagement in
+            discussions surrounding tech and entrepreneurship. My endeavors go
+            beyond conventional paths, as I continue to explore new avenues that
+            bridge creativity, technology, and business.
+          </p>
+          <h1
+            className={`${play.className} text-6xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
+            style={{
+              zIndex: 20,
+              opacity: 1,
+              transition: "0.5s ease-in-out",
+            }}
+            id="logo"
+            ref={titleResRef}
+          >
+            Vansh Sood
+          </h1>
+          <p
+            className={`${mont.className} md:hidden block  color-4 text-lg mt-12 w-[92vw] md:pl-2 md:w-1/2`}
+            style={{
+              fontSize: 20,
+              opacity: 0.8,
+              transition: "0.8s",
+              zIndex: 3,
             }}
           >
-            <BsMouse style={{ fontSize: 40 }} />
-            <span
-              className={`text-sm font-semibold leading-6 text-gray-300 uppercase ml-6 ${mont.className}`}
-            >
-              Scroll to know about me
-            </span>
-          </div>
-          <div
-            className="socio-links fixed"
-            style={{ bottom: 50, right: 50, zIndex: 4000 }}
+            I&apos;m a creative developer on a mission to ignite change and
+            innovation. I assist startups by building their software as a
+            founding engineer, applying my skills to uplift local businesses and
+            helping them resolve their tech issues. I am a problem-solver at
+            heart, with a passion for reading, music, and active engagement in
+            discussions surrounding tech and entrepreneurship. My endeavors go
+            beyond conventional paths, as I continue to explore new avenues that
+            bridge creativity, technology, and business.
+          </p>
+        </div>
+        <div
+          className="scroll-to-see relative md:fixed flex"
+          style={{
+            bottom: 50,
+            zIndex: 40,
+            color: "#ffffff",
+            opacity: 0.7,
+            alignItems: "center",
+          }}
+        >
+          <BsMouse style={{ fontSize: 40 }} />
+          <span
+            className={`text-sm font-semibold leading-6 text-gray-300 uppercase ml-6 ${mont.className}`}
           >
-            <div className="hidden lg:flex lg:gap-x-12 justify-end">
-              {navigation.map((item) => (
-                <Link key={item.name} href={item.href} target="_blank">
-                  <span
-                    className={`text-sm font-semibold leading-6 text-gray-300 uppercase ${mont.className}`}
-                  >
-                    {item.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
+            Scroll to know about me
+          </span>
+        </div>
+        <div
+          className="socio-links fixed"
+          style={{ bottom: 50, right: 50, zIndex: 4000 }}
+        >
+          <div className="hidden lg:flex lg:gap-x-12 justify-end">
+            {navigation.map((item) => (
+              <Link key={item.name} href={item.href} target="_blank">
+                <span
+                  className={`text-sm font-semibold leading-6 text-gray-300 uppercase ${mont.className}`}
+                >
+                  {item.name}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
-        {/* <div className="h-screen relative px-24" style={{ zIndex: 1 }}>
+      </div>
+      {/* <div className="h-screen relative px-24" style={{ zIndex: 1 }}>
         <div className="flex flex-col">
           <h1 className="text-6xl font-bold text-white">{about.title}</h1>
          
         </div>
       </div> */}
-        <div className="hidden md:block">
-          <Timeline />
-        </div>
-        <div className="block mt-16 md:hidden">
-          <TimelineResponsive />
-        </div>
+      <div className="hidden md:block">
+        <Timeline />
+      </div>
+      <div className="block mt-16 md:hidden">
+        <TimelineResponsive />
+      </div>
 
-        {/* <div className="h-[1000px] w-full bg-black">test</div> */}
-        <ProjectsLayout />
-        {/* <Facts /> */}
-        <div className="flex md:hidden flex-col relative px-2 py-24">
-          <h1
-            className={`${play.className} text-5xl md:text-6xl font-bold text-white`}
-          >
-            Some things i like to flaunt
-          </h1>
-          <div className="py-4">
-            <StoryGrid cards={story} />
-          </div>
+      {/* <div className="h-[1000px] w-full bg-black">test</div> */}
+      <ProjectsLayout />
+      {/* <Facts /> */}
+      <div className="flex md:hidden flex-col relative px-2 py-24">
+        <h1
+          className={`${play.className} text-5xl md:text-6xl font-bold text-white`}
+        >
+          Some things i like to flaunt
+        </h1>
+        <div className="py-4">
+          <StoryGrid cards={story} />
         </div>
+      </div>
 
-        <Footer />
-        <div className="hidden md:block">
-          <Facts />
-        </div>
-      </Suspense>
+      <Footer />
+      <div className="hidden md:block">
+        <Facts />
+      </div>
     </div>
   );
 };

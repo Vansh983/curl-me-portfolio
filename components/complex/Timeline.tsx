@@ -3,7 +3,8 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/dist/MotionPathPlugin";
 import styles from "../../styles/Timeline.module.css";
-import { bebas } from "../../utils/fonts";
+import { bebas, mont } from "../../utils/fonts";
+import { about } from "../../data/about";
 
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 gsap.defaults({ ease: "none" });
@@ -54,6 +55,24 @@ function Timeline() {
 
   return (
     <div style={{ position: "relative", zIndex: 200 }} id="about">
+      <div className="paras">
+        {about.map((ab, index) => (
+          <p
+            style={{
+              color: "#fff",
+              width: ab.width ? ab.width : "550px",
+              fontSize: "1.5rem",
+              position: "absolute",
+              right: ab.left,
+              top: ab.top,
+            }}
+            className={mont.className}
+            key={index}
+          >
+            {ab.content}
+          </p>
+        ))}
+      </div>
       <svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1200">
         <path className="line01 line" d="M 10 200  600 200"></path>
         <path className="line02 line" d="M 10 400  600 400"></path>
@@ -93,10 +112,10 @@ function Timeline() {
         >
           2023
         </text>
-        <image href="/assets/timeline/2018.png" x="330" y="120" width="250" />
+        {/* <image href="/assets/timeline/2018.png" x="330" y="120" width="250" />
         <image href="/assets/timeline/2020.png" x="330" y="470" width="250" />
         <image href="/assets/timeline/2022.png" x="230" y="680" width="300" />
-        <image href="/assets/timeline/2023.png" x="330" y="900" width="250" />
+        <image href="/assets/timeline/2023.png" x="330" y="900" width="250" /> */}
         <path
           className="theLine"
           d="M -5,0

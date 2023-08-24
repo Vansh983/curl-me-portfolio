@@ -1,17 +1,38 @@
-export const about = {
-  title: "Embrace it",
-  paragraphs: [
-    "Currently, I am pursuing my Bachelor of Computer Science degree at Dalhousie University, where I also serve as a Software Developer Co-op. Alongside my studies and work, I've stepped into the role of Academic Technology Support for the School of Health, further solidifying my commitment to leveraging technology for academic betterment. Parallely, I'm the Undergraduate Student Ambassador for Shiftkey Labs, the tech entrepreneurship sandbox of Nova Scotia.",
-    // "My entrepreneurial endeavor took root with Webcube, where I collaborated with startups and businesses to transform their ideas into business solutions using software. Fresh out of high school, I spearheaded the development of 6 production level software and managed a team of over 25 developers across the country, running my own software firm.",
-    "Now, as a tech founder and freelance specialist in web and mobile app development, marketing, and business consultancy, I'm on a mission to empower international students to navigate the world of freelancing. Instead of relying on conventional jobs, I believe that students can leverage freelancing to fund their daily expenses, gain valuable exposure, and learn new skills. I'm excited to use my experiences to help others on their journey.",
-  ],
-  condensed_paragraphs: [
-    "As a tech-driven entrepreneur and Computer Science student at Dalhousie University, I utilize my technical expertise to solve problems and make a tangible impact. My passion was ignited after winning Google Code In at 17, leading to a decision to move to Canada. I have experience in software development and academic technology support and am also an ambassador for Shiftkey Labs.",
-    "My entrepreneurial journey started with Webcube, transforming startups' ideas into business solutions via software, managing a team of 25+ developers and six production-level projects. I've assisted over 20 startups, aiding in securing $100,000+ in funding through MVP development.",
-    "During the Covid-19 crisis, I co-founded Covid Leads Delhi, connecting patients with essential resources and reaching 20,000+ people in two months.",
-    "Currently, I'm a tech founder and freelance specialist focusing on web and mobile app development, marketing, and business consultancy. My mission is to empower international students to enter freelancing, providing them with the means for self-sufficiency, exposure, and skill development. My love for reading, music, and technology-centric discussions keeps me inspired.",
-  ],
-};
+export const about = [
+  {
+    year: "2018",
+    img: "/assets/timeline/google.webp",
+    top: "13%",
+    left: "2.5%",
+    content:
+      "The journey began when I became the Winner of Google Code In at the age of 17. This achievement, recognized by a fully sponsored trip to San Francisco by Google, ignited my passion for coding and catalyzed my decision to move to Canada for studying Computer Science.",
+  },
+  {
+    year: "2020",
+    img: "/assets/timeline/webcube.webp",
+    top: "38%",
+    left: "3%",
+    content:
+      "My entrepreneurial endeavors started with Webcube, transforming startups' ideas into business solutions via software, managing a team of 25+ developers and six production-level projects. I've assisted over 20 startups, aiding in securing $100,000+ in funding through MVP development.",
+  },
+  {
+    year: "2022",
+    img: "/assets/timeline/dal.webp",
+    top: "57.5%",
+    left: "4%",
+    width: "700px",
+    content:
+      "I moved to Canada to study Computer Science at Dalhousie University. I soon became the Student Ambassador for Shiftkey Labs, where I began hosting enriching workshops for fellow university students. The year culminated in me joining the Emerging Wireless Technologies Lab at Dalhousie University under the esteemed guidance of Dr. Srinivas Sampalli.",
+  },
+  {
+    year: "2023",
+    img: "/assets/timeline/rocket1.png",
+    top: "75%",
+    left: "2.5%",
+    content:
+      "As an intern and Software Developer at Dalhousie University, I'm contributing to various research projects and building a community to help students worldwide leverage freelancing for financial independence. My goal is to spread awareness and provide the tools for students to get into freelancing, empowering them to achieve financial independence.",
+  },
+];
 
 export const story = [
   {

@@ -150,3 +150,33 @@ p {
   width: 50vw;
   height: 70vh;
 }
+
+.containerLoader {
+  height: 600px;
+  width: 300px;
+  border: 1px solid #f46200;
+  margin: 0 auto;
+}
+
+.loader {
+  position: relative;
+  top: 230px;
+  left: 90px;
+}
+
+.loader-shadow {
+  position: relative;
+  top: 335px;
+  left: -27px;
+}
+
+.circle {
+  padding: 10px 0 0 10px;
+  float: left;
+}
+
+.circle-shad {
+  padding: 10px 0 0 10px;
+  float: left;
+  opacity: 0;
+}
