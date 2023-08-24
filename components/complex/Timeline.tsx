@@ -17,7 +17,7 @@ function Timeline() {
           autoAlpha: 1,
           scale: 2,
           transformOrigin: "center",
-          ease: "elastic(2.5, 1)",
+          ease: "power3.out",
           visibility: "visible",
         },
       })
@@ -106,7 +106,7 @@ function Timeline() {
                T 150 1200"
           fill="none"
           stroke="white"
-          stroke-width="7px"
+          strokeWidth="7px"
         />
 
         <circle

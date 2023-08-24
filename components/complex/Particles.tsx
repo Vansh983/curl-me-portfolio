@@ -149,7 +149,7 @@ class ParticleClass {
   }
 }
 
-const Particles: React.FC = () => {
+const Particles: React.FC = ({ setComplete }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const arr = [10, -10];
 
@@ -174,6 +174,7 @@ const Particles: React.FC = () => {
         end: 100,
         scrub: true,
       },
+      triggerActions: "play none play none",
       //@ts-ignore
       //   onComplete: () => (particleInstance.particle = []), // remove particles after the animation
     });

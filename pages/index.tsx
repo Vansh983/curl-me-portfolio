@@ -48,7 +48,7 @@ const Home: NextPage = () => {
   const titleRef = useRef<HTMLDivElement>(null);
   const titleResRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
-  const [vanish, setVanish] = useState(false);
+  const [complete, setComplete] = useState(false);
   const tl = useRef();
   useEffect(() => {
     const ctx = gsap.context((self) => {
@@ -145,10 +145,14 @@ const Home: NextPage = () => {
     return () => ctx.revert(); // <- Cleanup!
   }, []);
 
+  useEffect(() => {
+    console.log("done");
+  }, [complete]);
+
   return (
     <div className={styles.main}>
       <Navbar />
-      <Particles />
+      <Particles setComplete={setComplete} />
       {/* <CustomCursor /> */}
       <ScrollAnimation setCounter={setCounter} />
       <div className="min-h-screen px-4 md:px-24">
@@ -298,6 +302,7 @@ const Home: NextPage = () => {
       <div className="hidden md:block">
         <Facts />
       </div>
+      <div className="h-[5000px]" style={{ display: "none" }}></div>
     </div>
   );
 };
