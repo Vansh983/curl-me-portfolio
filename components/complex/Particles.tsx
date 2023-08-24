@@ -149,7 +149,7 @@ class ParticleClass {
   }
 }
 
-const Particles: React.FC = ({ setComplete }) => {
+const Particles: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const arr = [10, -10];
 

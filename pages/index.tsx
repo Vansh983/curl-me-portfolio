@@ -152,7 +152,7 @@ const Home: NextPage = () => {
   return (
     <div className={styles.main}>
       <Navbar />
-      <Particles setComplete={setComplete} />
+      <Particles />
       {/* <CustomCursor /> */}
       <ScrollAnimation setCounter={setCounter} />
       <div className="min-h-screen px-4 md:px-24">
