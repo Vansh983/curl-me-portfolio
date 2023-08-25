@@ -303,7 +303,9 @@ const Home: NextPage = () => {
       </div>
 
       <Footer />
-      <Facts />
+      <div className="hidden md:block" id="story">
+        <Facts />
+      </div>
       {!complete && (
         <div
           style={{

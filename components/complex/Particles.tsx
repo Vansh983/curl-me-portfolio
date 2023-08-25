@@ -173,7 +173,6 @@ const Particles: React.FC = () => {
         end: 100,
         scrub: true,
       },
-      triggerActions: "play none play none",
       //@ts-ignore
       //   onComplete: () => (particleInstance.particle = []), // remove particles after the animation
     });
