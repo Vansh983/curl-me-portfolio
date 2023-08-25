@@ -148,7 +148,6 @@ class ParticleClass {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 }
-
 const Particles: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const arr = [10, -10];

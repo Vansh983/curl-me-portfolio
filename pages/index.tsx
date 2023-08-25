@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { useState, useEffect, useRef, Suspense, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
@@ -20,6 +20,8 @@ import Facts from "../components/home/Facts";
 import Footer from "../components/home/Footer";
 import StoryGrid from "../components/home/StoryGrid";
 import TimelineResponsive from "../components/complex/TimelineResponsive";
+import Script from "next/script";
+import Loading from "../components/layout/Loading";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -48,9 +50,15 @@ const Home: NextPage = () => {
   const titleResRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const [complete, setComplete] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [vanish, setVanish] = useState(false);
   const tl = useRef();
   useEffect(() => {
+    setTimeout(() => {
+      setVanish(true);
+    }, 5000);
+    setTimeout(() => {
+      setComplete(true);
+    }, 6000);
     const ctx = gsap.context((self) => {
       // .from(box, { y: 150, opacity: 0 })
 
@@ -125,15 +133,25 @@ const Home: NextPage = () => {
           // background: "#eee",
         });
       }
+
+      // if (ref2.current) {
+      //   gsap.from(ref2.current, {
+      //     duration: 0.5,
+      //     stagger: 0.2,
+      //     y: 100,
+      //     delay: 0.5,
+      //     ease: "power3.out",
+      //     scrollTrigger: {
+      //       trigger: ref2.current,
+      //       start: 850,
+      //       // end: "bottom center",
+      //       scrub: true,
+      //     },
+      //   });
+      // }
     }, ref); // <- Scope!
     return () => ctx.revert(); // <- Cleanup!
-  });
-
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     setLoading(true);
-  //   }, 5000);
-  // }, []);
+  }, []);
 
   return (
     <div className={styles.main}>
@@ -270,7 +288,7 @@ const Home: NextPage = () => {
         <TimelineResponsive />
       </div>
 
-      {/* <div className="h-[1000px] w-full bg-black">test</div> */}
+      {/* <div className="h-[1000px]></div> */}
       <ProjectsLayout />
       {/* <Facts /> */}
       <div className="flex md:hidden flex-col relative px-2 py-24">
@@ -285,9 +303,17 @@ const Home: NextPage = () => {
       </div>
 
       <Footer />
-      <div className="hidden md:block">
-        <Facts />
-      </div>
+      <Facts />
+      {!complete && (
+        <div
+          style={{
+            transition: "1s",
+            opacity: vanish ? 0 : 1,
+          }}
+        >
+          <Loading />
+        </div>
+      )}
     </div>
   );
 };
