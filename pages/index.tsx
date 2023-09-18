@@ -13,7 +13,7 @@ import { BsMouse } from "react-icons/bs";
 
 import dynamic from "next/dynamic";
 import ProjectsLayout from "../components/home/ProjectsLayout";
-import { mont, play } from "../utils/fonts";
+import { mont, play, bebas } from "../utils/fonts";
 import Link from "next/link";
 import Timeline from "../components/complex/Timeline";
 import Facts from "../components/home/Facts";
@@ -180,7 +180,7 @@ const Home: NextPage = () => {
             Vansh Sood
           </h1>
           <h1
-            className={`${play.className} text-6xl md:block hidden md:text-8xl font-bold mt-16 text-white fixed`}
+            className={`${bebas.className} max-w-6xl text-6xl md:block hidden md:text-9xl mt-16 text-white fixed`}
             style={{
               zIndex: 20,
               opacity: 0.7,
@@ -189,9 +189,10 @@ const Home: NextPage = () => {
             id="logo"
             ref={titleRef}
           >
-            Vansh Sood
+            Hi! I&apos;m Vansh,
+            <br />a tech founder and creative developer.
           </h1>
-          <p
+          {/* <p
             className={`${mont.className} md:block hidden fixed color-4 text-lg mt-40 md:mt-48 w-[92vw] md:pl-2 md:w-1/2 text-justify`}
             style={{
               fontSize: 20,
@@ -201,15 +202,9 @@ const Home: NextPage = () => {
             }}
             ref={landingParaRef}
           >
-            I&apos;m a creative developer on a mission to ignite change and
-            innovation. I assist startups by building their software as a
-            founding engineer, applying my skills to uplift local businesses and
-            helping them resolve their tech issues. I am a problem-solver at
-            heart, with a passion for reading, music, and active engagement in
-            discussions surrounding tech and entrepreneurship. My endeavors go
-            beyond conventional paths, as I continue to explore new avenues that
-            bridge creativity, technology, and business.
-          </p>
+            My endeavors go beyond conventional paths, as I continue to explore
+            new avenues that bridge creativity, technology, and business.
+          </p> */}
           <h1
             className={`${play.className} text-6xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
             style={{
