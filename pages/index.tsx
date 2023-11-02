@@ -38,7 +38,7 @@ const navigation = [
   { name: "Blog", href: "https://blog.vanshsood.com/" },
   {
     name: "Resume",
-    href: "https://vanshsood.com/assets/Resume_Vansh_Sood.pdf",
+    href: "https://vanshsood.com/assets/resume.pdf",
   },
 ];
 
