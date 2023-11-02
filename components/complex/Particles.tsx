@@ -169,7 +169,7 @@ const Particles: React.FC = () => {
         arr[Math.floor(Math.random() * arr.length)],
       scrollTrigger: {
         trigger: document.body, // you can specify the trigger element here
-        start: 4200,
+        start: 1,
         end: 100,
         scrub: true,
       },
