@@ -25,7 +25,7 @@ const links = [
   {
     img: "/assets/icons/doc.png",
     icon: PiFileDocDuotone,
-    href: "https://vanshsood.com/assets/resume.pdf",
+    href: "https://vanshsood.com/resume.pdf",
   },
 ];
 
