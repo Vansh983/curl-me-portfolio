@@ -9,8 +9,6 @@ import { about, story } from "../data/about";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { BsMouse } from "react-icons/bs";
-// import Particles from "../components/complex/Particles";
-
 import dynamic from "next/dynamic";
 import ProjectsLayout from "../components/home/ProjectsLayout";
 import { mont, play, bebas } from "../utils/fonts";
@@ -20,7 +18,6 @@ import Facts from "../components/home/Facts";
 import Footer from "../components/home/Footer";
 import StoryGrid from "../components/home/StoryGrid";
 import TimelineResponsive from "../components/complex/TimelineResponsive";
-import Script from "next/script";
 import Loading from "../components/layout/Loading";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
