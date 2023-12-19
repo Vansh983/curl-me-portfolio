@@ -1,6 +1,6 @@
 # Vansh Sood's Portfolio
 
-Welcome to my personal portfolio! I'm Vansh Sood, a Tech Founder, Creative Developer, and Computer Science student. This portfolio showcases my expertise in graphic design and animations, featuring a variety of projects that reflect my creative and technical skills.
+Welcome to my personal portfolio! I'm Vansh Sood, a Tech Founder, Creative Developer, and Computer Science student. This portfolio showcases my expertise in software development and animations, featuring a variety of projects that reflect my creative and technical skills.
 
 ## About Me
 
