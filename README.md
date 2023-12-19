@@ -1,34 +1,70 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Vansh Sood's Portfolio
+
+Welcome to my personal portfolio! I'm Vansh Sood, a Tech Founder, Creative Developer, and Computer Science student. This portfolio showcases my expertise in graphic design and animations, featuring a variety of projects that reflect my creative and technical skills.
+
+## About Me
+
+- **Tech Founder:** Involved in founding tech ventures, applying technical and business skills.
+- **Creative Developer:** Passionate about graphics and animations.
+- **Computer Science Student:** Pursuing a degree, constantly learning and applying new technologies.
+
+## Portfolio Overview
+
+This portfolio reflects my skills in graphic design and animation. Each project is a blend of creativity and technical expertise.
+
+### Technologies Used
+
+- **Next.js:** For server-side rendering and efficient React project handling.
+- **Tailwind CSS:** For responsive and aesthetically pleasing designs.
+- **TypeScript:** For static typing, enhancing code scalability and maintainability.
+- **GSAP (GreenSock Animation Platform):** For high-performance, professional-grade animations.
 
 ## Getting Started
 
-First, run the development server:
+This portfolio is hosted [here - include a link to your portfolio]. Explore my projects and feel free to reach out for questions or collaboration opportunities.
+
+### Clone the Repository
+
+To clone the repository and view the code on your local machine:
 
 ```bash
-npm run dev
-# or
+git clone git@github.com:Vansh983/curl-me-portfolio.git
+cd curl-me-portfolio
+```
+
+### Installation
+
+After cloning the repository, install the required dependencies:
+
+```bash
+yarn
+```
+
+### Running Locally
+
+To run the project locally:
+
+```bash
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Navigate to `http://localhost:3000` to view the project in your browser.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Contributing
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+Contributions are welcome! If you have ideas or improvements for my projects, here's how you can contribute:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+1. **Fork the Repository:** Create your own fork of the repo.
+2. **Create a Branch:** Make your changes in a new branch.
+3. **Make Changes:** Implement your changes or improvements.
+4. **Submit a Pull Request:** Open a PR against the main branch with a clear list of what you've done.
 
-## Learn More
+Please ensure to follow the project's coding standards and write quality code.
 
-To learn more about Next.js, take a look at the following resources:
+## Contact
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Connect with me for new projects, ideas, or opportunities:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **Email:** [vanshsood.com]
+- **LinkedIn:** [https://www.linkedin.com/in/vanshsood/]
+- **GitHub:** [https://github.com/Vansh983]
