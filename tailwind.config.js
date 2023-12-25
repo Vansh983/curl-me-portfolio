@@ -1,6 +1,6 @@
 module.exports = {
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
-  darkMode: "class", // this is for enabling dark mode.
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -8,7 +8,16 @@ module.exports = {
           DEFAULT: "#FFFFFF",
         },
         dark: {
-          DEFAULT: "#000000",
+          DEFAULT: "#0f172a",
+        },
+        primary: {
+          DEFAULT: "#FF0000",
+        },
+        secondary: {
+          DEFAULT: "#00FF00",
+        },
+        tertiary: {
+          DEFAULT: "#0000FF",
         },
       },
     },

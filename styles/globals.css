@@ -197,6 +197,25 @@ p {
   animation: dot-hourglass-after 2.4s infinite cubic-bezier(0.65, 0.05, 0.36, 1);
 }
 
+.card-content {
+  transition: transform 0.3s ease-in-out;
+  transform: translateY(0);
+}
+
+.card-hovered .card-content {
+  transform: translateY(-50px);
+}
+
+.tag-transition {
+  transition: transform 0.2s ease-in-out, opacity 0.2s ease;
+  opacity: 0;
+}
+
+.show-tag {
+  transform: translateX(0);
+  opacity: 1;
+}
+
 @keyframes dot-hourglass {
   0% {
     transform: rotateZ(0deg);
