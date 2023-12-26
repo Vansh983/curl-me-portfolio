@@ -199,11 +199,11 @@ p {
 
 .card-content {
   transition: transform 0.3s ease-in-out;
-  transform: translateY(0);
+  transform: translateY(50px);
 }
 
 .card-hovered .card-content {
-  transform: translateY(-50px);
+  transform: translateY(0px);
 }
 
 .tag-transition {

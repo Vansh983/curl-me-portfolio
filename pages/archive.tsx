@@ -5,6 +5,9 @@ import { mont } from "../utils/fonts";
 import { Tab } from "../utils/types/tabs";
 import ArchiveCards from "../components/archive/ArchiveCards";
 
+import { archiveData } from "../data/archive";
+import Dropdown from "../components/archive/Dropdown";
+
 export default function archive() {
   const [tabs, setTabs] = useState<Tab[]>([
     {
@@ -23,25 +26,61 @@ export default function archive() {
       current: false,
     },
     {
-      name: "Design",
+      name: "Cloud",
       val: "#",
       current: false,
     },
     {
-      name: "Photography",
+      name: "UI/UX",
+      val: "#",
+      current: false,
+    },
+    {
+      name: "Machine Learning",
       val: "#",
       current: false,
     },
   ]);
+
+  const [data, setData] = useState<archiveData[]>(archiveData);
+
+  const [selectedYear, setSelectedYear] = useState<string>("");
+
+  useEffect(() => {
+    const newData = archiveData.filter((card) => {
+      if (tabs[0].current) {
+        return true;
+      } else {
+        return card.category.includes(
+          tabs.find((tab) => tab.current)?.name ?? ""
+        );
+      }
+    });
+    setData(newData);
+  }, [tabs]);
+
+  useEffect(() => {
+    const newData = archiveData.filter((card) => {
+      return selectedYear ? card.year === selectedYear : true;
+    });
+    setData(newData);
+  }, [selectedYear]);
+
   return (
     <div className="bg-dark min-h-screen px-16">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center py-4">
         <h1 className={`text-gray-200 ${mont.className} text-5xl font-bold`}>
           Archive
         </h1>
-        <Tabs tabs={tabs} />
+        <div className="flex">
+          <Tabs tabs={tabs} setTabs={setTabs} />
+          <Dropdown
+            setSelectedYear={setSelectedYear}
+            selectedYear={selectedYear}
+          />
+        </div>
       </div>
-      <ArchiveCards />
+      <ArchiveCards archive={data} />
     </div>
   );
 }

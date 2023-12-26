@@ -1,11 +1,9 @@
-export const archive = [
+export const archiveData = [
   {
     id: 1,
     imgSrc: "/assets/projects/gna.png",
     title: "The Good Neighbour App: Anti Social, Social Media",
     tags: [
-      "Android",
-      "iOS",
       "React Native",
       "Expo",
       "TypeScript",
@@ -16,8 +14,8 @@ export const archive = [
     ],
     grad: ["#12B8BF", "#058078"],
     url: "https://goodneighbourapp.com/",
-    year: "2022",
-    category: ["Mobile", "Web"],
+    year: "2023",
+    category: ["Mobile", "Web", "Cloud"],
   },
   {
     id: 2,
@@ -34,8 +32,8 @@ export const archive = [
       "AWS",
     ],
     url: "https://github.com/Vansh983/re-new-app",
-    year: "2022",
-    category: ["Mobile", "ML", "UI/UX"],
+    year: "2023",
+    category: ["Mobile", "Machine Learning", "UI/UX"],
   },
   {
     id: 3,
@@ -44,7 +42,7 @@ export const archive = [
     tags: ["Node.js", "Nginx", "MongoDB", "Digital Ocean"],
     grad: ["#ffe0d7", "#ffa73c"],
     url: "https://anatomyguru.in/",
-    year: "2022",
+    year: "2021",
     category: ["Web"],
   },
   {
@@ -54,7 +52,7 @@ export const archive = [
     tags: ["Next.js", "TypeScript", "Firebase", "Vercel", "Google Sheets API"],
     grad: ["#CEE07C", "#79823A"],
     url: "https://www.nutritiondefined.in/",
-    year: "2022",
+    year: "2020",
     category: ["Web", "Mobile"],
   },
 
@@ -78,14 +76,14 @@ export const archive = [
       "TypeScript",
       "Python",
       "Flask",
-      "Artificial Intelligence",
+      "AI",
       "Computer Vision",
       "AWS",
     ],
     grad: ["#DAB1CF", "#E6FA"],
     url: "https://utique-web.vercel.app/",
-    year: "2022",
-    category: ["Web", "ML", "Mobile"],
+    year: "2021",
+    category: ["Web", "Machine Learning", "Mobile"],
   },
   {
     id: 7,
@@ -95,7 +93,7 @@ export const archive = [
     grad: ["#4D4FC3", "#AACBFF"],
     url: "https://github.com/Vansh983/room-problem",
     year: "2022",
-    category: ["Algo"],
+    category: ["Machine Learning"],
   },
   {
     id: 8,
@@ -105,7 +103,7 @@ export const archive = [
     grad: ["#005C00", "#CDBA00"],
     url: "https://github.com/Vansh983/clash-rpg",
     year: "2022",
-    category: ["Algo"],
+    category: ["CLI"],
   },
   {
     id: 9,
@@ -114,7 +112,7 @@ export const archive = [
     tags: ["Next.js", "TypeScript", "Sanity", "Vercel"],
     grad: ["#457fca", "#5691c8"],
     url: "https://redefined.social/",
-    year: "2022",
+    year: "2023",
     category: ["Web"],
   },
   {
@@ -124,7 +122,7 @@ export const archive = [
     tags: ["Drupal", "PHP", "MySQL", "JavaScript", "CSS"],
     grad: ["#eeeeee", "#ffffff"],
     url: "https://blog.vanshsood.com/",
-    year: "2022",
+    year: "2020",
     category: ["Web"],
   },
   {
@@ -134,7 +132,7 @@ export const archive = [
     tags: ["Figma", "UI/UX", "Design Thinking"],
     grad: ["#eeeeee", "#ffffff"],
     url: "https://www.behance.net/gallery/96726605/P2P-Emergency-app-UIUX-design-concept",
-    year: "2022",
+    year: "2019",
     category: ["UI/UX"],
   },
   {
@@ -144,7 +142,7 @@ export const archive = [
     tags: ["Next.js", "TypeScript", "PostgreSQL", "Python", "Data Analysis"],
     grad: ["#eeeeee", "#ffffff"],
     url: "https://foh-dashboard.vercel.app/",
-    year: "2022",
+    year: "2023",
     category: ["Web"],
   },
   {
@@ -154,7 +152,7 @@ export const archive = [
     tags: ["Next.js", "TypeScript", "PostgreSQL"],
     grad: ["#eeeeee", "#ffffff"],
     url: "https://thapar-permissions.vercel.app/",
-    year: "2022",
+    year: "2023",
     category: ["Web"],
   },
   {
@@ -165,7 +163,7 @@ export const archive = [
     grad: ["#eeeeee", "#ffffff"],
     url: "#",
     year: "2023",
-    category: ["Web"],
+    category: ["Web", "Machine Learning"],
   },
   {
     id: 15,
@@ -174,7 +172,7 @@ export const archive = [
     tags: ["Next.js", "JavaScript", "Firebase", "Google Cloud Platform"],
     grad: ["#eeeeee", "#ffffff"],
     url: "https://covidleads-delhi.vercel.app/",
-    year: "2023",
+    year: "2020",
     category: ["Web"],
   },
   {
@@ -184,7 +182,7 @@ export const archive = [
     tags: ["HTML", "CSS", "JavaScript", "JQuery", "Bootstrap", "Animate.css"],
     grad: ["#eeeeee", "#ffffff"],
     url: "https://stellar.vanshsood.com",
-    year: "2023",
+    year: "2018",
     category: ["Web"],
   },
   {
