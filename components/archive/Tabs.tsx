@@ -8,7 +8,7 @@ type TabsProps = {
 
 export default function Tabs({ tabs, setTabs }: TabsProps) {
   return (
-    <div className="flex">
+    <div className="hidden md:flex">
       {tabs.map(({ name, val, current }) => (
         <div
           className={`text-gray-500 hover:text-gray-400 px-4 py-2  ${

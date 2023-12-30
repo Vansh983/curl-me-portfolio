@@ -7,6 +7,9 @@ import ArchiveCards from "../components/archive/ArchiveCards";
 
 import { archiveData } from "../data/archive";
 import Dropdown from "../components/archive/Dropdown";
+import { FiRefreshCcw } from "react-icons/fi";
+
+const years = ["2023", "2022", "2021", "2020", "2019", "2018", "2017"];
 
 export default function archive() {
   const [tabs, setTabs] = useState<Tab[]>([
@@ -31,11 +34,6 @@ export default function archive() {
       current: false,
     },
     {
-      name: "UI/UX",
-      val: "#",
-      current: false,
-    },
-    {
       name: "Machine Learning",
       val: "#",
       current: false,
@@ -43,40 +41,46 @@ export default function archive() {
   ]);
 
   const [data, setData] = useState<archiveData[]>(archiveData);
-
   const [selectedYear, setSelectedYear] = useState<string>("");
 
   useEffect(() => {
-    const newData = archiveData.filter((card) => {
-      if (tabs[0].current) {
-        return true;
-      } else {
-        return card.category.includes(
-          tabs.find((tab) => tab.current)?.name ?? ""
-        );
-      }
+    const filteredData = archiveData.filter((card) => {
+      const tabCondition = tabs[0].current
+        ? true
+        : card.category.includes(tabs.find((tab) => tab.current)?.name ?? "");
+      const yearCondition = selectedYear ? card.year === selectedYear : true;
+      return tabCondition && yearCondition;
     });
-    setData(newData);
-  }, [tabs]);
 
-  useEffect(() => {
-    const newData = archiveData.filter((card) => {
-      return selectedYear ? card.year === selectedYear : true;
-    });
-    setData(newData);
-  }, [selectedYear]);
+    setData(filteredData);
+  }, [tabs, selectedYear]);
 
   return (
-    <div className="bg-dark min-h-screen px-16">
+    <div className="bg-dark min-h-screen px-4 lg:px-16">
       <div className="flex justify-between items-center py-4">
-        <h1 className={`text-gray-200 ${mont.className} text-5xl font-bold`}>
-          Archive
+        <h1 className={`text-gray-200 ${mont.className} text-4xl font-bold`}>
+          Showcase
         </h1>
-        <div className="flex">
+        <div className="flex items-center">
           <Tabs tabs={tabs} setTabs={setTabs} />
           <Dropdown
+            years={years}
             setSelectedYear={setSelectedYear}
             selectedYear={selectedYear}
+          />
+          <FiRefreshCcw
+            className="text-gray-200 text-2xl ml-4 cursor-pointer hover:text-gray-400"
+            onClick={() => {
+              const newTabs = tabs.map((tab) => {
+                if (tab.name === "All") {
+                  return { ...tab, current: true };
+                } else {
+                  return { ...tab, current: false };
+                }
+              });
+              setSelectedYear("");
+              setTabs(newTabs);
+            }}
           />
         </div>
       </div>

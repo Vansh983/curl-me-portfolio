@@ -3,15 +3,25 @@ import { Menu, Transition } from "@headlessui/react";
 import { BsChevronDown } from "react-icons/bs";
 import { mont } from "../../utils/fonts";
 
+interface DropdownProps {
+  setSelectedYear: (year: string) => void;
+  selectedYear: string;
+  years: string[];
+}
+
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function Dashboard({ setSelectedYear, selectedYear }) {
+export default function Dropdown({
+  setSelectedYear,
+  selectedYear,
+  years,
+}: DropdownProps) {
   return (
     <Menu
       as="div"
-      className="relative inline-block text-left"
+      className="relative inline-block text-left ml-4"
       style={{ zIndex: 1000 }}
     >
       <div>
@@ -34,25 +44,23 @@ export default function Dashboard({ setSelectedYear, selectedYear }) {
       >
         <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           <div className="py-1">
-            {["2023", "2022", "2021", "2020", "2019", "2018", "2017"].map(
-              (year) => (
-                <Menu.Item key={year}>
-                  {({ active }) => (
-                    <p
-                      className={classNames(
-                        active ? "bg-gray-100 text-gray-900" : "text-gray-700",
-                        `block px-4 py-2 text-sm w-full text-left ${mont.className}`
-                      )}
-                      onClick={() => {
-                        setSelectedYear(year);
-                      }}
-                    >
-                      {year}
-                    </p>
-                  )}
-                </Menu.Item>
-              )
-            )}
+            {years.map((year) => (
+              <Menu.Item key={year}>
+                {({ active }) => (
+                  <p
+                    className={classNames(
+                      active ? "bg-gray-100 text-gray-900" : "text-gray-700",
+                      `block px-4 py-2 text-sm w-full text-left ${mont.className}`
+                    )}
+                    onClick={() => {
+                      setSelectedYear(year);
+                    }}
+                  >
+                    {year}
+                  </p>
+                )}
+              </Menu.Item>
+            ))}
           </div>
         </Menu.Items>
       </Transition>

@@ -55,7 +55,9 @@ function ProjectsLayout() {
         </div>
         {/* <div className="button">See all projects</div> */}
       </div>
-      <ProjectCard data={projects} />
+      <div className="mt-8 md:mt-24">
+        <ProjectCard data={projects} />
+      </div>
     </div>
   );
 }

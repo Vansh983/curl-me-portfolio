@@ -16,7 +16,7 @@ interface CardProps {
 
 const ProjectCard: FC<CardProps> = ({ data }) => {
   return (
-    <div className="flex flex-wrap mt-8 md:mt-24 justify-between">
+    <div className="flex flex-wrap justify-between">
       {data.map((card, index) => (
         <div key={index} className="relative w-full md:w-[48%] my-4">
           <Link href={card.url} target="_blank">
