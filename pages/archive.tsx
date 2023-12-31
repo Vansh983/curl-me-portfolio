@@ -13,7 +13,7 @@ import Link from "next/link";
 
 const years = ["2023", "2022", "2021", "2020", "2019", "2018", "2017"];
 
-export default function archive() {
+export default function Archive() {
   const [tabs, setTabs] = useState<Tab[]>([
     {
       name: "All",
@@ -64,7 +64,7 @@ export default function archive() {
           className={`text-gray-200 ${bebas.className} text-5xl font-bold`}
           style={{ opacity: 0.8 }}
         >
-          Vansh's Archives
+          Vansh&apos;s Archives
         </h1>
         <div className="flex items-center">
           <Tabs tabs={tabs} setTabs={setTabs} />

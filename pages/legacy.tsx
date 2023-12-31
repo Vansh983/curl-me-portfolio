@@ -38,7 +38,7 @@ export default function legacy() {
           }}
           id="logo"
         >
-          I'm a creative developer and tech founder.
+          I&apos;m a creative developer and tech founder.
         </h1>
         {/* <div className="w-1/2">
             <Image src="/assets/story/vansh.png" width={500} height={500} />
@@ -46,21 +46,21 @@ export default function legacy() {
         {/* </div> */}
         <div className="flex flex-col">
           <p className="text-2xl text-gray-400 mt-4">
-            I'm a 2nd year Computer Science student at the University of
-            Waterloo. I'm passionate about building products that make a
-            difference in people's lives. I'm also a huge fan of{" "}
+            I&apos;m a 2nd year Computer Science student at the University of
+            Waterloo. I&apos;m passionate about building products that make a
+            difference in people&apos;s lives. I&apos;m also a huge fan of{" "}
             <span className="text-sky-600">open-source</span> and{" "}
             <span className="text-sky-600">design</span>.
           </p>
           <p className="text-2xl text-gray-400 mt-4">
-            I'm a 2nd year Computer Science student at the University of
-            Waterloo. I'm passionate about building products that make a
-            difference in people's lives. I'm also a huge fan of{" "}
+            I&apos;m a 2nd year Computer Science student at the University of
+            Waterloo. I&apos;m passionate about building products that make a
+            difference in people&apos;s lives. I&apos;m also a huge fan of{" "}
             <span className="text-sky-600">open-source</span> and{" "}
-            <span className="text-sky-600">design</span>. I'm a 2nd year
-            Computer Science student at the University of Waterloo. I'm
+            <span className="text-sky-600">design</span>. I&apos;m a 2nd year
+            Computer Science student at the University of Waterloo. I&apos;m
             passionate about building products that make a difference in
-            people's lives. I'm also a huge fan of{" "}
+            people&apos;s lives. I&apos;m also a huge fan of{" "}
             <span className="text-sky-600">open-source</span> and{" "}
             <span className="text-sky-600">design</span>.
           </p>
@@ -80,9 +80,9 @@ export default function legacy() {
             </Link>
           </div>
           <p className={`${mont.className} text-2xl text-gray-400 mt-4`}>
-            I'm a 2nd year Computer Science student at the University of
-            Waterloo. I'm passionate about building products that make a
-            difference in people's lives. I'm also a huge fan of{" "}
+            I&apos;m a 2nd year Computer Science student at the University of
+            Waterloo. I&apos;m passionate about building products that make a
+            difference in people&apos;s lives. I&apos;m also a huge fan of{" "}
             <span className="text-sky-600">open-source</span> and{" "}
             <span className="text-sky-600">design</span>.
           </p>

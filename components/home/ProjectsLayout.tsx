@@ -63,7 +63,7 @@ function ProjectsLayout() {
         <p
           className={`${mont.className} w-auto text-2xl text-gray-400 mt-4 pr-8`}
         >
-          I've been working on projects for over{" "}
+          I&apos;ve been working on projects for over{" "}
           <span className="text-sky-600">7 years</span>. You can view my project
           archive with the following link.
         </p>
