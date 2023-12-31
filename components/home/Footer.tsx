@@ -51,7 +51,7 @@ const Footer = () => (
         </span>
       </Link>
       , schedule a quick{" "}
-      <Link href="topmate.io/vansh_sood">
+      <Link href="https://topmate.io/vansh_sood">
         <span style={{ cursor: "pointer", textDecoration: "underline" }}>
           call
         </span>

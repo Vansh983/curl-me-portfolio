@@ -6,13 +6,33 @@ interface ArchiveCardProps {
   archive: archiveData[];
 }
 
+interface LinkWrapperProps {
+  href: string;
+  children: React.ReactNode;
+}
+
+const LinkWrapper = ({ href, children }: LinkWrapperProps) => {
+  if (href == "#") {
+    return <div style={{ cursor: "not-allowed" }}>{children}</div>;
+  }
+  return (
+    <Link href={href} target="_blank">
+      {children}
+    </Link>
+  );
+};
+
 export default function ArchiveCards({ archive }: ArchiveCardProps) {
   const [hoveredId, setHoveredId] = useState<Number>(-1);
 
   return (
     <div className="grid grid-col-1 md:grid-cols-3 gap-4">
       {archive.map((card, index) => (
-        <Link href={card.url} target="_blank" key={index}>
+        <LinkWrapper
+          href={card.url}
+          key={index}
+          // className={card.url === "#" ? "pointer-events-hover" : ""}
+        >
           <div
             key={index}
             className={`relative h-64 rounded-md shadow-md bg-cover bg-center my-4 ${
@@ -62,7 +82,7 @@ export default function ArchiveCards({ archive }: ArchiveCardProps) {
               </div>
             </div>
           </div>
-        </Link>
+        </LinkWrapper>
       ))}
     </div>
   );
