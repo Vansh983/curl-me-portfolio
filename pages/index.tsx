@@ -20,6 +20,7 @@ import StoryGrid from "../components/home/StoryGrid";
 import TimelineResponsive from "../components/complex/TimelineResponsive";
 import Loading from "../components/layout/Loading";
 import { navigation } from "../data/nav";
+import { TypeAnimation } from "react-type-animation";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -166,8 +167,8 @@ const Home: NextPage = () => {
           >
             Vansh Sood
           </h1>
-          <h1
-            className={`${bebas.className} max-w-6xl text-6xl md:block hidden md:text-9xl mt-16 text-white fixed`}
+          <div
+            className={`${bebas.className} max-w-6xl md:block hidden text-white mt-16 fixed`}
             style={{
               zIndex: 20,
               opacity: 0.7,
@@ -176,33 +177,78 @@ const Home: NextPage = () => {
             id="logo"
             ref={titleRef}
           >
-            Hi! I&apos;m Vansh,
-            <br />a tech founder and creative developer.
-          </h1>
-          {/* <p
-            className={`${mont.className} md:block hidden fixed color-4 text-lg mt-40 md:mt-48 w-[92vw] md:pl-2 md:w-1/2 text-justify`}
-            style={{
-              fontSize: 20,
-              opacity: 0.7,
-              transition: "0.8s",
-              zIndex: 3,
-            }}
-            ref={landingParaRef}
-          >
-            My endeavors go beyond conventional paths, as I continue to explore
-            new avenues that bridge creativity, technology, and business.
-          </p> */}
+            <h1 className="text-white text-5xl md:text-9xl">
+              Hi I&apos;m Vansh,
+            </h1>
+            <TypeAnimation
+              sequence={[
+                "A Creative Developer",
+                7000,
+                "A Full Stack Developer",
+                4000,
+                "A Software Developer",
+                3000,
+                "A Software Architect",
+                4000,
+                "A Cloud Architect",
+                3000,
+                "A Cloud Practitioner",
+                3000,
+                "A Tech Entrepreneur",
+                3000,
+                "A Tech Founder",
+                3000,
+                "An Open Source Enthusiast",
+                3000,
+                "An Open Source Developer",
+                4000,
+                "A LinkedIn Top Voice",
+                3000,
+                "A Mobile Developer",
+                4000,
+                "A Web Developer",
+                3000,
+                "A Web Designer",
+                3000,
+                "A Creative Designer",
+                () => {
+                  console.log("Sequence completed");
+                },
+              ]}
+              wrapper="span"
+              cursor={true}
+              repeat={Infinity}
+              style={{ color: "#ffffff", fontSize: 120, lineHeight: "110px" }}
+            />
+            {/* <h1 className="text-white text-5xl md:text-8xl">
+              Hi I&apos;m Vansh, <br /> a creative{" "}
+              <span className="bg-gray-300 rounded-xl px-4 text-sky-600">
+                developer
+              </span>{" "}
+            </h1> */}
+            <p className="text-3xl text-gray-400 mt-4">
+              I&apos;m a 2nd year Computer Science student at Dalhousie
+              University. I barely manage to attend classes and try to promote
+              freelancing/ solopreneurship among students. I also run a{" "}
+              <span className="text-sky-600">software company</span>, build{" "}
+              <span className="text-sky-600">open-source</span> programs under
+              Shiftkey Labs and design{" "}
+              <span className="text-sky-600">system architectures</span> for
+              startups.
+            </p>
+          </div>
+
           <h1
-            className={`${play.className} text-6xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
+            className={`${bebas.className} text-5xl md:text-8xl font-bold  text-white block md:hidden lg:hidden `}
             style={{
               zIndex: 20,
-              opacity: 1,
+              opacity: 0.8,
               transition: "0.5s ease-in-out",
             }}
             id="logo"
             ref={titleResRef}
           >
-            Vansh Sood
+            Hi! I'm Vansh Sood, a creative developer and Tech Founder.
           </h1>
           <p
             className={`${mont.className} md:hidden block  color-4 text-lg mt-12 w-[92vw] md:pl-2 md:w-1/2`}
@@ -213,14 +259,14 @@ const Home: NextPage = () => {
               zIndex: 3,
             }}
           >
-            I&apos;m a creative developer on a mission to ignite change and
-            innovation. I assist startups by building their software as a
-            founding engineer, applying my skills to uplift local businesses and
-            helping them resolve their tech issues. I am a problem-solver at
-            heart, with a passion for reading, music, and active engagement in
-            discussions surrounding tech and entrepreneurship. My endeavors go
-            beyond conventional paths, as I continue to explore new avenues that
-            bridge creativity, technology, and business.
+            I&apos;m a 2nd year Computer Science student at Dalhousie
+            University. I barely manage to attend classes and try to promote
+            freelancing/ solopreneurship among students. I also run a{" "}
+            <span className="text-sky-400">software company</span>, build{" "}
+            <span className="text-sky-400">open-source</span> programs under
+            Shiftkey Labs and design{" "}
+            <span className="text-sky-400">system architectures</span> for
+            startups.
           </p>
         </div>
         <div
@@ -229,7 +275,7 @@ const Home: NextPage = () => {
             bottom: 50,
             zIndex: 40,
             color: "#ffffff",
-            opacity: 0.7,
+            opacity: 0.9,
             alignItems: "center",
           }}
         >
