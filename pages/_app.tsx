@@ -7,7 +7,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <div>
       <Head>
-        <title>Vansh Sood - Developer, Tech Founder, Creative</title>
+        <title>Vansh Sood - Full Stack Developer, Tech Founder</title>
         <link rel="ICON" href="/assets/icons/bouncy.gif" />
         {/* Google tag (gtag.js) */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -26,7 +26,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
         <meta
           property="og:title"
-          content="Vansh Sood - Developer, Tech Founder, Creative"
+          content="Vansh Sood - Full Stack Developer, Tech Founder"
         />
         <meta
           property="og:description"
@@ -34,6 +34,11 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
         <meta property="og:image" content="/assets/story/vansh.JPG" />{" "}
         <meta property="og:type" content="website" />
+        <meta name="author" content="Vansh Sood"></meta>
+        <meta
+          property="article:published_time"
+          content="2023-12-12T00:00:00Z"
+        />
       </Head>
       <Script src="https://www.googletagmanager.com/gtag/js?id=G-F4F6K9RZP7" />
       <Script id="google-analytics">
