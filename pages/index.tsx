@@ -19,6 +19,7 @@ import Footer from "../components/home/Footer";
 import StoryGrid from "../components/home/StoryGrid";
 import TimelineResponsive from "../components/complex/TimelineResponsive";
 import Loading from "../components/layout/Loading";
+import { navigation } from "../data/nav";
 
 const Particles = dynamic(() => import("../components/complex/Particles"), {
   ssr: false,
@@ -27,17 +28,6 @@ const Particles = dynamic(() => import("../components/complex/Particles"), {
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
-
-const navigation = [
-  { name: "Linkedin", href: "https://www.linkedin.com/in/vanshsood/" },
-  { name: "Github", href: "https://github.com/Vansh983" },
-  { name: "Mail", href: "mailto:vanshsood@dal.ca" },
-  { name: "Blog", href: "https://blog.vanshsood.com/" },
-  {
-    name: "Resume",
-    href: "https://vanshsood.com/resume.pdf",
-  },
-];
 
 const Home: NextPage = () => {
   const [counter, setCounter] = useState(0);
@@ -282,6 +272,7 @@ const Home: NextPage = () => {
 
       {/* <div className="h-[1000px]></div> */}
       <ProjectsLayout />
+
       {/* <Facts /> */}
       <div className="flex md:hidden flex-col relative px-2 py-24">
         <h1

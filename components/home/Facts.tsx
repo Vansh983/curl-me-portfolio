@@ -80,7 +80,7 @@ export default function Scene() {
               </span>
             </Link>
             , schedule a quick{" "}
-            <Link href="topmate.io/vansh_sood">
+            <Link href="https://topmate.io/vanshsood">
               <span style={{ cursor: "pointer", textDecoration: "underline" }}>
                 call
               </span>

@@ -143,9 +143,9 @@ function Timeline() {
         <image
           href="/assets/timeline/google.png"
           className={`${styles.ball} ball02`}
-          x="258" // Adjust these coordinates to position the image
+          x="258"
           y="181"
-          width="40" // And these to scale the image
+          width="40"
           height="40"
         />
         <image
@@ -153,7 +153,7 @@ function Timeline() {
           className={`${styles.ball} ball03`}
           x="247"
           y="481"
-          width="40" // And these to scale the image
+          width="40"
           height="40"
         ></image>
         <image
@@ -161,7 +161,7 @@ function Timeline() {
           className={`${styles.ball} ball04`}
           x="120"
           y="721"
-          width="40" // And these to scale the image
+          width="40"
           height="40"
         ></image>
         <image
@@ -169,7 +169,7 @@ function Timeline() {
           className={`${styles.ball} ball05`}
           x="260"
           y="971"
-          width="40" // And these to scale the image
+          width="40"
           height="40"
         ></image>
       </svg>

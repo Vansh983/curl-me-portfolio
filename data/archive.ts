@@ -295,7 +295,7 @@ export const archiveData = [
     imgSrc: "/assets/projects/chemistsmart.png",
     title:
       "Chemistsmart: Ecommerce Platform with a Recommendation System for Chemists",
-    tags: ["Next.js", "JavaScript", "AWS", "Jenkins"],
+    tags: ["Next.js", "JavaScript", "Redux", "AWS", "Jenkins"],
     grad: ["#eeeeee", "#ffffff"],
     url: "https://chemistsmart.com/",
     year: "2019",

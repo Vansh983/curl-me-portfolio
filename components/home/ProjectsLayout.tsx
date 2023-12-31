@@ -3,7 +3,8 @@ import ProjectCard from "./ProjectCard";
 import { projects } from "../../data/projects";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
-import { play } from "../../utils/fonts";
+import { mont, play } from "../../utils/fonts";
+import Link from "next/link";
 gsap.registerPlugin(ScrollTrigger);
 
 function ProjectsLayout() {
@@ -57,6 +58,22 @@ function ProjectsLayout() {
       </div>
       <div className="mt-8 md:mt-24">
         <ProjectCard data={projects} />
+      </div>
+      <div className="mt-4 mb-8 md:flex">
+        <p
+          className={`${mont.className} w-auto text-2xl text-gray-400 mt-4 pr-8`}
+        >
+          I've been working on projects for over{" "}
+          <span className="text-sky-600">7 years</span>. You can view my project
+          archive with the following link.
+        </p>
+        <Link href="/archive" className="w-full md:w-1/2">
+          <p
+            className={`text-lg text-white font-bold ${mont.className} border-2 border-white px-4 h-auto py-3 mt-8 rounded-md align-center text-center`}
+          >
+            View Archives
+          </p>
+        </Link>
       </div>
     </div>
   );

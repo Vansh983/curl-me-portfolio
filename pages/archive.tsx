@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import Tabs from "../components/archive/Tabs";
 
-import { mont } from "../utils/fonts";
+import { bebas, mont } from "../utils/fonts";
 import { Tab } from "../utils/types/tabs";
 import ArchiveCards from "../components/archive/ArchiveCards";
 
 import { archiveData } from "../data/archive";
 import Dropdown from "../components/archive/Dropdown";
 import { FiRefreshCcw } from "react-icons/fi";
+import { navigation } from "../data/nav";
+import Link from "next/link";
 
 const years = ["2023", "2022", "2021", "2020", "2019", "2018", "2017"];
 
@@ -56,10 +58,13 @@ export default function archive() {
   }, [tabs, selectedYear]);
 
   return (
-    <div className="bg-dark min-h-screen px-4 lg:px-16">
+    <div className="bg-dark min-h-screen px-4 lg:px-16 pb-24">
       <div className="flex justify-between items-center py-4">
-        <h1 className={`text-gray-200 ${mont.className} text-4xl font-bold`}>
-          Showcase
+        <h1
+          className={`text-gray-200 ${bebas.className} text-5xl font-bold`}
+          style={{ opacity: 0.8 }}
+        >
+          Vansh's Archives
         </h1>
         <div className="flex items-center">
           <Tabs tabs={tabs} setTabs={setTabs} />
@@ -85,6 +90,19 @@ export default function archive() {
         </div>
       </div>
       <ArchiveCards archive={data} />
+      <Link
+        href="/"
+        className={`${bebas.className} bg-white text-4xl px-4 py-2 font-bold text-sky-600 fixed rounded-md right-8 md:right-20`}
+        style={{
+          zIndex: 2000,
+          opacity: 0.7,
+          transition: "1s ease-in-out",
+          bottom: 40,
+        }}
+        id="logo"
+      >
+        Back to Portfolio
+      </Link>
     </div>
   );
 }

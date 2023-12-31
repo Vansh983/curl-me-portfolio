@@ -1,20 +1,20 @@
-import { useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
-import { MotionPathPlugin } from "gsap/dist/MotionPathPlugin";
-import styles from "../../styles/Timeline.module.css";
 import { bebas, mont, play } from "../../utils/fonts";
 import Image from "next/image";
 import { about } from "../../data/about";
 
-gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
-gsap.defaults({ ease: "none" });
+const colors = [
+  "#F9D423], #FF4E50",
+  "#F9D423, #FF4E50",
+  "#F9D423, #FF4E50",
+  "#F9D423, #FF4E50",
+  "#F9D423, #FF4E50",
+];
 
-function TimelineResponsive() {
+export default function TimelineResponsive() {
   return (
     <div
-      className="flex flex-wrap"
-      style={{ position: "relative", zIndex: 200, marginTop: -100 }}
+      className="grid grid-cols-1 md:grid-cols-4 gap-2 my-8"
+      style={{ position: "relative", zIndex: 200 }}
       id="about"
     >
       {/* <h1
@@ -24,23 +24,25 @@ function TimelineResponsive() {
         My story
       </h1> */}
 
-      <div className="content mx-4 mt-8">
-        {about.map((a) => (
-          <div key={a.year} className="flex flex-col my-4">
-            <div className="flex items-end">
-              <Image src={a.img} alt="Timeline" width={70} height={70} />
-              <p className={`${bebas.className} text-5xl ml-4 text-white`}>
-                {a.year}
-              </p>
-            </div>
-            <p className={`${mont.className} text-white text-md w-full my-4`}>
-              {a.content}
+      {about.map((a) => (
+        <div
+          key={a.year}
+          className="px-2 py-4 rounded-md shadow-md"
+          // style={{
+          //   backgroundColor: "#FF4E50",
+          // }}
+        >
+          <div className="flex items-end">
+            <Image src={a.img} alt="Timeline" width={60} height={60} />
+            <p className={`${bebas.className} text-5xl ml-4 text-white`}>
+              {a.year}
             </p>
           </div>
-        ))}
-      </div>
+          <p className={`${mont.className} text-white text-md w-full my-4`}>
+            {a.content}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
-
-export default TimelineResponsive;

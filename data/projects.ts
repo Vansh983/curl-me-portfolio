@@ -1,5 +1,22 @@
 export const projects = [
   {
+    imgSrc: "/assets/projects/shiftkey.png",
+    title: "Open Source Shiftkey Labs Events Mobile App",
+    tags: [
+      "Go",
+      "Gin",
+      "React Native",
+      "Expo",
+      "TypeScript",
+      "REST API",
+      "PostgreSQL",
+      "AWS",
+    ],
+    grad: ["#4D4FC3", "#AACBFF"],
+    url: "https://github.com/shiftkey-labs/shiftkey-app",
+    year: "2023",
+  },
+  {
     imgSrc: "/assets/projects/gna.png",
     title: "The Good Neighbour App: Anti Social, Social Media",
     tags: ["tag1", "tag2", "tag3"],
@@ -48,14 +65,14 @@ export const projects = [
     url: "https://utique-web.vercel.app/",
     year: "2022",
   },
-  {
-    imgSrc: "/assets/projects/q-learning.png",
-    title: "Q Learning: Machine Learning 3D Maze Solving",
-    tags: ["tag1", "tag2", "tag3"],
-    grad: ["#4D4FC3", "#AACBFF"],
-    url: "https://github.com/Vansh983/room-problem",
-    year: "2022",
-  },
+  // {
+  //   imgSrc: "/assets/projects/q-learning.png",
+  //   title: "Q Learning: Machine Learning 3D Maze Solving",
+  //   tags: ["tag1", "tag2", "tag3"],
+  //   grad: ["#4D4FC3", "#AACBFF"],
+  //   url: "https://github.com/Vansh983/room-problem",
+  //   year: "2022",
+  // },
   {
     imgSrc: "/assets/projects/rpg.png",
     title: "Multiplayer Terminal Role Playing Game",

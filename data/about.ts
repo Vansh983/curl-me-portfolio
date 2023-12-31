@@ -30,11 +30,20 @@ export const about = [
     top: "75%",
     left: "2.5%",
     content:
-      "As an intern and Software Developer at Dalhousie University, I'm contributing to various research projects and building a community to help students worldwide leverage freelancing for financial independence. My goal is to spread awareness and provide the tools for students to get into freelancing, empowering them to achieve financial independence.",
+      "As an intern and Software Developer at Dalhousie University, I'm contributing to various research projects and building a community to help students worldwide leverage freelancing for financial independence.",
   },
 ];
 
 export const story = [
+  {
+    id: 0,
+    img: "/assets/story/linkedin.png",
+    title: "LinkedIn Top Web Applications Voice",
+    description: [
+      "The journey began when I became the Winner of Google Code In at the age of 17. This achievement, recognized by a fully sponsored trip to San Francisco by Google, ignited my passion for coding and catalyzed my decision to move to Canada for studying Computer Science.",
+    ],
+    link: "https://codein.withgoogle.com/archive/",
+  },
   {
     id: 1,
     img: "/assets/story/google-code.jpeg",

@@ -6,15 +6,45 @@ import ProjectsLayout from "../components/home/ProjectsLayout";
 import StoryGrid from "../components/home/StoryGrid";
 import { story } from "../data/about";
 import { projects } from "../data/projects";
-import { inter, mont, play } from "../utils/fonts";
-import LegacyCards from "../components/legacy/LegacyCards";
+import { bebas, mont, play } from "../utils/fonts";
+import TimelineResponsive from "../components/complex/TimelineResponsive";
+import Navbar from "../components/layout/Navbar";
+import Image from "next/image";
 
 export default function legacy() {
   return (
-    <div className="bg-dark min-h-screen px-4 md:px-16">
-      <div className="relative px-24" style={{ zIndex: 1 }}>
+    <div className="bg-dark min-h-screen px-4 pt-16 md:px-8">
+      <Navbar />
+      <h1
+        className={`${bebas.className} text-4xl font-bold text-white fixed`}
+        style={{
+          zIndex: 20,
+          opacity: 0.7,
+          transition: "1s ease-in-out",
+          top: "1rem",
+        }}
+        id="logo"
+      >
+        Vansh Sood
+      </h1>
+      <div className="relative px-24 pt-24" style={{ zIndex: 1 }}>
+        {/* <div className="flex"> */}
+        <h1
+          className={`${bebas.className} max-w-6xl text-9xl text-white`}
+          style={{
+            zIndex: 20,
+            opacity: 0.7,
+            transition: "0.5s ease-in-out",
+          }}
+          id="logo"
+        >
+          I'm a creative developer and tech founder.
+        </h1>
+        {/* <div className="w-1/2">
+            <Image src="/assets/story/vansh.png" width={500} height={500} />
+          </div> */}
+        {/* </div> */}
         <div className="flex flex-col">
-          <h1 className="text-6xl font-bold text-white">About Me</h1>
           <p className="text-2xl text-gray-400 mt-4">
             I'm a 2nd year Computer Science student at the University of
             Waterloo. I'm passionate about building products that make a
@@ -22,11 +52,23 @@ export default function legacy() {
             <span className="text-sky-600">open-source</span> and{" "}
             <span className="text-sky-600">design</span>.
           </p>
+          <p className="text-2xl text-gray-400 mt-4">
+            I'm a 2nd year Computer Science student at the University of
+            Waterloo. I'm passionate about building products that make a
+            difference in people's lives. I'm also a huge fan of{" "}
+            <span className="text-sky-600">open-source</span> and{" "}
+            <span className="text-sky-600">design</span>. I'm a 2nd year
+            Computer Science student at the University of Waterloo. I'm
+            passionate about building products that make a difference in
+            people's lives. I'm also a huge fan of{" "}
+            <span className="text-sky-600">open-source</span> and{" "}
+            <span className="text-sky-600">design</span>.
+          </p>
         </div>
-        <LegacyCards />
-        <div className="my-8">
+        <TimelineResponsive />
+        <div className="mt-24 mb-8">
           <div className="flex flex-row justify-between align-center items-center">
-            <h1 className={`text-6xl font-bold text-white ${play.className}`}>
+            <h1 className={`text-6xl font-bold text-white ${bebas.className}`}>
               Overview of my Work
             </h1>
             <Link href="/archive">

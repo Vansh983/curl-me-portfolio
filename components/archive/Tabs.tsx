@@ -11,7 +11,7 @@ export default function Tabs({ tabs, setTabs }: TabsProps) {
     <div className="hidden md:flex">
       {tabs.map(({ name, val, current }) => (
         <div
-          className={`text-gray-500 hover:text-gray-400 px-4 py-2  ${
+          className={`text-gray-500 hover:text-gray-400 px-4 pb-2 ${
             current ? "border-b-2 border-sky-600 text-sky-600" : ""
           }`}
           style={{ cursor: "pointer" }}
