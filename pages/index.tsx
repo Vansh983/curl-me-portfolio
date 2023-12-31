@@ -117,26 +117,8 @@ const Home: NextPage = () => {
             scrub: true,
             toggleActions: "play none none reverse",
           },
-          // left: 10,
-          // background: "#eee",
         });
       }
-
-      // if (ref2.current) {
-      //   gsap.from(ref2.current, {
-      //     duration: 0.5,
-      //     stagger: 0.2,
-      //     y: 100,
-      //     delay: 0.5,
-      //     ease: "power3.out",
-      //     scrollTrigger: {
-      //       trigger: ref2.current,
-      //       start: 850,
-      //       // end: "bottom center",
-      //       scrub: true,
-      //     },
-      //   });
-      // }
     }, ref); // <- Scope!
     return () => ctx.revert(); // <- Cleanup!
   }, []);
@@ -145,7 +127,6 @@ const Home: NextPage = () => {
     <div className={styles.main}>
       <Navbar />
       <Particles />
-      {/* <CustomCursor /> */}
       <ScrollAnimation setCounter={setCounter} />
       <div className="min-h-screen px-4 md:px-24">
         <div
@@ -248,7 +229,7 @@ const Home: NextPage = () => {
             id="logo"
             ref={titleResRef}
           >
-            Hi! I'm Vansh Sood, a creative developer and Tech Founder.
+            Hi! I&apos;m Vansh Sood, a creative developer and Tech Founder.
           </h1>
           <p
             className={`${mont.className} md:hidden block  color-4 text-lg mt-12 w-[92vw] md:pl-2 md:w-1/2`}
@@ -303,23 +284,14 @@ const Home: NextPage = () => {
           </div>
         </div>
       </div>
-      {/* <div className="h-screen relative px-24" style={{ zIndex: 1 }}>
-        <div className="flex flex-col">
-          <h1 className="text-6xl font-bold text-white">{about.title}</h1>
-         
-        </div>
-      </div> */}
+
       <div className="hidden md:block">
         <Timeline />
       </div>
       <div className="block mt-16 md:hidden">
         <TimelineResponsive />
       </div>
-
-      {/* <div className="h-[1000px]></div> */}
       <ProjectsLayout />
-
-      {/* <Facts /> */}
       <div className="flex md:hidden flex-col relative px-2 py-24">
         <h1
           className={`${play.className} text-5xl md:text-6xl font-bold text-white`}
