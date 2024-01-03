@@ -11,6 +11,7 @@ interface CardProps {
     grad: string[];
     url: string;
     year: string;
+    description: string;
   }[];
 }
 
@@ -27,7 +28,7 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
             />
             <div className="flex justify-between mt-2 flex-wrap">
               <h2
-                className={`font-bold text-4xl md:text-5xl my-8 w-full md:w-3/4 ${bebas.className}`}
+                className={`font-bold text-4xl md:text-5xl mt-8 w-full  ${bebas.className}`}
                 style={{
                   background: `-webkit-linear-gradient(${card.grad})`,
                   WebkitBackgroundClip: "text",
@@ -36,6 +37,11 @@ const ProjectCard: FC<CardProps> = ({ data }) => {
               >
                 <span>{card.title}</span>
               </h2>
+            </div>
+            <div>
+              <p className={`${mont.className} text-white mb-4 mt-2`}>
+                {card.description}
+              </p>
               <div className="md:flex items-center hidden">
                 <button
                   type="button"
