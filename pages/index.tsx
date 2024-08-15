@@ -215,7 +215,7 @@ const Home: NextPage = () => {
               </span>{" "}
             </h1> */}
             <p className="text-3xl text-gray-400 mt-4">
-              I&apos;m a 2nd year Computer Science student at Dalhousie
+              I&apos;m a 3rd year Computer Science student at Dalhousie
               University. I barely manage to attend classes and try to promote
               freelancing/ solopreneurship among students. I also run a{" "}
               <span className="text-sky-600">software company</span>, build{" "}
