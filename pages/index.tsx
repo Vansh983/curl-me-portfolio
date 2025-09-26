@@ -22,9 +22,9 @@ import Loading from "../components/layout/Loading";
 import { navigation } from "../data/nav";
 import { TypeAnimation } from "react-type-animation";
 
-// const Particles = dynamic(() => import("../components/complex/Particles"), {
-//   ssr: false,
-// });
+const Particles = dynamic(() => import("../components/complex/Particles"), {
+  ssr: false,
+});
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -125,12 +125,13 @@ const Home: NextPage = () => {
 
   return (
     <div className={styles.main}>
+      {/* <Particles /> */}
       <div
-        className="fixed inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-        aria-hidden="true"
+        className='fixed inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80'
+        aria-hidden='true'
       >
         <div
-          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+          className='relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]'
           style={{
             clipPath:
               "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
@@ -139,7 +140,7 @@ const Home: NextPage = () => {
       </div>
       <Navbar />
       <ScrollAnimation setCounter={setCounter} />
-      <div className="min-h-screen px-4 md:px-24">
+      <div className='min-h-screen px-4 md:px-24'>
         <div
           className={`flex flex-col relative py-36 h-full ${
             counter < 1 ? "fixed" : "relative"
@@ -154,7 +155,7 @@ const Home: NextPage = () => {
               transition: "1s ease-in-out",
               top: 15,
             }}
-            id="logo"
+            id='logo'
             ref={logoRef}
           >
             Vansh Sood
@@ -166,10 +167,10 @@ const Home: NextPage = () => {
               opacity: 0.7,
               transition: "0.5s ease-in-out",
             }}
-            id="logo"
+            id='logo'
             ref={titleRef}
           >
-            <h1 className="text-white text-5xl md:text-9xl">
+            <h1 className='text-white text-5xl md:text-9xl'>
               Hi I&apos;m Vansh,
             </h1>
             <TypeAnimation
@@ -203,7 +204,7 @@ const Home: NextPage = () => {
                   console.log("Sequence completed");
                 },
               ]}
-              wrapper="span"
+              wrapper='span'
               cursor={true}
               repeat={Infinity}
               style={{ color: "#ffffff", fontSize: 120, lineHeight: "110px" }}
@@ -214,14 +215,14 @@ const Home: NextPage = () => {
                 developer
               </span>{" "}
             </h1> */}
-            <p className="text-3xl text-gray-400 mt-4">
+            <p className='text-3xl text-gray-400 mt-4'>
               I&apos;m a 3rd year Computer Science student at Dalhousie
               University. I barely manage to attend classes and try to promote
               freelancing/ solopreneurship among students. I also run a{" "}
-              <span className="text-sky-600">software company</span>, build{" "}
-              <span className="text-sky-600">open-source</span> programs under
+              <span className='text-sky-600'>software company</span>, build{" "}
+              <span className='text-sky-600'>open-source</span> programs under
               Shiftkey Labs and design{" "}
-              <span className="text-sky-600">system architectures</span> for
+              <span className='text-sky-600'>system architectures</span> for
               startups.
             </p>
           </div>
@@ -233,7 +234,7 @@ const Home: NextPage = () => {
               opacity: 0.8,
               transition: "0.5s ease-in-out",
             }}
-            id="logo"
+            id='logo'
             ref={titleResRef}
           >
             Hi! I&apos;m Vansh Sood, a creative developer and Tech Founder.
@@ -250,15 +251,15 @@ const Home: NextPage = () => {
             I&apos;m a 2nd year Computer Science student at Dalhousie
             University. I barely manage to attend classes and try to promote
             freelancing/ solopreneurship among students. I also run a{" "}
-            <span className="text-sky-400">software company</span>, build{" "}
-            <span className="text-sky-400">open-source</span> programs under
+            <span className='text-sky-400'>software company</span>, build{" "}
+            <span className='text-sky-400'>open-source</span> programs under
             Shiftkey Labs and design{" "}
-            <span className="text-sky-400">system architectures</span> for
+            <span className='text-sky-400'>system architectures</span> for
             startups.
           </p>
         </div>
         <div
-          className="scroll-to-see relative md:fixed flex"
+          className='scroll-to-see relative md:fixed flex'
           style={{
             bottom: 50,
             zIndex: 40,
@@ -275,12 +276,12 @@ const Home: NextPage = () => {
           </span>
         </div>
         <div
-          className="socio-links fixed"
+          className='socio-links fixed'
           style={{ bottom: 50, right: 50, zIndex: 4000 }}
         >
-          <div className="hidden lg:flex lg:gap-x-12 justify-end">
+          <div className='hidden lg:flex lg:gap-x-12 justify-end'>
             {navigation.map((item) => (
-              <Link key={item.name} href={item.href} target="_blank">
+              <Link key={item.name} href={item.href} target='_blank'>
                 <span
                   className={`text-sm font-semibold leading-6 text-gray-300 uppercase ${mont.className}`}
                 >
@@ -292,26 +293,26 @@ const Home: NextPage = () => {
         </div>
       </div>
 
-      <div className="hidden md:block">
+      <div className='hidden md:block'>
         <Timeline />
       </div>
-      <div className="block mt-16 md:hidden">
+      <div className='block mt-16 md:hidden'>
         <TimelineResponsive />
       </div>
       <ProjectsLayout />
-      <div className="flex md:hidden flex-col relative px-2 py-24">
+      <div className='flex md:hidden flex-col relative px-2 py-24'>
         <h1
           className={`${play.className} text-5xl md:text-6xl font-bold text-white`}
         >
           Some things i like to flaunt
         </h1>
-        <div className="py-4">
+        <div className='py-4'>
           <StoryGrid cards={story} />
         </div>
       </div>
 
       <Footer />
-      <div className="hidden md:block" id="story">
+      <div className='hidden md:block' id='story'>
         <Facts />
       </div>
       {!complete && (
@@ -325,11 +326,11 @@ const Home: NextPage = () => {
         </div>
       )}
       <div
-        className="fixed inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
-        aria-hidden="true"
+        className='fixed inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]'
+        aria-hidden='true'
       >
         <div
-          className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+          className='relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]'
           style={{
             clipPath:
               "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",

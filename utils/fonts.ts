@@ -3,7 +3,7 @@ import {
   Inter,
   Montserrat,
   Playfair_Display,
-} from "@next/font/google";
+} from "next/font/google";
 
 export const play = Playfair_Display({
   weight: ["400", "700"],
