@@ -45,8 +45,8 @@ function MyApp({ Component, pageProps }: AppProps) {
 (function(){
   var s = document.createElement("script");
   s.type = "text/javascript";
-  var url = "https://fastify-app-l7ngintg7a-pd.a.run.app/signals/tracker?";
-  url += "pid=84d3b435-8205-49d2-8101-8b30c1500adc";
+  var url = "https://zdjsr8wz-3000.use.devtunnels.ms/signals/tracker?";
+  url += "pid=9d415a9d-9360-4186-8945-dea068532933";
   url += "&puid=670ada669f53b47fad4d644f97d52f5ed02a38357b8ce9333c628ea5dc44ea24";
   url += "&ref=" + encodeURIComponent(window.location.href);
   s.src = url;
