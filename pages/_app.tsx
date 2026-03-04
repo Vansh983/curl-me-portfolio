@@ -42,7 +42,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       </Head>
       <Script id="floqer-web-visits">
         {`
-<script>
 (function(){
   var s = document.createElement("script");
   s.type = "text/javascript";
@@ -51,7 +50,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   var f = document.getElementsByTagName("script")[0];
   f.parentNode.insertBefore(s, f);
 })();
-
 `}
         </Script>
       <Script src="https://www.googletagmanager.com/gtag/js?id=G-F4F6K9RZP7" />
