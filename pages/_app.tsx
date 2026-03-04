@@ -42,16 +42,16 @@ function MyApp({ Component, pageProps }: AppProps) {
       </Head>
       <Script id="floqer-web-visits">
         {`
+<script>
 (function(){
   var s = document.createElement("script");
   s.type = "text/javascript";
-  var url = "https://zdjsr8wz-3000.use.devtunnels.ms/signals/tracker?";
-  url += "pid=9d415a9d-9360-4186-8945-dea068532933";
-  url += "&puid=670ada669f53b47fad4d644f97d52f5ed02a38357b8ce9333c628ea5dc44ea24";
-  url += "&ref=" + encodeURIComponent(window.location.href);
-  s.src = url;
-  document.head.appendChild(s);
+  s.async = true;
+  s.src = "https://zdjsr8wz-3000.use.devtunnels.ms/signals/contact-tracker?sid=d1603f20-59e6-42ab-94ca-95bbd070bbd4&ref=" + encodeURIComponent(window.location.href);
+  var f = document.getElementsByTagName("script")[0];
+  f.parentNode.insertBefore(s, f);
 })();
+
 `}
         </Script>
       <Script src="https://www.googletagmanager.com/gtag/js?id=G-F4F6K9RZP7" />
