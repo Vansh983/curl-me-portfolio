@@ -46,7 +46,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   var s = document.createElement("script");
   s.type = "text/javascript";
   s.async = true;
-  s.src = "https://zdjsr8wz-3000.use.devtunnels.ms/signals/contact-tracker?sid=d1603f20-59e6-42ab-94ca-95bbd070bbd4&ref=" + encodeURIComponent(window.location.href);
+  s.src = "https://fastify-app-443450603010.us-central1.run.app/signals/contact-tracker?sid=17384faa-b5e8-40ab-8add-b7ba2e6c4bac&ref=" + encodeURIComponent(window.location.href);
   var f = document.getElementsByTagName("script")[0];
   f.parentNode.insertBefore(s, f);
 })();
