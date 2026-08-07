@@ -40,6 +40,18 @@ function MyApp({ Component, pageProps }: AppProps) {
           content="2023-12-12T00:00:00Z"
         />
       </Head>
+      <Script id="floqer-web-visits">
+        {`
+(function(){
+  var s = document.createElement("script");
+  s.type = "text/javascript";
+  s.async = true;
+  s.src = "https://fastify-app-443450603010.us-central1.run.app/signals/contact-tracker?sid=17384faa-b5e8-40ab-8add-b7ba2e6c4bac&ref=" + encodeURIComponent(window.location.href);
+  var f = document.getElementsByTagName("script")[0];
+  f.parentNode.insertBefore(s, f);
+})();
+`}
+        </Script>
       <Script src="https://www.googletagmanager.com/gtag/js?id=G-F4F6K9RZP7" />
       <Script id="google-analytics">
         {`
