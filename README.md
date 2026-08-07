@@ -1,6 +1,6 @@
 # Vansh Sood's Portfolio
 
-> The original site is preserved on the [`v1` branch](https://github.com/Vansh983/curl-me-portfolio/tree/v1) (tag `v1-final`). `main` is being rebuilt from scratch.
+> The original site is preserved on the [`curl-era` branch](https://github.com/Vansh983/curl-me-portfolio/tree/curl-era) (tag `last-curl`). `main` is being rebuilt from scratch.
 
 Welcome to my personal portfolio! I'm Vansh Sood, a Tech Founder, Creative Developer, and Computer Science student. This portfolio showcases my expertise in software development and animations, featuring a variety of projects that reflect my creative and technical skills.
 
