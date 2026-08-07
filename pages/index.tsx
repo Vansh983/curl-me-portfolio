@@ -147,7 +147,7 @@ const Home: NextPage = () => {
           }`}
           style={{ zIndex: 1 }}
         >
-          <h1
+          {/* <h1
             className={`${play.className} text-4xl font-bold text-white fixed`}
             style={{
               zIndex: 20,
@@ -159,7 +159,7 @@ const Home: NextPage = () => {
             ref={logoRef}
           >
             Vansh Sood
-          </h1>
+          </h1> */}
           <div
             className={`${bebas.className} max-w-6xl md:block hidden text-white mt-16 fixed`}
             style={{
@@ -216,7 +216,7 @@ const Home: NextPage = () => {
               </span>{" "}
             </h1> */}
             <p className='text-3xl text-gray-400 mt-4'>
-              I&apos;m a 3rd year Computer Science student at Dalhousie
+              I'm I&apos;m a 3rd year Computer Science student at Dalhousie
               University. I barely manage to attend classes and try to promote
               freelancing/ solopreneurship among students. I also run a{" "}
               <span className='text-sky-600'>software company</span>, build{" "}
