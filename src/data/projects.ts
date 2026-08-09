@@ -16,6 +16,16 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    title: 'Bean',
+    year: '2025',
+    url: 'https://beantheapp.com',
+    tags: ['AI', 'Mobile'],
+    category: ['Mobile', 'Machine Learning'],
+    featured: true,
+    description:
+      'AI cooking assistant, co-founded with Pankrit Jindal. $40K from Invest Nova Scotia Accelerate, shown at Web Summit Vancouver 2026.',
+  },
+  {
     title: 'The Good Neighbour App',
     year: '2023',
     url: 'https://apps.apple.com/us/app/good-neighbour-app/id1672741728',

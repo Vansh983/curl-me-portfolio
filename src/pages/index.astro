@@ -17,7 +17,10 @@ const work = featured.slice(0, 6);
 <Base>
   <section class="hero">
     <Wordmark />
-    <p class="role">{profile.role}. Currently building <a href={profile.company.url}>Floqer</a>.</p>
+    <p class="role">
+      Head of engineering at <a href={profile.company.url}>Floqer</a>. Co-founder of
+      <a href={profile.bean.url}>Bean</a>.
+    </p>
     <p class="mut">{profile.summary}</p>
     <p class="links">
       {profile.links.map((l) => <a href={l.href}>{l.label}</a>)}

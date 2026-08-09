@@ -6,15 +6,17 @@ export const profile = {
   role: 'Engineer and founder',
   // One sentence. Shows up in the hero, the meta description and the curl response.
   summary:
-    'I build software companies. Started at 17 by winning Google Code-in, ran a studio through university, now working on AI for go to market at Floqer.',
+    'I build software companies. Started at 17 by winning Google Code-in, ran a 25 person studio through university, co-founded Bean, and now run engineering at Floqer.',
   location: 'Halifax, Canada', // TODO confirm for 2026
-  company: { name: 'Floqer', url: 'https://floqer.com' },
+  company: { name: 'Floqer', url: 'https://floqer.com' }, // head of engineering, not founder
+  bean: { name: 'Bean', url: 'https://beantheapp.com' }, // co-founder and CTO, with Pankrit Jindal
 
   // TODO confirm. docs/rebuild/05 flags this as likely outdated (vansh@floqer.com?).
   email: 'vanshsood@dal.ca',
 
   links: [
     { label: 'GitHub', href: 'https://github.com/Vansh983', handle: 'Vansh983' },
+    // TODO confirm handle: Vansh gave /in/vanshsood9, the web still shows /in/vanshsood
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/vanshsood/', handle: 'in/vanshsood' },
     { label: 'Resume', href: '/resume.pdf', handle: 'resume.pdf' },
   ],

@@ -26,11 +26,21 @@ export const timeline: Milestone[] = [
   {
     year: '2023',
     title: 'Research and shipping',
-    body: 'Software developer on Dalhousie research projects, including a tool tracking 15,000 medical placements across Nova Scotia.',
+    body: 'Software developer on Dalhousie research projects, including a tool tracking 15,000 medical placements across Nova Scotia. TA for computer science courses through 2025.',
   },
   {
     year: '2024', // TODO confirm the year you joined
     title: 'Floqer',
-    body: 'Working on AI for go to market.',
+    body: 'Joined Floqer to run engineering. AI for go to market.',
+  },
+  {
+    year: '2025',
+    title: 'Bean',
+    body: "Co-founded Bean with Pankrit Jindal: an AI cooking assistant that started as 'What's in your fridge?'. Backed by Invest Nova Scotia's Accelerate program. Also coordinated AI2Market, Dalhousie's applied AI program.",
+  },
+  {
+    year: '2026',
+    title: 'Web Summit',
+    body: 'Took Bean to Web Summit Vancouver with the Nova Scotia delegation. Rebuilt this site.',
   },
 ];
