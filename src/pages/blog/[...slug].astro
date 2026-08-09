@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { iso, long } from '../../lib/date';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+type Props = { post: CollectionEntry<'blog'> };
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Base
+  title={post.data.title}
+  description={post.data.description}
+  article={{
+    published: iso(post.data.pubDate),
+    updated: post.data.updatedDate ? iso(post.data.updatedDate) : undefined,
+  }}
+>
+  <article>
+    <p class="label head">
+      <time datetime={iso(post.data.pubDate)}>{long(post.data.pubDate)}</time>
+      {post.data.tags.length > 0 && <span> &middot; {post.data.tags.join(', ')}</span>}
+    </p>
+    <h1>{post.data.title}</h1>
+    <div class="prose">
+      <Content />
+    </div>
+    <p class="small mut foot">
+      <a href={`/blog/${post.id}.md`}>Read the raw markdown</a> or
+      <code>curl vanshsood.com/blog/{post.id}</code>
+    </p>
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: var(--block);
+  }
+  .head {
+    margin-bottom: 10px;
+  }
+  h1 {
+    margin-bottom: 26px;
+  }
+  .foot {
+    margin-top: 40px;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+  }
+</style>

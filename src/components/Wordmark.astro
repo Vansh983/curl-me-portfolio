@@ -1,0 +1,23 @@
+---
+import { profile } from '../data/profile';
+---
+
+<h1 class="word wordmark-vt" tabindex="0">{profile.name}</h1>
+
+<style>
+  /* The only motion above the fold, and it is one property. */
+  .word {
+    font-family: var(--f-display);
+    font-size: var(--t-word);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    font-variation-settings: 'wght' 700;
+    transition: font-variation-settings 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), letter-spacing 0.5s;
+    outline-offset: 6px;
+  }
+  .word:hover,
+  .word:focus-visible {
+    font-variation-settings: 'wght' 300;
+    letter-spacing: -0.02em;
+  }
+</style>

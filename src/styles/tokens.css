@@ -1,0 +1,70 @@
+/* The brand. Everything else reads from here.
+   Swap these ~20 values and the whole site changes, including the OG images. */
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/space-grotesk.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21BB, U+2212;
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21BB, U+2212;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21BB, U+2212;
+}
+
+:root {
+  /* colour */
+  --bg: #fdfdfc;
+  --tx: #111111;
+  --acc: #b8e000;
+  --acc-tx: #111111;
+  --mut: color-mix(in srgb, var(--tx) 55%, var(--bg));
+  --rule: color-mix(in srgb, var(--tx) 16%, transparent);
+  --raise: color-mix(in srgb, var(--tx) 3.5%, var(--bg));
+
+  /* type */
+  --f-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --f-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  --t-word: clamp(52px, 13vw, 118px);
+  --t-h2: clamp(24px, 4.4vw, 34px);
+  --t-h3: 19px;
+  --t-body: 16px;
+  --t-small: 14px;
+  --t-label: 11.5px;
+  --lh: 1.62;
+  --track: -0.025em;
+
+  /* space */
+  --measure: 660px;
+  --gap: 14px;
+  --block: 60px;
+  --pad: clamp(20px, 5vw, 36px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0a0a0a;
+    --tx: #ededed;
+    --acc: #b8e000;
+    --acc-tx: #111111;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #0a0a0a;
+  --tx: #ededed;
+  --acc: #b8e000;
+  --acc-tx: #111111;
+}

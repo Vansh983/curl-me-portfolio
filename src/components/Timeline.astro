@@ -1,0 +1,101 @@
+---
+import { timeline } from '../data/timeline';
+---
+
+<ol class="tl">
+  <span class="spine" aria-hidden="true"><i></i></span>
+  {
+    timeline.map((m) => (
+      <li>
+        <span class="dot" aria-hidden="true" />
+        <span class="yr">{m.year}</span>
+        <h3>{m.title}</h3>
+        <p class="small mut">{m.body}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  /* The whole animation is four CSS properties. No JavaScript, no library,
+     and nothing runs on the main thread. Browsers without scroll-driven
+     animations land on the finished state, which reads as a normal list. */
+  .tl {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 4px 0 0 30px;
+  }
+  .spine {
+    position: absolute;
+    left: 4px;
+    top: 12px;
+    bottom: 26px;
+    width: 1px;
+    background: var(--rule);
+  }
+  .spine i {
+    position: absolute;
+    inset: 0;
+    display: block;
+    background: var(--acc);
+    transform-origin: top;
+    animation: draw linear both;
+    animation-timeline: view();
+    animation-range: contain 0% contain 100%;
+  }
+  @keyframes draw {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .tl li {
+    position: relative;
+    padding: 0 0 26px;
+    animation: lift linear both;
+    animation-timeline: view();
+    animation-range: entry 16% cover 32%;
+  }
+  @keyframes lift {
+    from {
+      opacity: 0.35;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .dot {
+    position: absolute;
+    left: -30px;
+    top: 8px;
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--mut);
+    background: var(--bg);
+    border-radius: 50%;
+    animation: fill linear both;
+    animation-timeline: view();
+    animation-range: entry 16% cover 32%;
+  }
+  @keyframes fill {
+    to {
+      background: var(--acc);
+      border-color: var(--acc);
+    }
+  }
+
+  .yr {
+    font-family: var(--f-mono);
+    font-size: var(--t-label);
+    letter-spacing: 0.09em;
+    color: var(--mut);
+  }
+  .tl h3 {
+    margin: 2px 0 4px;
+  }
+</style>

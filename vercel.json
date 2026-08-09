@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "x-built-with", "value": "astro, css, spite" },
+        { "key": "x-source", "value": "https://github.com/Vansh983/curl-me-portfolio" },
+        { "key": "x-try", "value": "curl vanshsood.com" },
+        { "key": "x-easter-egg", "value": "/humans.txt" }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [{ "key": "cache-control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}

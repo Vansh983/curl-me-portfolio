@@ -1,0 +1,303 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+  line-height: var(--lh);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+}
+::selection {
+  background: var(--acc);
+  color: var(--acc-tx);
+}
+
+/* layout */
+.shell {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--pad) 90px;
+}
+.block {
+  margin-top: var(--block);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* type */
+h1,
+h2,
+h3 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  letter-spacing: var(--track);
+  text-wrap: balance;
+  margin: 0;
+}
+h1,
+h2 {
+  font-size: var(--t-h2);
+  line-height: 1.1;
+}
+h3 {
+  font-size: var(--t-h3);
+  line-height: 1.25;
+}
+p {
+  margin: 0;
+  max-width: 62ch;
+}
+small,
+.small {
+  font-size: var(--t-small);
+}
+.mut {
+  color: var(--mut);
+}
+.label {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+code {
+  font-family: var(--f-mono);
+  font-size: 0.86em;
+  border: 1px solid var(--rule);
+  padding: 1px 5px;
+}
+/* Code blocks stay monotone. Shiki is set to css-variables, so syntax
+   highlighting reads from the brand tokens instead of importing a theme
+   with its own palette. */
+pre {
+  overflow-x: auto;
+  padding: 14px;
+  border: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 1.55;
+  background: var(--raise) !important;
+}
+pre code {
+  border: none;
+  padding: 0;
+}
+:root {
+  --astro-code-foreground: var(--tx);
+  --astro-code-background: var(--raise);
+  --astro-code-token-comment: var(--mut);
+  --astro-code-token-punctuation: var(--mut);
+  --astro-code-token-string: var(--tx);
+  --astro-code-token-string-expression: var(--tx);
+  --astro-code-token-keyword: var(--tx);
+  --astro-code-token-constant: var(--tx);
+  --astro-code-token-parameter: var(--tx);
+  --astro-code-token-function: var(--tx);
+  --astro-code-token-link: var(--mut);
+}
+
+/* links: accent stays at the "links" dose, nothing louder */
+a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+  transition: background-color 0.14s ease, border-color 0.14s ease;
+}
+a:hover {
+  background: var(--acc);
+  color: var(--acc-tx);
+  border-bottom-color: transparent;
+}
+a.plain {
+  border-bottom: none;
+}
+a.plain:hover {
+  background: none;
+  color: var(--mut);
+}
+:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 3px;
+}
+
+/* rows: the one repeating unit for projects, posts and links */
+.row {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  gap: 14px;
+  align-items: baseline;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.row .yr {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  color: var(--mut);
+  letter-spacing: 0.06em;
+}
+.row .meta {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  color: var(--mut);
+  text-align: right;
+}
+@media (max-width: 620px) {
+  .row {
+    grid-template-columns: 48px 1fr;
+  }
+  .row .meta {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
+/* header + footer */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 22px var(--pad) 0;
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.topbar nav {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+  align-items: center;
+}
+.topbar a {
+  border-bottom: none;
+  color: var(--mut);
+}
+.topbar a:hover,
+.topbar a[aria-current='page'] {
+  color: var(--tx);
+  background: none;
+}
+.iconbtn {
+  font: inherit;
+  background: none;
+  border: 1px solid var(--rule);
+  color: var(--mut);
+  padding: 3px 7px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.iconbtn:hover {
+  color: var(--tx);
+  border-color: var(--mut);
+}
+footer.site {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 26px var(--pad) 60px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  color: var(--mut);
+  letter-spacing: 0.04em;
+}
+footer.site a {
+  border-bottom: none;
+  color: var(--mut);
+}
+
+/* article body: the blog is text, text, text */
+.prose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+.prose > * {
+  grid-column: 1;
+}
+.prose h2 {
+  margin-top: 18px;
+}
+.prose ul,
+.prose ol {
+  margin: 0;
+  padding-left: 20px;
+  max-width: 62ch;
+}
+.prose blockquote {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--acc);
+  color: var(--mut);
+}
+
+/* sidenotes: footnotes moved into the margin on wide screens.
+   The gutter only exists when a note does, and it borrows the page margin
+   instead of stealing width from the text. */
+@media (min-width: 1180px) {
+  .prose:has(.sidenote) {
+    grid-template-columns: minmax(0, 1fr) 220px;
+    column-gap: 34px;
+    width: calc(100% + 254px);
+  }
+  .prose:has(.sidenote) .sidenote {
+    grid-column: 2;
+    margin-top: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    align-self: start;
+  }
+}
+.prose .sidenote {
+  font-size: 13.5px;
+  color: var(--mut);
+  border-left: 2px solid var(--acc);
+  padding-left: 10px;
+}
+
+/* page transitions: two lines, no client router */
+@view-transition {
+  navigation: auto;
+}
+.wordmark-vt {
+  view-transition-name: wordmark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  @view-transition {
+    navigation: none;
+  }
+}

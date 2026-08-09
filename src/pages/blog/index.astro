@@ -1,0 +1,41 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { short } from '../../lib/date';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<Base title="Writing" description="Notes on building software, companies and the occasional terminal trick.">
+  <h1 class="block">Writing</h1>
+  <p class="mut small">
+    Every post is also available as raw markdown: add <code>.md</code> to any URL.
+    <a href="/rss.xml">RSS</a>.
+  </p>
+
+  <div class="list">
+    {
+      posts.map((p) => (
+        <div class="row">
+          <span class="yr">{short(p.data.pubDate)}</span>
+          <span>
+            <a href={`/blog/${p.id}`}>{p.data.title}</a>
+            <span class="small mut d">{p.data.description}</span>
+          </span>
+          <span class="meta">{p.data.tags.join(', ')}</span>
+        </div>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .list {
+    margin-top: 24px;
+  }
+  .d {
+    display: block;
+  }
+</style>

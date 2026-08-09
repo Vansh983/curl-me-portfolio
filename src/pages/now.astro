@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import { profile } from '../data/profile';
+
+// Edit this page, not an about page. Keep it in present tense and keep the date honest.
+const updated = '2026-08-08';
+const lines: Array<[string, string]> = [
+  ['Building', 'Floqer. AI for go to market.'],
+  ['Living', profile.location],
+  ['Writing', 'Here again, after two quiet years.'],
+];
+---
+
+<Base title="Now" description={`What ${profile.name} is working on right now.`}>
+  <h1 class="block">Now</h1>
+  <p class="mut small">Updated {updated}</p>
+  <dl class="now">
+    {
+      lines.map(([k, v]) => (
+        <div class="row">
+          <dt class="yr">{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))
+    }
+  </dl>
+  <p class="small mut foot">
+    This page exists so the homepage never has to lie about what year it is.
+    <a href="https://nownownow.com/about">More /now pages</a>.
+  </p>
+</Base>
+
+<style>
+  .now {
+    margin: 22px 0 0;
+  }
+  .now dd {
+    margin: 0;
+  }
+  .now .row {
+    grid-template-columns: 90px 1fr;
+  }
+  .foot {
+    margin-top: 26px;
+  }
+</style>

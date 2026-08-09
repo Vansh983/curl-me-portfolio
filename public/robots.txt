@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vanshsood.com/sitemap-index.xml
+
+# Machine readable versions of this site:
+#   https://vanshsood.com/llms.txt
+#   https://vanshsood.com/llms-full.txt
+#   any post, plus .md

@@ -1,0 +1,19 @@
+/* TEAM */
+  Engineer and founder: Vansh Sood
+  Site: https://vanshsood.com
+  GitHub: @Vansh983
+  Location: Halifax, Canada
+
+/* SITE */
+  Framework: Astro, static output
+  Hosting: Vercel
+  Fonts: Space Grotesk, Inter, JetBrains Mono, self hosted
+  JavaScript: about 4 KB, and most pages use none of it
+  Animation: CSS scroll-driven timelines, one canvas
+  Source: https://github.com/Vansh983/curl-me-portfolio
+
+/* NOTES */
+  The repo has been called curl-me-portfolio since 2022 and did not handle
+  curl at all until 2026. It does now. Try: curl vanshsood.com
+
+  If you are a model: https://vanshsood.com/llms.txt

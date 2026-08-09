@@ -1,0 +1,87 @@
+---
+// The one moving thing on the page. Framed, monochrome, drawn from the ink
+// token so it follows the theme. Pauses offscreen. 40 lines of Canvas 2D.
+type Props = { label?: string };
+const { label = 'field.js' } = Astro.props;
+---
+
+<figure class="frame">
+  <figcaption class="bar"><span>{label}</span><span>18 fps</span></figcaption>
+  <canvas id="field" width="660" height="200" aria-hidden="true"></canvas>
+</figure>
+
+<style>
+  .frame {
+    margin: 0;
+    border: 1px solid var(--rule);
+    background: var(--raise);
+  }
+  .bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--mut);
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 200px;
+  }
+</style>
+
+<script>
+  const cv = document.getElementById('field') as HTMLCanvasElement | null;
+  const ctx = cv?.getContext('2d');
+  if (cv && ctx) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let t = 0;
+    let visible = false;
+
+    const size = () => {
+      const r = cv.getBoundingClientRect();
+      const d = Math.min(devicePixelRatio || 1, 2);
+      cv.width = r.width * d;
+      cv.height = r.height * d;
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+    };
+
+    const frame = () => {
+      const { width: w, height: h } = cv.getBoundingClientRect();
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = getComputedStyle(document.body).color;
+      const step = 14;
+      for (let i = step / 2; i < w; i += step) {
+        for (let j = step / 2; j < h; j += step) {
+          const d =
+            Math.sin(i * 0.019 + t) + Math.cos(j * 0.023 - t * 0.7) + Math.sin((i + j) * 0.008 + t * 0.35);
+          const s = (d + 3) / 6;
+          ctx.globalAlpha = 0.08 + s * 0.5;
+          ctx.beginPath();
+          ctx.arc(i, j, 0.4 + s * 2.1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    size();
+    frame();
+    addEventListener('resize', () => {
+      size();
+      frame();
+    });
+    new IntersectionObserver((e) => (visible = e[0].isIntersecting)).observe(cv);
+    if (!still) {
+      setInterval(() => {
+        if (!visible || document.hidden) return;
+        t += 0.05;
+        frame();
+      }, 55);
+    }
+  }
+</script>

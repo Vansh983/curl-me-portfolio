@@ -1,0 +1,68 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found" description="This page does not exist.">
+  <section class="lost">
+    <pre id="ascii" aria-hidden="true"></pre>
+    <h1>404</h1>
+    <p class="mut">
+      That page does not exist. Try <a href="/">home</a>, the <a href="/archive">archive</a>, or press
+      <code>&#8984;K</code>.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .lost {
+    padding-top: var(--block);
+  }
+  pre {
+    border: none;
+    padding: 0;
+    font-family: var(--f-mono);
+    font-size: 9px;
+    line-height: 1.05;
+    letter-spacing: 0.5px;
+    color: var(--mut);
+    overflow: hidden;
+    margin: 0 0 26px;
+  }
+</style>
+
+<script>
+  // Same field as the homepage, drawn in characters instead of pixels.
+  const pre = document.getElementById('ascii');
+  if (pre) {
+    const chars = ' .:-=+*#%@';
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let t = 0;
+
+    const draw = () => {
+      const w = Math.max(30, Math.floor(pre.clientWidth / 5.6));
+      const h = 22;
+      let s = '';
+      for (let j = 0; j < h; j++) {
+        for (let i = 0; i < w; i++) {
+          const u = i / w - 0.5;
+          const v = j / h - 0.5;
+          const d = Math.sqrt(u * u * 2.4 + v * v);
+          let val = Math.sin(d * 13 - t * 1.6) * 0.5 + 0.5;
+          val *= 1 - Math.min(1, d * 1.5);
+          s += chars[Math.max(0, Math.min(chars.length - 1, Math.round(val * (chars.length - 1))))];
+        }
+        s += '\n';
+      }
+      pre.textContent = s;
+    };
+
+    draw();
+    addEventListener('resize', draw);
+    if (!still)
+      setInterval(() => {
+        if (document.hidden) return;
+        t += 0.09;
+        draw();
+      }, 80);
+  }
+</script>

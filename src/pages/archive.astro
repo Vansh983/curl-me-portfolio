@@ -1,0 +1,99 @@
+---
+import Base from '../layouts/Base.astro';
+import { byYear, projects } from '../data/projects';
+import { profile } from '../data/profile';
+
+const slug = (c: string) => c.toLowerCase().replace('machine learning', 'ml').replace(/\s+/g, '');
+const filters = [
+  ['all', 'all'],
+  ['web', 'web'],
+  ['mobile', 'mobile'],
+  ['cloud', 'cloud'],
+  ['ml', 'machine learning'],
+  ['cli', 'cli'],
+];
+---
+
+<Base
+  title="Archive"
+  description={`Every project ${profile.name} has shipped since 2017, ${projects.length} of them.`}
+>
+  <h1 class="block">Archive</h1>
+  <p class="mut small">{projects.length} projects since 2017. Filter is CSS, no JavaScript.</p>
+
+  <div class="arch">
+    <div class="filters">
+      {
+        filters.map(([id, label], i) => (
+          <>
+            <input type="radio" name="cat" id={`f-${id}`} checked={i === 0} />
+            <label for={`f-${id}`}>{label}</label>
+          </>
+        ))
+      }
+    </div>
+
+    <div class="list">
+      {
+        byYear.map((p) => (
+          <div class="row" data-cat={p.category.map(slug).join(' ')}>
+            <span class="yr">{p.year}</span>
+            <span>{p.url ? <a href={p.url}>{p.title}</a> : p.title}</span>
+            <span class="meta">{p.tags.slice(0, 3).join(', ')}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</Base>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 24px 0 10px;
+  }
+  .filters input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .filters label {
+    font-family: var(--f-mono);
+    font-size: var(--t-label);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--rule);
+    padding: 5px 9px;
+    color: var(--mut);
+    cursor: pointer;
+  }
+  .filters label:hover {
+    color: var(--tx);
+    border-color: var(--mut);
+  }
+  .filters input:focus-visible + label {
+    outline: 2px solid var(--acc);
+    outline-offset: 2px;
+  }
+
+  .arch:has(#f-web:checked) label[for='f-web'],
+  .arch:has(#f-mobile:checked) label[for='f-mobile'],
+  .arch:has(#f-cloud:checked) label[for='f-cloud'],
+  .arch:has(#f-ml:checked) label[for='f-ml'],
+  .arch:has(#f-cli:checked) label[for='f-cli'],
+  .arch:has(#f-all:checked) label[for='f-all'] {
+    background: var(--acc);
+    color: var(--acc-tx);
+    border-color: var(--acc);
+  }
+
+  .arch:has(#f-web:checked) .row:not([data-cat~='web']),
+  .arch:has(#f-mobile:checked) .row:not([data-cat~='mobile']),
+  .arch:has(#f-cloud:checked) .row:not([data-cat~='cloud']),
+  .arch:has(#f-ml:checked) .row:not([data-cat~='ml']),
+  .arch:has(#f-cli:checked) .row:not([data-cat~='cli']) {
+    display: none;
+  }
+</style>

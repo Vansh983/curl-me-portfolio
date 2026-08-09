@@ -1,0 +1,150 @@
+---
+import '../styles/global.css';
+import Menu from '../components/Menu.astro';
+import { profile, site } from '../data/profile';
+
+type Props = {
+  title?: string;
+  description?: string;
+  article?: { published: string; updated?: string };
+  wide?: boolean;
+};
+
+const { title, description, article } = Astro.props;
+const pageTitle = title ? `${title} | ${profile.name}` : `${profile.name}`;
+const desc = description ?? site.description;
+// build.format is 'file', so pathname is "/archive.html" at build time.
+// The URL Vercel actually serves has no extension, and that is what must be canonical.
+const clean = Astro.url.pathname.replace(/index\.html$/, '').replace(/\.html$/, '');
+const canonical = new URL(clean, Astro.site).href.replace(/\/$/, '') || site.url;
+
+const person = {
+  '@type': 'Person',
+  '@id': `${site.url}/#person`,
+  name: profile.name,
+  url: site.url,
+  jobTitle: profile.role,
+  worksFor: { '@type': 'Organization', name: profile.company.name, url: profile.company.url },
+  sameAs: [...profile.sameAs],
+};
+
+const jsonld = article
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: title,
+      description: desc,
+      datePublished: article.published,
+      dateModified: article.updated ?? article.published,
+      mainEntityOfPage: canonical,
+      author: { '@id': `${site.url}/#person` },
+      publisher: { '@id': `${site.url}/#person` },
+    }
+  : {
+      '@context': 'https://schema.org',
+      '@graph': [
+        person,
+        { '@type': 'WebSite', '@id': `${site.url}/#website`, url: site.url, name: profile.name },
+      ],
+    };
+
+const nav = [
+  { href: '/blog', label: 'writing' },
+  { href: '/archive', label: 'archive' },
+  { href: '/now', label: 'now' },
+];
+const path = Astro.url.pathname.replace(/\/$/, '');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title={profile.name} href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={profile.name} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {article && <meta property="article:published_time" content={article.published} />}
+
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/space-grotesk.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/inter.woff2" crossorigin />
+
+    <script type="speculationrules" is:inline>
+      {"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}
+    </script>
+
+    <script is:inline>
+      // no flash of the wrong theme
+      try {
+        const t = localStorage.getItem('theme');
+        if (t) document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />
+  </head>
+
+  <body>
+    <!--
+      Built with Astro, deployed on Vercel, no framework runtime.
+      curl vanshsood.com  ->  this page in plain text.
+      /llms.txt           ->  the same thing, for models.
+    -->
+    <header class="topbar">
+      <a href="/" class="plain" aria-label="Home">{profile.name}</a>
+      <nav>
+        {
+          nav.map((n) => (
+            <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
+              {n.label}
+            </a>
+          ))
+        }
+        <button class="iconbtn" id="menu-open" aria-label="Open command menu" title="Command menu">
+          &#8984;K
+        </button>
+        <button class="iconbtn" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
+          &#9788;
+        </button>
+      </nav>
+    </header>
+
+    <main class="shell">
+      <slot />
+    </main>
+
+    <footer class="site">
+      <span>&copy; {new Date().getFullYear()} {profile.name}</span>
+      <a href="/rss.xml">rss</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/humans.txt">humans.txt</a>
+      <span style="margin-left:auto">try: curl vanshsood.com</span>
+    </footer>
+
+    <Menu />
+
+    <script>
+      const root = document.documentElement;
+      const btn = document.getElementById('theme-toggle');
+      btn?.addEventListener('click', () => {
+        const dark =
+          root.dataset.theme === 'dark' ||
+          (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+        root.dataset.theme = dark ? 'light' : 'dark';
+        try {
+          localStorage.setItem('theme', root.dataset.theme);
+        } catch (e) {}
+      });
+    </script>
+  </body>
+</html>
