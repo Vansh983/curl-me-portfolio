@@ -1,86 +1,168 @@
 ---
 import { timeline } from '../data/timeline';
+
+// Geometry. Every chapter gets one row of ROW px on desktop, so the curve,
+// the markers and the text all agree without measuring anything at runtime.
+const ROW = 520; // px per chapter, desktop
+const GUT = 240; // px gutter that holds the year and the curve
+const TOP = 72; // marker offset from the top of its row
+const XL = 148; // curve swings between these two x values
+const XR = 214;
+const n = timeline.length;
+const H = n * ROW;
+const x = (i: number) => (i % 2 === 0 ? XL : XR);
+const y = (i: number) => i * ROW + TOP;
+
+// One gentle S between every pair of markers. Vertical tangents at each marker.
+let d = `M ${x(0)} 0 L ${x(0)} ${y(0)}`;
+for (let i = 0; i < n - 1; i++) {
+  const my = (y(i) + y(i + 1)) / 2;
+  d += ` C ${x(i)} ${my} ${x(i + 1)} ${my} ${x(i + 1)} ${y(i + 1)}`;
+}
+d += ` L ${x(n - 1)} ${H}`;
 ---
 
-<ol class="tl">
-  <span class="spine" aria-hidden="true"><i></i></span>
-  {
-    timeline.map((m) => (
-      <li>
-        <span class="dot" aria-hidden="true" />
-        <span class="yr">{m.year}</span>
-        <h3>{m.title}</h3>
-        <p class="small mut">{m.body}</p>
-      </li>
-    ))
-  }
-</ol>
+<div class="stage" style={`--rows:${n};--row:${ROW}px;--gut:${GUT}px;--h:${H}px`}>
+  <svg class="curve" width={GUT} height={H} viewBox={`0 0 ${GUT} ${H}`} aria-hidden="true">
+    <path class="track" d={d} pathLength="1"></path>
+    <path class="ink" d={d} pathLength="1"></path>
+  </svg>
+  <span class="rider" aria-hidden="true" style={`offset-path: path('${d}')`}></span>
+
+  <ol class="chapters">
+    {
+      timeline.map((m, i) => (
+        <li style={`--x:${x(i)}px`}>
+          <div class="gut">
+            <span class="yr">{m.year}</span>
+            {m.span && <span class="span">{m.span}</span>}
+            {m.mark && <img class="mark" src={m.mark} alt="" width="22" height="22" loading="lazy" />}
+            <span class="ring" aria-hidden="true" />
+          </div>
+          <div class="tx">
+            <span class="yr-inline">
+              {m.year}
+              {m.span && <span class="mut"> {m.span}</span>}
+            </span>
+            {m.lane && <span class="lane label">{m.lane}</span>}
+            <h3>{m.title}</h3>
+            <p>{m.body}</p>
+            {m.stat && <p class="stat">{m.stat}</p>}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</div>
 
 <style>
-  /* The whole animation is four CSS properties. No JavaScript, no library,
-     and nothing runs on the main thread. Browsers without scroll-driven
-     animations land on the finished state, which reads as a normal list. */
-  .tl {
+  /* Everything that moves is a CSS scroll driven animation on the stage's own
+     view timeline. No JavaScript, nothing on the main thread. Browsers without
+     scroll timelines land on the finished state, which reads as a normal list. */
+  .stage {
     position: relative;
+    view-timeline-name: --tl;
+    view-timeline-axis: block;
+    --lead: 50vh; /* the rider sits at the middle of the viewport */
+  }
+  .chapters {
     list-style: none;
     margin: 0;
-    padding: 4px 0 0 30px;
+    padding: 0;
+    position: relative;
   }
-  .spine {
+  .curve {
     position: absolute;
-    left: 4px;
-    top: 12px;
-    bottom: 26px;
-    width: 1px;
-    background: var(--rule);
+    top: 0;
+    left: 0;
+    display: none;
+    overflow: visible;
+    pointer-events: none;
   }
-  .spine i {
-    position: absolute;
-    inset: 0;
-    display: block;
-    background: var(--acc);
-    transform-origin: top;
+  .curve path {
+    fill: none;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .track {
+    stroke: var(--rule);
+  }
+  .ink {
+    stroke: var(--tx);
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
     animation: draw linear both;
-    animation-timeline: view();
-    animation-range: contain 0% contain 100%;
+    animation-timeline: --tl;
+    animation-range: cover var(--lead) cover calc(100% - var(--lead));
   }
   @keyframes draw {
-    from {
-      transform: scaleY(0);
-    }
     to {
-      transform: scaleY(1);
+      stroke-dashoffset: 0;
     }
   }
 
-  .tl li {
+  .rider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--acc);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--acc) 22%, transparent);
+    offset-distance: 0%;
+    offset-rotate: 0deg;
+    animation: ride linear both;
+    animation-timeline: --tl;
+    animation-range: cover var(--lead) cover calc(100% - var(--lead));
+    z-index: 1;
+  }
+  @keyframes ride {
+    to {
+      offset-distance: 100%;
+    }
+  }
+
+  li {
     position: relative;
-    padding: 0 0 26px;
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    padding: 0 0 56px;
     animation: lift linear both;
     animation-timeline: view();
-    animation-range: entry 16% cover 32%;
+    animation-range: cover 4vh cover 30vh;
   }
   @keyframes lift {
     from {
-      opacity: 0.35;
+      opacity: 0.32;
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
+      transform: none;
     }
   }
 
-  .dot {
+  .gut {
+    position: relative;
+  }
+  .yr,
+  .span,
+  .mark {
+    display: none;
+  }
+  .ring {
     position: absolute;
-    left: -30px;
-    top: 8px;
-    width: 9px;
-    height: 9px;
+    left: 15px;
+    top: 9px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
     border: 1px solid var(--mut);
     background: var(--bg);
-    border-radius: 50%;
     animation: fill linear both;
     animation-timeline: view();
-    animation-range: entry 16% cover 32%;
+    animation-range: cover calc(var(--lead) - 10px) cover calc(var(--lead) + 4px);
   }
   @keyframes fill {
     to {
@@ -89,13 +171,168 @@ import { timeline } from '../data/timeline';
     }
   }
 
-  .yr {
+  .tx {
+    max-width: 54ch;
+  }
+  .yr-inline {
+    display: block;
     font-family: var(--f-mono);
     font-size: var(--t-label);
     letter-spacing: 0.09em;
     color: var(--mut);
+    margin-bottom: 4px;
   }
-  .tl h3 {
-    margin: 2px 0 4px;
+  .lane {
+    display: block;
+    margin-bottom: 6px;
+  }
+  .tx h3 {
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+  .stat {
+    margin-top: 10px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--mut);
+  }
+
+  /* mobile spine: a straight line down the gutter, the rider slides along it */
+  .stage::before,
+  .stage::after {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--rule);
+  }
+  .stage::after {
+    background: var(--tx);
+    transform-origin: top;
+    animation: grow linear both;
+    animation-timeline: --tl;
+    animation-range: cover var(--lead) cover calc(100% - var(--lead));
+  }
+  @keyframes grow {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  @media (max-width: 719.98px) {
+    .rider {
+      left: 15px;
+      offset-path: none !important;
+      animation-name: slide;
+    }
+  }
+  @keyframes slide {
+    from {
+      top: 0;
+    }
+    to {
+      top: calc(100% - 9px);
+    }
+  }
+
+  /* desktop: the curve, the big years, one fixed row per chapter */
+  @media (min-width: 720px) {
+    .stage {
+      width: min(900px, 100vw - 2 * var(--pad));
+      margin-left: calc(50% - min(450px, 50vw - var(--pad)));
+      height: var(--h);
+    }
+    .stage::before,
+    .stage::after {
+      display: none;
+    }
+    .curve {
+      display: block;
+    }
+    li {
+      grid-template-columns: var(--gut) 1fr;
+      height: var(--row);
+      padding: 0;
+    }
+    .gut {
+      height: 100%;
+    }
+    .yr {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 40px;
+      width: 116px;
+      text-align: right;
+      font-family: var(--f-display);
+      font-weight: 300;
+      font-size: 54px;
+      line-height: 1;
+      letter-spacing: -0.035em;
+      color: var(--tx);
+      font-variant-numeric: tabular-nums;
+    }
+    .span {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 100px;
+      width: 116px;
+      text-align: right;
+      font-family: var(--f-mono);
+      font-size: var(--t-label);
+      letter-spacing: 0.09em;
+      color: var(--mut);
+    }
+    .mark {
+      display: block;
+      position: absolute;
+      left: 94px;
+      top: 126px;
+      width: 22px;
+      height: 22px;
+      filter: grayscale(1);
+      opacity: 0.55;
+    }
+    .ring {
+      left: calc(var(--x) - 5px);
+      top: calc(72px - 5px);
+    }
+    .yr-inline {
+      display: none;
+    }
+    .tx {
+      padding: 46px 0 0 40px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ink,
+    .rider,
+    li,
+    .ring,
+    .stage::after {
+      animation: none;
+    }
+    .ink {
+      stroke-dashoffset: 0;
+    }
+    .rider {
+      display: none;
+    }
+    .ring {
+      background: var(--acc);
+      border-color: var(--acc);
+    }
+  }
+  @supports not (animation-timeline: view()) {
+    .rider {
+      display: none;
+    }
   }
 </style>

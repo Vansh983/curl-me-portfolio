@@ -4,23 +4,18 @@ import Wordmark from '../components/Wordmark.astro';
 import Timeline from '../components/Timeline.astro';
 import Field from '../components/Field.astro';
 import { profile } from '../data/profile';
-import { featured, projects } from '../data/projects';
 import { getCollection } from 'astro:content';
 import { short } from '../lib/date';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
-const work = featured.slice(0, 6);
 ---
 
 <Base>
   <section class="hero">
     <Wordmark />
-    <p class="role">
-      Head of engineering at <a href={profile.company.url}>Floqer</a>. Co-founder of
-      <a href={profile.bean.url}>Bean</a>.
-    </p>
+    <p class="role">Shipping software since 13. Building <a href={profile.company.url}>Floqer</a> now.</p>
     <p class="mut">{profile.summary}</p>
     <p class="links">
       {profile.links.map((l) => <a href={l.href}>{l.label}</a>)}
@@ -28,30 +23,12 @@ const work = featured.slice(0, 6);
     </p>
   </section>
 
-  <section class="block">
-    <p class="label">Timeline</p>
+  <section class="story">
     <Timeline />
   </section>
 
   <section class="block">
     <Field label="field.js" />
-  </section>
-
-  <section class="block">
-    <p class="label">Selected work</p>
-    {
-      work.map((p) => (
-        <div class="row">
-          <span class="yr">{p.year}</span>
-          <span>
-            {p.url ? <a href={p.url}>{p.title}</a> : p.title}
-            {p.description && <span class="small mut desc">{p.description}</span>}
-          </span>
-          <span class="meta">{p.tags.slice(0, 2).join(', ')}</span>
-        </div>
-      ))
-    }
-    <p class="more small"><a href="/archive">All {projects.length} projects</a></p>
   </section>
 
   <section class="block">
@@ -78,6 +55,9 @@ const work = featured.slice(0, 6);
   .role {
     font-size: 19px;
     margin: 16px 0 12px;
+  }
+  .story {
+    margin-top: 80px;
   }
   .links {
     display: flex;

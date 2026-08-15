@@ -6,7 +6,7 @@ export const profile = {
   role: 'Engineer and founder',
   // One sentence. Shows up in the hero, the meta description and the curl response.
   summary:
-    'I build software companies. Started at 17 by winning Google Code-in, ran a 25 person studio through university, co-founded Bean, and now run engineering at Floqer.',
+    'Won Google Code-in at 17, ran a 25 person studio through university, co-founded Bean and ran it for two years. Now building Floqer.', // placeholder until the export lands
   location: 'Halifax, Canada', // TODO confirm for 2026
   company: { name: 'Floqer', url: 'https://floqer.com' }, // head of engineering, not founder
   bean: { name: 'Bean', url: 'https://beantheapp.com' }, // co-founder and CTO, with Pankrit Jindal

@@ -9,6 +9,12 @@ export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
   integrations: [sitemap()],
+  vite: {
+    // Both esbuild and lightningcss fold animation-timeline into the animation
+    // shorthand, which Chrome rejects, so every scroll driven animation silently
+    // dies. Unminified CSS costs about 4 KB gzipped and keeps the timeline alive.
+    build: { cssMinify: false },
+  },
   markdown: {
     // css-variables keeps code blocks on the brand tokens in both themes.
     shikiConfig: { theme: 'css-variables', wrap: true },
