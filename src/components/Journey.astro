@@ -12,7 +12,7 @@ const inner = (stem: string) => {
   if (!s) throw new Error(`missing scene ${stem}`);
   return s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 };
-const withTimeline = (svg: string, name: string) => svg.replaceAll('<path ', `<path style="animation-timeline: ${name}" `);
+const withTimeline = (svg: string, name: string) => svg.replaceAll('<path ', `<path style="animation-timeline: ${name}, ${name}" `);
 
 // Only chapters with a scene take part; the rest of the timeline stays in the data for later.
 const chapters = timeline.filter((m) => m.scene);
@@ -55,7 +55,7 @@ const fallback =
         <path class="ground" d="M 0 860 L 1600 860" />
         <g class="fig" transform="translate(1100 860)">
           {first.map((s) => (
-            <path data-id={s.id} d={s.d} style={`opacity:${s.opacity}`} class:list={{ accent: s.accent }} />
+            <path data-id={s.id} d={s.d} style={`opacity:${s.opacity}`} class={`f-${s.fill}`} stroke-width={s.width} />
           ))}
         </g>
       </g>
@@ -108,7 +108,7 @@ const fallback =
   .ink {
     fill: none;
     stroke: currentColor;
-    stroke-width: 2.5;
+    stroke-width: 3.5;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -118,10 +118,13 @@ const fallback =
   .ground {
     stroke-opacity: 0.18;
   }
-  .fig .accent,
   .ink :global(.accent) {
     stroke: var(--acc);
   }
+  .fig .f-ink { fill: var(--tx); }
+  .fig .f-paper { fill: var(--bg); }
+  .fig .f-accent { fill: var(--acc); }
+  .fig .f-none { fill: none; }
 
   /* Scenery: strokes draw on while the chapter enters, the group fades while it exits. */
   .sc,
@@ -137,11 +140,15 @@ const fallback =
   .sc :global(path) {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
-    animation-name: draw;
-    animation-duration: auto;
-    animation-timing-function: linear;
-    animation-fill-mode: both;
-    animation-range: entry 15% entry 95%;
+    fill-opacity: 0;
+    animation-name: draw, fill-in;
+    animation-duration: auto, auto;
+    animation-timing-function: linear, linear;
+    animation-fill-mode: both, both;
+    animation-range: entry 15% entry 95%, entry 60% entry 100%;
+  }
+  .bg :global(path) {
+    fill-opacity: 1;
   }
   @keyframes fade-in {
     from { opacity: 0; }
@@ -155,6 +162,10 @@ const fallback =
     from { stroke-dashoffset: 1; }
     to { stroke-dashoffset: 0; }
   }
+  @keyframes fill-in {
+    from { fill-opacity: 0; }
+    to { fill-opacity: 1; }
+  }
   /* Where scroll timelines are missing, the script's data-chapter picks the layers (rules in the inline style above). */
   @supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
     .sc,
@@ -165,12 +176,14 @@ const fallback =
     .sc :global(path) {
       animation-name: none;
       stroke-dashoffset: 0;
+      fill-opacity: 1;
     }
   }
   @media (prefers-reduced-motion: reduce) {
     .sc :global(path) {
       animation-name: none;
       stroke-dashoffset: 0;
+      fill-opacity: 1;
     }
   }
 

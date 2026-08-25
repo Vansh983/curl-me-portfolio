@@ -31,16 +31,17 @@ const inner = (file) => {
   const s = readFileSync(resolve(file), 'utf8');
   return s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 };
-const withAccent = (s) => s.replaceAll('var(--acc)', acc);
+const withAccent = (s) => s.replaceAll('var(--acc)', acc).replaceAll('var(--bg)', bg);
 
 const FIG_X = 1100, FIG_Y = 860; // feet position on the 1600x900 stage
+const fillOf = { ink, paper: bg, accent: acc, none: 'none' };
 const strokes = figure(params)
-  .map((s) => `<path d="${s.d}" opacity="${s.opacity}" stroke="${s.accent ? acc : 'currentColor'}"/>`)
+  .map((s) => `<path d="${s.d}" opacity="${s.opacity}" fill="${fillOf[s.fill]}" stroke-width="${s.width}"/>`)
   .join('\n');
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" color="${ink}">
 <rect width="1600" height="900" fill="${bg}"/>
-<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+<g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
 <g class="bg">${withAccent(inner(opt('--bg')))}</g>
 <g class="scene">${withAccent(inner(opt('--scene')))}</g>
 <line x1="0" y1="860" x2="1600" y2="860" stroke-opacity="0.18"/>

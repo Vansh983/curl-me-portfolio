@@ -50,7 +50,11 @@ test('out of range params are clamped, not thrown', () => {
 
 test('the figure grows with height and the head shrinks with headRatio', () => {
   const head = (p: FigureParams) => figure(p).find((s) => s.id === 'head')!.d;
-  const r = (d: string) => Number(d.match(/A (-?\d+(?:\.\d+)?)/)![1]);
+  // head width from the extremes of the x coordinates in the path
+  const r = (d: string) => {
+    const xs = [...d.matchAll(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)].map((m) => Number(m[1]));
+    return Math.max(...xs) - Math.min(...xs);
+  };
   assert.ok(r(head(KID)) > r(head({ ...KID, headRatio: 0.16 })));
   assert.ok(r(head(FOUNDER)) < r(head({ ...FOUNDER, height: 0.6, headRatio: 0.3 })));
 });

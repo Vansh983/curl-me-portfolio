@@ -1,6 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
   <!-- 2018: the suitcase for San Francisco, the plane that took him, and rays around the trophy -->
-  <path pathLength="1" d="M 1210 860 L 1210 795 L 1290 795 L 1290 860 M 1210 820 L 1290 820"/>
+  <path pathLength="1" fill="var(--bg)" d="M 1210 860 L 1210 795 L 1290 795 L 1290 860 Z"/>
+  <path pathLength="1" d="M 1210 820 L 1290 820"/>
   <path pathLength="1" d="M 1235 795 L 1235 780 L 1265 780 L 1265 795"/>
   <path pathLength="1" d="M 780 220 L 880 200 M 830 212 L 815 240 M 830 212 L 850 185 M 785 220 L 775 205"/>
   <path pathLength="1" stroke-width="1.5" d="M 700 240 L 730 235 M 745 232 L 765 228"/>
