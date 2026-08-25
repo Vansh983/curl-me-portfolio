@@ -1,15 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 300" fill="none" stroke="none">
-  <!-- a zombies poster on the wall: black paper, red frame, a green hand out of the ground, a crosshair -->
-  <rect x="0" y="0" width="220" height="300" fill="#17282F"/>
-  <rect x="8" y="8" width="204" height="284" fill="none" stroke="#F2575D" stroke-width="5"/>
-  <rect x="24" y="220" width="172" height="52" fill="#2A4550"/>
-  <path d="M 96 226 c -6 -30 -2 -70 4 -100 c 2 -10 10 -10 12 0 c 3 12 2 30 1 40 c 6 -14 12 -26 18 -30 c 8 -4 12 4 8 12 c -5 10 -10 22 -14 34 c 8 -8 16 -12 22 -10 c 7 3 5 11 -2 16 c -8 6 -16 14 -22 24 c 8 -4 14 -4 18 0 c 5 5 0 12 -8 14 c -12 3 -26 4 -37 0 Z" fill="#7AC142"/>
-  <circle cx="150" cy="80" r="34" fill="none" stroke="#F2575D" stroke-width="5"/>
-  <path d="M 150 36 v 22 M 150 102 v 22 M 106 80 h 22 M 172 80 h 22" stroke="#F2575D" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="150" cy="80" r="5" fill="#F2575D"/>
-  <path d="M 30 40 h 60 M 30 54 h 44 M 30 68 h 52" stroke="#F9F4EC" stroke-width="6" stroke-linecap="round"/>
-  <path d="M 30 150 h 40 M 30 164 h 26" stroke="#F9F4EC" stroke-width="5" stroke-linecap="round" stroke-opacity="0.6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 320" fill="none" stroke="none">
+  <!-- the Think Different poster: Steve Jobs in black and white, the crazy ones underneath -->
+  <rect x="0" y="0" width="220" height="320" fill="#111111"/>
+  <!-- portrait: black turtleneck, hand on chin, round glasses, grey stubble -->
+  <path d="M 40 214 C 40 176 80 160 110 160 C 140 160 180 176 180 214 L 180 226 L 40 226 Z" fill="#050505"/>
+  <path d="M 62 226 L 62 214 C 62 182 158 182 158 214 L 158 226 Z" fill="#000000"/>
+  <ellipse cx="110" cy="110" rx="34" ry="42" fill="#C9C9C9"/>
+  <path d="M 76 104 C 74 66 146 66 144 104 C 136 86 124 78 110 78 C 96 78 84 86 76 104 Z" fill="#8A8A8A"/>
+  <path d="M 80 128 C 84 150 96 158 110 158 C 124 158 136 150 140 128 C 132 140 122 146 110 146 C 98 146 88 140 80 128 Z" fill="#7A7A7A"/>
+  <circle cx="96" cy="112" r="11" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="124" cy="112" r="11" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <path d="M 107 112 h 6 M 85 110 l -8 -2 M 135 110 l 8 -2" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 104 124 c 2 6 10 6 12 0" stroke="#111111" stroke-width="2" stroke-linecap="round"/>
+  <!-- the hand on the chin -->
+  <path d="M 120 150 C 136 146 150 152 150 166 C 150 178 140 184 128 180 C 120 176 118 162 120 150 Z" fill="#BDBDBD"/>
+  <path d="M 128 154 v 20 M 136 154 v 20 M 143 158 v 16" stroke="#9A9A9A" stroke-width="2" stroke-linecap="round"/>
+  <!-- the words -->
+  <text x="110" y="256" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="17" fill="#F5F5F5">Here's to the crazy ones.</text>
+  <text x="110" y="276" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="#BDBDBD">The misfits. The rebels. The troublemakers.</text>
+  <text x="110" y="290" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="#BDBDBD">The round pegs in the square holes.</text>
+  <text x="110" y="308" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="10" letter-spacing="1" fill="#F5F5F5">Think different.</text>
   <!-- drawing pins -->
-  <circle cx="12" cy="12" r="6" fill="#F7D44C"/><circle cx="208" cy="12" r="6" fill="#F7D44C"/>
-  <circle cx="12" cy="288" r="6" fill="#F7D44C"/><circle cx="208" cy="288" r="6" fill="#F7D44C"/>
+  <circle cx="10" cy="10" r="5" fill="#F7D44C"/><circle cx="210" cy="10" r="5" fill="#F7D44C"/>
+  <circle cx="10" cy="310" r="5" fill="#F7D44C"/><circle cx="210" cy="310" r="5" fill="#F7D44C"/>
 </svg>

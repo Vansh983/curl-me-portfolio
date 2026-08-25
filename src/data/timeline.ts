@@ -75,10 +75,10 @@ export const timeline: Milestone[] = [
         // the wall is oversized so the camera swing never shows its edge
         { id: 'room', inline: 'k-room', x: -220, y: -124, w: 2040, z: -720 },
         { id: 'fan', inline: 'k-fan', x: 250, y: 40, w: 480, z: -660 },
-        { id: 'poster', inline: 'k-poster', x: 900, y: 96, w: 160, z: -600, motion: 'drop', range: 'entry 10% entry 60%' },
-        { id: 'shelf', inline: 'k-shelf', x: 1200, y: 560, w: 280, z: -560, motion: 'slide-r', range: 'entry 20% entry 70%' },
+        { id: 'poster', inline: 'k-poster', x: 900, y: 90, w: 160, z: -600, motion: 'drop', range: 'entry 10% entry 60%' },
+        { id: 'shelf', inline: 'k-shelf', x: 1190, y: 552, w: 300, z: -560, motion: 'slide-r', range: 'entry 20% entry 70%' },
         { id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%' },
-        { id: 'xbox', inline: 'k-xbox', x: 700, y: 668, w: 220, z: -410, motion: 'rise', range: 'entry 15% entry 65%' },
+        { id: 'xbox', inline: 'k-xbox', x: 1190, y: 758, w: 300, z: -300, motion: 'rise', range: 'entry 15% entry 65%' },
         { id: 'floor', inline: 'k-floor', x: 0, y: 0, w: 1600, z: -200 },
         { id: 'kid', inline: 'k-kid', x: 700, y: 450, w: 360, z: -130, motion: 'pop', range: 'entry 30% entry 80%' },
       ],

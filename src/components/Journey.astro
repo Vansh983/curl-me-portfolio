@@ -74,6 +74,14 @@ const fallback =
 </section>
 
 <style is:inline set:html={fallback} />
+<style is:global>
+  /* the Call of Duty wordmark in the bedroom scene */
+  @font-face {
+    font-family: 'Bebas Neue';
+    src: url('/fonts/bebas-neue.ttf') format('truetype');
+    font-display: swap;
+  }
+</style>
 
 <style>
   .journey {
@@ -215,6 +223,13 @@ const fallback =
   @keyframes drop { from { transform: translateY(-320px); } to { transform: translateY(0); } }
   @keyframes swing-in { from { transform: translateX(560px) translateZ(-300px) rotateY(-75deg); } to { transform: none; } }
   @keyframes fly { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+  /* things that keep moving on their own clock, not the scroll: the ceiling fan */
+  .anim :global([data-loop='spin']) {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: spin-loop 3.2s linear infinite;
+  }
+  @keyframes spin-loop { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(1440deg); } }
   @keyframes shamble { 0% { transform: translateX(-14px); } 50% { transform: translateX(16px); } 100% { transform: translateX(-10px); } }
   @keyframes flicker {
@@ -251,7 +266,7 @@ const fallback =
     .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .cam, .anim, .anim :global([data-motion]) { animation-name: none; }
+    .cam, .anim, .anim :global([data-motion]), .anim :global([data-loop]) { animation-name: none; }
     .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
   }
 
