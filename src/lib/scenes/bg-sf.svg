@@ -1,15 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Golden Gate to the right of the figure: deck, two towers, main cable, hangers -->
-  <path pathLength="1" d="M 1250 700 L 1600 700 M 1250 712 L 1600 712"/>
-  <path pathLength="1" d="M 1338 860 L 1338 470 M 1362 860 L 1362 470 M 1333 470 L 1367 470 M 1338 520 L 1362 520 M 1338 580 L 1362 580 M 1338 640 L 1362 640"/>
-  <path pathLength="1" d="M 1548 860 L 1548 470 M 1572 860 L 1572 470 M 1543 470 L 1577 470 M 1548 520 L 1572 520 M 1548 580 L 1572 580 M 1548 640 L 1572 640"/>
-  <path pathLength="1" d="M 1250 700 Q 1320 520 1350 470 Q 1455 630 1560 470 Q 1585 490 1600 505"/>
-  <path pathLength="1" d="M 1290 615 L 1290 700 M 1320 535 L 1320 700 M 1400 530 L 1400 700 M 1430 545 L 1430 700 M 1455 550 L 1455 700 M 1480 545 L 1480 700 M 1510 530 L 1510 700"/>
-  <!-- fog bands, low and behind -->
-  <path pathLength="1" stroke-width="1.5" d="M 700 750 Q 800 738 900 752 T 1000 748"/>
-  <path pathLength="1" stroke-width="1.5" d="M 1260 790 Q 1360 776 1460 792 T 1600 786"/>
-  <!-- a hill of row houses on the left -->
-  <path pathLength="1" fill="var(--bg)" d="M 720 860 L 720 770 L 770 770 L 770 752 L 820 752 L 820 736 L 870 736 L 870 722 L 920 722 L 920 712 L 965 712 L 965 860"/>
-  <path pathLength="1" d="M 770 770 L 770 860 M 820 752 L 820 860 M 870 736 L 870 860 M 920 722 L 920 860"/>
-  <path pathLength="1" d="M 735 795 L 755 795 L 755 820 L 735 820 Z M 835 780 L 855 780 L 855 805 L 835 805 Z M 933 745 L 953 745 L 953 770 L 933 770 Z"/>
+  <!-- San Francisco. Groups are animated by the stage: hills and houses pop up, the towers rise, the deck slides in, the cable and hangers draw, fog drifts. -->
+  <g class="hills">
+    <path d="M 700 860 C 820 760 980 760 1120 820 C 1180 845 1220 855 1260 860 Z" fill="var(--bg)"/>
+    <path d="M 1120 860 C 1220 800 1360 790 1600 830 L 1600 860 Z" fill="var(--bg)" stroke-opacity="0.6"/>
+  </g>
+  <g class="water">
+    <path d="M 1200 745 L 1600 745 L 1600 860 L 1200 860 Z" fill="var(--bg)" stroke="none"/>
+    <path stroke-width="2.5" d="M 1225 790 q 20 -8 40 0 t 40 0 M 1330 815 q 20 -8 40 0 t 40 0 M 1460 780 q 20 -8 40 0 t 40 0 M 1510 838 q 20 -8 40 0 t 40 0 M 1270 845 q 20 -8 40 0"/>
+  </g>
+  <g class="houses">
+    <path d="M 720 860 L 720 770 L 745 750 L 770 770 L 770 860 Z" fill="var(--bg)"/>
+    <path d="M 770 860 L 770 752 L 795 732 L 820 752 L 820 860 Z" fill="var(--bg)"/>
+    <path d="M 820 860 L 820 736 L 845 716 L 870 736 L 870 860 Z" fill="var(--bg)"/>
+    <path d="M 870 860 L 870 722 L 895 702 L 920 722 L 920 860 Z" fill="var(--bg)"/>
+    <path d="M 920 860 L 920 712 L 945 692 L 970 712 L 970 860 Z" fill="var(--bg)"/>
+    <path stroke="none" fill="currentColor" d="M 735 790 h 20 v 26 h -20 Z M 785 772 h 20 v 26 h -20 Z M 835 756 h 20 v 26 h -20 Z M 885 742 h 20 v 26 h -20 Z M 935 732 h 20 v 26 h -20 Z M 738 832 h 14 v 28 h -14 Z M 838 828 h 14 v 32 h -14 Z M 938 826 h 14 v 34 h -14 Z"/>
+    <path stroke-width="2.5" d="M 745 750 L 745 736 M 795 732 L 795 718 M 895 702 L 895 688"/>
+  </g>
+  <g class="towers">
+    <path d="M 1322 860 L 1322 372 L 1338 372 L 1338 356 L 1358 356 L 1358 372 L 1374 372 L 1374 860 Z" fill="var(--acc)"/>
+    <path d="M 1332 440 h 32 M 1332 520 h 32 M 1332 600 h 32 M 1332 680 h 32 M 1338 372 v 488 M 1358 372 v 488" stroke-width="2.5"/>
+    <path d="M 1532 860 L 1532 372 L 1548 372 L 1548 356 L 1568 356 L 1568 372 L 1584 372 L 1584 860 Z" fill="var(--acc)"/>
+    <path d="M 1542 440 h 32 M 1542 520 h 32 M 1542 600 h 32 M 1542 680 h 32 M 1548 372 v 488 M 1568 372 v 488" stroke-width="2.5"/>
+  </g>
+  <g class="deck">
+    <path d="M 1200 694 L 1600 694 L 1600 716 L 1200 716 Z" fill="var(--bg)"/>
+    <path stroke-width="2" d="M 1215 694 v -14 M 1245 694 v -14 M 1275 694 v -14 M 1305 694 v -14 M 1395 694 v -14 M 1425 694 v -14 M 1455 694 v -14 M 1485 694 v -14 M 1515 694 v -14 M 1600 680 L 1215 680"/>
+  </g>
+  <g class="cable draw">
+    <path pathLength="1" stroke-width="6" d="M 1200 716 C 1260 560 1320 400 1348 362 C 1400 560 1500 560 1558 362 C 1575 430 1590 470 1600 490"/>
+  </g>
+  <g class="hangers draw">
+    <path pathLength="1" stroke-width="2.5" d="M 1230 694 v -34 M 1260 694 v -104 M 1290 694 v -170 M 1320 694 v -240 M 1390 694 v -205 M 1420 694 v -160 M 1453 694 v -140 M 1486 694 v -160 M 1516 694 v -205 M 1590 694 v -220"/>
+  </g>
+  <g class="fog">
+    <path stroke-width="2" stroke-opacity="0.7" fill="var(--bg)" d="M 1150 760 C 1200 730 1290 730 1340 755 C 1400 725 1480 725 1530 750 C 1580 735 1640 745 1700 765 L 1700 800 L 1150 800 Z"/>
+    <path stroke-width="2" stroke-opacity="0.7" fill="var(--bg)" d="M 1240 610 C 1290 585 1360 585 1410 605 C 1460 580 1560 585 1640 610 L 1640 640 L 1240 640 Z"/>
+  </g>
 </svg>

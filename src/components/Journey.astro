@@ -3,7 +3,7 @@
 // ink-stroke figure that morphs with scroll, per-chapter scenery that draws
 // itself on, and place backgrounds that crossfade. Docs 07 to 09 in docs/rebuild.
 import { timeline } from '../data/timeline';
-import { figure } from '../lib/figure';
+import { figure, figureTransform } from '../lib/figure';
 
 // Raw SVG sources so each path can carry its own chapter timeline.
 const raw = import.meta.glob('../lib/scenes/*.svg', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
@@ -12,13 +12,14 @@ const inner = (stem: string) => {
   if (!s) throw new Error(`missing scene ${stem}`);
   return s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 };
-const withTimeline = (svg: string, name: string) => svg.replaceAll('<path ', `<path style="animation-timeline: ${name}, ${name}" `);
+const withTimeline = (svg: string, name: string) =>
+  svg.replaceAll('<path ', `<path style="animation-timeline: ${name}, ${name}" `).replaceAll('<g ', `<g style="animation-timeline: ${name}, ${name}" `);
 
 // Only chapters with a scene take part; the rest of the timeline stays in the data for later.
 const chapters = timeline.filter((m) => m.scene);
 const n = chapters.length;
 const keys = chapters.map((m) => m.scene!.figure);
-const first = figure(keys[0]);
+const enter = chapters[0].scene!.enter ?? keys[0];
 const tl = (i: number) => `--ch-${i + 1}`;
 
 // One background per place, visible from the place's first chapter to its last.
@@ -42,19 +43,19 @@ const fallback =
   '}';
 ---
 
-<section class="journey" data-n={n} data-chapter="0" data-keys={JSON.stringify(keys)} style={`timeline-scope: ${scopeNames}`}>
+<section class="journey" data-n={n} data-chapter="0" data-keys={JSON.stringify(keys)} data-enter={JSON.stringify(enter)} style={`timeline-scope: ${scopeNames}`}>
   <div class="stage" aria-hidden="true">
     <svg class="stage-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMaxYMax slice" focusable="false">
       <g class="ink">
         {places.map((p) => (
-          <g class="bg" data-place={p} style={`animation-timeline: ${tl(span[p].from)}, ${tl(span[p].to)}`} set:html={inner(`bg-${p}`)} />
+          <g class="bg" data-place={p} style={`animation-timeline: ${tl(span[p].from)}, ${tl(span[p].to)}`} set:html={withTimeline(inner(`bg-${p}`), tl(span[p].from))} />
         ))}
         {chapters.map((m, i) => (
           <g class="sc" data-i={i} style={`animation-timeline: ${tl(i)}, ${tl(i)}`} set:html={withTimeline(inner(m.scene!.scenery), tl(i))} />
         ))}
         <path class="ground" d="M 0 860 L 1600 860" />
-        <g class="fig" transform="translate(1100 860)">
-          {first.map((s) => (
+        <g class="fig" transform={figureTransform(enter)}>
+          {figure(enter).map((s) => (
             <path data-id={s.id} d={s.d} style={`opacity:${s.opacity}`} class={`f-${s.fill}`} stroke-width={s.width} />
           ))}
         </g>
@@ -187,6 +188,50 @@ const fallback =
     }
   }
 
+  /* Choreography. Every group below carries its chapter timeline (injected per element at build). */
+  .ink :global(.bg > g),
+  .ink :global(.sc > g) {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation-duration: auto, auto;
+    animation-timing-function: linear, linear;
+    animation-fill-mode: both, both;
+  }
+  .bg :global(.hills) { animation-name: pop; animation-range: entry 0% entry 40%; }
+  .bg :global(.houses) { animation-name: pop; animation-range: entry 15% entry 55%; }
+  .bg :global(.water) { animation-name: slide-r; animation-range: entry 10% entry 50%; }
+  .bg :global(.towers) { animation-name: rise; animation-range: entry 20% entry 65%; }
+  .bg :global(.deck) { animation-name: slide-r; animation-range: entry 35% entry 75%; }
+  .bg :global(.fog) { animation-name: drift; animation-range: entry 0% exit 100%; }
+  .bg :global(.draw path) {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation-name: draw;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+  }
+  .bg :global(.cable path) { animation-range: entry 55% entry 90%; }
+  .bg :global(.hangers path) { animation-range: entry 80% exit 10%; }
+  .sc :global(.plane) {
+    offset-path: path('M -120 300 C 300 200 700 120 1000 150 C 1300 180 1500 100 1750 40');
+    offset-rotate: auto;
+    animation-name: fly;
+    animation-range: entry 0% exit 100%;
+  }
+  .sc :global(.suitcase) { animation-name: slide-r; animation-range: entry 55% entry 95%; }
+  .sc :global(.rays) { transform-origin: center; animation-name: burst; animation-range: entry 85% exit 15%; }
+  .sc :global(.desk), .sc :global(.monitor) { animation-name: slide-r; animation-range: entry 20% entry 60%; }
+  .sc :global(.team) { animation-name: pop; animation-range: entry 50% entry 100%; }
+  .sc :global(.note) { animation-name: drop; animation-range: entry 70% exit 0%; }
+  @keyframes pop { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes rise { from { transform: translateY(520px); } to { transform: translateY(0); } }
+  @keyframes slide-r { from { transform: translateX(460px); } to { transform: translateX(0); } }
+  @keyframes drift { from { transform: translateX(140px); } to { transform: translateX(-160px); } }
+  @keyframes fly { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+  @keyframes burst { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes drop { from { transform: translateY(-260px); } to { transform: translateY(0); } }
+
   .wall {
     position: relative;
     z-index: 1;
@@ -264,13 +309,15 @@ const fallback =
 </style>
 
 <script>
-  import { figure, type FigureParams } from '../lib/figure';
-  import { lerpParams, locate, clamp01 } from '../lib/lerp';
+  import { figure, figureTransform, type FigureParams } from '../lib/figure';
+  import { lerpParams, locate, clamp01, easeInOutSine } from '../lib/lerp';
 
   const root = document.querySelector<HTMLElement>('.journey');
   if (root) {
     const keys = JSON.parse(root.dataset.keys!) as FigureParams[];
+    const enter = JSON.parse(root.dataset.enter!) as FigureParams;
     const n = keys.length;
+    const fig = root.querySelector<SVGGElement>('.fig')!;
     const paths = new Map<string, SVGPathElement>();
     root.querySelectorAll<SVGPathElement>('.fig path[data-id]').forEach((el) => paths.set(el.dataset.id!, el));
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
@@ -280,25 +327,33 @@ const fallback =
     let raf = 0;
     let lastKey = -1;
 
+    // p < 0 is the run-up: the section is scrolling into view and he walks in from the enter pose.
     const draw = (p: number) => {
-      const { i, t } = locate(p, n);
-      const params = t === 0 ? keys[i] : t === 1 ? keys[i + 1] : lerpParams(keys[i], keys[i + 1], t);
+      let params: FigureParams;
+      if (p < 0) params = lerpParams(enter, keys[0], easeInOutSine(1 + Math.max(-1, p)));
+      else {
+        const { i, t } = locate(p, n);
+        params = t === 0 ? keys[i] : t === 1 ? keys[i + 1] : lerpParams(keys[i], keys[i + 1], t);
+      }
+      fig.setAttribute('transform', figureTransform(params));
       for (const s of figure(params)) {
         const el = paths.get(s.id);
         if (!el) continue;
         el.setAttribute('d', s.d);
         el.style.opacity = String(s.opacity);
       }
-      const near = Math.round(p * (n - 1));
+      const near = Math.max(0, Math.round(p * (n - 1)));
       if (near !== lastKey) {
         lastKey = near;
         root.dataset.chapter = String(near);
       }
     };
 
+    // 0..1 while the stage is pinned; -1..0 while the section's top travels up the viewport.
     const progress = () => {
       const r = root.getBoundingClientRect();
       const total = r.height - innerHeight;
+      if (r.top > 0) return -Math.min(1, r.top / innerHeight);
       return total > 0 ? clamp01(-r.top / total) : 0;
     };
 
@@ -310,7 +365,7 @@ const fallback =
         if (Math.abs(target - cur) < 0.0005) cur = target;
       }
       try {
-        draw(reduce.matches ? Math.round(cur * (n - 1)) / (n - 1) : cur);
+        draw(reduce.matches ? Math.max(0, Math.round(cur * (n - 1))) / (n - 1) : cur);
       } catch {
         /* keep the last good frame */
       }

@@ -4,7 +4,7 @@
 // (glasses, beard, prop) are always drawn and use opacity to hide.
 
 export type Arm = { shoulder: number; elbow: number }; // degrees; 0 hangs down, + swings forward (to +x)
-export type Prop = { show: number; w: number; h: number; stem: number; x: number; y: number; rot: number };
+export type Prop = { show: number; w: number; h: number; stem: number; x: number; y: number; rot: number; taper: number }; // taper 0 box .. 1 cup
 export type Face = { smile: number; browL: number; browR: number; eyeOpen: number };
 
 export type FigureParams = {
@@ -23,6 +23,10 @@ export type FigureParams = {
   legStance: number; // 0 together .. 1 apart
   prop: Prop; // w,h,stem in units of height; x,y offset from the right hand in units of height; rot degrees
   face: Face; // smile -1..1, brows -1..1, eyeOpen 0..1
+  x: number; // feet position on the stage, 0..1600
+  facing: number; // 1 faces right, -1 faces left (mirrors the drawing)
+  turn: number; // 0 front view .. 1 three quarter view toward the facing side
+  walk: number; // walk cycle phase in radians; legs and arms swing, body bobs
 };
 
 export type Fill = 'ink' | 'paper' | 'accent' | 'none';
@@ -52,9 +56,26 @@ export const KEY_DEFAULT: FigureParams = {
   armL: { shoulder: -8, elbow: 10 },
   armR: { shoulder: 8, elbow: -10 },
   legStance: 0.4,
-  prop: { show: 0, w: 0.18, h: 0.12, stem: 0, x: 0.02, y: -0.02, rot: 0 },
+  prop: { show: 0, w: 0.18, h: 0.12, stem: 0, x: 0.02, y: -0.02, rot: 0, taper: 0 },
   face: { smile: 0.4, browL: 0, browR: 0, eyeOpen: 1 },
+  x: 1100,
+  facing: 1,
+  turn: 0,
+  walk: 0,
 };
+
+/**
+ * Where and how the whole figure sits on the stage: feet at (x, 860), mirrored by facing, bobbing with the walk.
+ * @param p figure parameters
+ * @returns an SVG transform string for the figure group
+ */
+export function figureTransform(p: FigureParams): string {
+  const H = H_MAX * clamp(p.height, 0.2, 1);
+  const bob = -Math.abs(Math.sin(p.walk || 0)) * H * 0.02;
+  const fx = clamp(p.facing, -1, 1);
+  const sx = Math.abs(fx) < 0.15 ? (fx < 0 ? -0.15 : 0.15) : fx; // never fully flat
+  return `translate(${f(clamp(p.x, -400, 2000))} ${f(860 + bob)}) scale(${f(sx)} 1)`;
+}
 
 const H_MAX = 480;
 type P = [number, number];
@@ -87,19 +108,20 @@ const ellipse = (c: P, rx: number, ry: number) =>
   C([c[0] + rx, c[1] + ry * K], [c[0] + rx * K, c[1] + ry], [c[0], c[1] + ry]) +
   C([c[0] - rx * K, c[1] + ry], [c[0] - rx, c[1] + ry * K], [c[0] - rx, c[1]]) +
   ' Z';
-// rounded box, corner radius rr, rotated by deg around its centre
-const box = (cx: number, cy: number, w: number, h: number, rr: number, deg = 0) => {
+// rounded box, corner radius rr, rotated by deg around its centre; taper narrows the bottom edge (a cup)
+const box = (cx: number, cy: number, w: number, h: number, rr: number, deg = 0, taper = 0) => {
   const o: P = [cx, cy];
   const r = Math.min(rr, w / 2, h / 2);
   const x0 = cx - w / 2, x1 = cx + w / 2, y0 = cy - h / 2, y1 = cy + h / 2;
+  const tin = (w / 2) * taper * 0.55; // how far the bottom corners move inward
   const R = (p: P) => rot(p, deg, o);
   return (
     `M ${pt(R([x0 + r, y0]))} L ${pt(R([x1 - r, y0]))}` +
     C(R([x1, y0]), R([x1, y0]), R([x1, y0 + r])) +
-    ` L ${pt(R([x1, y1 - r]))}` +
-    C(R([x1, y1]), R([x1, y1]), R([x1 - r, y1])) +
-    ` L ${pt(R([x0 + r, y1]))}` +
-    C(R([x0, y1]), R([x0, y1]), R([x0, y1 - r])) +
+    ` L ${pt(R([x1 - tin, y1 - r]))}` +
+    C(R([x1 - tin, y1]), R([x1 - tin, y1]), R([x1 - tin - r, y1])) +
+    ` L ${pt(R([x0 + tin + r, y1]))}` +
+    C(R([x0 + tin, y1]), R([x0 + tin, y1]), R([x0 + tin, y1 - r])) +
     ` L ${pt(R([x0, y0 + r]))}` +
     C(R([x0, y0]), R([x0, y0]), R([x0 + r, y0])) +
     ' Z'
@@ -149,16 +171,22 @@ export function figure(p: FigureParams): Stroke[] {
   const lw = H * 0.05;
   const aw = H * 0.042;
   const collar = clamp(p.collar, 0, 1);
+  const turn = clamp(p.turn, 0, 1);
+  const wk = Number.isFinite(p.walk) ? p.walk : 0;
+  const swing = Math.sin(wk) * H * 0.11; // front leg forward, back leg behind
+  const armSwing = Math.sin(wk) * 22; // degrees, opposite to the legs
 
-  // legs and shoes
+  // legs and shoes: stance spreads them, the walk cycle scissors them
   const st = H * 0.12 * clamp(p.legStance, 0, 1);
+  const fl = -st - swing, fr = st + swing; // foot x, left and right
+  const kl = fl * 0.55 - Math.max(0, swing) * 0.3, kr = fr * 0.55 + Math.max(0, -swing) * 0.3; // knees bend forward
   const legs = poly(
-    [-hw, hipY], [-st - lw, kneeY], [-st - lw * 0.85, ankleY], [-st + lw * 0.85, ankleY], [-st + lw * 0.9, kneeY],
+    [-hw, hipY], [kl - lw, kneeY], [fl - lw * 0.85, ankleY], [fl + lw * 0.85, ankleY], [kl + lw * 0.9, kneeY],
     [0, hipY + H * 0.13],
-    [st - lw * 0.9, kneeY], [st - lw * 0.85, ankleY], [st + lw * 0.85, ankleY], [st + lw, kneeY], [hw, hipY],
+    [kr - lw * 0.9, kneeY], [fr - lw * 0.85, ankleY], [fr + lw * 0.85, ankleY], [kr + lw, kneeY], [hw, hipY],
   );
-  const shoeL = box(-st + lw * 0.25, -H * 0.022, lw * 2.7, H * 0.045, H * 0.02);
-  const shoeR = box(st + lw * 0.25, -H * 0.022, lw * 2.7, H * 0.045, H * 0.02);
+  const shoeL = box(fl + lw * 0.25, -H * 0.022, lw * 2.7, H * 0.045, H * 0.02);
+  const shoeR = box(fr + lw * 0.25, -H * 0.022, lw * 2.7, H * 0.045, H * 0.02);
 
   // neck and torso
   const neck = poly([cx - r * 0.32, cy + r * 0.7], [cx + r * 0.32, cy + r * 0.7], [lx + r * 0.36, neckY + H * 0.015], [lx - r * 0.36, neckY + H * 0.015]);
@@ -180,11 +208,12 @@ export function figure(p: FigureParams): Stroke[] {
     const hc = add(W, t.dir, aw * 0.9);
     return { sleeve: t.sleeve, skin, hand: ellipse(hc, aw * 1.05, aw * 1.15), hc };
   };
-  const L = arm([lx - halfSh * 0.9, shY + H * 0.02], p.armL);
-  const R = arm([lx + halfSh * 0.9, shY + H * 0.02], p.armR);
+  const L = arm([lx - halfSh * 0.9, shY + H * 0.02], { shoulder: p.armL.shoulder + armSwing, elbow: p.armL.elbow });
+  const R = arm([lx + halfSh * 0.9, shY + H * 0.02], { shoulder: p.armR.shoulder - armSwing, elbow: p.armR.elbow });
 
   // head, ears, hair
-  const head = ellipse([cx, cy], rx, r);
+  const head = ellipse([cx, cy], rx * (1 - turn * 0.12), r);
+  const tx = turn * r * 0.3; // features slide toward the side he is turning to
   const earL = ellipse([cx - rx * 0.98, cy + r * 0.08], r * 0.16, r * 0.2);
   const earR = ellipse([cx + rx * 0.98, cy + r * 0.08], r * 0.16, r * 0.2);
   const ht = clamp(p.hairTop, 0, 1), hs = clamp(p.hairSide, 0, 1);
@@ -201,22 +230,22 @@ export function figure(p: FigureParams): Stroke[] {
   // face
   const fc = p.face;
   const eo = clamp(fc.eyeOpen, 0, 1);
-  const ex = rx * 0.38, ey = cy - r * 0.02;
+  const ex = rx * 0.38 * (1 - turn * 0.25), ey = cy - r * 0.02;
   const er = r * 0.075;
-  const eyeL = ellipse([cx - ex, ey], er, er * (0.2 + 0.8 * eo));
-  const eyeR = ellipse([cx + ex, ey], er, er * (0.2 + 0.8 * eo));
+  const eyeL = ellipse([cx - ex + tx, ey], er * (1 - turn * 0.4), er * (0.2 + 0.8 * eo));
+  const eyeR = ellipse([cx + ex + tx, ey], er, er * (0.2 + 0.8 * eo));
   const bl = clamp(fc.browL, -1, 1) * r * 0.1, br = clamp(fc.browR, -1, 1) * r * 0.1;
   const by = cy - r * 0.3;
-  const browL = quad([cx - ex - r * 0.18, by + bl], [cx - ex, by - r * 0.08 - bl * 0.5], [cx - ex + r * 0.16, by - bl]);
-  const browR = quad([cx + ex - r * 0.16, by + br], [cx + ex, by - r * 0.08 - br * 0.5], [cx + ex + r * 0.18, by - br]);
-  const nose = line([cx + r * 0.02, ey + r * 0.08], [cx + r * 0.1, ey + r * 0.34], [cx - r * 0.02, ey + r * 0.36]);
+  const browL = quad([cx - ex - r * 0.18 + tx, by + bl], [cx - ex + tx, by - r * 0.08 - bl * 0.5], [cx - ex + r * 0.16 + tx, by - bl]);
+  const browR = quad([cx + ex - r * 0.16 + tx, by + br], [cx + ex + tx, by - r * 0.08 - br * 0.5], [cx + ex + r * 0.18 + tx, by - br]);
+  const nose = line([cx + r * 0.02 + tx, ey + r * 0.08], [cx + r * (0.1 + turn * 0.12) + tx, ey + r * 0.34], [cx - r * 0.02 + tx, ey + r * 0.36]);
   const sm = clamp(fc.smile, -1, 1);
-  const mouth = quad([cx - r * 0.26, cy + r * 0.5], [cx, cy + r * (0.5 + sm * 0.26)], [cx + r * 0.26, cy + r * 0.5]);
+  const mouth = quad([cx - r * 0.26 + tx, cy + r * 0.5], [cx + tx, cy + r * (0.5 + sm * 0.26)], [cx + r * 0.26 + tx, cy + r * 0.5]);
   const gr = r * 0.3;
   const glasses =
-    `${ellipse([cx - ex, ey], gr, gr * 0.9)} ${ellipse([cx + ex, ey], gr, gr * 0.9)}` +
-    ` M ${pt([cx - ex + gr, ey])} L ${pt([cx + ex - gr, ey])}` +
-    ` M ${pt([cx - ex - gr, ey])} L ${pt([cx - rx, ey + r * 0.05])} M ${pt([cx + ex + gr, ey])} L ${pt([cx + rx, ey + r * 0.05])}`;
+    `${ellipse([cx - ex + tx, ey], gr, gr * 0.9)} ${ellipse([cx + ex + tx, ey], gr, gr * 0.9)}` +
+    ` M ${pt([cx - ex + gr + tx, ey])} L ${pt([cx + ex - gr + tx, ey])}` +
+    ` M ${pt([cx - ex - gr + tx, ey])} L ${pt([cx - rx, ey + r * 0.05])} M ${pt([cx + ex + gr + tx, ey])} L ${pt([cx + rx, ey + r * 0.05])}`;
   const bd = clamp(p.beard, 0, 1);
   const jawL: P = [cx - rx * 0.98, cy + r * 0.2], jawR: P = [cx + rx * 0.98, cy + r * 0.2];
   const beard =
@@ -230,7 +259,7 @@ export function figure(p: FigureParams): Stroke[] {
   const pw = H * clamp(pr.w, 0.02, 0.4), ph = H * clamp(pr.h, 0.02, 0.4);
   const pc: P = [R.hc[0] + H * clamp(pr.x, -0.3, 0.3), R.hc[1] + H * clamp(pr.y, -0.3, 0.3)];
   const prr = clamp(pr.rot, -180, 180);
-  const prop = box(pc[0], pc[1], pw, ph, H * 0.012, prr);
+  const prop = box(pc[0], pc[1], pw, ph, H * 0.012, prr, clamp(pr.taper, 0, 1));
   const stem = H * clamp(pr.stem, 0, 0.4);
   const propStem = line(rot([pc[0], pc[1] + ph / 2], prr, pc), rot([pc[0], pc[1] + ph / 2 + stem], prr, pc));
   const show = clamp(pr.show, 0, 1);

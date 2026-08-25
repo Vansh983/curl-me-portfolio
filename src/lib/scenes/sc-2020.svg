@@ -1,15 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-  <!-- 2020: the Webcube desk and monitor, twenty five developers on the wall, Covid Leads Delhi pinned beside it -->
-  <path pathLength="1" d="M 1130 700 L 1420 700 M 1130 712 L 1420 712 M 1140 712 L 1140 860 M 1410 712 L 1410 860"/>
-  <path pathLength="1" fill="var(--bg)" d="M 1290 560 L 1400 560 L 1400 650 L 1290 650 Z"/>
-  <path pathLength="1" d="M 1345 650 L 1345 685 M 1320 685 L 1370 685"/>
-  <path pathLength="1" d="M 1305 585 L 1360 585 M 1305 605 L 1385 605 M 1305 625 L 1340 625"/>
-  <path pathLength="1" d="M 1291 380 A 9 9 0 1 0 1309 380 A 9 9 0 1 0 1291 380 M 1341 380 A 9 9 0 1 0 1359 380 A 9 9 0 1 0 1341 380 M 1391 380 A 9 9 0 1 0 1409 380 A 9 9 0 1 0 1391 380 M 1441 380 A 9 9 0 1 0 1459 380 A 9 9 0 1 0 1441 380 M 1491 380 A 9 9 0 1 0 1509 380 A 9 9 0 1 0 1491 380"/>
-  <path pathLength="1" d="M 1291 420 A 9 9 0 1 0 1309 420 A 9 9 0 1 0 1291 420 M 1341 420 A 9 9 0 1 0 1359 420 A 9 9 0 1 0 1341 420 M 1391 420 A 9 9 0 1 0 1409 420 A 9 9 0 1 0 1391 420 M 1441 420 A 9 9 0 1 0 1459 420 A 9 9 0 1 0 1441 420 M 1491 420 A 9 9 0 1 0 1509 420 A 9 9 0 1 0 1491 420"/>
-  <path pathLength="1" d="M 1291 460 A 9 9 0 1 0 1309 460 A 9 9 0 1 0 1291 460 M 1341 460 A 9 9 0 1 0 1359 460 A 9 9 0 1 0 1341 460 M 1391 460 A 9 9 0 1 0 1409 460 A 9 9 0 1 0 1391 460 M 1441 460 A 9 9 0 1 0 1459 460 A 9 9 0 1 0 1441 460 M 1491 460 A 9 9 0 1 0 1509 460 A 9 9 0 1 0 1491 460"/>
-  <path pathLength="1" d="M 1291 500 A 9 9 0 1 0 1309 500 A 9 9 0 1 0 1291 500 M 1341 500 A 9 9 0 1 0 1359 500 A 9 9 0 1 0 1341 500 M 1391 500 A 9 9 0 1 0 1409 500 A 9 9 0 1 0 1391 500 M 1441 500 A 9 9 0 1 0 1459 500 A 9 9 0 1 0 1441 500 M 1491 500 A 9 9 0 1 0 1509 500 A 9 9 0 1 0 1491 500"/>
-  <path pathLength="1" d="M 1291 540 A 9 9 0 1 0 1309 540 A 9 9 0 1 0 1291 540 M 1341 540 A 9 9 0 1 0 1359 540 A 9 9 0 1 0 1341 540 M 1391 540 A 9 9 0 1 0 1409 540 A 9 9 0 1 0 1391 540 M 1441 540 A 9 9 0 1 0 1459 540 A 9 9 0 1 0 1441 540 M 1491 540 A 9 9 0 1 0 1509 540 A 9 9 0 1 0 1491 540"/>
-  <path pathLength="1" fill="var(--bg)" d="M 1180 470 L 1250 470 L 1250 540 L 1180 540 Z"/>
-  <path pathLength="1" d="M 1210 470 A 5 5 0 1 0 1220 470 A 5 5 0 1 0 1210 470"/>
-  <path pathLength="1" d="M 1215 485 L 1215 525 M 1195 505 L 1235 505"/>
+  <!-- 2020: the Webcube desk slides in, the monitor lands, twenty five developers pop up on the wall, Covid Leads Delhi drops in on a pin -->
+  <g class="desk">
+    <path pathLength="1" fill="var(--bg)" d="M 1130 700 L 1420 700 L 1420 714 L 1130 714 Z"/>
+    <path pathLength="1" d="M 1142 714 L 1142 860 M 1408 714 L 1408 860 M 1142 780 L 1408 780"/>
+    <path pathLength="1" fill="var(--bg)" d="M 1300 730 L 1400 730 L 1400 770 L 1300 770 Z M 1340 750 h 20"/>
+  </g>
+  <g class="monitor">
+    <path pathLength="1" fill="var(--bg)" d="M 1290 556 L 1404 556 L 1404 652 L 1290 652 Z"/>
+    <path pathLength="1" fill="currentColor" d="M 1298 564 L 1396 564 L 1396 644 L 1298 644 Z"/>
+    <path pathLength="1" stroke="var(--bg)" stroke-width="3" d="M 1308 582 h 50 M 1308 598 h 76 M 1318 614 h 40 M 1308 630 h 60"/>
+    <path pathLength="1" d="M 1347 652 L 1347 686 M 1322 686 L 1372 686"/>
+  </g>
+  <g class="team">
+    <path pathLength="1" fill="var(--bg)" d="M 1291 380 A 9 9 0 1 0 1309 380 A 9 9 0 1 0 1291 380 M 1341 380 A 9 9 0 1 0 1359 380 A 9 9 0 1 0 1341 380 M 1391 380 A 9 9 0 1 0 1409 380 A 9 9 0 1 0 1391 380 M 1441 380 A 9 9 0 1 0 1459 380 A 9 9 0 1 0 1441 380 M 1491 380 A 9 9 0 1 0 1509 380 A 9 9 0 1 0 1491 380"/>
+    <path pathLength="1" fill="var(--bg)" d="M 1291 420 A 9 9 0 1 0 1309 420 A 9 9 0 1 0 1291 420 M 1341 420 A 9 9 0 1 0 1359 420 A 9 9 0 1 0 1341 420 M 1391 420 A 9 9 0 1 0 1409 420 A 9 9 0 1 0 1391 420 M 1441 420 A 9 9 0 1 0 1459 420 A 9 9 0 1 0 1441 420 M 1491 420 A 9 9 0 1 0 1509 420 A 9 9 0 1 0 1491 420"/>
+    <path pathLength="1" fill="var(--bg)" d="M 1291 460 A 9 9 0 1 0 1309 460 A 9 9 0 1 0 1291 460 M 1341 460 A 9 9 0 1 0 1359 460 A 9 9 0 1 0 1341 460 M 1391 460 A 9 9 0 1 0 1409 460 A 9 9 0 1 0 1391 460 M 1441 460 A 9 9 0 1 0 1459 460 A 9 9 0 1 0 1441 460 M 1491 460 A 9 9 0 1 0 1509 460 A 9 9 0 1 0 1491 460"/>
+    <path pathLength="1" fill="var(--bg)" d="M 1291 500 A 9 9 0 1 0 1309 500 A 9 9 0 1 0 1291 500 M 1341 500 A 9 9 0 1 0 1359 500 A 9 9 0 1 0 1341 500 M 1391 500 A 9 9 0 1 0 1409 500 A 9 9 0 1 0 1391 500 M 1441 500 A 9 9 0 1 0 1459 500 A 9 9 0 1 0 1441 500 M 1491 500 A 9 9 0 1 0 1509 500 A 9 9 0 1 0 1491 500"/>
+    <path pathLength="1" fill="var(--bg)" d="M 1291 540 A 9 9 0 1 0 1309 540 A 9 9 0 1 0 1291 540 M 1341 540 A 9 9 0 1 0 1359 540 A 9 9 0 1 0 1341 540 M 1391 540 A 9 9 0 1 0 1409 540 A 9 9 0 1 0 1391 540 M 1441 540 A 9 9 0 1 0 1459 540 A 9 9 0 1 0 1441 540 M 1491 540 A 9 9 0 1 0 1509 540 A 9 9 0 1 0 1491 540"/>
+  </g>
+  <g class="note">
+    <path pathLength="1" fill="var(--bg)" d="M 1180 470 L 1250 470 L 1250 540 L 1180 540 Z"/>
+    <path pathLength="1" fill="currentColor" d="M 1210 470 A 5 5 0 1 0 1220 470 A 5 5 0 1 0 1210 470"/>
+    <path pathLength="1" stroke-width="5" d="M 1215 485 L 1215 525 M 1195 505 L 1235 505"/>
+  </g>
 </svg>
