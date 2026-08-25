@@ -17,6 +17,9 @@ export type Layer = {
   z: number;
   motion?: Motion;
   range?: string; // animation-range for the motion, default "entry 0% entry 100%"
+  // Where this layer goes in the NEXT chapter. The inline file must have the same element
+  // structure; the stage morphs every number and colour between the two as you scroll.
+  to?: { inline: string; x: number; y: number; w: number };
 };
 export type Scene = { figure?: FigureParams; enter?: FigureParams; layers: Layer[] }; // figure/enter are kept for the morphing figure, currently off stage
 
@@ -73,14 +76,14 @@ export const timeline: Milestone[] = [
     scene: {
       layers: [
         // the wall is oversized so the camera swing never shows its edge
-        { id: 'room', inline: 'k-room', x: -220, y: -124, w: 2040, z: -720 },
-        { id: 'fan', inline: 'k-fan', x: 250, y: 40, w: 480, z: -660 },
+        { id: 'room', inline: 'k-room', x: -220, y: -124, w: 2040, z: -720, to: { inline: 'lab-room', x: -220, y: -124, w: 2040 } },
+        { id: 'fan', inline: 'k-fan', x: 250, y: 40, w: 480, z: -660, to: { inline: 'k-fan', x: 250, y: 40, w: 480 } },
         { id: 'poster', inline: 'k-poster', x: 900, y: 90, w: 160, z: -600, motion: 'drop', range: 'entry 10% entry 60%' },
         { id: 'shelf', inline: 'k-shelf', x: 1190, y: 552, w: 300, z: -560, motion: 'slide-r', range: 'entry 20% entry 70%' },
-        { id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%' },
+        { id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%', to: { inline: 'lab-monitor', x: 560, y: 370, w: 520 } },
         { id: 'xbox', inline: 'k-xbox', x: 1190, y: 758, w: 300, z: -300, motion: 'rise', range: 'entry 15% entry 65%' },
         { id: 'floor', inline: 'k-floor', x: 0, y: 0, w: 1600, z: -200 },
-        { id: 'kid', inline: 'k-kid', x: 700, y: 450, w: 360, z: -130, motion: 'pop', range: 'entry 30% entry 80%' },
+        { id: 'kid', inline: 'k-kid', x: 700, y: 450, w: 360, z: -130, motion: 'pop', range: 'entry 30% entry 80%', to: { inline: 'lab-kid', x: 690, y: 452, w: 360 } },
       ],
     },
   },
@@ -88,7 +91,12 @@ export const timeline: Milestone[] = [
     year: '2013',
     lane: 'Delhi',
     title: 'The first website',
-    body: 'A W3Schools template with the colours changed. I was 13. Wireframes sketched in class, coded when I got home, and it never really stopped.',
+    body: 'Thirteen, white shirt and tie, the school computer lab. A W3Schools template with the colours changed, wireframes sketched in class, and it never really stopped.',
+    scene: {
+      layers: [
+        { id: 'lab-row', inline: 'lab-row', x: 1090, y: 400, w: 520, z: -400, motion: 'slide-r', range: 'entry 30% entry 80%' },
+      ],
+    },
   },
   {
     year: '2018',

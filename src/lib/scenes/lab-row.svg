@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 300" fill="none" stroke="none">
+  <!-- the rest of the lab row: two more desks with beige CRTs, receding to the right -->
+  <rect x="0" y="222" width="500" height="14" rx="3" fill="#9AA6B0"/>
+  <rect x="16" y="236" width="18" height="64" fill="#7F8B95"/>
+  <rect x="470" y="236" width="18" height="64" fill="#7F8B95"/>
+  <rect x="0" y="236" width="500" height="6" fill="#7F8B95"/>
+  <g>
+    <rect x="30" y="40" width="190" height="150" rx="10" fill="#D9D4C7"/>
+    <rect x="46" y="54" width="158" height="112" fill="#245EDC"/>
+    <rect x="46" y="72" width="158" height="94" fill="#FFFFFF"/>
+    <path d="M 60 96 h 90 M 60 112 h 120 M 60 128 h 70 M 60 144 h 100" stroke="#2B2B2B" stroke-width="3" stroke-linecap="round"/>
+    <rect x="112" y="190" width="26" height="14" fill="#CFC9BA"/>
+    <rect x="86" y="204" width="80" height="8" rx="4" fill="#BDB6A5"/>
+    <rect x="40" y="206" width="150" height="14" rx="3" fill="#E4E4E0"/>
+    <path d="M 52 213 h 6 M 64 213 h 6 M 76 213 h 6 M 88 213 h 6 M 100 213 h 6 M 112 213 h 6 M 124 213 h 6 M 136 213 h 6 M 148 213 h 6 M 160 213 h 6 M 172 213 h 6" stroke="#9A9A96" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g>
+    <rect x="290" y="60" width="160" height="126" rx="9" fill="#D9D4C7"/>
+    <rect x="304" y="72" width="132" height="94" fill="#245EDC"/>
+    <rect x="304" y="88" width="132" height="78" fill="#FFFFFF"/>
+    <path d="M 316 110 h 70 M 316 124 h 96 M 316 138 h 50 M 316 152 h 80" stroke="#2B2B2B" stroke-width="3" stroke-linecap="round"/>
+    <rect x="358" y="186" width="22" height="14" fill="#CFC9BA"/>
+    <rect x="336" y="200" width="66" height="8" rx="4" fill="#BDB6A5"/>
+    <rect x="300" y="206" width="120" height="12" rx="3" fill="#E4E4E0"/>
+  </g>
+</svg>

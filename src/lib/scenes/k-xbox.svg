@@ -19,5 +19,7 @@
     <text x="44" y="52" text-anchor="middle" font-family="'Bebas Neue', Impact, 'Arial Narrow', sans-serif" font-size="13" letter-spacing="0.5" fill="#F5F5F5">CALL·OF·DUTY</text>
     <text x="44" y="64" text-anchor="middle" font-family="'Bebas Neue', Impact, 'Arial Narrow', sans-serif" font-size="9" letter-spacing="1" fill="#7AC142">WORLD AT WAR</text>
     <text x="44" y="104" text-anchor="middle" font-family="'Bebas Neue', Impact, 'Arial Narrow', sans-serif" font-size="8" letter-spacing="1.5" fill="#C9C9C9">ZOMBIES</text>
+    <!-- drop the real logo at public/assets/scenes/cod-logo.png and it covers the wordmark -->
+    <image href="/assets/scenes/cod-logo.png" x="18" y="36" width="52" height="34" preserveAspectRatio="xMidYMid meet"/>
   </g>
 </svg>

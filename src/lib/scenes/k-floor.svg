@@ -24,10 +24,11 @@
   <path d="M 1190 864 c 2 -8 14 -8 18 -2 c 4 6 0 12 -8 12 c -6 0 -12 -4 -10 -10 Z" fill="#E0AC55"/>
   <ellipse cx="1226" cy="864" rx="12" ry="6" fill="#D62828"/>
   </g>
-  <!-- the cricket ball -->
+  <!-- the football -->
   <g data-motion="roll" style="animation-range: entry 0% entry 90%">
-    <circle cx="540" cy="842" r="18" fill="#A52A2A"/>
-    <path d="M 526 830 c 8 10 20 14 28 24" stroke="#F9F4EC" stroke-width="2.5" stroke-dasharray="3 3"/>
+    <circle cx="540" cy="840" r="20" fill="#F5F5F5"/>
+    <path d="M 540 832 l 8 6 l -3 9 h -10 l -3 -9 Z M 522 836 l 6 -8 l 6 4 l -2 8 l -8 2 Z M 558 836 l -6 -8 l -6 4 l 2 8 l 8 2 Z M 528 852 l 6 -4 l 6 6 l -2 6 l -8 -2 Z M 552 852 l -6 -4 l -6 6 l 2 6 l 8 -2 Z" fill="#17282F"/>
+    <circle cx="540" cy="840" r="20" fill="none" stroke="#C9C9C4" stroke-width="1.5"/>
   </g>
   <!-- an extension board with the console wire -->
   <rect x="690" y="836" width="90" height="16" rx="3" fill="#F9F4EC"/>

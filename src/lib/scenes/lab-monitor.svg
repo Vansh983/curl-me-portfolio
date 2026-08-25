@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" fill="none" stroke="none">
+  <!-- a lab desk with a beige CRT, Notepad open on an HTML page. Same element order as k-tv.svg so the TV morphs into it. -->
+  <rect x="14" y="330" width="492" height="18" rx="3" fill="#9AA6B0"/>
+  <rect x="34" y="348" width="22" height="52" fill="#7F8B95"/>
+  <rect x="464" y="348" width="22" height="52" fill="#7F8B95"/>
+  <rect x="14" y="348" width="492" height="8" fill="#7F8B95"/>
+  <!-- the CRT neck and base -->
+  <rect x="236" y="286" width="48" height="24" fill="#CFC9BA"/>
+  <rect x="190" y="306" width="140" height="12" rx="5" fill="#BDB6A5"/>
+  <!-- the box -->
+  <rect x="70" y="30" width="380" height="264" rx="14" fill="#D9D4C7"/>
+  <rect x="70" y="30" width="380" height="264" rx="14" fill="none" stroke="#BDB6A5" stroke-width="3"/>
+  <circle cx="428" cy="280" r="3" fill="#7AC142"/>
+  <!-- the screen -->
+  <g>
+    <rect x="96" y="52" width="328" height="216" fill="#FFFFFF"/>
+    <rect x="96" y="52" width="328" height="22" fill="#245EDC"/>
+    <rect x="96" y="74" width="328" height="194" fill="#FFFFFF"/>
+    <path d="M 96 96 h 328" stroke="#C9C9C9" stroke-width="3"/>
+    <path d="M 104 92 v -8 h 20 v 0 h 6 v 0 h 20 v 8 Z M 160 92 v -8 h 20 v 0 h 20 v 8 Z" fill="#E4E4E0"/>
+    <!-- the zombies became lines of HTML -->
+    <g data-motion="shamble" style="animation-range: entry 0% exit 100%">
+      <path d="M 112 132 c 0 0 0 0 0 0 c 0 0 0 0 0 0 Z M 112 132 a 0.5 0.5 0 1 0 0.1 0 Z M 118 132 l 120 0 M 118 146 l 80 0" fill="#2B2B2B" stroke="#2B2B2B" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 112 160 c 0 0 0 0 0 0 c 0 0 0 0 0 0 Z M 112 160 a 0.5 0.5 0 1 0 0.1 0 Z M 118 160 l 150 0 M 118 174 l 100 0" fill="#245EDC" stroke="#245EDC" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 112 188 c 0 0 0 0 0 0 c 0 0 0 0 0 0 Z M 112 188 a 0.5 0.5 0 1 0 0.1 0 Z M 118 188 l 60 0 M 118 202 l 130 0" fill="#2B2B2B" stroke="#2B2B2B" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <!-- the close button, the blinking caret -->
+    <path d="M 414 70 l 0 -12 l -12 0 l 0 12 Z" fill="#E04B4B"/>
+    <path d="M 250 204 l 0 -14 l 2 0 l 0 14 l -2 0 Z" fill="#2B2B2B" data-motion="flicker" style="animation-range: entry 0% exit 100%"/>
+    <!-- a bullet and more lines -->
+    <circle cx="112" cy="230" r="3" fill="none" stroke="#2B2B2B" stroke-width="3"/>
+    <path d="M 118 216 v 0 M 118 230 v 0 M 118 216 h 140 M 118 230 h 90" stroke="#2B2B2B" stroke-width="3" stroke-linecap="round"/>
+    <!-- status bar and the scrollbar -->
+    <rect x="96" y="256" width="328" height="12" rx="0" fill="#E9E9E5"/>
+    <path d="M 104 262 h 8 M 118 262 h 8 M 132 262 h 8" stroke="#9A9A96" stroke-width="4" stroke-linecap="round"/>
+    <rect x="410" y="100" width="10" height="150" rx="5" fill="#E9E9E5"/>
+    <rect x="410" y="104" width="10" height="40" rx="5" fill="#C0C0BC"/>
+    <text x="104" y="68" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="12" letter-spacing="0" fill="#FFFFFF" fill-opacity="1">index.html - Notepad</text>
+    <text x="118" y="112" text-anchor="start" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" letter-spacing="0" fill="#2B2B2B">&lt;!DOCTYPE html&gt;</text>
+    <rect x="96" y="52" width="328" height="216" fill="#FFFFFF" fill-opacity="0.05" data-motion="flicker" style="animation-range: entry 0% exit 100%"/>
+  </g>
+</svg>

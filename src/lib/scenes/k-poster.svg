@@ -14,6 +14,8 @@
   <!-- the hand on the chin -->
   <path d="M 120 150 C 136 146 150 152 150 166 C 150 178 140 184 128 180 C 120 176 118 162 120 150 Z" fill="#BDBDBD"/>
   <path d="M 128 154 v 20 M 136 154 v 20 M 143 158 v 16" stroke="#9A9A9A" stroke-width="2" stroke-linecap="round"/>
+  <!-- drop the real photo at public/assets/scenes/jobs.jpg and it covers the drawing -->
+  <image href="/assets/scenes/jobs.jpg" x="8" y="8" width="204" height="226" preserveAspectRatio="xMidYMid slice"/>
   <!-- the words -->
   <text x="110" y="256" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="17" fill="#F5F5F5">Here's to the crazy ones.</text>
   <text x="110" y="276" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="#BDBDBD">The misfits. The rebels. The troublemakers.</text>

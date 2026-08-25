@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="none">
   <!-- Delhi bedroom, far wall: warm wall, floor, a window onto the rooftops at dusk, curtains -->
-  <rect x="0" y="0" width="1600" height="710" fill="#F6EBDD"/>
-  <rect x="0" y="0" width="1600" height="70" fill="#EFE1CE"/>
-  <rect x="0" y="690" width="1600" height="16" fill="#E6D3BB"/>
-  <rect x="0" y="706" width="1600" height="194" fill="#D3B08C"/>
-  <rect x="0" y="706" width="1600" height="10" fill="#B8956F"/>
+  <rect x="0" y="0" width="1600" height="710" fill="#FBFBF9"/>
+  <rect x="0" y="0" width="1600" height="70" fill="#F1F1EE"/>
+  <rect x="0" y="690" width="1600" height="16" fill="#E4E1DA"/>
+  <rect x="0" y="706" width="1600" height="194" fill="#DCC3A5"/>
+  <rect x="0" y="706" width="1600" height="10" fill="#C4A882"/>
   <!-- wall socket and the wire that goes to the TV, a Delhi bedroom always has one -->
   <rect x="1090" y="600" width="46" height="34" rx="4" fill="#EDE3D6" stroke="#CDBBA4" stroke-width="3"/>
   <path d="M 1103 612 h 6 v 12 h -6 Z M 1117 612 h 6 v 12 h -6 Z" fill="#7B6A57"/>

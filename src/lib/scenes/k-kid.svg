@@ -22,6 +22,8 @@
     </g>
     <!-- hands over the grips -->
     <path d="M 132 306 c -6 10 0 22 14 22 c 12 0 18 -12 12 -22 Z M 228 306 c 6 10 0 22 -14 22 c -12 0 -18 -12 -12 -22 Z" fill="#F1C7A3"/>
+    <!-- the tie, not on him yet -->
+    <path d="M 180 232 L 181 232 L 181 234 L 180 235 L 179 234 Z" fill="#1D3557" fill-opacity="0"/>
     <!-- neck and the back of the head -->
     <rect x="166" y="132" width="28" height="48" rx="10" fill="#F1C7A3"/>
     <ellipse cx="180" cy="100" rx="50" ry="56" fill="#F1C7A3"/>
@@ -29,5 +31,8 @@
     <path d="M 130 100 C 138 126 156 138 180 138 C 204 138 222 126 230 100 C 220 116 202 122 180 122 C 158 122 140 116 130 100 Z" fill="#17282F"/>
     <ellipse cx="132" cy="108" rx="8" ry="11" fill="#F1C7A3"/>
     <ellipse cx="228" cy="108" rx="8" ry="11" fill="#F1C7A3"/>
+    <!-- the chair, not here yet -->
+    <rect x="180" y="380" width="0.5" height="0.5" rx="0" fill="#8B6B4A" opacity="0"/>
+    <rect x="180" y="380" width="0.5" height="0.5" fill="#6E5238" opacity="0"/>
   </g>
 </svg>

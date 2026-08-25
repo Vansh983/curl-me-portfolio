@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="none">
+  <!-- the school computer lab, far wall. Same element order as k-room.svg so the bedroom morphs into it. -->
+  <rect x="0" y="0" width="1600" height="710" fill="#E9EEF2"/>
+  <rect x="0" y="0" width="1600" height="70" fill="#DFE6EB"/>
+  <rect x="0" y="690" width="1600" height="16" fill="#C4CED6"/>
+  <rect x="0" y="706" width="1600" height="194" fill="#BFC9D1"/>
+  <rect x="0" y="706" width="1600" height="10" fill="#A9B4BD"/>
+  <!-- a socket by the door -->
+  <rect x="300" y="600" width="46" height="34" rx="4" fill="#F1F1EE" stroke="#CDD3D8" stroke-width="3"/>
+  <path d="M 313 612 h 6 v 12 h -6 Z M 327 612 h 6 v 12 h -6 Z" fill="#7B8791"/>
+  <!-- the long high window strip -->
+  <g>
+    <rect x="220" y="90" width="1200" height="150" rx="6" fill="#F9F4EC" stroke="#DFCFB9" stroke-width="4"/>
+    <g data-motion="dusk" style="animation-range: entry 0% exit 100%">
+      <rect x="240" y="110" width="1160" height="110" fill="#BFDCF2"/>
+      <rect x="240" y="110" width="1160" height="50" fill="#A9CBEA"/>
+      <rect x="240" y="110" width="1160" height="24" fill="#8FB8DE"/>
+    </g>
+    <!-- the sun became the wall clock -->
+    <circle cx="1480" cy="330" r="40" fill="#F9F4EC"/>
+    <!-- trees and blocks outside -->
+    <path d="M 240 200 h 40 v -20 h 60 v 12 h 40 v -26 h 30 v 30 h 50 v -14 h 40 v 18 h 30 v -40 h 12 v -30 l 6 -6 l 6 6 v 30 h 12 v 40 h 4 v 20 h -330 Z" fill="#7FA3BF"/>
+    <path d="M 640 214 v -22 a 12 5 0 0 1 24 0 v 22 Z M 700 216 v -20 a 11 5 0 0 1 22 0 v 20 Z" fill="#6F93AE"/>
+    <path d="M 760 214 v -34 M 752 190 h 16 M 754 200 h 12" stroke="#6F93AE" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 240 220 h 1160 v 0 h -1160 Z" fill="#A9CBEA"/>
+    <rect x="800" y="110" width="14" height="110" fill="#F9F4EC"/>
+    <rect x="240" y="160" width="1160" height="10" fill="#F9F4EC"/>
+    <!-- daylight on the wall -->
+    <path d="M 220 240 L 160 700 H 1460 L 1420 240 Z" fill="#FFFFFF" fill-opacity="0.18"/>
+  </g>
+  <!-- the curtains collapsed away -->
+  <path d="M 200 90 C 200 90 200 90 200 240 C 200 240 200 240 200 240 C 200 240 200 90 200 90 Z" fill="#E9EEF2"/>
+  <path d="M 1440 90 C 1440 90 1440 90 1440 240 C 1440 240 1440 240 1440 240 C 1440 240 1440 90 1440 90 Z" fill="#E9EEF2"/>
+  <!-- the curtain rod became the whiteboard -->
+  <rect x="560" y="300" width="560" height="280" rx="8" fill="#FFFFFF"/>
+</svg>

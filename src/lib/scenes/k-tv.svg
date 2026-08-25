@@ -39,6 +39,7 @@
     <rect x="58" y="40" width="58" height="10" rx="5" fill="#B7E28E"/>
     <text x="462" y="58" text-anchor="end" font-family="'Bebas Neue', Impact, 'Arial Narrow', sans-serif" font-size="22" letter-spacing="1" fill="#F5F5F5" fill-opacity="0.9">CALL·OF·DUTY</text>
     <text x="462" y="76" text-anchor="end" font-family="'Bebas Neue', Impact, 'Arial Narrow', sans-serif" font-size="14" letter-spacing="2" fill="#7AC142">ZOMBIES · ROUND 12</text>
+    <image href="/assets/scenes/cod-logo.png" x="330" y="38" width="132" height="44" preserveAspectRatio="xMaxYMid meet"/>
     <!-- screen glow that flickers -->
     <rect x="46" y="32" width="428" height="256" fill="#B7E28E" fill-opacity="0.08" data-motion="flicker" style="animation-range: entry 0% exit 100%"/>
   </g>

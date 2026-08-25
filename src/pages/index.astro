@@ -13,18 +13,18 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 ---
 
 <Base>
-  <section class="hero">
-    <Wordmark />
-    <p class="role">Shipping software since 13. Building <a href={profile.company.url}>Floqer</a> now.</p>
-    <p class="mut">{profile.summary}</p>
-    <p class="links">
-      {profile.links.map((l) => <a href={l.href}>{l.label}</a>)}
-      <a href={`mailto:${profile.email}`}>Email</a>
-    </p>
-  </section>
-
   <section class="story">
-    <Journey />
+    <Journey>
+      <div slot="hero" class="hero">
+        <Wordmark />
+        <p class="role">Shipping software since 13. Building <a href={profile.company.url}>Floqer</a> now.</p>
+        <p class="mut">{profile.summary}</p>
+        <p class="links">
+          {profile.links.map((l) => <a href={l.href}>{l.label}</a>)}
+          <a href={`mailto:${profile.email}`}>Email</a>
+        </p>
+      </div>
+    </Journey>
   </section>
 
   <section class="block">
@@ -50,14 +50,14 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 
 <style>
   .hero {
-    padding: 30px 0 0;
+    padding: 0;
   }
   .role {
     font-size: 19px;
     margin: 16px 0 12px;
   }
   .story {
-    margin-top: 80px;
+    margin-top: 0;
   }
   .links {
     display: flex;

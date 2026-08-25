@@ -4,6 +4,8 @@
 // that rotates and drifts with scroll, and one figure that morphs and walks through
 // it. Docs 07 to 09 in docs/rebuild.
 import { timeline, type Layer } from '../data/timeline';
+import { pairSvgs } from '../lib/morph';
+import { existsSync } from 'node:fs';
 
 // Raw SVG sources so each path and group can carry its own chapter timeline.
 const raw = import.meta.glob('../lib/scenes/*.svg', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
@@ -13,7 +15,11 @@ const inlineSvg = (stem: string) => {
   // keep the root's presentation attributes (fill, stroke, stroke-width...) so the paths inherit them
   const open = s.match(/<svg([^>]*)>/)?.[1] ?? '';
   const attrs = open.replace(/\s(xmlns|width|height)="[^"]*"/g, '').trim();
-  const body = s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+  // <image> slots point at files you can drop into public/; until the file exists the slot is left out
+  const body = s
+    .replace(/^[\s\S]*?<svg[^>]*>/, '')
+    .replace(/<\/svg>\s*$/, '')
+    .replace(/<image\b[^>]*href="\/([^"]+)"[^>]*\/>/g, (tag, file) => (existsSync(`public/${file}`) ? tag : ''));
   return `<svg ${attrs} width="100%" focusable="false">${body}</svg>`;
 };
 
@@ -26,10 +32,28 @@ const tl = (i: number) => `--ch-${i + 1}`;
 // so the only thing depth does is parallax when the camera moves.
 const PERSPECTIVE = 1400;
 const comp = (z: number) => ((PERSPECTIVE - z) / PERSPECTIVE).toFixed(4);
-const layerStyle = (L: Layer, i: number) => `--z:${L.z}px; --c:${comp(L.z)}; animation-timeline: ${tl(i)}, ${tl(i)};`;
+const layerStyle = (L: Layer, i: number) => `--z:${L.z}px; --c:${comp(L.z)}; animation-timeline: ${layerTimelines(L, i)};`;
 // --tl lets everything inside the layer (groups with data-motion, paths that draw on) pick up the chapter timeline from CSS.
 const animStyle = (L: Layer, i: number) =>
   `left:${L.x}px; top:${L.y}px; width:${L.w}px; --tl: ${tl(i)}; animation-timeline: ${tl(i)}, ${tl(i)};` + (L.range ? ` animation-range: ${L.range};` : '');
+
+// Morph layers: build the element pair list now, apply it at scroll time.
+const morphPlan = (L: Layer) => {
+  if (!L.to || !L.inline) return null;
+  const plan = pairSvgs(raw[`../lib/scenes/${L.inline}.svg`] ?? '', raw[`../lib/scenes/${L.to.inline}.svg`] ?? '');
+  if (!plan) console.warn(`[journey] ${L.inline} -> ${L.to.inline} do not line up, falling back to a crossfade`);
+  return plan;
+};
+const morphAttrs = (L: Layer, i: number) => {
+  const plan = morphPlan(L);
+  if (!plan) return {};
+  return {
+    'data-morph': JSON.stringify({ els: plan.els, from: { x: L.x, y: L.y, w: L.w }, to: { x: L.to!.x, y: L.to!.y, w: L.to!.w } }),
+    'data-span': String(i),
+  };
+};
+// a morphing layer stays for two chapters: in with its own, out with the next
+const layerTimelines = (L: Layer, i: number) => (L.to && morphPlan(L) ? `${tl(i)}, ${tl(i + 1)}` : `${tl(i)}, ${tl(i)}`);
 
 const scopeNames = Array.from({ length: 10 }, (_, i) => tl(i)).join(', ');
 const fallback =
@@ -44,7 +68,7 @@ const fallback =
       <div class="cam">
         {chapters.map((m, i) =>
           m.scene!.layers.map((L) => (
-            <div class="layer" data-i={i} data-id={L.id} style={layerStyle(L, i)}>
+            <div class="layer" data-i={i} data-id={L.id} style={layerStyle(L, i)} {...morphAttrs(L, i)}>
               <div class="anim" data-motion={L.motion ?? 'none'} style={animStyle(L, i)}>
                 {L.src ? <img src={L.src} alt="" decoding="async" /> : <Fragment set:html={inlineSvg(L.inline!)} />}
               </div>
@@ -59,14 +83,20 @@ const fallback =
     {chapters.map((m, i) => (
       <article class="ch" id={`ch-${i + 1}`} data-i={i} style={`view-timeline: ${tl(i)} block`}>
         <div class="tx">
-          <span class="yr">
-            {m.year}
-            {m.span && <span class="mut"> {m.span}</span>}
-          </span>
-          {m.lane && <span class="lane label">{m.lane}</span>}
-          <h3>{m.title}</h3>
-          <p>{m.body}</p>
-          {m.stat && <p class="stat">{m.stat}</p>}
+          {i === 0 && Astro.slots.has('hero') ? (
+            <slot name="hero" />
+          ) : (
+            <>
+              <span class="yr">
+                {m.year}
+                {m.span && <span class="mut"> {m.span}</span>}
+              </span>
+              {m.lane && <span class="lane label">{m.lane}</span>}
+              <h3>{m.title}</h3>
+              <p>{m.body}</p>
+              {m.stat && <p class="stat">{m.stat}</p>}
+            </>
+          )}
         </div>
       </article>
     ))}
@@ -344,22 +374,68 @@ const fallback =
 </style>
 
 <script>
-  // Two jobs: scale the 1600 by 900 world to cover the viewport, and keep data-chapter
-  // current for browsers without CSS scroll timelines (their layers switch on it).
+  // Three jobs: scale the 1600 by 900 world to cover the viewport, keep data-chapter
+  // current for browsers without CSS scroll timelines, and drive the morph layers.
+  import { applyPlan, MORPH_TAGS, type MorphPlan } from '../lib/morph';
+  import { locate } from '../lib/lerp';
+
+  type Box = { x: number; y: number; w: number };
+  type Morph = { span: number; plan: MorphPlan; from: Box; to: Box; anim: HTMLElement; els: Element[]; last: number };
+
   const root = document.querySelector<HTMLElement>('.journey');
   if (root) {
     const n = Number(root.dataset.n) || 1;
     const stage = root.querySelector<HTMLElement>('.stage')!;
+    const morphs: Morph[] = [];
+    root.querySelectorAll<HTMLElement>('.layer[data-morph]').forEach((layer) => {
+      const data = JSON.parse(layer.dataset.morph!) as { els: MorphPlan['els']; from: Box; to: Box };
+      const anim = layer.querySelector<HTMLElement>('.anim')!;
+      const els = Array.from(anim.querySelectorAll(MORPH_TAGS.join(',')));
+      morphs.push({ span: Number(layer.dataset.span), plan: { els: data.els, count: els.length }, from: data.from, to: data.to, anim, els, last: -1 });
+    });
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
     let last = -1;
-    const onScroll = () => {
+    let target = 0;
+    let cur = 0;
+    let raf = 0;
+
+    const progress = () => {
       const r = root.getBoundingClientRect();
       const total = r.height - innerHeight;
-      const p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+      return total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+    };
+    const draw = (p: number) => {
+      const { i, t } = locate(p, n);
+      for (const m of morphs) {
+        const mt = i < m.span ? 0 : i === m.span ? t : 1;
+        if (mt === m.last) continue;
+        m.last = mt;
+        applyPlan(m.els, m.plan, mt);
+        const mix = (a: number, b: number) => a + (b - a) * mt;
+        m.anim.style.left = `${mix(m.from.x, m.to.x)}px`;
+        m.anim.style.top = `${mix(m.from.y, m.to.y)}px`;
+        m.anim.style.width = `${mix(m.from.w, m.to.w)}px`;
+      }
       const near = Math.round(p * (n - 1));
       if (near !== last) {
         last = near;
         root.dataset.chapter = String(near);
       }
+    };
+    const tick = () => {
+      raf = 0;
+      if (reduce.matches) cur = target;
+      else {
+        cur += (target - cur) * 0.2;
+        if (Math.abs(target - cur) < 0.0005) cur = target;
+      }
+      draw(cur);
+      if (cur !== target) raf = requestAnimationFrame(tick);
+    };
+    const onScroll = () => {
+      target = progress();
+      if (!raf) raf = requestAnimationFrame(tick);
     };
     const fit = () => {
       const k = Math.max(stage.clientWidth / 1600, stage.clientHeight / 900);
