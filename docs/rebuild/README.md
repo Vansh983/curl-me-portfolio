@@ -10,6 +10,9 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [04-seo-blog.md](./04-seo-blog.md) | SEO architecture (name SEO, JSON-LD, OG images) + blog/content-collection setup + external blog repo import |
 | [05-content-inventory.md](./05-content-inventory.md) | Everything worth carrying from the old site: timeline entries, 41 projects, links, bio copy. Plus: the curl gimmick never actually existed |
 | [06-build-plan.md](./06-build-plan.md) | **The stack decision** (Astro 6 static on Vercel, zero framework JS) and how all 14 creative-tech features get built, in phases |
+| [07-journey-stage.md](./07-journey-stage.md) | **The journey stage**: sticky right-column scene of the author growing up, driven by the left text wall. 10 routes ranked, art pipeline, stack re-check (not locked). Evidence in [07-research/](./07-research/) |
+| [08-journey-stage-spec.md](./08-journey-stage-spec.md) | **The journey stage design spec**: parametric stroke figure that morphs with scroll, per-chapter scenery on CSS timelines, layout, fallbacks, tests, milestones |
+| [09-journey-stage-plan.md](./09-journey-stage-plan.md) | **The implementation plan**: 10 tasks, TDD, real code for the figure, lerp, render tool, Astro component, timelines, fallback, and the art loop |
 
 ## The one-paragraph verdict
 
