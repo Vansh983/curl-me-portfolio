@@ -6,7 +6,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "test": "node --experimental-strip-types --test \"tests/**/*.test.ts\"",
+    "render": "node --experimental-strip-types scripts/render.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
