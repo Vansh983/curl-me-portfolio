@@ -132,7 +132,8 @@ const fallback =
     animation-timing-function: linear, linear;
     /* fade-in fills both ways; fade-out only forwards, or its backwards fill (opacity 1) would win before its range */
     animation-fill-mode: both, forwards;
-    animation-range: entry 0% entry 100%, exit 0% exit 100%;
+    /* crossfade in the middle half of the gap between chapters, so each chapter rests alone */
+    animation-range: entry 45% entry 100%, exit 0% exit 55%;
   }
   .anim {
     position: absolute;
