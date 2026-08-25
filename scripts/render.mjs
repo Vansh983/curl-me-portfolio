@@ -4,7 +4,7 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import sharp from 'sharp';
-import { figure, KEY_DEFAULT } from '../src/lib/figure.ts';
+import { figure, figureTransform, KEY_DEFAULT } from '../src/lib/figure.ts';
 
 const args = process.argv.slice(2);
 const opt = (name, dflt) => {
@@ -33,10 +33,9 @@ const inner = (file) => {
 };
 const withAccent = (s) => s.replaceAll('var(--acc)', acc).replaceAll('var(--bg)', bg);
 
-const FIG_X = 1100, FIG_Y = 860; // feet position on the 1600x900 stage
-const fillOf = { ink, paper: bg, accent: acc, none: 'none' };
+const fillOf = { hair: '#17282f', skin: '#f1c7a3', shirt: '#33535f', trousers: '#dadbd8', shoes: '#17282f', accent: '#f2575d', ink: '#17282f', none: 'none' };
 const strokes = figure(params)
-  .map((s) => `<path d="${s.d}" opacity="${s.opacity}" fill="${fillOf[s.fill]}" stroke-width="${s.width}"/>`)
+  .map((s) => `<path d="${s.d}" opacity="${s.opacity}" fill="${fillOf[s.fill]}" stroke="${s.width ? '#17282f' : 'none'}" stroke-width="${s.width}"/>`)
   .join('\n');
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" color="${ink}">
@@ -45,7 +44,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" widt
 <g class="bg">${withAccent(inner(opt('--bg')))}</g>
 <g class="scene">${withAccent(inner(opt('--scene')))}</g>
 <line x1="0" y1="860" x2="1600" y2="860" stroke-opacity="0.18"/>
-<g transform="translate(${FIG_X} ${FIG_Y})">${strokes}</g>
+<g transform="${figureTransform(params)}">${strokes}</g>
 </g>
 </svg>`;
 

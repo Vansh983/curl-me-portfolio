@@ -1,66 +1,73 @@
 ---
-// The journey stage. A full-bleed sticky scene behind the chapter text: one
-// ink-stroke figure that morphs with scroll, per-chapter scenery that draws
-// itself on, and place backgrounds that crossfade. Docs 07 to 09 in docs/rebuild.
-import { timeline } from '../data/timeline';
+// The journey stage. A full-bleed sticky 3D scene behind the chapter text: layers
+// at different depths (old illustrations as images, authored SVG inlined), a camera
+// that rotates and drifts with scroll, and one figure that morphs and walks through
+// it. Docs 07 to 09 in docs/rebuild.
+import { timeline, type Layer } from '../data/timeline';
 import { figure, figureTransform } from '../lib/figure';
 
-// Raw SVG sources so each path can carry its own chapter timeline.
+// Raw SVG sources so each path and group can carry its own chapter timeline.
 const raw = import.meta.glob('../lib/scenes/*.svg', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
-const inner = (stem: string) => {
+const inlineSvg = (stem: string, name: string) => {
   const s = raw[`../lib/scenes/${stem}.svg`];
   if (!s) throw new Error(`missing scene ${stem}`);
-  return s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+  // keep the root's presentation attributes (fill, stroke, stroke-width...) so the paths inherit them
+  const open = s.match(/<svg([^>]*)>/)?.[1] ?? '';
+  const attrs = open.replace(/\s(xmlns|width|height)="[^"]*"/g, '').trim();
+  const body = s
+    .replace(/^[\s\S]*?<svg[^>]*>/, '')
+    .replace(/<\/svg>\s*$/, '')
+    .replaceAll('<path ', `<path style="animation-timeline: ${name}, ${name}" `)
+    .replaceAll('<g ', `<g style="animation-timeline: ${name}, ${name}" `);
+  return `<svg ${attrs} width="100%" focusable="false">${body}</svg>`;
 };
-const withTimeline = (svg: string, name: string) =>
-  svg.replaceAll('<path ', `<path style="animation-timeline: ${name}, ${name}" `).replaceAll('<g ', `<g style="animation-timeline: ${name}, ${name}" `);
 
-// Only chapters with a scene take part; the rest of the timeline stays in the data for later.
 const chapters = timeline.filter((m) => m.scene);
 const n = chapters.length;
 const keys = chapters.map((m) => m.scene!.figure);
 const enter = chapters[0].scene!.enter ?? keys[0];
 const tl = (i: number) => `--ch-${i + 1}`;
 
-// One background per place, visible from the place's first chapter to its last.
-const places = [...new Set(chapters.map((m) => m.scene!.place))];
-const span = Object.fromEntries(
-  places.map((p) => {
-    const idx = chapters.map((m, i) => (m.scene!.place === p ? i : -1)).filter((i) => i >= 0);
-    return [p, { from: idx[0], to: idx[idx.length - 1] }];
-  }),
-);
+// Depth: with the camera at PERSPECTIVE px, a plane at z looks smaller by (P - z) / P.
+// Scaling it back up around the vanishing point keeps the composition exact at rest,
+// so the only thing depth does is parallax when the camera moves.
+const PERSPECTIVE = 1400;
+const comp = (z: number) => ((PERSPECTIVE - z) / PERSPECTIVE).toFixed(4);
+const layerStyle = (L: Layer, i: number) => `--z:${L.z}px; --c:${comp(L.z)}; animation-timeline: ${tl(i)}, ${tl(i)};`;
+const animStyle = (L: Layer, i: number) =>
+  `left:${L.x}px; top:${L.y}px; width:${L.w}px; animation-timeline: ${tl(i)}, ${tl(i)};` + (L.range ? ` animation-range: ${L.range};` : '');
+
 const scopeNames = Array.from({ length: 10 }, (_, i) => tl(i)).join(', ');
 const fallback =
   `@supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {` +
-  places
-    .map((p) => {
-      const sel = Array.from({ length: span[p].to - span[p].from + 1 }, (_, k) => `.journey[data-chapter="${span[p].from + k}"] .bg[data-place="${p}"]`).join(',');
-      return `${sel}{opacity:1}`;
-    })
-    .join('') +
-  chapters.map((_, i) => `.journey[data-chapter="${i}"] .sc[data-i="${i}"]{opacity:1}`).join('') +
+  chapters.map((_, i) => `.journey[data-chapter="${i}"] .layer[data-i="${i}"]{opacity:1}`).join('') +
   '}';
 ---
 
 <section class="journey" data-n={n} data-chapter="0" data-keys={JSON.stringify(keys)} data-enter={JSON.stringify(enter)} style={`timeline-scope: ${scopeNames}`}>
   <div class="stage" aria-hidden="true">
-    <svg class="stage-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMaxYMax slice" focusable="false">
-      <g class="ink">
-        {places.map((p) => (
-          <g class="bg" data-place={p} style={`animation-timeline: ${tl(span[p].from)}, ${tl(span[p].to)}`} set:html={withTimeline(inner(`bg-${p}`), tl(span[p].from))} />
-        ))}
-        {chapters.map((m, i) => (
-          <g class="sc" data-i={i} style={`animation-timeline: ${tl(i)}, ${tl(i)}`} set:html={withTimeline(inner(m.scene!.scenery), tl(i))} />
-        ))}
-        <path class="ground" d="M 0 860 L 1600 860" />
-        <g class="fig" transform={figureTransform(enter)}>
-          {figure(enter).map((s) => (
-            <path data-id={s.id} d={s.d} style={`opacity:${s.opacity}`} class={`f-${s.fill}`} stroke-width={s.width} />
-          ))}
-        </g>
-      </g>
-    </svg>
+    <div class="world">
+      <div class="cam">
+        {chapters.map((m, i) =>
+          m.scene!.layers.map((L) => (
+            <div class="layer" data-i={i} data-id={L.id} style={layerStyle(L, i)}>
+              <div class="anim" data-motion={L.motion ?? 'none'} style={animStyle(L, i)}>
+                {L.src ? <img src={L.src} alt="" decoding="async" /> : <Fragment set:html={inlineSvg(L.inline!, tl(i))} />}
+              </div>
+            </div>
+          )),
+        )}
+        <div class="layer fig-layer" style="--z:0px; --c:1">
+          <svg class="fig-svg" viewBox="0 0 1600 900" focusable="false">
+            <g class="fig" transform={figureTransform(enter)}>
+              {figure(enter).map((s) => (
+                <path data-id={s.id} d={s.d} style={`opacity:${s.opacity}`} class={`f-${s.fill}`} stroke-width={s.width} />
+              ))}
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="wall">
@@ -100,36 +107,40 @@ const fallback =
     z-index: 0;
     background: var(--bg);
   }
-  .stage-svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    color: var(--tx);
+  /* The world is a 1600 by 900 design space, scaled to cover the viewport and anchored bottom right.
+     --k is set by the script (max of width/1600 and height/900). */
+  .world {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1600px;
+    height: 900px;
+    transform-origin: right bottom;
+    transform: scale(var(--k, 1));
+    perspective: 1400px;
+    perspective-origin: 1100px 600px;
   }
-  .ink {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 3.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  .cam {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    animation-name: cam;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --story;
+    animation-range: cover 0% cover 100%;
   }
-  .ink :global(path) {
-    vector-effect: non-scaling-stroke;
+  @keyframes cam {
+    from { transform: rotateY(-7deg) translateX(50px) translateZ(-40px); }
+    to { transform: rotateY(7deg) translateX(-50px) translateZ(60px); }
   }
-  .ground {
-    stroke-opacity: 0.18;
-  }
-  .ink :global(.accent) {
-    stroke: var(--acc);
-  }
-  .fig .f-ink { fill: var(--tx); }
-  .fig .f-paper { fill: var(--bg); }
-  .fig .f-accent { fill: var(--acc); }
-  .fig .f-none { fill: none; }
-
-  /* Scenery: strokes draw on while the chapter enters, the group fades while it exits. */
-  .sc,
-  .bg {
+  .layer {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform-origin: 1100px 600px;
+    transform: translateZ(var(--z)) scale(var(--c));
     opacity: 0;
     animation-name: fade-in, fade-out;
     animation-duration: auto, auto;
@@ -138,99 +149,111 @@ const fallback =
     animation-fill-mode: both, forwards;
     animation-range: entry 0% entry 100%, exit 0% exit 100%;
   }
-  .sc :global(path) {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    fill-opacity: 0;
-    animation-name: draw, fill-in;
+  .fig-layer {
+    opacity: 1;
+    animation-name: none;
+  }
+  .fig-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .anim {
+    position: absolute;
+    transform-style: preserve-3d;
+    transform-origin: center bottom;
     animation-duration: auto, auto;
     animation-timing-function: linear, linear;
     animation-fill-mode: both, both;
-    animation-range: entry 15% entry 95%, entry 60% entry 100%;
+    animation-range: entry 0% entry 100%;
   }
-  .bg :global(path) {
-    fill-opacity: 1;
+  .anim > :global(img),
+  .anim > :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: #17282f; /* currentColor inside authored ink scenes */
   }
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  .anim[data-motion='rise'] { animation-name: rise; }
+  .anim[data-motion='pop'] { animation-name: pop; }
+  .anim[data-motion='slide-l'] { animation-name: slide-l; }
+  .anim[data-motion='slide-r'] { animation-name: slide-r; }
+  .anim[data-motion='drift-l'] { animation-name: drift-l; }
+  .anim[data-motion='drift-r'] { animation-name: drift-r; }
+  .anim[data-motion='sail'] { animation-name: sail; transform-origin: center bottom; }
+  .anim[data-motion='drop'] { animation-name: drop; }
+  .anim[data-motion='swing-in'] { animation-name: swing-in; transform-origin: right center; }
+  .anim[data-motion='fly'] {
+    offset-path: path('M -160 300 C 300 220 700 120 1000 150 C 1300 180 1500 90 1780 20');
+    offset-rotate: auto;
+    animation-name: fly;
   }
-  @keyframes fade-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-  @keyframes draw {
-    from { stroke-dashoffset: 1; }
-    to { stroke-dashoffset: 0; }
-  }
-  @keyframes fill-in {
-    from { fill-opacity: 0; }
-    to { fill-opacity: 1; }
-  }
-  /* Where scroll timelines are missing, the script's data-chapter picks the layers (rules in the inline style above). */
-  @supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
-    .sc,
-    .bg {
-      animation-name: none;
-      transition: opacity 0.4s;
-    }
-    .sc :global(path) {
-      animation-name: none;
-      stroke-dashoffset: 0;
-      fill-opacity: 1;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .sc :global(path) {
-      animation-name: none;
-      stroke-dashoffset: 0;
-      fill-opacity: 1;
-    }
-  }
+  @keyframes rise { from { transform: translateY(460px); } to { transform: translateY(0); } }
+  @keyframes pop { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes slide-l { from { transform: translateX(-520px); } to { transform: translateX(0); } }
+  @keyframes slide-r { from { transform: translateX(520px); } to { transform: translateX(0); } }
+  @keyframes drift-l { from { transform: translateX(140px); } to { transform: translateX(-260px); } }
+  @keyframes drift-r { from { transform: translateX(-140px); } to { transform: translateX(260px); } }
+  @keyframes sail { from { transform: translateX(-90px) rotate(-3deg); } to { transform: translateX(110px) rotate(3deg); } }
+  @keyframes drop { from { transform: translateY(-320px); } to { transform: translateY(0); } }
+  @keyframes swing-in { from { transform: translateX(560px) translateZ(-300px) rotateY(-75deg); } to { transform: none; } }
+  @keyframes fly { from { offset-distance: 0%; } to { offset-distance: 100%; } }
 
-  /* Choreography. Every group below carries its chapter timeline (injected per element at build). */
-  .ink :global(.bg > g),
-  .ink :global(.sc > g) {
+  /* Inside inlined SVGs: groups with a class animate on the chapter timeline, stroked paths with pathLength draw on. */
+  .anim :global(g[class]) {
     transform-box: fill-box;
     transform-origin: center bottom;
     animation-duration: auto, auto;
     animation-timing-function: linear, linear;
     animation-fill-mode: both, both;
   }
-  .bg :global(.hills) { animation-name: pop; animation-range: entry 0% entry 40%; }
-  .bg :global(.houses) { animation-name: pop; animation-range: entry 15% entry 55%; }
-  .bg :global(.water) { animation-name: slide-r; animation-range: entry 10% entry 50%; }
-  .bg :global(.towers) { animation-name: rise; animation-range: entry 20% entry 65%; }
-  .bg :global(.deck) { animation-name: slide-r; animation-range: entry 35% entry 75%; }
-  .bg :global(.fog) { animation-name: drift; animation-range: entry 0% exit 100%; }
-  .bg :global(.draw path) {
+  .anim :global(path[pathLength]) {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
     animation-name: draw;
     animation-duration: auto;
     animation-timing-function: linear;
     animation-fill-mode: both;
+    animation-range: entry 60% exit 0%;
   }
-  .bg :global(.cable path) { animation-range: entry 55% entry 90%; }
-  .bg :global(.hangers path) { animation-range: entry 80% exit 10%; }
-  .sc :global(.plane) {
-    offset-path: path('M -120 300 C 300 200 700 120 1000 150 C 1300 180 1500 100 1750 40');
-    offset-rotate: auto;
-    animation-name: fly;
-    animation-range: entry 0% exit 100%;
-  }
-  .sc :global(.suitcase) { animation-name: slide-r; animation-range: entry 55% entry 95%; }
-  .sc :global(.rays) { transform-origin: center; animation-name: burst; animation-range: entry 85% exit 15%; }
-  .sc :global(.desk), .sc :global(.monitor) { animation-name: slide-r; animation-range: entry 20% entry 60%; }
-  .sc :global(.team) { animation-name: pop; animation-range: entry 50% entry 100%; }
-  .sc :global(.note) { animation-name: drop; animation-range: entry 70% exit 0%; }
-  @keyframes pop { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-  @keyframes rise { from { transform: translateY(520px); } to { transform: translateY(0); } }
-  @keyframes slide-r { from { transform: translateX(460px); } to { transform: translateX(0); } }
-  @keyframes drift { from { transform: translateX(140px); } to { transform: translateX(-160px); } }
-  @keyframes fly { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+  @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+  .anim :global(.suitcase) { animation-name: slide-r; animation-range: entry 55% entry 95%; }
+  .anim :global(.rays) { transform-origin: center; animation-name: burst; animation-range: entry 85% exit 15%; }
+  .anim :global(.desk), .anim :global(.monitor) { animation-name: slide-r; animation-range: entry 20% entry 60%; }
+  .anim :global(.team) { animation-name: pop; animation-range: entry 50% entry 100%; }
+  .anim :global(.note) { animation-name: drop; animation-range: entry 70% exit 0%; }
   @keyframes burst { from { transform: scale(0); } to { transform: scale(1); } }
-  @keyframes drop { from { transform: translateY(-260px); } to { transform: translateY(0); } }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+  /* the figure's palette, borrowed from the old bridge illustration */
+  .fig .f-hair { fill: #17282f; }
+  .fig .f-skin { fill: #f1c7a3; }
+  .fig .f-shirt { fill: #33535f; }
+  .fig .f-trousers { fill: #dadbd8; }
+  .fig .f-shoes { fill: #17282f; }
+  .fig .f-accent { fill: #f2575d; }
+  .fig .f-ink { fill: #17282f; }
+  .fig .f-none { fill: none; }
+  .fig path {
+    stroke: #17282f;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .fig path[stroke-width='0'] { stroke: none; }
+
+  /* Where scroll timelines are missing, the script's data-chapter picks the layers (rules in the inline style above). */
+  @supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+    .layer, .anim, .cam, .anim :global(g[class]) { animation-name: none; }
+    .layer { transition: opacity 0.4s; }
+    .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cam, .anim, .anim :global(g[class]) { animation-name: none; }
+    .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
+  }
 
   .wall {
     position: relative;
@@ -280,9 +303,6 @@ const fallback =
   }
 
   @media (max-width: 48rem) {
-    .stage-svg {
-      transform: translateX(12%);
-    }
     .ch {
       padding-top: 52svh;
     }
@@ -317,6 +337,7 @@ const fallback =
     const keys = JSON.parse(root.dataset.keys!) as FigureParams[];
     const enter = JSON.parse(root.dataset.enter!) as FigureParams;
     const n = keys.length;
+    const stage = root.querySelector<HTMLElement>('.stage')!;
     const fig = root.querySelector<SVGGElement>('.fig')!;
     const paths = new Map<string, SVGPathElement>();
     root.querySelectorAll<SVGPathElement>('.fig path[data-id]').forEach((el) => paths.set(el.dataset.id!, el));
@@ -375,10 +396,15 @@ const fallback =
       target = progress();
       if (!raf) raf = requestAnimationFrame(tick);
     };
+    const fit = () => {
+      const k = Math.max(stage.clientWidth / 1600, stage.clientHeight / 900);
+      stage.style.setProperty('--k', k.toFixed(4));
+      onScroll();
+    };
 
     addEventListener('scroll', onScroll, { passive: true });
-    addEventListener('resize', onScroll);
+    addEventListener('resize', fit);
     reduce.addEventListener('change', onScroll);
-    onScroll();
+    fit();
   }
 </script>

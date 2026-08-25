@@ -4,8 +4,21 @@
 
 import type { FigureParams } from '../lib/figure';
 
-export type Place = 'delhi' | 'sf' | 'halifax' | 'room';
-export type Scene = { place: Place; scenery: string; figure: FigureParams; enter?: FigureParams }; // enter: pose he arrives from as the chapter scrolls in
+// How a layer moves while its chapter scrolls through (CSS keyframes in Journey.astro).
+export type Motion = 'rise' | 'pop' | 'slide-l' | 'slide-r' | 'drift-l' | 'drift-r' | 'fly' | 'sail' | 'swing-in' | 'drop' | 'none';
+// One plane in the 3D stage. x, y, w in the 1600 by 900 design space; z is depth in px (negative = far away).
+export type Layer = {
+  id: string;
+  src?: string; // /assets/scenes/*.svg, drawn as an image
+  inline?: string; // file stem in src/lib/scenes, inlined so its groups can animate
+  x: number;
+  y: number;
+  w: number;
+  z: number;
+  motion?: Motion;
+  range?: string; // animation-range for the motion, default "entry 0% entry 100%"
+};
+export type Scene = { figure: FigureParams; enter?: FigureParams; layers: Layer[] }; // enter: pose he arrives from as the chapter scrolls in
 
 export type Milestone = {
   year: string; // the big number in the gutter
@@ -15,7 +28,7 @@ export type Milestone = {
   body: string;
   stat?: string; // one line of numbers, mono, optional
   mark?: string; // small logo in the gutter, /assets/timeline/*.png, optional
-  scene?: Scene; // the journey stage: place background, scenery file stem, figure keyframe
+  scene?: Scene; // the journey stage: figure keyframe, arrival pose, 3D layers
 };
 
 // 2018: seventeen, Google Code-in grand prize, the trip to San Francisco.
@@ -63,7 +76,19 @@ export const timeline: Milestone[] = [
     title: 'Grand prize at 17',
     body: 'Google flew me to San Francisco. That trip is the reason I moved across the world for computer science.',
     mark: '/assets/timeline/google.png',
-    scene: { place: 'sf', scenery: 'sc-2018', figure: teen2018, enter: arrive2018 },
+    scene: {
+      figure: teen2018,
+      enter: arrive2018,
+      layers: [
+        { id: 'sun', src: '/assets/scenes/sun.svg', x: 1180, y: 130, w: 120, z: -900, motion: 'rise', range: 'entry 0% entry 70%' },
+        { id: 'clouds', src: '/assets/scenes/baadal.svg', x: 200, y: 10, w: 1500, z: -760, motion: 'drift-l', range: 'entry 0% exit 100%' },
+        { id: 'bridge', src: '/assets/scenes/bridge.svg', x: 560, y: 318, w: 1040, z: -380, motion: 'swing-in', range: 'entry 10% entry 85%' },
+        { id: 'plane', inline: 'plane', x: 0, y: 0, w: 150, z: -560, motion: 'fly', range: 'entry 0% exit 100%' },
+        { id: 'boat-left', src: '/assets/scenes/boat-left.svg', x: 940, y: 800, w: 64, z: -230, motion: 'sail', range: 'entry 40% exit 100%' },
+        { id: 'boat-right', src: '/assets/scenes/boat-right.svg', x: 1470, y: 830, w: 60, z: -260, motion: 'sail', range: 'entry 30% exit 100%' },
+        { id: 'near', inline: 'sc-2018', x: 0, y: 0, w: 1600, z: -60 },
+      ],
+    },
   },
   {
     year: '2020',
@@ -73,7 +98,14 @@ export const timeline: Milestone[] = [
     body: 'Startups brought ideas, we shipped the software. Twenty five developers at the peak. The same year a Covid resource platform for Delhi reached 20,000 people with 52 volunteers.',
     stat: '25 developers · 6 products live · $100K+ raised on our MVPs',
     mark: '/assets/timeline/webcube.png',
-    scene: { place: 'delhi', scenery: 'sc-2020', figure: studio2020 },
+    scene: {
+      figure: studio2020,
+      layers: [
+        { id: 'delhi', inline: 'bg-delhi', x: 0, y: 0, w: 1600, z: -520, motion: 'rise', range: 'entry 0% entry 60%' },
+        { id: 'studio', inline: 'sc-2020', x: 0, y: 0, w: 1600, z: -90 },
+        { id: 'doctors', src: '/assets/scenes/doc.svg', x: 1240, y: 600, w: 300, z: -170, motion: 'pop', range: 'entry 60% exit 0%' },
+      ],
+    },
   },
   {
     year: '2022',

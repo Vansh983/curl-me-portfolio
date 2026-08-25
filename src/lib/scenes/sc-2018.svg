@@ -1,17 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-  <!-- 2018: the plane flies across the sky for the whole chapter, the suitcase slides in, rays burst around the trophy -->
-  <g class="plane">
-    <path pathLength="1" fill="var(--bg)" d="M -60 0 C -40 -10 20 -12 50 -4 C 62 -1 64 2 62 5 C 40 12 -20 12 -58 6 Z"/>
-    <path pathLength="1" fill="currentColor" d="M -10 -2 L -46 -32 L -30 -34 L 14 -6 Z M -6 6 L -30 34 L -16 34 L 18 6 Z M -56 2 L -74 -18 L -64 -18 L -46 -1 Z"/>
-    <path pathLength="1" stroke-width="2" stroke-opacity="0.5" d="M -76 2 h -40 M -126 2 h -22 M -160 2 h -12"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="none">
+  <!-- 2018 near layer: the suitcase for San Francisco, rays around the trophy -->
   <g class="suitcase">
-    <path pathLength="1" fill="var(--bg)" d="M 1210 860 L 1210 795 L 1290 795 L 1290 860 Z"/>
-    <path pathLength="1" d="M 1210 820 L 1290 820 M 1244 810 h 12"/>
-    <path pathLength="1" d="M 1235 795 L 1235 780 L 1265 780 L 1265 795"/>
-    <path pathLength="1" fill="currentColor" stroke="none" d="M 1222 846 h 18 v 10 h -18 Z M 1260 846 h 18 v 10 h -18 Z"/>
+    <path fill="#F2575D" d="M 1210 860 L 1210 795 L 1290 795 L 1290 860 Z"/>
+    <path fill="#CC4341" d="M 1210 820 L 1290 820 L 1290 828 L 1210 828 Z M 1244 806 h 12 v 8 h -12 Z"/>
+    <path fill="none" stroke="#702224" stroke-width="5" stroke-linecap="round" d="M 1237 795 L 1237 782 L 1263 782 L 1263 795"/>
+    <path fill="#17282F" d="M 1220 852 h 16 v 8 h -16 Z M 1264 852 h 16 v 8 h -16 Z"/>
   </g>
   <g class="rays">
-    <path pathLength="1" stroke-width="4" d="M 1265 340 L 1280 325 M 1272 367 L 1292 367 M 1265 394 L 1280 409 M 1167 340 L 1152 325 M 1160 367 L 1140 367 M 1167 394 L 1152 409 M 1216 318 v -20"/>
+    <path pathLength="1" stroke="#F2575D" stroke-width="5" stroke-linecap="round" d="M 1265 340 L 1282 323 M 1272 367 L 1296 367 M 1265 394 L 1282 411 M 1167 340 L 1150 323 M 1160 367 L 1136 367 M 1167 394 L 1150 411 M 1216 318 v -24"/>
   </g>
 </svg>

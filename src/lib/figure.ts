@@ -29,7 +29,7 @@ export type FigureParams = {
   walk: number; // walk cycle phase in radians; legs and arms swing, body bobs
 };
 
-export type Fill = 'ink' | 'paper' | 'accent' | 'none';
+export type Fill = 'hair' | 'skin' | 'shirt' | 'trousers' | 'shoes' | 'accent' | 'ink' | 'none';
 export type Stroke = { id: string; d: string; opacity: number; fill: Fill; width: number };
 
 // Draw order, back to front.
@@ -266,14 +266,14 @@ export function figure(p: FigureParams): Stroke[] {
 
   const s = (id: string, d: string, fill: Fill, width: number, opacity = 1): Stroke => ({ id, d, opacity, fill, width });
   return [
-    s('armL', L.sleeve, 'ink', 4), s('skinL', L.skin, 'paper', 4), s('handL', L.hand, 'paper', 4),
-    s('legs', legs, 'paper', 4), s('shoeL', shoeL, 'ink', 4), s('shoeR', shoeR, 'ink', 4),
-    s('neck', neck, 'paper', 4), s('torso', torso, 'ink', 4),
-    s('armR', R.sleeve, 'ink', 4), s('skinR', R.skin, 'paper', 4), s('handR', R.hand, 'paper', 4),
-    s('earL', earL, 'paper', 4), s('earR', earR, 'paper', 4), s('head', head, 'paper', 4),
-    s('hair', hair, 'ink', 4), s('beard', beard, 'ink', 3, bd),
-    s('eyeL', eyeL, 'ink', 2), s('eyeR', eyeR, 'ink', 2), s('browL', browL, 'none', 5), s('browR', browR, 'none', 5),
-    s('nose', nose, 'none', 3), s('mouth', mouth, 'none', 3.5), s('glasses', glasses, 'none', 3.5, clamp(p.glasses, 0, 1)),
-    s('prop', prop, 'accent', 4, show), s('propStem', propStem, 'none', 6, show),
+    s('armL', L.sleeve, 'shirt', 0), s('skinL', L.skin, 'skin', 0), s('handL', L.hand, 'skin', 0),
+    s('legs', legs, 'trousers', 0), s('shoeL', shoeL, 'shoes', 0), s('shoeR', shoeR, 'shoes', 0),
+    s('neck', neck, 'skin', 0), s('torso', torso, 'shirt', 0),
+    s('armR', R.sleeve, 'shirt', 0), s('skinR', R.skin, 'skin', 0), s('handR', R.hand, 'skin', 0),
+    s('earL', earL, 'skin', 0), s('earR', earR, 'skin', 0), s('head', head, 'skin', 0),
+    s('hair', hair, 'hair', 0), s('beard', beard, 'hair', 0, bd),
+    s('eyeL', eyeL, 'ink', 0), s('eyeR', eyeR, 'ink', 0), s('browL', browL, 'none', 4), s('browR', browR, 'none', 4),
+    s('nose', nose, 'none', 2.5), s('mouth', mouth, 'none', 3), s('glasses', glasses, 'none', 3, clamp(p.glasses, 0, 1)),
+    s('prop', prop, 'accent', 0, show), s('propStem', propStem, 'none', 7, show),
   ];
 }
