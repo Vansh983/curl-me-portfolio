@@ -13,6 +13,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [07-journey-stage.md](./07-journey-stage.md) | **The journey stage**: sticky right-column scene of the author growing up, driven by the left text wall. 10 routes ranked, art pipeline, stack re-check (not locked). Evidence in [07-research/](./07-research/) |
 | [08-journey-stage-spec.md](./08-journey-stage-spec.md) | **The journey stage design spec**: parametric stroke figure that morphs with scroll, per-chapter scenery on CSS timelines, layout, fallbacks, tests, milestones |
 | [09-journey-stage-plan.md](./09-journey-stage-plan.md) | **The implementation plan**: 10 tasks, TDD, real code for the figure, lerp, render tool, Astro component, timelines, fallback, and the art loop |
+| [10-session-log.md](./10-session-log.md) | **What actually got built**: the three engines (layers, motions, morphing), file map, reused old assets, photo slots, commits, decisions, what is next |
 
 ## The one-paragraph verdict
 
