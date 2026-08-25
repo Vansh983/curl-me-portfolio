@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" fill="none" stroke="none">
+  <!-- the TV on its table, Call of Duty zombies on screen -->
+  <rect x="14" y="330" width="492" height="18" rx="3" fill="#8B6B4A"/>
+  <rect x="34" y="348" width="22" height="52" fill="#6E5238"/>
+  <rect x="464" y="348" width="22" height="52" fill="#6E5238"/>
+  <rect x="14" y="348" width="492" height="8" fill="#6E5238"/>
+  <!-- stand -->
+  <rect x="246" y="296" width="28" height="36" fill="#17282F"/>
+  <rect x="190" y="322" width="140" height="10" rx="5" fill="#17282F"/>
+  <!-- bezel -->
+  <rect x="30" y="16" width="460" height="290" rx="10" fill="#17282F"/>
+  <rect x="30" y="16" width="460" height="290" rx="10" fill="none" stroke="#2A4550" stroke-width="3"/>
+  <circle cx="260" cy="296" r="3" fill="#7AC142"/>
+  <!-- the screen -->
+  <g>
+    <rect x="46" y="32" width="428" height="256" fill="#1F2E27"/>
+    <!-- sky and the ground of the map -->
+    <rect x="46" y="32" width="428" height="150" fill="#2A3A34"/>
+    <rect x="46" y="182" width="428" height="106" fill="#3B3A2E"/>
+    <path d="M 46 182 h 428" stroke="#5A5A46" stroke-width="3"/>
+    <!-- a broken building on the horizon -->
+    <path d="M 70 182 v -70 h 40 v 30 h 30 v -50 h 50 v 90 Z M 330 182 v -60 h 26 v -26 h 40 v 86 Z" fill="#1A2620"/>
+    <!-- zombies shamble across, three of them at three depths -->
+    <g data-motion="shamble" style="animation-range: entry 0% exit 100%">
+      <path d="M 396 178 c 0 -22 8 -34 14 -34 c 6 0 14 12 14 34 Z M 410 132 a 8 8 0 1 0 0.1 0 Z M 388 150 l -22 -14 M 432 148 l 24 -12" fill="#4F7A52" stroke="#4F7A52" stroke-width="5" stroke-linecap="round"/>
+      <path d="M 280 214 c 0 -40 12 -60 22 -60 c 10 0 22 20 22 60 Z M 302 138 a 13 13 0 1 0 0.1 0 Z M 268 170 l -36 -24 M 336 166 l 38 -18" fill="#5C8C5A" stroke="#5C8C5A" stroke-width="7" stroke-linecap="round"/>
+      <path d="M 140 270 c 0 -60 18 -90 32 -90 c 14 0 32 30 32 90 Z M 172 160 a 20 20 0 1 0 0.1 0 Z M 120 208 l -50 -40 M 224 206 l 54 -30" fill="#6FA86A" stroke="#6FA86A" stroke-width="10" stroke-linecap="round"/>
+    </g>
+    <!-- muzzle flash and the gun in the corner -->
+    <path d="M 474 288 l -110 -40 l -10 26 l 60 14 Z" fill="#2E2E2E"/>
+    <path d="M 364 250 l -18 -10 l 8 -8 l 4 14 l -12 -18 Z" fill="#F7D44C" data-motion="flicker" style="animation-range: entry 0% exit 100%; transform-origin: 360px 246px"/>
+    <!-- crosshair -->
+    <circle cx="260" cy="160" r="22" fill="none" stroke="#F2575D" stroke-width="3"/>
+    <path d="M 260 128 v 14 M 260 178 v 14 M 228 160 h 14 M 278 160 h 14" stroke="#F2575D" stroke-width="3" stroke-linecap="round"/>
+    <!-- HUD: round counter and ammo -->
+    <rect x="58" y="248" width="60" height="28" rx="4" fill="#F2575D"/>
+    <path d="M 70 262 h 8 M 84 262 h 8 M 98 262 h 8" stroke="#F9F4EC" stroke-width="4" stroke-linecap="round"/>
+    <rect x="58" y="40" width="90" height="10" rx="5" fill="#7AC142"/>
+    <rect x="58" y="40" width="58" height="10" rx="5" fill="#B7E28E"/>
+    <!-- screen glow that flickers -->
+    <rect x="46" y="32" width="428" height="256" fill="#B7E28E" fill-opacity="0.08" data-motion="flicker" style="animation-range: entry 0% exit 100%"/>
+  </g>
+</svg>

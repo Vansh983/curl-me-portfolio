@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 300" fill="none" stroke="none">
+  <!-- a zombies poster on the wall: black paper, red frame, a green hand out of the ground, a crosshair -->
+  <rect x="0" y="0" width="220" height="300" fill="#17282F"/>
+  <rect x="8" y="8" width="204" height="284" fill="none" stroke="#F2575D" stroke-width="5"/>
+  <rect x="24" y="220" width="172" height="52" fill="#2A4550"/>
+  <path d="M 96 226 c -6 -30 -2 -70 4 -100 c 2 -10 10 -10 12 0 c 3 12 2 30 1 40 c 6 -14 12 -26 18 -30 c 8 -4 12 4 8 12 c -5 10 -10 22 -14 34 c 8 -8 16 -12 22 -10 c 7 3 5 11 -2 16 c -8 6 -16 14 -22 24 c 8 -4 14 -4 18 0 c 5 5 0 12 -8 14 c -12 3 -26 4 -37 0 Z" fill="#7AC142"/>
+  <circle cx="150" cy="80" r="34" fill="none" stroke="#F2575D" stroke-width="5"/>
+  <path d="M 150 36 v 22 M 150 102 v 22 M 106 80 h 22 M 172 80 h 22" stroke="#F2575D" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="150" cy="80" r="5" fill="#F2575D"/>
+  <path d="M 30 40 h 60 M 30 54 h 44 M 30 68 h 52" stroke="#F9F4EC" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 30 150 h 40 M 30 164 h 26" stroke="#F9F4EC" stroke-width="5" stroke-linecap="round" stroke-opacity="0.6"/>
+  <!-- drawing pins -->
+  <circle cx="12" cy="12" r="6" fill="#F7D44C"/><circle cx="208" cy="12" r="6" fill="#F7D44C"/>
+  <circle cx="12" cy="288" r="6" fill="#F7D44C"/><circle cx="208" cy="288" r="6" fill="#F7D44C"/>
+</svg>

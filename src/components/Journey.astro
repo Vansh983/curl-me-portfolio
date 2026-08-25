@@ -4,28 +4,21 @@
 // that rotates and drifts with scroll, and one figure that morphs and walks through
 // it. Docs 07 to 09 in docs/rebuild.
 import { timeline, type Layer } from '../data/timeline';
-import { figure, figureTransform } from '../lib/figure';
 
 // Raw SVG sources so each path and group can carry its own chapter timeline.
 const raw = import.meta.glob('../lib/scenes/*.svg', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
-const inlineSvg = (stem: string, name: string) => {
+const inlineSvg = (stem: string) => {
   const s = raw[`../lib/scenes/${stem}.svg`];
   if (!s) throw new Error(`missing scene ${stem}`);
   // keep the root's presentation attributes (fill, stroke, stroke-width...) so the paths inherit them
   const open = s.match(/<svg([^>]*)>/)?.[1] ?? '';
   const attrs = open.replace(/\s(xmlns|width|height)="[^"]*"/g, '').trim();
-  const body = s
-    .replace(/^[\s\S]*?<svg[^>]*>/, '')
-    .replace(/<\/svg>\s*$/, '')
-    .replaceAll('<path ', `<path style="animation-timeline: ${name}, ${name}" `)
-    .replaceAll('<g ', `<g style="animation-timeline: ${name}, ${name}" `);
+  const body = s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
   return `<svg ${attrs} width="100%" focusable="false">${body}</svg>`;
 };
 
 const chapters = timeline.filter((m) => m.scene);
 const n = chapters.length;
-const keys = chapters.map((m) => m.scene!.figure);
-const enter = chapters[0].scene!.enter ?? keys[0];
 const tl = (i: number) => `--ch-${i + 1}`;
 
 // Depth: with the camera at PERSPECTIVE px, a plane at z looks smaller by (P - z) / P.
@@ -34,8 +27,9 @@ const tl = (i: number) => `--ch-${i + 1}`;
 const PERSPECTIVE = 1400;
 const comp = (z: number) => ((PERSPECTIVE - z) / PERSPECTIVE).toFixed(4);
 const layerStyle = (L: Layer, i: number) => `--z:${L.z}px; --c:${comp(L.z)}; animation-timeline: ${tl(i)}, ${tl(i)};`;
+// --tl lets everything inside the layer (groups with data-motion, paths that draw on) pick up the chapter timeline from CSS.
 const animStyle = (L: Layer, i: number) =>
-  `left:${L.x}px; top:${L.y}px; width:${L.w}px; animation-timeline: ${tl(i)}, ${tl(i)};` + (L.range ? ` animation-range: ${L.range};` : '');
+  `left:${L.x}px; top:${L.y}px; width:${L.w}px; --tl: ${tl(i)}; animation-timeline: ${tl(i)}, ${tl(i)};` + (L.range ? ` animation-range: ${L.range};` : '');
 
 const scopeNames = Array.from({ length: 10 }, (_, i) => tl(i)).join(', ');
 const fallback =
@@ -44,7 +38,7 @@ const fallback =
   '}';
 ---
 
-<section class="journey" data-n={n} data-chapter="0" data-keys={JSON.stringify(keys)} data-enter={JSON.stringify(enter)} style={`timeline-scope: ${scopeNames}`}>
+<section class="journey" data-n={n} data-chapter="0" style={`timeline-scope: ${scopeNames}`}>
   <div class="stage" aria-hidden="true">
     <div class="world">
       <div class="cam">
@@ -52,20 +46,11 @@ const fallback =
           m.scene!.layers.map((L) => (
             <div class="layer" data-i={i} data-id={L.id} style={layerStyle(L, i)}>
               <div class="anim" data-motion={L.motion ?? 'none'} style={animStyle(L, i)}>
-                {L.src ? <img src={L.src} alt="" decoding="async" /> : <Fragment set:html={inlineSvg(L.inline!, tl(i))} />}
+                {L.src ? <img src={L.src} alt="" decoding="async" /> : <Fragment set:html={inlineSvg(L.inline!)} />}
               </div>
             </div>
           )),
         )}
-        <div class="layer fig-layer" style="--z:0px; --c:1">
-          <svg class="fig-svg" viewBox="0 0 1600 900" focusable="false">
-            <g class="fig" transform={figureTransform(enter)}>
-              {figure(enter).map((s) => (
-                <path data-id={s.id} d={s.d} style={`opacity:${s.opacity}`} class={`f-${s.fill}`} stroke-width={s.width} />
-              ))}
-            </g>
-          </svg>
-        </div>
       </div>
     </div>
   </div>
@@ -149,17 +134,6 @@ const fallback =
     animation-fill-mode: both, forwards;
     animation-range: entry 0% entry 100%, exit 0% exit 100%;
   }
-  .fig-layer {
-    opacity: 1;
-    animation-name: none;
-  }
-  .fig-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
   .anim {
     position: absolute;
     transform-style: preserve-3d;
@@ -176,16 +150,56 @@ const fallback =
     height: auto;
     color: #17282f; /* currentColor inside authored ink scenes */
   }
-  .anim[data-motion='rise'] { animation-name: rise; }
-  .anim[data-motion='pop'] { animation-name: pop; }
-  .anim[data-motion='slide-l'] { animation-name: slide-l; }
-  .anim[data-motion='slide-r'] { animation-name: slide-r; }
-  .anim[data-motion='drift-l'] { animation-name: drift-l; }
-  .anim[data-motion='drift-r'] { animation-name: drift-r; }
-  .anim[data-motion='sail'] { animation-name: sail; transform-origin: center bottom; }
-  .anim[data-motion='drop'] { animation-name: drop; }
-  .anim[data-motion='swing-in'] { animation-name: swing-in; transform-origin: right center; }
-  .anim[data-motion='fly'] {
+  /* Motions. The same names work on a layer wrapper and on any group inside an inlined SVG. */
+  .anim :global([data-motion]) {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation-duration: auto, auto;
+    animation-timing-function: linear, linear;
+    animation-fill-mode: both, both;
+    animation-timeline: var(--tl), var(--tl);
+    animation-range: entry 0% entry 100%;
+  }
+  .anim[data-motion='rise'],
+  .anim :global([data-motion='rise']) { animation-name: rise; }
+  .anim[data-motion='pop'],
+  .anim :global([data-motion='pop']) { animation-name: pop; }
+  .anim[data-motion='slide-l'],
+  .anim :global([data-motion='slide-l']) { animation-name: slide-l; }
+  .anim[data-motion='slide-r'],
+  .anim :global([data-motion='slide-r']) { animation-name: slide-r; }
+  .anim[data-motion='drift-l'],
+  .anim :global([data-motion='drift-l']) { animation-name: drift-l; }
+  .anim[data-motion='drift-r'],
+  .anim :global([data-motion='drift-r']) { animation-name: drift-r; }
+  .anim[data-motion='sail'],
+  .anim :global([data-motion='sail']) { animation-name: sail; }
+  .anim[data-motion='drop'],
+  .anim :global([data-motion='drop']) { animation-name: drop; }
+  .anim[data-motion='swing-in'],
+  .anim :global([data-motion='swing-in']) { animation-name: swing-in; transform-origin: right center; }
+  .anim[data-motion='burst'],
+  .anim :global([data-motion='burst']) { animation-name: burst; transform-origin: center; }
+  .anim[data-motion='spin'],
+  .anim :global([data-motion='spin']) { animation-name: spin; transform-origin: center; }
+  .anim[data-motion='shamble'],
+  .anim :global([data-motion='shamble']) { animation-name: shamble; }
+  .anim[data-motion='flicker'],
+  .anim :global([data-motion='flicker']) { animation-name: flicker; }
+  .anim[data-motion='pulse'],
+  .anim :global([data-motion='pulse']) { animation-name: pulse; transform-origin: center; }
+  .anim[data-motion='sway'],
+  .anim :global([data-motion='sway']) { animation-name: sway; }
+  .anim[data-motion='tilt'],
+  .anim :global([data-motion='tilt']) { animation-name: tilt; transform-origin: center; }
+  .anim[data-motion='steam'],
+  .anim :global([data-motion='steam']) { animation-name: steam; }
+  .anim[data-motion='roll'],
+  .anim :global([data-motion='roll']) { animation-name: roll; transform-origin: center; }
+  .anim[data-motion='dusk'],
+  .anim :global([data-motion='dusk']) { animation-name: dusk; }
+  .anim[data-motion='fly'],
+  .anim :global([data-motion='fly']) {
     offset-path: path('M -160 300 C 300 220 700 120 1000 150 C 1300 180 1500 90 1780 20');
     offset-rotate: auto;
     animation-name: fly;
@@ -200,15 +214,20 @@ const fallback =
   @keyframes drop { from { transform: translateY(-320px); } to { transform: translateY(0); } }
   @keyframes swing-in { from { transform: translateX(560px) translateZ(-300px) rotateY(-75deg); } to { transform: none; } }
   @keyframes fly { from { offset-distance: 0%; } to { offset-distance: 100%; } }
-
-  /* Inside inlined SVGs: groups with a class animate on the chapter timeline, stroked paths with pathLength draw on. */
-  .anim :global(g[class]) {
-    transform-box: fill-box;
-    transform-origin: center bottom;
-    animation-duration: auto, auto;
-    animation-timing-function: linear, linear;
-    animation-fill-mode: both, both;
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(1440deg); } }
+  @keyframes shamble { 0% { transform: translateX(-14px); } 50% { transform: translateX(16px); } 100% { transform: translateX(-10px); } }
+  @keyframes flicker {
+    0%, 9% { opacity: 1; } 10%, 13% { opacity: 0.15; } 14%, 31% { opacity: 1; } 32%, 34% { opacity: 0.2; }
+    35%, 58% { opacity: 1; } 59%, 61% { opacity: 0.1; } 62%, 80% { opacity: 1; } 81%, 84% { opacity: 0.25; } 85%, 100% { opacity: 1; }
   }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 25% { transform: scale(1.3); } 50% { transform: scale(0.95); } 75% { transform: scale(1.25); } }
+  @keyframes sway { 0% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } 100% { transform: rotate(-1.5deg); } }
+  @keyframes tilt { 0% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(6deg) translateY(-4px); } 100% { transform: rotate(-4deg) translateY(0); } }
+  @keyframes steam { 0% { transform: translateY(10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-60px); opacity: 0; } }
+  @keyframes roll { from { transform: translateX(-640px) rotate(-900deg); } to { transform: translateX(0) rotate(0deg); } }
+  @keyframes dusk { from { transform: translateY(0); } to { transform: translateY(-60px); } }
+
+  /* Inside inlined SVGs, stroked paths with pathLength draw themselves on. */
   .anim :global(path[pathLength]) {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
@@ -216,42 +235,22 @@ const fallback =
     animation-duration: auto;
     animation-timing-function: linear;
     animation-fill-mode: both;
+    animation-timeline: var(--tl);
     animation-range: entry 60% exit 0%;
   }
   @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-  .anim :global(.suitcase) { animation-name: slide-r; animation-range: entry 55% entry 95%; }
-  .anim :global(.rays) { transform-origin: center; animation-name: burst; animation-range: entry 85% exit 15%; }
-  .anim :global(.desk), .anim :global(.monitor) { animation-name: slide-r; animation-range: entry 20% entry 60%; }
-  .anim :global(.team) { animation-name: pop; animation-range: entry 50% entry 100%; }
-  .anim :global(.note) { animation-name: drop; animation-range: entry 70% exit 0%; }
   @keyframes burst { from { transform: scale(0); } to { transform: scale(1); } }
   @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
 
-  /* the figure's palette, borrowed from the old bridge illustration */
-  .fig .f-hair { fill: #17282f; }
-  .fig .f-skin { fill: #f1c7a3; }
-  .fig .f-shirt { fill: #33535f; }
-  .fig .f-trousers { fill: #dadbd8; }
-  .fig .f-shoes { fill: #17282f; }
-  .fig .f-accent { fill: #f2575d; }
-  .fig .f-ink { fill: #17282f; }
-  .fig .f-none { fill: none; }
-  .fig path {
-    stroke: #17282f;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .fig path[stroke-width='0'] { stroke: none; }
-
   /* Where scroll timelines are missing, the script's data-chapter picks the layers (rules in the inline style above). */
   @supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
-    .layer, .anim, .cam, .anim :global(g[class]) { animation-name: none; }
+    .layer, .anim, .cam, .anim :global([data-motion]) { animation-name: none; }
     .layer { transition: opacity 0.4s; }
     .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .cam, .anim, .anim :global(g[class]) { animation-name: none; }
+    .cam, .anim, .anim :global([data-motion]) { animation-name: none; }
     .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
   }
 
@@ -329,82 +328,30 @@ const fallback =
 </style>
 
 <script>
-  import { figure, figureTransform, type FigureParams } from '../lib/figure';
-  import { lerpParams, locate, clamp01, easeInOutSine } from '../lib/lerp';
-
+  // Two jobs: scale the 1600 by 900 world to cover the viewport, and keep data-chapter
+  // current for browsers without CSS scroll timelines (their layers switch on it).
   const root = document.querySelector<HTMLElement>('.journey');
   if (root) {
-    const keys = JSON.parse(root.dataset.keys!) as FigureParams[];
-    const enter = JSON.parse(root.dataset.enter!) as FigureParams;
-    const n = keys.length;
+    const n = Number(root.dataset.n) || 1;
     const stage = root.querySelector<HTMLElement>('.stage')!;
-    const fig = root.querySelector<SVGGElement>('.fig')!;
-    const paths = new Map<string, SVGPathElement>();
-    root.querySelectorAll<SVGPathElement>('.fig path[data-id]').forEach((el) => paths.set(el.dataset.id!, el));
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-
-    let target = 0;
-    let cur = 0;
-    let raf = 0;
-    let lastKey = -1;
-
-    // p < 0 is the run-up: the section is scrolling into view and he walks in from the enter pose.
-    const draw = (p: number) => {
-      let params: FigureParams;
-      if (p < 0) params = lerpParams(enter, keys[0], easeInOutSine(1 + Math.max(-1, p)));
-      else {
-        const { i, t } = locate(p, n);
-        params = t === 0 ? keys[i] : t === 1 ? keys[i + 1] : lerpParams(keys[i], keys[i + 1], t);
-      }
-      fig.setAttribute('transform', figureTransform(params));
-      for (const s of figure(params)) {
-        const el = paths.get(s.id);
-        if (!el) continue;
-        el.setAttribute('d', s.d);
-        el.style.opacity = String(s.opacity);
-      }
-      const near = Math.max(0, Math.round(p * (n - 1)));
-      if (near !== lastKey) {
-        lastKey = near;
-        root.dataset.chapter = String(near);
-      }
-    };
-
-    // 0..1 while the stage is pinned; -1..0 while the section's top travels up the viewport.
-    const progress = () => {
+    let last = -1;
+    const onScroll = () => {
       const r = root.getBoundingClientRect();
       const total = r.height - innerHeight;
-      if (r.top > 0) return -Math.min(1, r.top / innerHeight);
-      return total > 0 ? clamp01(-r.top / total) : 0;
-    };
-
-    const tick = () => {
-      raf = 0;
-      if (reduce.matches) cur = target;
-      else {
-        cur += (target - cur) * 0.18;
-        if (Math.abs(target - cur) < 0.0005) cur = target;
+      const p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+      const near = Math.round(p * (n - 1));
+      if (near !== last) {
+        last = near;
+        root.dataset.chapter = String(near);
       }
-      try {
-        draw(reduce.matches ? Math.max(0, Math.round(cur * (n - 1))) / (n - 1) : cur);
-      } catch {
-        /* keep the last good frame */
-      }
-      if (cur !== target) raf = requestAnimationFrame(tick);
-    };
-    const onScroll = () => {
-      target = progress();
-      if (!raf) raf = requestAnimationFrame(tick);
     };
     const fit = () => {
       const k = Math.max(stage.clientWidth / 1600, stage.clientHeight / 900);
       stage.style.setProperty('--k', k.toFixed(4));
       onScroll();
     };
-
     addEventListener('scroll', onScroll, { passive: true });
     addEventListener('resize', fit);
-    reduce.addEventListener('change', onScroll);
     fit();
   }
 </script>

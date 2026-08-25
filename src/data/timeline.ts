@@ -18,7 +18,7 @@ export type Layer = {
   motion?: Motion;
   range?: string; // animation-range for the motion, default "entry 0% entry 100%"
 };
-export type Scene = { figure: FigureParams; enter?: FigureParams; layers: Layer[] }; // enter: pose he arrives from as the chapter scrolls in
+export type Scene = { figure?: FigureParams; enter?: FigureParams; layers: Layer[] }; // figure/enter are kept for the morphing figure, currently off stage
 
 export type Milestone = {
   year: string; // the big number in the gutter
@@ -64,6 +64,26 @@ const studio2020: FigureParams = {
 };
 
 export const timeline: Milestone[] = [
+  {
+    // Placeholder words until the story markdown lands; the scene is the point.
+    year: '2010',
+    lane: 'Delhi',
+    title: 'Xbox 360 and zombies',
+    body: 'Before any code there was an Xbox 360 in a Delhi bedroom. Call of Duty zombies until the power cut, Spider-Man when it came back.',
+    scene: {
+      layers: [
+        // the wall is oversized so the camera swing never shows its edge
+        { id: 'room', inline: 'k-room', x: -220, y: -124, w: 2040, z: -720 },
+        { id: 'fan', inline: 'k-fan', x: 250, y: 40, w: 480, z: -660 },
+        { id: 'poster', inline: 'k-poster', x: 900, y: 96, w: 160, z: -600, motion: 'drop', range: 'entry 10% entry 60%' },
+        { id: 'shelf', inline: 'k-shelf', x: 1200, y: 560, w: 280, z: -560, motion: 'slide-r', range: 'entry 20% entry 70%' },
+        { id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%' },
+        { id: 'xbox', inline: 'k-xbox', x: 700, y: 668, w: 220, z: -410, motion: 'rise', range: 'entry 15% entry 65%' },
+        { id: 'floor', inline: 'k-floor', x: 0, y: 0, w: 1600, z: -200 },
+        { id: 'kid', inline: 'k-kid', x: 700, y: 450, w: 360, z: -130, motion: 'pop', range: 'entry 30% entry 80%' },
+      ],
+    },
+  },
   {
     year: '2013',
     lane: 'Delhi',

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" fill="none" stroke="none">
+  <!-- him, about nine, seen from behind, cross-legged on the floor, controller in hand -->
+  <g data-motion="sway" style="animation-range: entry 0% exit 100%; transform-origin: 180px 410px">
+    <!-- crossed legs -->
+    <path d="M 60 392 C 40 340 90 316 150 330 C 170 336 190 336 210 330 C 270 316 320 340 300 392 C 280 412 80 412 60 392 Z" fill="#33535F"/>
+    <path d="M 118 394 c -12 -16 -4 -34 16 -34 c 18 0 26 18 14 34 Z M 212 394 c 12 -16 4 -34 -16 -34 c -18 0 -26 18 -14 34 Z" fill="#F1C7A3"/>
+    <!-- t shirt -->
+    <path d="M 108 180 C 120 160 240 160 252 180 L 276 350 C 230 366 130 366 84 350 Z" fill="#F2575D"/>
+    <path d="M 108 180 C 120 160 240 160 252 180 L 258 214 C 220 226 140 226 102 214 Z" fill="#CC4341"/>
+    <!-- arms: elbows out, forearms going forward to the controller -->
+    <path d="M 108 184 C 60 200 40 250 56 290 C 66 300 84 298 90 288 C 84 258 100 232 120 220 Z" fill="#F2575D"/>
+    <path d="M 252 184 C 300 200 320 250 304 290 C 294 300 276 298 270 288 C 276 258 260 232 240 220 Z" fill="#F2575D"/>
+    <path d="M 56 290 C 70 310 100 320 130 318 L 128 300 C 106 300 84 292 72 280 Z" fill="#F1C7A3"/>
+    <path d="M 304 290 C 290 310 260 320 230 318 L 232 300 C 254 300 276 292 288 280 Z" fill="#F1C7A3"/>
+    <!-- the controller, just the grips showing past his sides -->
+    <g data-motion="tilt" style="animation-range: entry 0% exit 100%; transform-origin: 180px 316px">
+      <path d="M 118 300 c -16 4 -22 30 -10 34 c 10 4 20 -10 22 -22 Z M 242 300 c 16 4 22 30 10 34 c -10 4 -20 -10 -22 -22 Z" fill="#ECECEA"/>
+      <path d="M 124 322 a 4 4 0 1 0 0.1 0 Z M 236 322 a 4 4 0 1 0 0.1 0 Z" fill="#7AC142"/>
+    </g>
+    <!-- neck and head from behind -->
+    <rect x="164" y="128" width="32" height="44" rx="10" fill="#F1C7A3"/>
+    <ellipse cx="180" cy="98" rx="58" ry="62" fill="#F1C7A3"/>
+    <path d="M 122 106 C 118 40 242 40 238 106 C 232 92 222 84 214 82 C 200 96 160 96 146 82 C 138 84 128 92 122 106 Z" fill="#17282F"/>
+    <ellipse cx="180" cy="86" rx="58" ry="52" fill="#17282F"/>
+    <path d="M 122 98 C 130 122 150 134 180 134 C 210 134 230 122 238 98 C 228 112 206 118 180 118 C 154 118 132 112 122 98 Z" fill="#17282F"/>
+    <ellipse cx="124" cy="104" rx="9" ry="12" fill="#F1C7A3"/>
+    <ellipse cx="236" cy="104" rx="9" ry="12" fill="#F1C7A3"/>
+  </g>
+</svg>

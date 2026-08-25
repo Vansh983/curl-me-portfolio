@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 130" fill="none" stroke="none">
+  <!-- a shelf of Xbox 360 game cases, one leaning -->
+  <rect x="0" y="96" width="280" height="14" rx="3" fill="#8B6B4A"/>
+  <path d="M 24 110 l -10 20 h 8 l 8 -20 Z M 256 110 l 10 20 h -8 l -8 -20 Z" fill="#6E5238"/>
+  <g>
+    <rect x="18" y="30" width="26" height="66" rx="2" fill="#6FA84F"/><rect x="18" y="30" width="26" height="8" fill="#F9F4EC"/>
+    <rect x="48" y="30" width="26" height="66" rx="2" fill="#5E9442"/><rect x="48" y="30" width="26" height="8" fill="#F9F4EC"/>
+    <rect x="78" y="30" width="26" height="66" rx="2" fill="#6FA84F"/><rect x="78" y="30" width="26" height="8" fill="#F9F4EC"/>
+    <rect x="108" y="30" width="26" height="66" rx="2" fill="#33535F"/><rect x="108" y="30" width="26" height="8" fill="#F9F4EC"/>
+    <rect x="138" y="30" width="26" height="66" rx="2" fill="#6FA84F"/><rect x="138" y="30" width="26" height="8" fill="#F9F4EC"/>
+    <rect x="168" y="30" width="26" height="66" rx="2" fill="#F2575D"/><rect x="168" y="30" width="26" height="8" fill="#F9F4EC"/>
+    <rect x="198" y="30" width="26" height="66" rx="2" fill="#6FA84F"/><rect x="198" y="30" width="26" height="8" fill="#F9F4EC"/>
+    <!-- the leaning case -->
+    <g transform="rotate(-18 262 96)">
+      <rect x="236" y="30" width="26" height="66" rx="2" fill="#5E9442"/><rect x="236" y="30" width="26" height="8" fill="#F9F4EC"/>
+    </g>
+  </g>
+</svg>

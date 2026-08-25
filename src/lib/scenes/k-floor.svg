@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="none">
+  <!-- the floor: a rug, chai, biscuits, a cricket ball that rolls in -->
+  <ellipse cx="880" cy="846" rx="300" ry="46" fill="#8E3B46"/>
+  <ellipse cx="880" cy="846" rx="240" ry="32" fill="#A84550"/>
+  <ellipse cx="880" cy="846" rx="150" ry="18" fill="#8E3B46"/>
+  <!-- chai and the steam -->
+  <g>
+    <ellipse cx="1150" cy="856" rx="34" ry="8" fill="#F9F4EC"/>
+    <path d="M 1128 812 h 44 l -5 42 h -34 Z" fill="#F9F4EC"/>
+    <path d="M 1131 826 h 38 l -3 26 h -32 Z" fill="#B87333"/>
+    <path d="M 1172 818 c 14 0 18 18 6 24 l -4 -10 c 6 -2 2 -8 -3 -8 Z" fill="#F9F4EC"/>
+    <g data-motion="steam" style="animation-range: entry 0% exit 100%; transform-origin: 1150px 806px">
+      <path d="M 1140 804 c -8 -12 8 -18 0 -30 M 1158 800 c -8 -12 8 -18 0 -30" stroke="#F9F4EC" stroke-width="4" stroke-linecap="round" stroke-opacity="0.8"/>
+    </g>
+  </g>
+  <!-- biscuits on a plate -->
+  <ellipse cx="1240" cy="860" rx="44" ry="10" fill="#F9F4EC"/>
+  <ellipse cx="1232" cy="852" rx="16" ry="8" fill="#C9903C"/>
+  <ellipse cx="1250" cy="850" rx="16" ry="8" fill="#D9A24D"/>
+  <!-- the cricket ball -->
+  <g data-motion="roll" style="animation-range: entry 0% entry 90%; transform-origin: 540px 842px">
+    <circle cx="540" cy="842" r="18" fill="#A52A2A"/>
+    <path d="M 526 830 c 8 10 20 14 28 24" stroke="#F9F4EC" stroke-width="2.5" stroke-dasharray="3 3"/>
+  </g>
+  <!-- an extension board with the console wire -->
+  <rect x="700" y="836" width="90" height="16" rx="3" fill="#F9F4EC"/>
+  <path d="M 712 844 h 8 M 728 844 h 8 M 744 844 h 8 M 760 844 h 8" stroke="#33535F" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 700 844 C 660 844 640 800 620 760" stroke="#33535F" stroke-width="3" fill="none"/>
+</svg>

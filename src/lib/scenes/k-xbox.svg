@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90" fill="none" stroke="none">
+  <!-- the Xbox 360, lying flat, ring of light on -->
+  <path d="M 14 30 C 60 22 160 22 206 30 L 206 70 C 160 76 60 76 14 70 Z" fill="#ECECEA"/>
+  <path d="M 14 30 C 60 22 160 22 206 30 L 206 38 C 160 32 60 32 14 38 Z" fill="#D9D9D6"/>
+  <rect x="30" y="46" width="110" height="4" rx="2" fill="#C8C8C4"/>
+  <rect x="30" y="56" width="70" height="4" rx="2" fill="#C8C8C4"/>
+  <g data-motion="pulse" style="animation-range: entry 0% exit 100%; transform-origin: 170px 52px">
+    <circle cx="170" cy="52" r="14" fill="none" stroke="#7AC142" stroke-width="5"/>
+    <circle cx="170" cy="52" r="5" fill="#7AC142"/>
+  </g>
+  <rect x="14" y="70" width="192" height="6" rx="3" fill="#C8C8C4"/>
+</svg>
