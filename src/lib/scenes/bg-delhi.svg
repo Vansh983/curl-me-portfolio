@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Delhi rooftops, low behind everything: parapets, water tanks, an antenna, a minar on the far right, a kite -->
+  <path pathLength="1" d="M 700 810 L 760 810 L 760 790 L 860 790 L 860 805 L 940 805 L 940 782 L 1000 782 L 1000 800 L 1060 800"/>
+  <path pathLength="1" d="M 1440 800 L 1470 800 L 1470 786 L 1525 786"/>
+  <path pathLength="1" d="M 760 810 L 760 860 M 940 805 L 940 860 M 1470 800 L 1470 860"/>
+  <path pathLength="1" d="M 800 790 L 800 762 A 20 6 0 1 1 840 762 L 840 790 M 800 762 A 20 6 0 1 0 840 762"/>
+  <path pathLength="1" d="M 1480 786 L 1480 760 A 16 5 0 1 1 1512 760 L 1512 786 M 1480 760 A 16 5 0 1 0 1512 760"/>
+  <path pathLength="1" d="M 900 790 L 900 730 M 890 745 L 910 745 M 893 760 L 907 760"/>
+  <path pathLength="1" d="M 1532 860 L 1541 520 L 1569 520 L 1578 860 M 1536 760 L 1574 760 M 1539 680 L 1571 680 M 1542 600 L 1568 600 M 1541 520 A 14 11 0 0 1 1569 520"/>
+  <path pathLength="1" d="M 780 300 L 810 340 L 780 400 L 750 340 Z M 780 300 L 780 400 M 750 340 L 810 340"/>
+  <path pathLength="1" stroke-width="1.5" d="M 780 400 Q 770 440 785 470 Q 795 500 780 530"/>
+  <path pathLength="1" stroke-width="1.5" d="M 780 405 Q 850 600 905 775"/>
+</svg>

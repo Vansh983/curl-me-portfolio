@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Wordmark from '../components/Wordmark.astro';
-import Timeline from '../components/Timeline.astro';
+import Journey from '../components/Journey.astro';
 import Field from '../components/Field.astro';
 import { profile } from '../data/profile';
 import { getCollection } from 'astro:content';
@@ -24,7 +24,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
   </section>
 
   <section class="story">
-    <Timeline />
+    <Journey />
   </section>
 
   <section class="block">

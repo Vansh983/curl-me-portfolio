@@ -10,10 +10,10 @@ export default defineConfig({
   build: { format: 'file' },
   integrations: [sitemap()],
   vite: {
-    // Both esbuild and lightningcss fold animation-timeline into the animation
-    // shorthand, which Chrome rejects, so every scroll driven animation silently
-    // dies. Unminified CSS costs about 4 KB gzipped and keeps the timeline alive.
-    build: { cssMinify: false },
+    // Lightning CSS (Vite's default minifier) folds animation-timeline into the
+    // animation shorthand, which browsers reject (parcel-bundler/lightningcss#1283).
+    // esbuild leaves the longhands alone.
+    build: { cssMinify: 'esbuild' },
   },
   markdown: {
     // css-variables keeps code blocks on the brand tokens in both themes.

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Golden Gate to the right of the figure: deck, two towers, main cable, hangers -->
+  <path pathLength="1" d="M 1250 700 L 1600 700 M 1250 712 L 1600 712"/>
+  <path pathLength="1" d="M 1338 860 L 1338 470 M 1362 860 L 1362 470 M 1333 470 L 1367 470 M 1338 520 L 1362 520 M 1338 580 L 1362 580 M 1338 640 L 1362 640"/>
+  <path pathLength="1" d="M 1548 860 L 1548 470 M 1572 860 L 1572 470 M 1543 470 L 1577 470 M 1548 520 L 1572 520 M 1548 580 L 1572 580 M 1548 640 L 1572 640"/>
+  <path pathLength="1" d="M 1250 700 Q 1320 520 1350 470 Q 1455 630 1560 470 Q 1585 490 1600 505"/>
+  <path pathLength="1" d="M 1290 615 L 1290 700 M 1320 535 L 1320 700 M 1400 530 L 1400 700 M 1430 545 L 1430 700 M 1455 550 L 1455 700 M 1480 545 L 1480 700 M 1510 530 L 1510 700"/>
+  <!-- fog bands, low and behind -->
+  <path pathLength="1" stroke-width="1.5" d="M 700 750 Q 800 738 900 752 T 1000 748"/>
+  <path pathLength="1" stroke-width="1.5" d="M 1260 790 Q 1360 776 1460 792 T 1600 786"/>
+  <!-- a hill of row houses on the left -->
+  <path pathLength="1" d="M 720 860 L 720 770 L 770 770 L 770 752 L 820 752 L 820 736 L 870 736 L 870 722 L 920 722 L 920 712 L 965 712 L 965 860"/>
+  <path pathLength="1" d="M 770 770 L 770 860 M 820 752 L 820 860 M 870 736 L 870 860 M 920 722 L 920 860"/>
+  <path pathLength="1" d="M 735 795 L 755 795 L 755 820 L 735 820 Z M 835 780 L 855 780 L 855 805 L 835 805 Z M 933 745 L 953 745 L 953 770 L 933 770 Z"/>
+</svg>

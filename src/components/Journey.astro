@@ -1,0 +1,316 @@
+---
+// The journey stage. A full-bleed sticky scene behind the chapter text: one
+// ink-stroke figure that morphs with scroll, per-chapter scenery that draws
+// itself on, and place backgrounds that crossfade. Docs 07 to 09 in docs/rebuild.
+import { timeline } from '../data/timeline';
+import { figure } from '../lib/figure';
+
+// Raw SVG sources so each path can carry its own chapter timeline.
+const raw = import.meta.glob('../lib/scenes/*.svg', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
+const inner = (stem: string) => {
+  const s = raw[`../lib/scenes/${stem}.svg`];
+  if (!s) throw new Error(`missing scene ${stem}`);
+  return s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+};
+const withTimeline = (svg: string, name: string) => svg.replaceAll('<path ', `<path style="animation-timeline: ${name}" `);
+
+// Only chapters with a scene take part; the rest of the timeline stays in the data for later.
+const chapters = timeline.filter((m) => m.scene);
+const n = chapters.length;
+const keys = chapters.map((m) => m.scene!.figure);
+const first = figure(keys[0]);
+const tl = (i: number) => `--ch-${i + 1}`;
+
+// One background per place, visible from the place's first chapter to its last.
+const places = [...new Set(chapters.map((m) => m.scene!.place))];
+const span = Object.fromEntries(
+  places.map((p) => {
+    const idx = chapters.map((m, i) => (m.scene!.place === p ? i : -1)).filter((i) => i >= 0);
+    return [p, { from: idx[0], to: idx[idx.length - 1] }];
+  }),
+);
+const scopeNames = Array.from({ length: 10 }, (_, i) => tl(i)).join(', ');
+const fallback =
+  `@supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {` +
+  places
+    .map((p) => {
+      const sel = Array.from({ length: span[p].to - span[p].from + 1 }, (_, k) => `.journey[data-chapter="${span[p].from + k}"] .bg[data-place="${p}"]`).join(',');
+      return `${sel}{opacity:1}`;
+    })
+    .join('') +
+  chapters.map((_, i) => `.journey[data-chapter="${i}"] .sc[data-i="${i}"]{opacity:1}`).join('') +
+  '}';
+---
+
+<section class="journey" data-n={n} data-chapter="0" data-keys={JSON.stringify(keys)} style={`timeline-scope: ${scopeNames}`}>
+  <div class="stage" aria-hidden="true">
+    <svg class="stage-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMaxYMax slice" focusable="false">
+      <g class="ink">
+        {places.map((p) => (
+          <g class="bg" data-place={p} style={`animation-timeline: ${tl(span[p].from)}, ${tl(span[p].to)}`} set:html={inner(`bg-${p}`)} />
+        ))}
+        {chapters.map((m, i) => (
+          <g class="sc" data-i={i} style={`animation-timeline: ${tl(i)}, ${tl(i)}`} set:html={withTimeline(inner(m.scene!.scenery), tl(i))} />
+        ))}
+        <path class="ground" d="M 0 860 L 1600 860" />
+        <g class="fig" transform="translate(1100 860)">
+          {first.map((s) => (
+            <path data-id={s.id} d={s.d} style={`opacity:${s.opacity}`} class:list={{ accent: s.accent }} />
+          ))}
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="wall">
+    {chapters.map((m, i) => (
+      <article class="ch" id={`ch-${i + 1}`} data-i={i} style={`view-timeline: ${tl(i)} block`}>
+        <div class="tx">
+          <span class="yr">
+            {m.year}
+            {m.span && <span class="mut"> {m.span}</span>}
+          </span>
+          {m.lane && <span class="lane label">{m.lane}</span>}
+          <h3>{m.title}</h3>
+          <p>{m.body}</p>
+          {m.stat && <p class="stat">{m.stat}</p>}
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style is:inline set:html={fallback} />
+
+<style>
+  .journey {
+    position: relative;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    view-timeline-name: --story;
+  }
+  .stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    width: 100%;
+    overflow: clip;
+    contain: paint;
+    z-index: 0;
+    background: var(--bg);
+  }
+  .stage-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: var(--tx);
+  }
+  .ink {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ink :global(path) {
+    vector-effect: non-scaling-stroke;
+  }
+  .ground {
+    stroke-opacity: 0.18;
+  }
+  .fig .accent,
+  .ink :global(.accent) {
+    stroke: var(--acc);
+  }
+
+  /* Scenery: strokes draw on while the chapter enters, the group fades while it exits. */
+  .sc,
+  .bg {
+    opacity: 0;
+    animation-name: fade-in, fade-out;
+    animation-duration: auto, auto;
+    animation-timing-function: linear, linear;
+    /* fade-in fills both ways; fade-out only forwards, or its backwards fill (opacity 1) would win before its range */
+    animation-fill-mode: both, forwards;
+    animation-range: entry 0% entry 100%, exit 0% exit 100%;
+  }
+  .sc :global(path) {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation-name: draw;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-range: entry 15% entry 95%;
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  @keyframes draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+  /* Where scroll timelines are missing, the script's data-chapter picks the layers (rules in the inline style above). */
+  @supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+    .sc,
+    .bg {
+      animation-name: none;
+      transition: opacity 0.4s;
+    }
+    .sc :global(path) {
+      animation-name: none;
+      stroke-dashoffset: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sc :global(path) {
+      animation-name: none;
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .wall {
+    position: relative;
+    z-index: 1;
+    margin-top: -100svh;
+    padding: 0 var(--pad);
+  }
+  .ch {
+    min-height: 100svh;
+    padding-top: 18svh;
+  }
+  .tx {
+    max-width: min(var(--measure), 46ch);
+    padding: 18px 28px 18px 0;
+    background: color-mix(in srgb, var(--bg) 74%, transparent);
+    -webkit-mask: linear-gradient(90deg, #000 86%, transparent);
+    mask: linear-gradient(90deg, #000 86%, transparent);
+  }
+  .yr {
+    display: block;
+    font-family: var(--f-display);
+    font-weight: 300;
+    font-size: 54px;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+  }
+  .yr .mut {
+    font-family: var(--f-mono);
+    font-size: var(--t-label);
+    letter-spacing: 0.09em;
+  }
+  .lane {
+    display: block;
+    margin: 10px 0 6px;
+  }
+  .tx h3 {
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+  .stat {
+    margin-top: 10px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--mut);
+  }
+
+  @media (max-width: 48rem) {
+    .stage-svg {
+      transform: translateX(12%);
+    }
+    .ch {
+      padding-top: 52svh;
+    }
+    .tx {
+      max-width: none;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+    }
+    .yr {
+      font-size: 40px;
+    }
+  }
+  @media print {
+    .stage {
+      display: none;
+    }
+    .wall {
+      margin-top: 0;
+    }
+    .ch {
+      min-height: 0;
+      padding-top: 0;
+    }
+  }
+</style>
+
+<script>
+  import { figure, type FigureParams } from '../lib/figure';
+  import { lerpParams, locate, clamp01 } from '../lib/lerp';
+
+  const root = document.querySelector<HTMLElement>('.journey');
+  if (root) {
+    const keys = JSON.parse(root.dataset.keys!) as FigureParams[];
+    const n = keys.length;
+    const paths = new Map<string, SVGPathElement>();
+    root.querySelectorAll<SVGPathElement>('.fig path[data-id]').forEach((el) => paths.set(el.dataset.id!, el));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    let target = 0;
+    let cur = 0;
+    let raf = 0;
+    let lastKey = -1;
+
+    const draw = (p: number) => {
+      const { i, t } = locate(p, n);
+      const params = t === 0 ? keys[i] : t === 1 ? keys[i + 1] : lerpParams(keys[i], keys[i + 1], t);
+      for (const s of figure(params)) {
+        const el = paths.get(s.id);
+        if (!el) continue;
+        el.setAttribute('d', s.d);
+        el.style.opacity = String(s.opacity);
+      }
+      const near = Math.round(p * (n - 1));
+      if (near !== lastKey) {
+        lastKey = near;
+        root.dataset.chapter = String(near);
+      }
+    };
+
+    const progress = () => {
+      const r = root.getBoundingClientRect();
+      const total = r.height - innerHeight;
+      return total > 0 ? clamp01(-r.top / total) : 0;
+    };
+
+    const tick = () => {
+      raf = 0;
+      if (reduce.matches) cur = target;
+      else {
+        cur += (target - cur) * 0.18;
+        if (Math.abs(target - cur) < 0.0005) cur = target;
+      }
+      try {
+        draw(reduce.matches ? Math.round(cur * (n - 1)) / (n - 1) : cur);
+      } catch {
+        /* keep the last good frame */
+      }
+      if (cur !== target) raf = requestAnimationFrame(tick);
+    };
+    const onScroll = () => {
+      target = progress();
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    reduce.addEventListener('change', onScroll);
+    onScroll();
+  }
+</script>

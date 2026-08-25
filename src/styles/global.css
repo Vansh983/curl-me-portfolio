@@ -6,6 +6,7 @@
   box-sizing: border-box;
 }
 html {
+  overflow-x: clip; /* the journey stage is 100vw wide */
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
 }
