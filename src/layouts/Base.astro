@@ -8,9 +8,10 @@ type Props = {
   description?: string;
   article?: { published: string; updated?: string };
   wide?: boolean;
+  topbar?: boolean;
 };
 
-const { title, description, article } = Astro.props;
+const { title, description, article, topbar = true } = Astro.props;
 const pageTitle = title ? `${title} | ${profile.name}` : `${profile.name}`;
 const desc = description ?? site.description;
 // build.format is 'file', so pathname is "/archive.html" at build time.
@@ -100,24 +101,26 @@ const path = Astro.url.pathname.replace(/\/$/, '');
       curl vanshsood.com  ->  this page in plain text.
       /llms.txt           ->  the same thing, for models.
     -->
-    <header class="topbar">
-      <a href="/" class="plain" aria-label="Home">{profile.name}</a>
-      <nav>
-        {
-          nav.map((n) => (
-            <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
-              {n.label}
-            </a>
-          ))
-        }
-        <button class="iconbtn" id="menu-open" aria-label="Open command menu" title="Command menu">
-          &#8984;K
-        </button>
-        <button class="iconbtn" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
-          &#9788;
-        </button>
-      </nav>
-    </header>
+    {topbar && (
+      <header class="topbar">
+        <a href="/" class="plain" aria-label="Home">{profile.name}</a>
+        <nav>
+          {
+            nav.map((n) => (
+              <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
+                {n.label}
+              </a>
+            ))
+          }
+          <button class="iconbtn" id="menu-open" aria-label="Open command menu" title="Command menu">
+            &#8984;K
+          </button>
+          <button class="iconbtn" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
+            &#9788;
+          </button>
+        </nav>
+      </header>
+    )}
 
     <main class="shell">
       <slot />

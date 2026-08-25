@@ -8,11 +8,11 @@
   <rect x="236" y="286" width="48" height="24" fill="#CFC9BA"/>
   <rect x="190" y="306" width="140" height="12" rx="5" fill="#BDB6A5"/>
   <!-- the box -->
-  <rect x="70" y="30" width="380" height="264" rx="14" fill="#D9D4C7"/>
+  <path d="M 70 30 H 450 V 294 H 70 Z M 96 52 H 424 V 268 H 96 Z" fill="#D9D4C7" fill-rule="evenodd"/>
   <rect x="70" y="30" width="380" height="264" rx="14" fill="none" stroke="#BDB6A5" stroke-width="3"/>
   <circle cx="428" cy="280" r="3" fill="#7AC142"/>
   <!-- the screen -->
-  <g>
+  <g data-screen-art>
     <rect x="96" y="52" width="328" height="216" fill="#FFFFFF"/>
     <rect x="96" y="52" width="328" height="22" fill="#245EDC"/>
     <rect x="96" y="74" width="328" height="194" fill="#FFFFFF"/>

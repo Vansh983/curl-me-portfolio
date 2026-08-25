@@ -39,7 +39,7 @@ test('applies at t', () => {
 
 test('the authored morph pairs line up', () => {
   const read = (n: string) => readFileSync(new URL(`../src/lib/scenes/${n}.svg`, import.meta.url), 'utf8');
-  for (const [a, b] of [['k-kid', 'lab-kid'], ['k-tv', 'lab-monitor'], ['k-room', 'lab-room'], ['k-fan', 'k-fan']]) {
+  for (const [a, b] of [['k-kid', 'lab-kid'], ['k-tv', 'lab-monitor'], ['k-room', 'lab-room'], ['k-fan', 'lab-fan']]) {
     assert.ok(pairSvgs(read(a), read(b)), `${a} -> ${b}`);
   }
 });

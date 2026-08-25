@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-240 -80 480 140" fill="none" stroke="none">
+  <!-- the same Delhi ceiling fan settles into the colder computer-lab palette -->
+  <rect x="-6" y="-80" width="12" height="52" fill="#607986"/>
+  <g transform="translate(0 -14) scale(1 0.26)">
+    <g data-loop="spin">
+      <circle cx="0" cy="0" r="230" fill="none"/>
+      <rect x="30" y="-17" width="196" height="34" rx="17" fill="#8A969D"/>
+      <rect x="30" y="-17" width="196" height="34" rx="17" fill="#8A969D" transform="rotate(120)"/>
+      <rect x="30" y="-17" width="196" height="34" rx="17" fill="#8A969D" transform="rotate(240)"/>
+    </g>
+    <circle cx="0" cy="0" r="54" fill="#607986"/>
+    <circle cx="0" cy="0" r="18" fill="#4E6875"/>
+  </g>
+  <ellipse cx="0" cy="-30" rx="24" ry="8" fill="#607986"/>
+</svg>

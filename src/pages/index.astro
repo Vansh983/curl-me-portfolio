@@ -12,7 +12,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .slice(0, 3);
 ---
 
-<Base>
+<Base topbar={false}>
   <section class="story">
     <Journey>
       <div slot="hero" class="hero">

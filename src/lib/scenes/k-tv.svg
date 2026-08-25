@@ -8,11 +8,11 @@
   <rect x="246" y="296" width="28" height="36" fill="#17282F"/>
   <rect x="190" y="322" width="140" height="10" rx="5" fill="#17282F"/>
   <!-- bezel -->
-  <rect x="30" y="16" width="460" height="290" rx="10" fill="#17282F"/>
+  <path d="M 30 16 H 490 V 306 H 30 Z M 46 32 H 474 V 288 H 46 Z" fill="#17282F" fill-rule="evenodd"/>
   <rect x="30" y="16" width="460" height="290" rx="10" fill="none" stroke="#2A4550" stroke-width="3"/>
   <circle cx="260" cy="296" r="3" fill="#7AC142"/>
   <!-- the screen -->
-  <g>
+  <g data-screen-art>
     <rect x="46" y="32" width="428" height="256" fill="#1F2E27"/>
     <!-- sky and the ground of the map -->
     <rect x="46" y="32" width="428" height="150" fill="#2A3A34"/>
@@ -39,7 +39,6 @@
     <rect x="58" y="40" width="58" height="10" rx="5" fill="#B7E28E"/>
     <text x="462" y="58" text-anchor="end" font-family="'Bebas Neue', Impact, 'Arial Narrow', sans-serif" font-size="22" letter-spacing="1" fill="#F5F5F5" fill-opacity="0.9">CALL·OF·DUTY</text>
     <text x="462" y="76" text-anchor="end" font-family="'Bebas Neue', Impact, 'Arial Narrow', sans-serif" font-size="14" letter-spacing="2" fill="#7AC142">ZOMBIES · ROUND 12</text>
-    <image href="/assets/scenes/cod-logo.png" x="330" y="38" width="132" height="44" preserveAspectRatio="xMaxYMid meet"/>
     <!-- screen glow that flickers -->
     <rect x="46" y="32" width="428" height="256" fill="#B7E28E" fill-opacity="0.08" data-motion="flicker" style="animation-range: entry 0% exit 100%"/>
   </g>

@@ -4,6 +4,7 @@
   <path d="M 70 64 C 100 56 200 56 230 64 L 226 106 C 200 112 100 112 74 106 Z" fill="#ECECEA"/>
   <path d="M 70 64 C 100 56 200 56 230 64 L 229 72 C 200 66 100 66 71 72 Z" fill="#DADAD7"/>
   <path d="M 84 82 h 96 v 4 h -96 Z M 84 92 h 70 v 3 h -70 Z" fill="#C8C8C4"/>
+  <image href="/assets/scenes/xbox-360-logo.png" x="92" y="72" width="82" height="22" preserveAspectRatio="xMinYMid meet"/>
   <rect x="84" y="100" width="40" height="3" fill="#C8C8C4"/>
   <g data-motion="pulse" style="animation-range: entry 0% exit 100%">
     <circle cx="202" cy="86" r="15" fill="none" stroke="#7AC142" stroke-width="5" stroke-dasharray="20 4"/>

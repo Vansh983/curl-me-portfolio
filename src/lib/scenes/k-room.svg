@@ -30,5 +30,7 @@
   <!-- curtains -->
   <path d="M 1120 120 C 1180 130 1180 300 1150 540 C 1140 545 1112 545 1104 540 C 1120 300 1090 130 1120 120 Z" fill="#E7A79A"/>
   <path d="M 1590 120 C 1530 130 1530 300 1560 540 C 1570 545 1596 545 1600 540 C 1590 300 1620 130 1590 120 Z" fill="#E7A79A"/>
-  <rect x="1090" y="110" width="520" height="16" rx="8" fill="#8B6B4A"/>
+  <!-- the rod fades away; the lab board has its own element so it does not balloon through the room -->
+  <rect x="1090" y="110" width="520" height="16" rx="8" fill="#8B6B4A" opacity="1"/>
+  <rect x="600" y="300" width="520" height="260" rx="8" fill="#FFFFFF" opacity="0"/>
 </svg>

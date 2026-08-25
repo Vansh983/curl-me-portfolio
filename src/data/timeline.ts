@@ -6,6 +6,15 @@ import type { FigureParams } from '../lib/figure';
 
 // How a layer moves while its chapter scrolls through (CSS keyframes in Journey.astro).
 export type Motion = 'rise' | 'pop' | 'slide-l' | 'slide-r' | 'drift-l' | 'drift-r' | 'fly' | 'sail' | 'swing-in' | 'drop' | 'none';
+export type ScreenMedia = {
+  src: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  viewW: number;
+  viewH: number;
+};
 // One plane in the 3D stage. x, y, w in the 1600 by 900 design space; z is depth in px (negative = far away).
 export type Layer = {
   id: string;
@@ -17,6 +26,9 @@ export type Layer = {
   z: number;
   motion?: Motion;
   range?: string; // animation-range for the motion, default "entry 0% entry 100%"
+  fadeIn?: string;
+  fadeOut?: string;
+  media?: ScreenMedia; // real moving footage clipped inside an authored SVG screen
   // Where this layer goes in the NEXT chapter. The inline file must have the same element
   // structure; the stage morphs every number and colour between the two as you scroll.
   to?: { inline: string; x: number; y: number; w: number };
@@ -77,12 +89,19 @@ export const timeline: Milestone[] = [
       layers: [
         // the wall is oversized so the camera swing never shows its edge
         { id: 'room', inline: 'k-room', x: -220, y: -124, w: 2040, z: -720, to: { inline: 'lab-room', x: -220, y: -124, w: 2040 } },
-        { id: 'fan', inline: 'k-fan', x: 250, y: 40, w: 480, z: -660, to: { inline: 'k-fan', x: 250, y: 40, w: 480 } },
-        { id: 'poster', inline: 'k-poster', x: 900, y: 90, w: 160, z: -600, motion: 'drop', range: 'entry 10% entry 60%' },
-        { id: 'shelf', inline: 'k-shelf', x: 1190, y: 552, w: 300, z: -560, motion: 'slide-r', range: 'entry 20% entry 70%' },
-        { id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%', to: { inline: 'lab-monitor', x: 560, y: 370, w: 520 } },
-        { id: 'xbox', inline: 'k-xbox', x: 1190, y: 758, w: 300, z: -300, motion: 'rise', range: 'entry 15% entry 65%' },
-        { id: 'floor', inline: 'k-floor', x: 0, y: 0, w: 1600, z: -200 },
+        { id: 'fan', inline: 'k-fan', x: 250, y: 40, w: 480, z: -660, to: { inline: 'lab-fan', x: 250, y: 40, w: 480 } },
+        { id: 'poster', inline: 'k-poster', x: 900, y: 90, w: 160, z: -600, motion: 'drop', range: 'entry 10% entry 60%', fadeOut: 'exit 10% exit 45%' },
+        { id: 'shelf', inline: 'k-shelf', x: 1190, y: 552, w: 300, z: -560, motion: 'slide-r', range: 'entry 20% entry 70%', fadeOut: 'exit 10% exit 45%' },
+        {
+          id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%',
+          media: {
+            src: '/assets/scenes/zombies-gameplay.mp4',
+            x: 46, y: 32, w: 428, h: 256, viewW: 520, viewH: 400,
+          },
+          to: { inline: 'lab-monitor', x: 560, y: 370, w: 520 },
+        },
+        { id: 'xbox', inline: 'k-xbox', x: 1190, y: 758, w: 300, z: -300, motion: 'rise', range: 'entry 15% entry 65%', fadeOut: 'exit 10% exit 45%' },
+        { id: 'floor', inline: 'k-floor', x: 0, y: 0, w: 1600, z: -200, fadeOut: 'exit 10% exit 45%' },
         { id: 'kid', inline: 'k-kid', x: 700, y: 450, w: 360, z: -130, motion: 'pop', range: 'entry 30% entry 80%', to: { inline: 'lab-kid', x: 690, y: 452, w: 360 } },
       ],
     },
@@ -94,7 +113,7 @@ export const timeline: Milestone[] = [
     body: 'Thirteen, white shirt and tie, the school computer lab. A W3Schools template with the colours changed, wireframes sketched in class, and it never really stopped.',
     scene: {
       layers: [
-        { id: 'lab-row', inline: 'lab-row', x: 1090, y: 400, w: 520, z: -400, motion: 'slide-r', range: 'entry 30% entry 80%' },
+        { id: 'lab-row', inline: 'lab-row', x: 1090, y: 400, w: 520, z: -400, motion: 'slide-r', range: 'entry 30% entry 80%', fadeIn: 'entry 60% entry 90%' },
       ],
     },
   },

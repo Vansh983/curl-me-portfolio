@@ -32,10 +32,16 @@ const tl = (i: number) => `--ch-${i + 1}`;
 // so the only thing depth does is parallax when the camera moves.
 const PERSPECTIVE = 1400;
 const comp = (z: number) => ((PERSPECTIVE - z) / PERSPECTIVE).toFixed(4);
-const layerStyle = (L: Layer, i: number) => `--z:${L.z}px; --c:${comp(L.z)}; animation-timeline: ${layerTimelines(L, i)};`;
+const layerStyle = (L: Layer, i: number) =>
+  `--z:${L.z}px; --c:${comp(L.z)}; animation-timeline: ${layerTimelines(L, i)};` +
+  ` animation-range: ${L.fadeIn ?? 'entry 45% entry 100%'}, ${L.fadeOut ?? 'exit 0% exit 55%'};`;
 // --tl lets everything inside the layer (groups with data-motion, paths that draw on) pick up the chapter timeline from CSS.
 const animStyle = (L: Layer, i: number) =>
   `left:${L.x}px; top:${L.y}px; width:${L.w}px; --tl: ${tl(i)}; animation-timeline: ${tl(i)}, ${tl(i)};` + (L.range ? ` animation-range: ${L.range};` : '');
+const mediaStyle = (L: Layer) => {
+  const m = L.media!;
+  return `left:${m.x / m.viewW * 100}%; top:${m.y / m.viewH * 100}%; width:${m.w / m.viewW * 100}%; height:${m.h / m.viewH * 100}%;`;
+};
 
 // Morph layers: build the element pair list now, apply it at scroll time.
 const morphPlan = (L: Layer) => {
@@ -69,7 +75,21 @@ const fallback =
         {chapters.map((m, i) =>
           m.scene!.layers.map((L) => (
             <div class="layer" data-i={i} data-id={L.id} style={layerStyle(L, i)} {...morphAttrs(L, i)}>
-              <div class="anim" data-motion={L.motion ?? 'none'} style={animStyle(L, i)}>
+              <div class="anim" data-motion={L.motion ?? 'none'} data-has-media={L.media ? 'true' : undefined} style={animStyle(L, i)}>
+                {L.media && (
+                  <div class="screen-media" style={mediaStyle(L)}>
+                    <video
+                      src={L.media.src}
+                      tabindex="-1"
+                      poster="/assets/scenes/zombies-poster.jpg"
+                      preload="auto"
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                    />
+                  </div>
+                )}
                 {L.src ? <img src={L.src} alt="" decoding="async" /> : <Fragment set:html={inlineSvg(L.inline!)} />}
               </div>
             </div>
@@ -188,6 +208,31 @@ const fallback =
     width: 100%;
     height: auto;
     color: #17282f; /* currentColor inside authored ink scenes */
+  }
+  .anim > :global(svg) {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .screen-media {
+    position: absolute;
+    z-index: 2;
+    overflow: hidden;
+    border-radius: 2px;
+    background: #101815 url('/assets/scenes/zombies-poster.jpg') center / cover no-repeat;
+    pointer-events: none;
+  }
+  .screen-media video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 0;
+    pointer-events: none;
+  }
+  /* The live footage owns the bedroom screen. The authored UI fades back in as it becomes Notepad. */
+  .anim[data-has-media='true'] :global([data-screen-art]) {
+    opacity: 0;
   }
   /* Motions. The same names work on a layer wrapper and on any group inside an inlined SVG. */
   .anim :global([data-motion]) {
@@ -380,7 +425,17 @@ const fallback =
   import { locate } from '../lib/lerp';
 
   type Box = { x: number; y: number; w: number };
-  type Morph = { span: number; plan: MorphPlan; from: Box; to: Box; anim: HTMLElement; els: Element[]; last: number };
+  type Morph = {
+    span: number;
+    plan: MorphPlan;
+    from: Box;
+    to: Box;
+    anim: HTMLElement;
+    els: Element[];
+    media?: HTMLElement;
+    screenArt?: SVGElement;
+    last: number;
+  };
 
   const root = document.querySelector<HTMLElement>('.journey');
   if (root) {
@@ -391,7 +446,9 @@ const fallback =
       const data = JSON.parse(layer.dataset.morph!) as { els: MorphPlan['els']; from: Box; to: Box };
       const anim = layer.querySelector<HTMLElement>('.anim')!;
       const els = Array.from(anim.querySelectorAll(MORPH_TAGS.join(',')));
-      morphs.push({ span: Number(layer.dataset.span), plan: { els: data.els, count: els.length }, from: data.from, to: data.to, anim, els, last: -1 });
+      const media = anim.querySelector<HTMLElement>('.screen-media') ?? undefined;
+      const screenArt = anim.querySelector<SVGElement>('[data-screen-art]') ?? undefined;
+      morphs.push({ span: Number(layer.dataset.span), plan: { els: data.els, count: els.length }, from: data.from, to: data.to, anim, els, media, screenArt, last: -1 });
     });
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -407,6 +464,10 @@ const fallback =
     };
     const draw = (p: number) => {
       const { i, t } = locate(p, n);
+      const smoothstep = (a: number, b: number, v: number) => {
+        const x = Math.min(1, Math.max(0, (v - a) / (b - a)));
+        return x * x * (3 - 2 * x);
+      };
       for (const m of morphs) {
         const mt = i < m.span ? 0 : i === m.span ? t : 1;
         if (mt === m.last) continue;
@@ -416,6 +477,9 @@ const fallback =
         m.anim.style.left = `${mix(m.from.x, m.to.x)}px`;
         m.anim.style.top = `${mix(m.from.y, m.to.y)}px`;
         m.anim.style.width = `${mix(m.from.w, m.to.w)}px`;
+        m.anim.style.setProperty('--morph', String(mt));
+        if (m.media) m.media.style.opacity = String(1 - smoothstep(0.18, 0.68, mt));
+        if (m.screenArt) m.screenArt.style.opacity = String(smoothstep(0.42, 0.76, mt));
       }
       const near = Math.round(p * (n - 1));
       if (near !== last) {

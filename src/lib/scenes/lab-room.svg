@@ -31,6 +31,7 @@
   <!-- the curtains collapsed away -->
   <path d="M 200 90 C 200 90 200 90 200 240 C 200 240 200 240 200 240 C 200 240 200 90 200 90 Z" fill="#E9EEF2"/>
   <path d="M 1440 90 C 1440 90 1440 90 1440 240 C 1440 240 1440 240 1440 240 C 1440 240 1440 90 1440 90 Z" fill="#E9EEF2"/>
-  <!-- the curtain rod became the whiteboard -->
-  <rect x="560" y="300" width="560" height="280" rx="8" fill="#FFFFFF"/>
+  <!-- the bedroom rod clears before the whiteboard resolves -->
+  <rect x="1090" y="110" width="520" height="16" rx="8" fill="#8B6B4A" opacity="0"/>
+  <rect x="600" y="300" width="520" height="260" rx="8" fill="#FFFFFF" opacity="1"/>
 </svg>
