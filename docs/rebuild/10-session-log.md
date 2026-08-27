@@ -1,5 +1,19 @@
 # Session log: the journey stage
 
+## 2026-08-27: stage v2, three.js
+
+The CSS layer engine below is gone (reference point: tag `pre-3d`, commit `d2c696e`). The stage is a `<canvas>` driven by `src/scripts/stage-run.ts`, loaded lazily (135 KB gz three chunk, 1 KB entry). Spec: [11-journey-3d-spec.md](./11-journey-3d-spec.md), plan: [12-journey-3d-plan.md](./12-journey-3d-plan.md).
+
+- Every object is a rig in `src/lib/stage/` (params in, positions out, fixed vertex count). Station keys are GPU morph targets. No opacity anywhere: things morph, grow, sink, or the camera travels.
+- Two stations: the 2010 bedroom and the 2013 lab. The camera holds in the lab for chapters 3 to 8 until their stations exist.
+- Firefox needs no fallback any more; scroll progress is JS, WebGL is everywhere. Reduced motion snaps between stations.
+- Portrait: the frustum is cropped from a taller one (`setViewOffset`) so the subject sits in the upper half above the text. No media queries in the stage.
+- `src/lib/scenes/*.svg`, `morph.ts`, `figure.ts` and the old illustrations in `public/assets/scenes` stay as reference until the last chapter is rebuilt.
+- Add a station: a `Station` in `STATIONS`, one more key and colour per actor in `ACTORS` (`src/lib/stage/world.ts`); `npm test` checks the counts and the camera continuity.
+- Screenshots for review: `node shoot.mjs <w> <h> [dark] [p1,p2,...]` in the scratchpad used playwright-core against `npm run dev`; the Chrome extension was not connected this session.
+
+Everything below this line describes the v1 CSS engine and is kept for the record.
+
 2026-08-25, branch `canary`. Everything below is built and committed. Dev server: `npm run dev`, then `http://localhost:4321`.
 
 ## What exists now

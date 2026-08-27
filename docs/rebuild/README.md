@@ -14,6 +14,8 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [08-journey-stage-spec.md](./08-journey-stage-spec.md) | **The journey stage design spec**: parametric stroke figure that morphs with scroll, per-chapter scenery on CSS timelines, layout, fallbacks, tests, milestones |
 | [09-journey-stage-plan.md](./09-journey-stage-plan.md) | **The implementation plan**: 10 tasks, TDD, real code for the figure, lerp, render tool, Astro component, timelines, fallback, and the art loop |
 | [10-session-log.md](./10-session-log.md) | **What actually got built**: the three engines (layers, motions, morphing), file map, reused old assets, photo slots, commits, decisions, what is next |
+| [11-journey-3d-spec.md](./11-journey-3d-spec.md) | **Stage v2 spec**: real three.js, one continuous shot, code-built low-poly rigs with fixed topology, GPU morph targets |
+| [12-journey-3d-plan.md](./12-journey-3d-plan.md) | **Stage v2 plan**: 8 tasks with the full code for the rigs, figure, world, shot, renderer and the Astro wiring |
 
 ## The one-paragraph verdict
 
