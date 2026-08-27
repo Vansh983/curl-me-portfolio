@@ -30,7 +30,7 @@ export function lerpParams(a: FigureParams, b: FigureParams, t: number): FigureP
 // Scroll progress 0..1 over n chapters. Each gap between chapters is one span;
 // the first DWELL of a span rests on chapter i, the last DWELL rests on i+1,
 // the middle eases across.
-const DWELL = 0.3;
+export const DWELL = 0.3;
 /**
  * Maps section scroll progress to a chapter and an eased transition amount.
  * @param p progress 0..1 over the whole section

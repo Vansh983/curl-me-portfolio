@@ -129,24 +129,41 @@ export function figure(p: Figure): Record<Part, Geo> {
     S.shoes.sphere(foot[0], foot[1], foot[2], p.limbR * 1.35, p.limbR * 0.95, p.limbR * 2.1, 8, 4);
   }
 
-  // the controller between both hands becomes the mouse under the right hand
+  // the controller between both hands becomes the mouse under the right hand, then the trophy:
+  // one capsule body (shrinks away as the cup grows), two grips that become the cup's handles,
+  // a lathe cup and a base that grow from nothing inside the hand, and the green button that goes.
   const WL = wrists[-1], WR = wrists[1], fdR = foreDir[1];
   const ctrlA = mix(WL, WR, 0.12), ctrlB = mix(WL, WR, 0.88);
   const mouseA = add(WR, [0, -p.limbR * 0.9, 0.035]), mouseB = add(WR, [0, -p.limbR * 0.9, -0.035]);
   const hand = add(WR, fdR, p.limbR * 0.6);
-  const cupA = add(hand, fdR, 0.05), cupB = add(hand, fdR, 0.19);
-  const A = mix(mix(ctrlA, mouseA, p.held), cupA, p.trophy), B = mix(mix(ctrlB, mouseB, p.held), cupB, p.trophy);
-  S.held.color('#FFFFFF').capsule(A, B, lerp(lerp(p.limbR * 0.95, p.limbR * 0.75, p.held), 0.048, p.trophy), 8, 2);
-  // grips of the controller, then the handles of the cup; the stem of the cup from the hand
-  for (const [end, sign] of [[A, -1], [B, 1]] as const) {
-    const gripLen = lerp(lerp(p.limbR * 1.6, 0.001, p.held), 0.05, p.trophy);
-    const from = mix(end, mix(A, B, 0.62), p.trophy);
-    const dir = norm(mix(norm([sign * 0.2, -0.75, 0.5]), norm([sign, 0.1, 0]), p.trophy));
-    S.held.capsule(from, add(from, dir, gripLen), lerp(lerp(p.limbR * 0.6, 0.001, p.held), 0.01, p.trophy), 6, 2);
+  const tr = p.trophy, held = p.held;
+  const A = mix(ctrlA, mouseA, held), B = mix(ctrlB, mouseB, held);
+  S.held.color('#FFFFFF').capsule(mix(A, hand, tr), mix(B, add(hand, fdR, 0.001), tr), lerp(lerp(p.limbR * 0.95, p.limbR * 0.75, held), 0.001, tr), 8, 2);
+  // the cup stands upright in its own space; this turns that space to the forearm and carries it to the hand
+  const axis0: V3 = [-fdR[2], 0, fdR[0]];
+  const axis: V3 = Math.hypot(axis0[0], axis0[2]) < 1e-6 ? [1, 0, 0] : norm(axis0);
+  const ang = Math.acos(Math.max(-1, Math.min(1, fdR[1]))) * tr;
+  const toWorld = (v: V3): V3 => {
+    const c = Math.cos(ang), sn = Math.sin(ang), t = 1 - c, dot = axis[0] * v[0] + axis[1] * v[1] + axis[2] * v[2];
+    return add(hand, [
+      v[0] * c + (axis[1] * v[2] - axis[2] * v[1]) * sn + axis[0] * dot * t,
+      v[1] * c + (axis[2] * v[0] - axis[0] * v[2]) * sn + axis[1] * dot * t,
+      v[2] * c + (axis[0] * v[1] - axis[1] * v[0]) * sn + axis[2] * dot * t,
+    ]);
+  };
+  const cupK = 0.001 + tr * 1.35;
+  for (const sign of [-1, 1] as const) {
+    const gripLen = lerp(p.limbR * 1.6, 0.001, held);
+    const gripFrom = sign < 0 ? A : B, gripTo = add(gripFrom, norm([sign * 0.2, -0.75, 0.5]), gripLen);
+    const hFrom = toWorld([sign * 0.048 * cupK, 0.13 * cupK, 0]), hTo = toWorld([sign * 0.085 * cupK, 0.09 * cupK, 0]);
+    S.held.capsule(mix(gripFrom, hFrom, tr), mix(gripTo, hTo, tr), lerp(lerp(p.limbR * 0.6, 0.001, held), 0.006, tr), 6, 2);
   }
-  S.held.capsule(mix(WR, hand, p.trophy), mix(WR, cupA, p.trophy), 0.001 + 0.012 * p.trophy, 6, 2);
+  const cupStart = S.held.count;
+  S.held.lathe([[0.03, 0], [0.032, 0.012], [0.012, 0.02], [0.012, 0.06], [0.028, 0.075], [0.04, 0.1], [0.048, 0.14], [0.052, 0.17], [0.046, 0.172], [0.04, 0.16]].map(([r, y]) => [r * cupK, y * cupK]), 0, 0, 0, 1, 1, 0, 12);
+  S.held.cylinder(0, 0.004 * cupK, 0, 0.038 * cupK, 0.008 * cupK, 12);
+  S.held.rotateAxis([0, 0, 0], axis, ang, cupStart).translate(hand[0], hand[1], hand[2], cupStart);
   const mid = mix(A, B, 0.5);
-  const br = lerp(p.limbR * 0.34, 0.001, Math.max(p.held, p.trophy));
+  const br = lerp(p.limbR * 0.34, 0.001, Math.max(held, tr));
   S.held.color('#7AC142').sphere(mid[0], mid[1] + p.limbR * 0.7, mid[2], br, br * 0.5, br, 6, 3);
 
   const out = {} as Record<Part, Geo>;

@@ -58,11 +58,40 @@ const n = chapters.length;
     width: 100%;
     height: 100%;
   }
+  /* the wall lets pointer events through to the stage everywhere except on the text itself */
   .wall {
     position: relative;
     z-index: 1;
     margin-top: -100svh;
     padding: 0 var(--pad);
+    pointer-events: none;
+  }
+  .tx {
+    pointer-events: auto;
+  }
+  /* the caption that follows the pointer over a hotspot */
+  .stage :global(.cap) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    max-width: 34ch;
+    padding: 6px 10px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    color: var(--tx);
+    background: var(--bg);
+    border: 1px solid var(--tx);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s, transform 0.15s;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .stage :global(.cap.on) {
+    opacity: 1;
+    transform: none;
   }
   .ch {
     min-height: 100svh;
@@ -74,6 +103,7 @@ const n = chapters.length;
     }
   }
   .tx {
+    pointer-events: auto;
     max-width: min(var(--measure), 46ch);
     padding: 18px 28px 18px 0;
     background: color-mix(in srgb, var(--bg) 74%, transparent);

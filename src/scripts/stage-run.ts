@@ -1,24 +1,27 @@
 // The renderer. Loaded lazily by Journey.astro when the section is near the viewport.
 // Builds one mesh per actor with station keys as morph targets, an ink outline as an
-// inverted hull sharing the geometry, painted textures (some blended by the station
-// progress: the TV picture into Notepad, the Barcelona shirt into the school shirt,
-// dusk into daylight), and drives everything from scroll progress.
+// inverted hull sharing the geometry (constant width on screen), painted textures (some
+// with one frame per station, blended by the actor's own progress), shadows from one sun,
+// distance fog outdoors, motion on its own clock (fan, boats, clouds, the rolling ball),
+// a spring-damped camera, and hotspots that caption what you point at.
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Mesh, BufferGeometry, Float32BufferAttribute, MeshToonMaterial,
-  MeshBasicMaterial, DataTexture, RedFormat, NearestFilter, HemisphereLight, DirectionalLight, Color, BackSide,
-  DoubleSide, CanvasTexture, SRGBColorSpace, Vector3, type Material, type Texture,
+  MeshBasicMaterial, MeshLambertMaterial, DataTexture, RedFormat, NearestFilter, HemisphereLight, DirectionalLight,
+  Color, BackSide, DoubleSide, CanvasTexture, SRGBColorSpace, Vector3, Vector2, Raycaster, Fog, PCFShadowMap,
+  type Material, type Texture,
 } from 'three';
 import { ACTORS, STATIONS, type Actor } from '../lib/stage/world.ts';
-import { makeShot, stageProgress } from '../lib/stage/shot.ts';
+import { makeShot, stageProgress, type Frame } from '../lib/stage/shot.ts';
 import { flatNormals } from '../lib/stage/rig.ts';
 import { BOOKS } from '../lib/stage/props.ts';
+import { timed } from '../lib/stage/ease.ts';
 
-const OUTLINE = 0.0045; // metres pushed along the normal
+const OUTLINE = 0.0012; // metres pushed along the normal, per metre of distance (constant width on screen)
 const INK = '#17282f'; // the ink of the authored scenes; the room is lit, so it stays dark in both themes
 const D = Math.PI / 180;
 
 type Mat = Material & { color: Color };
-interface Built { actor: Actor; mesh: Mesh; outline?: Mesh; a: Color[]; mat: Mat }
+interface Built { actor: Actor; mesh: Mesh; outline?: Mesh; a: Color[]; mat: Mat; e: number }
 type Ctx = CanvasRenderingContext2D;
 type Painter = (x: Ctx, w: number, h: number) => void;
 interface Paint { w: number; h: number; frames: Painter[] } // one frame per station for 'mix', one frame for 'tex'
@@ -36,6 +39,7 @@ const loadImage = (src: string) => new Promise<HTMLImageElement | null>((res) =>
   i.onerror = () => res(null);
   i.src = src;
 });
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 function geometryFor(actor: Actor): BufferGeometry {
   const g = new BufferGeometry();
@@ -49,12 +53,15 @@ function geometryFor(actor: Actor): BufferGeometry {
   return g;
 }
 
-/** Inverted hull: same geometry, back faces, pushed out along the (morphed) normal. */
+/** Inverted hull: same geometry, back faces, pushed out along the (morphed) normal by an amount that grows with distance. */
 function outlineMaterial(ink: Color): MeshToonMaterial {
   const m = new MeshToonMaterial({ color: 0x000000, emissive: ink, side: BackSide });
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uOut = { value: OUTLINE };
-    shader.vertexShader = 'uniform float uOut;\n' + shader.vertexShader.replace('#include <morphtarget_vertex>', '#include <morphtarget_vertex>\n\ttransformed += objectNormal * uOut;');
+    shader.vertexShader = 'uniform float uOut;\n' + shader.vertexShader.replace(
+      '#include <morphtarget_vertex>',
+      '#include <morphtarget_vertex>\n\tvec4 mvp0 = modelViewMatrix * vec4(transformed, 1.0);\n\ttransformed += objectNormal * uOut * clamp(-mvp0.z, 0.6, 120.0);',
+    );
   };
   return m;
 }
@@ -76,12 +83,12 @@ function googleWord(x: Ctx, cx: number, y: number, size: number): void {
 
 /**
  * Everything painted. Canvas y runs down, texture v runs up, so "top" in the world is y = 0 here.
- * Images (the portrait, the Xbox logo) are drawn once they load and the texture is re-uploaded.
+ * Images (the portrait, the Xbox logo, the team photo) are drawn once they load and the texture is re-uploaded.
  */
 function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null }, video: HTMLVideoElement): Record<string, Paint> {
   const mono = '15px ui-monospace, Menlo, monospace';
   return {
-    // the Barcelona 2013 home shirt from the back, then the white school shirt. u: 0 front seam, 0.5 the back.
+    // the Barcelona 2013 home shirt from the back, the white school shirt, the black Google tee. u: 0 front seam, 0.5 the back.
     'figure-shirt': {
       w: 512, h: 512,
       frames: [(x, w, h) => {
@@ -91,6 +98,7 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         x.textAlign = 'center'; x.fillStyle = '#F4C542';
         x.font = '700 44px Inter, system-ui, sans-serif'; x.fillText('MESSI', w / 2, 215);
         x.font = '700 140px Inter, system-ui, sans-serif'; x.fillText('10', w / 2, 360);
+        x.textAlign = 'left';
       }, (x, w, h) => {
         white(x, w, h);
         x.fillStyle = '#E3E3DF'; x.fillRect(0, 0, w, 26); // collar
@@ -99,7 +107,7 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         // the black Google tee: the logo sits on the chest, across the front seam (u = 0 and u = 1)
         x.fillStyle = '#1A1A1A'; x.fillRect(0, 0, w, h);
         x.font = '700 58px "Product Sans", "Google Sans", Arial, sans-serif'; x.textAlign = 'center';
-        for (const cx of [0, w]) googleWord(x, cx, 112, 58);
+        for (const cx of [0, w]) googleWord(x, cx, 200, 58);
         x.textAlign = 'left';
       }],
     },
@@ -213,63 +221,6 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         for (const [cx2, c] of [[900, '#2B2B2B'], [940, '#245EDC'], [980, '#D62828']] as const) { x.fillStyle = c; x.fillRect(cx2 - 14, h - 22, 28, 12); }
       }],
     },
-    // the floor: wood planks in the bedroom, lino tiles in the lab
-    floor: {
-      w: 1024, h: 1024,
-      frames: [(x, w, h) => {
-        x.fillStyle = '#D9B994'; x.fillRect(0, 0, w, h);
-        x.fillStyle = '#C9A57E';
-        for (let r = 0; r < 24; r++) { x.fillRect(0, r * (h / 24), w, 2); const off = (r % 2) * 180; for (let c = -1; c < 4; c++) x.fillRect(c * 360 + off, r * (h / 24), 2, h / 24); }
-      }, (x, w, h) => {
-        x.fillStyle = '#C9CFD3'; x.fillRect(0, 0, w, h);
-        x.fillStyle = '#BFC6CB';
-        for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) if ((r + c) % 2 === 0) x.fillRect(c * (w / 12), r * (h / 12), w / 12, h / 12);
-        x.fillStyle = '#AEB6BC';
-        for (let k = 0; k <= 12; k++) { x.fillRect(k * (w / 12), 0, 2, h); x.fillRect(0, k * (h / 12), w, 2); }
-      }, (x, w, h) => {
-        // the plaza by the bay: big pale slabs
-        x.fillStyle = '#C9C4BA'; x.fillRect(0, 0, w, h);
-        x.fillStyle = '#B9B3A8';
-        for (let k = 0; k <= 16; k++) { x.fillRect(k * (w / 16), 0, 3, h); x.fillRect(0, k * (h / 16), w, 3); }
-      }],
-    },
-    // the sky: blue above, pale at the horizon (v = 0.5), a few thin clouds
-    sky: {
-      w: 1024, h: 512,
-      frames: [(x, w, h) => {
-        const g = x.createLinearGradient(0, 0, 0, h);
-        g.addColorStop(0, '#2F7FD0'); g.addColorStop(0.35, '#6FB1E8'); g.addColorStop(0.5, '#DCEEF8'); g.addColorStop(0.52, '#CFE3EE'); g.addColorStop(1, '#B9CFDA');
-        x.fillStyle = g; x.fillRect(0, 0, w, h);
-        x.fillStyle = 'rgba(255,255,255,0.85)';
-        for (const [cx, cy, rx, ry] of [[150, 150, 90, 12], [420, 120, 70, 9], [700, 170, 120, 14], [900, 140, 60, 8]] as const) { x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); x.fill(); }
-      }],
-    },
-    // the Google San Francisco sign
-    sign: {
-      w: 1024, h: 490,
-      frames: [(x, w, h) => {
-        white(x, w, h);
-        x.textAlign = 'center';
-        x.font = '700 190px "Product Sans", "Google Sans", Arial, sans-serif';
-        googleWord(x, w / 2, 250, 190);
-        x.fillStyle = '#5F6368'; x.font = '500 62px Inter, system-ui, sans-serif'; x.fillText('San Francisco', w / 2, 400);
-        x.textAlign = 'left';
-      }],
-    },
-    // the Google Code-in badge on the lanyard
-    'figure-badge': {
-      w: 256, h: 360,
-      frames: [(x, w, h) => {
-        white(x, w, h);
-        x.fillStyle = '#FBBC05'; x.fillRect(0, 0, w, 54);
-        x.fillStyle = '#202124'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Google Code-in', 14, 38);
-        x.font = '700 56px Inter, system-ui, sans-serif'; x.fillText('Vansh', 14, 130);
-        x.font = '500 34px Inter, system-ui, sans-serif'; x.fillText('Sood', 14, 172);
-        x.fillStyle = '#EA4335'; x.fillRect(14, 200, 228, 60);
-        x.fillStyle = '#FFFFFF'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('GRAND PRIZE', 22, 241);
-        x.fillStyle = '#5F6368'; x.font = '500 28px Inter, system-ui, sans-serif'; x.fillText('06/25  San Francisco', 14, 320);
-      }],
-    },
     // the spine titles, one cell per book, transparent elsewhere
     shelfLabels: {
       w: 1536, h: 256,
@@ -320,6 +271,62 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         }
       }],
     },
+    // the floor: wood planks in the bedroom, lino tiles in the lab, plaza slabs by the bay
+    floor: {
+      w: 1024, h: 1024,
+      frames: [(x, w, h) => {
+        x.fillStyle = '#D9B994'; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#C9A57E';
+        for (let r = 0; r < 24; r++) { x.fillRect(0, r * (h / 24), w, 2); const off = (r % 2) * 180; for (let c = -1; c < 4; c++) x.fillRect(c * 360 + off, r * (h / 24), 2, h / 24); }
+      }, (x, w, h) => {
+        x.fillStyle = '#C9CFD3'; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#BFC6CB';
+        for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) if ((r + c) % 2 === 0) x.fillRect(c * (w / 12), r * (h / 12), w / 12, h / 12);
+        x.fillStyle = '#AEB6BC';
+        for (let k = 0; k <= 12; k++) { x.fillRect(k * (w / 12), 0, 2, h); x.fillRect(0, k * (h / 12), w, 2); }
+      }, (x, w, h) => {
+        x.fillStyle = '#C9C4BA'; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#B9B3A8';
+        for (let k = 0; k <= 16; k++) { x.fillRect(k * (w / 16), 0, 3, h); x.fillRect(0, k * (h / 16), w, 3); }
+      }],
+    },
+    // the sky: blue above, pale at the horizon (v = 0.5), a few thin clouds
+    sky: {
+      w: 1024, h: 512,
+      frames: [(x, w, h) => {
+        const g = x.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, '#2F7FD0'); g.addColorStop(0.35, '#6FB1E8'); g.addColorStop(0.5, '#DCEEF8'); g.addColorStop(0.52, '#CFE3EE'); g.addColorStop(1, '#B9CFDA');
+        x.fillStyle = g; x.fillRect(0, 0, w, h);
+        x.fillStyle = 'rgba(255,255,255,0.85)';
+        for (const [cx, cy, rx, ry] of [[150, 150, 90, 12], [420, 120, 70, 9], [700, 170, 120, 14], [900, 140, 60, 8]] as const) { x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); x.fill(); }
+      }],
+    },
+    // the Google San Francisco sign
+    sign: {
+      w: 1024, h: 490,
+      frames: [(x, w, h) => {
+        white(x, w, h);
+        x.textAlign = 'center';
+        x.font = '700 190px "Product Sans", "Google Sans", Arial, sans-serif';
+        googleWord(x, w / 2, 250, 190);
+        x.fillStyle = '#5F6368'; x.font = '500 62px Inter, system-ui, sans-serif'; x.fillText('San Francisco', w / 2, 400);
+        x.textAlign = 'left';
+      }],
+    },
+    // the Google Code-in badge on the lanyard
+    'figure-badge': {
+      w: 256, h: 360,
+      frames: [(x, w, h) => {
+        white(x, w, h);
+        x.fillStyle = '#FBBC05'; x.fillRect(0, 0, w, 54);
+        x.fillStyle = '#202124'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Google Code-in', 14, 38);
+        x.font = '700 56px Inter, system-ui, sans-serif'; x.fillText('Vansh', 14, 130);
+        x.font = '500 34px Inter, system-ui, sans-serif'; x.fillText('Sood', 14, 172);
+        x.fillStyle = '#EA4335'; x.fillRect(14, 200, 228, 60);
+        x.fillStyle = '#FFFFFF'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('GRAND PRIZE', 22, 241);
+        x.fillStyle = '#5F6368'; x.font = '500 28px Inter, system-ui, sans-serif'; x.fillText('06/25  San Francisco', 14, 320);
+      }],
+    },
   };
 }
 
@@ -327,17 +334,28 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = SRGBColorSpace;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = PCFShadowMap;
   const scene = new Scene();
+  scene.fog = new Fog(new Color('#D6E6EF'), 30, 420);
   const camera = new PerspectiveCamera(50, 1, 0.05, 900);
-  scene.add(new HemisphereLight(0xffffff, 0x8a8a8a, 1.1));
-  const sun = new DirectionalLight(0xffffff, 2.2);
-  sun.position.set(3, 5, 4);
-  scene.add(sun);
+  scene.add(new HemisphereLight(0xffffff, 0x8a8a8a, 0.85));
+  // one sun; it follows the subject so its shadow map stays tight around what matters
+  const sun = new DirectionalLight(0xffffff, 1.7);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 0.5, far: 40 });
+  sun.shadow.bias = -0.0005;
+  sun.shadow.normalBias = 0.02;
+  sun.shadow.radius = 5;
+  sun.shadow.intensity = 0.42; // a soft daylight shadow, not a black one
+  scene.add(sun, sun.target);
 
   const grad = new DataTexture(new Uint8Array([100, 175, 255]), 3, 1, RedFormat);
   grad.minFilter = grad.magFilter = NearestFilter;
   grad.needsUpdate = true;
   const outlineMat = outlineMaterial(new Color(INK));
+  const hotMat = outlineMaterial(new Color(cssVar('--acc')));
 
   const video = document.createElement('video');
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'auto' });
@@ -348,7 +366,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   let needs = true, raf = 0;
   const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
 
-  // textures: static ones painted once, mixed ones blended when the station progress moves
+  // textures: static ones painted once, mixed ones blended when the actor's progress moves
   const statics: Array<{ id: string; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const mixers: Record<string, Mixer> = {};
   const textureFor = (id: string): Texture | undefined => {
@@ -374,11 +392,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     for (const id of ids) if (mixers[id]) { const m = mixers[id]; m.cv.forEach((c, k) => PAINT[id].frames[k](c.getContext('2d')!, c.width, c.height)); m.last = ''; }
     needs = true; kick();
   };
-  /** Blends frame i into frame i+1 by t (clamped to the frames that exist). */
-  const blend = (id: string, i: number, t: number) => {
+  /** Blends frame i into frame i+1 by e (clamped to the frames that exist). */
+  const blend = (id: string, i: number, e: number) => {
     const m = mixers[id];
     if (!m) return;
-    const n = m.cv.length, a = Math.min(i, n - 1), b = Math.min(i + 1, n - 1), tt = a === b ? 0 : t;
+    const n = m.cv.length, a = Math.min(i, n - 1), b = Math.min(i + 1, n - 1), tt = a === b ? 0 : e;
     const key = `${a}:${tt.toFixed(3)}`;
     if (m.last === key && !(m.live && a === 0)) return;
     m.last = key;
@@ -390,14 +408,23 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
 
   const built: Built[] = [];
+  const byId: Record<string, Built> = {};
   for (const actor of ACTORS) {
     const g = geometryFor(actor);
     const colors = actor.colors.map((c) => new Color(c));
     const map = actor.tex ? textureFor(actor.id) : undefined;
     const common = { color: colors[0], vertexColors: actor.vc, transparent: actor.transparent ?? false, ...(map ? { map } : {}) };
-    const mat: Mat = actor.shade === 'flat' ? new MeshBasicMaterial({ ...common, side: DoubleSide }) : new MeshToonMaterial({ ...common, gradientMap: grad });
+    const mat: Mat =
+      actor.shade === 'unlit' ? new MeshBasicMaterial({ ...common, side: DoubleSide, fog: actor.id !== 'sky' })
+      // floors and walls keep more than half their colour whatever the light does; the sun adds shape and shadows
+      : actor.shade === 'lambert' ? new MeshLambertMaterial({ ...common, side: DoubleSide, emissive: colors[0], emissiveIntensity: 0.28 })
+      : new MeshToonMaterial({ ...common, gradientMap: grad });
     const mesh = new Mesh(g, mat);
     if (actor.at) mesh.position.set(...actor.at);
+    if (actor.path) mesh.position.set(...actor.path[0]);
+    const big = actor.id === 'sky' || actor.id === 'water' || actor.id === 'hills' || actor.id === 'floor';
+    mesh.castShadow = actor.shade !== 'unlit' && !big && actor.id !== 'walls' && actor.id !== 'ceiling';
+    mesh.receiveShadow = actor.shade !== 'unlit' && actor.id !== 'sky';
     scene.add(mesh);
     let outline: Mesh | undefined;
     if (actor.outline) {
@@ -405,9 +432,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       outline.position.copy(mesh.position);
       scene.add(outline);
     }
-    built.push({ actor, mesh, outline, a: colors, mat });
+    const b: Built = { actor, mesh, outline, a: colors, mat, e: 0 };
+    built.push(b);
+    byId[actor.id] = b;
   }
-  const fan = built.find((b) => b.actor.id === 'fan');
+  const fan = byId.fan, boats = byId.boats, clouds = byId.clouds;
+  const hot = built.filter((b) => b.actor.cap);
 
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
@@ -420,10 +450,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const shot = makeShot(STATIONS);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  let visible = false, target = 0, cur = 0, lastT = 0, station = 0;
+  let visible = false, target = 0, cur = 0, vel = 0, lastT = 0, station = 0, last: Frame | undefined;
 
   const applyTheme = () => {
     renderer.setClearColor(new Color(cssVar('--bg')));
+    hotMat.emissive.set(cssVar('--acc'));
     needs = true;
     kick();
   };
@@ -447,49 +478,147 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const total = r.height - innerHeight;
     return total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
   };
-  const frame = (q: number) => {
-    const f = shot(q);
+
+  /** Puts every actor where the frame says, with its own timing inside the gap. */
+  const frame = (f: Frame) => {
+    last = f;
+    const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
+    // portrait: the text owns the lower half, so the look pulls toward the subject and the frustum is
+    // cropped from a taller one (setViewOffset), landing the subject in the upper part without a tilt
+    const portrait = Math.min(1, Math.max(0, (1 - camera.aspect) / 0.5));
+    const look = new Vector3(...f.look).lerp(new Vector3(...f.subject), portrait * 0.85);
     camera.position.set(...f.cam);
-    camera.lookAt(new Vector3(...f.look));
-    // f.fov is horizontal: convert so narrow viewports keep the width of the shot.
-    // In portrait the text owns the lower half, so the frustum is cropped from a taller
-    // one (setViewOffset) and the subject lands in the upper part without tilting the camera.
+    camera.lookAt(look);
     const v = 2 * Math.atan(Math.tan((f.fov * D) / 2) / camera.aspect);
     camera.fov = Math.min(78, Math.max(35, v / D));
-    const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     const shift = Math.max(0, 1 - camera.aspect) * 0.9;
     if (shift > 0.01) camera.setViewOffset(w, h * (1 + shift), 0, h * shift, w, h);
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();
+    // the sun keeps its shadow box on the subject
+    sun.target.position.set(...f.subject);
+    // high and from the window side, so indoor shadows stay short
+    sun.position.set(f.subject[0] - 2.5, f.subject[1] + 9, f.subject[2] + 3.5);
+
+    const gap = Math.min(f.i, STATIONS.length - 2);
     for (const b of built) {
+      // at the last station there is no gap to progress in: rest fully on it
+      const e = f.i >= STATIONS.length - 1 ? 0 : timed(f.raw, b.actor.timing?.[gap]);
+      b.e = e;
       const inf = b.mesh.morphTargetInfluences;
-      if (inf) for (let k = 0; k < inf.length; k++) inf[k] = f.inf[k] ?? 0;
-      const oinf = b.outline?.morphTargetInfluences;
-      if (oinf) for (let k = 0; k < oinf.length; k++) oinf[k] = f.inf[k] ?? 0;
+      if (inf) {
+        for (let k = 0; k < inf.length; k++) inf[k] = 0;
+        // station 0 is the base; between i and i+1 the two neighbours share the weight
+        if (f.i >= 1) inf[f.i - 1] = 1 - e;
+        if (f.i + 1 <= STATIONS.length - 1) inf[f.i] = e;
+        const oinf = b.outline?.morphTargetInfluences;
+        if (oinf) for (let k = 0; k < oinf.length; k++) oinf[k] = inf[k];
+      }
       const j = Math.min(f.i + 1, b.a.length - 1);
-      b.mat.color.copy(b.a[f.i]).lerp(b.a[j], f.t);
+      b.mat.color.copy(b.a[f.i]).lerp(b.a[j], e);
+      if (b.actor.shade === 'lambert') (b.mat as MeshLambertMaterial).emissive.copy(b.mat.color);
+      if (b.actor.path) {
+        // travels along its path; a rolling ball turns by the distance covered over its radius
+        const p0 = b.actor.path[f.i], p1 = b.actor.path[j];
+        b.mesh.position.set(lerp(p0[0], p1[0], e), lerp(p0[1], p1[1], e), lerp(p0[2], p1[2], e));
+        if (b.actor.roll) b.mesh.rotation.x = (b.mesh.position.z - b.actor.path[0][2]) / b.actor.roll;
+        if (b.outline) { b.outline.position.copy(b.mesh.position); b.outline.rotation.copy(b.mesh.rotation); }
+      }
+      if (mixers[b.actor.id]) blend(b.actor.id, f.i, e);
     }
     station = f.i;
-    for (const id in mixers) blend(id, f.i, f.t);
   };
+
+  // ---- hotspots: point at something and it says what it is; click opens its link
+  const cap = document.createElement('div');
+  cap.className = 'cap';
+  root.querySelector('.stage')!.appendChild(cap);
+  const ray = new Raycaster();
+  const ndc = new Vector2();
+  let hovered: Built | undefined, pointer: { x: number; y: number } | undefined;
+  const captionAt = (b: Built | undefined) => {
+    if (!b || !last) return '';
+    const idx = last.i + (last.t > 0.5 ? 1 : 0);
+    return b.actor.cap?.[Math.min(idx, STATIONS.length - 1)] ?? '';
+  };
+  const setHover = (b: Built | undefined) => {
+    if (hovered === b) return;
+    if (hovered?.outline) hovered.outline.material = outlineMat;
+    hovered = b;
+    if (hovered?.outline) hovered.outline.material = hotMat;
+    const text = captionAt(hovered);
+    cap.textContent = text;
+    cap.classList.toggle('on', !!text);
+    canvas.style.cursor = text && hovered?.actor.href ? 'pointer' : text ? 'help' : '';
+    needs = true; kick();
+  };
+  const pick = (x: number, y: number) => {
+    const r = canvas.getBoundingClientRect();
+    ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hits = ray.intersectObjects(hot.map((b) => b.mesh), false);
+    for (const hit of hits) {
+      const b = hot.find((h) => h.mesh === hit.object);
+      if (b && captionAt(b)) return b;
+    }
+    return undefined;
+  };
+  const place = () => {
+    if (!pointer) return;
+    const r = canvas.getBoundingClientRect();
+    const x = pointer.x - r.left, y = pointer.y - r.top;
+    cap.style.left = `${Math.min(x + 14, r.width - cap.offsetWidth - 8)}px`;
+    cap.style.top = `${Math.max(8, y - cap.offsetHeight - 14)}px`;
+  };
+  const onMove = (ev: PointerEvent) => {
+    if (ev.pointerType === 'touch') return;
+    pointer = { x: ev.clientX, y: ev.clientY };
+    setHover(pick(ev.clientX, ev.clientY));
+    place();
+  };
+  const onLeave = () => { pointer = undefined; setHover(undefined); };
+  const onClick = (ev: PointerEvent) => {
+    const b = pick(ev.clientX, ev.clientY);
+    if (ev.pointerType === 'touch') {
+      pointer = { x: ev.clientX, y: ev.clientY };
+      if (b !== hovered) { setHover(b); place(); return; }
+    }
+    if (b?.actor.href && captionAt(b)) window.open(b.actor.href, '_blank', 'noopener');
+  };
+  canvas.addEventListener('pointermove', onMove);
+  canvas.addEventListener('pointerleave', onLeave);
+  canvas.addEventListener('pointerup', onClick);
 
   const tick = (now: number) => {
     raf = 0;
     const dt = Math.min(0.05, (now - lastT) / 1000 || 0);
     lastT = now;
-    if (reduce.matches) cur = target;
+    if (reduce.matches) { cur = target; vel = 0; }
     else {
-      cur += (target - cur) * 0.18;
-      if (Math.abs(target - cur) < 0.0005) cur = target;
+      // a critically damped spring toward the scroll position: weight without wobble
+      const k = 90, c = 2 * Math.sqrt(k);
+      vel += (k * (target - cur) - c * vel) * dt;
+      cur += vel * dt;
+      if (Math.abs(target - cur) < 0.0004 && Math.abs(vel) < 0.002) { cur = target; vel = 0; }
     }
     let q = stageProgress(cur, chapters, STATIONS.length);
     if (reduce.matches) q = Math.round(q * (STATIONS.length - 1)) / Math.max(1, STATIONS.length - 1);
-    frame(q);
-    if (fan && !reduce.matches) fan.mesh.rotation.y += dt * 5;
-    if (fan?.outline) fan.outline.rotation.y = fan.mesh.rotation.y;
+    frame(shot(q));
+    // things on their own clock
+    const t = now / 1000;
+    if (fan && !reduce.matches && station < 2) { fan.mesh.rotation.y += dt * 5; if (fan.outline) fan.outline.rotation.y = fan.mesh.rotation.y; }
+    if (boats && station >= 1) {
+      // a hull on a gentle swell: heave and a little roll, out of phase
+      const sw = reduce.matches ? 0 : 1;
+      boats.mesh.position.y = 0.16 * Math.sin(t * 0.9) * sw;
+      boats.mesh.rotation.z = 0.02 * Math.sin(t * 0.9 + 1.2) * sw;
+      if (boats.outline) { boats.outline.position.copy(boats.mesh.position); boats.outline.rotation.copy(boats.mesh.rotation); }
+    }
+    if (clouds && station >= 1 && !reduce.matches) clouds.mesh.position.x = 8 * Math.sin(t * 0.03);
+    if (hovered && pointer) setHover(pick(pointer.x, pointer.y));
     renderer.render(scene, camera);
     needs = false;
-    const live = visible && ((!video.paused && station === 0) || (fan && !reduce.matches && station < 2));
+    const live = visible && !reduce.matches;
     if (cur !== target || live) raf = requestAnimationFrame(tick);
   };
   const onScroll = () => { target = progress(); kick(); };
@@ -506,9 +635,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   return () => {
     cancelAnimationFrame(raf);
     removeEventListener('scroll', onScroll);
+    canvas.removeEventListener('pointermove', onMove);
+    canvas.removeEventListener('pointerleave', onLeave);
+    canvas.removeEventListener('pointerup', onClick);
     ro.disconnect(); io.disconnect(); themeObs.disconnect();
     scheme.removeEventListener('change', applyTheme);
     video.pause(); video.src = '';
+    cap.remove();
     renderer.dispose();
   };
 }

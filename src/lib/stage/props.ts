@@ -72,13 +72,13 @@ export const chair = (p: { x: number; z: number; seatW: number; seatD: number; s
 };
 
 /** Ceiling fan built at the origin hanging down: the mesh is positioned and spun at runtime. */
-export const fan = (p: { rod: number; r: number; hub: number }): Geo => {
+export const fan = (p: { rod: number; r: number; hub: number; y?: number }): Geo => {
   const s = new Sink().cylinder(0, -p.rod / 2, 0, 0.02, p.rod, 8).cylinder(0, -p.rod - 0.03, 0, p.hub, 0.06, 8);
   for (let k = 0; k < 3; k++) {
     const start = s.count;
     s.box(p.r / 2 + p.hub * 0.5, -p.rod - 0.03, 0, p.r, 0.015, 0.12).rotateY(0, 0, (k * Math.PI * 2) / 3, start);
   }
-  return s.out();
+  return s.translate(0, p.y ?? 0, 0).out();
 };
 
 export const crate = (p: { x: number; y: number; z: number; w: number; h: number; d: number }): Geo => new Sink().box(p.x, p.y, p.z, p.w, p.h, p.d).out();

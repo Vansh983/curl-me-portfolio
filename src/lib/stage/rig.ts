@@ -191,6 +191,18 @@ export class Sink {
     }
     return this;
   }
+  /** Rotate around an arbitrary unit axis through `o` (Rodrigues). */
+  rotateAxis(o: V3, axis: V3, rad: number, start = 0): this {
+    const [ax, ay, az] = norm(axis), c = Math.cos(rad), s = Math.sin(rad), t = 1 - c;
+    for (let i = start * 3; i < this.pos.length; i += 3) {
+      const x = this.pos[i] - o[0], y = this.pos[i + 1] - o[1], z = this.pos[i + 2] - o[2];
+      const dot = ax * x + ay * y + az * z;
+      this.pos[i] = o[0] + x * c + (ay * z - az * y) * s + ax * dot * t;
+      this.pos[i + 1] = o[1] + y * c + (az * x - ax * z) * s + ay * dot * t;
+      this.pos[i + 2] = o[2] + z * c + (ax * y - ay * x) * s + az * dot * t;
+    }
+    return this;
+  }
   translate(dx: number, dy: number, dz: number, start = 0): this {
     for (let i = start * 3; i < this.pos.length; i += 3) {
       this.pos[i] += dx;

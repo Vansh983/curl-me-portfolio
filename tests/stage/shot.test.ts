@@ -38,6 +38,15 @@ test('influences blend two neighbours and sum to at most 1', () => {
   assert.ok(mid.t > 0.4 && mid.t < 0.6);
 });
 
+test('raw gap progress rests at both ends and runs linearly between', () => {
+  const n = STATIONS.length;
+  assert.equal(shot(0).raw, 0);
+  assert.equal(shot(0.1 / (n - 1)).raw, 0);
+  assert.ok(Math.abs(shot(0.5 / (n - 1)).raw - 0.5) < 1e-6);
+  assert.equal(shot(0.95 / (n - 1)).raw, 1);
+  assert.equal(shot(1).raw, 0);
+});
+
 test('stageProgress lands station 1 on chapter 1 and holds after', () => {
   assert.equal(stageProgress(0, 8, 2), 0);
   assert.ok(Math.abs(stageProgress(1 / 7, 8, 2) - 1) < 1e-9);
