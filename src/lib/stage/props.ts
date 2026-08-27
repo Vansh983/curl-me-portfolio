@@ -2,12 +2,16 @@
 // and not the next has params that shrink it to a point or sink it under the floor.
 import { Sink } from './rig.ts';
 
-export const floor = (p: { w: number; d: number }) =>
-  new Sink().quad([-p.w / 2, 0, p.d / 2], [p.w / 2, 0, p.d / 2], [p.w / 2, 0, -p.d / 2], [-p.w / 2, 0, -p.d / 2]).out();
+/** Room slabs are centred on x = 0 and z = zc (default 0). */
+export const floor = (p: { w: number; d: number; zc?: number }) => {
+  const zc = p.zc ?? 0;
+  return new Sink().quad([-p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc - p.d / 2], [-p.w / 2, 0, zc - p.d / 2]).out();
+};
 
 /** Back, left and right walls, inward facing. The front (camera side) is open. */
-export const walls = (p: { w: number; h: number; d: number }) => {
-  const x0 = -p.w / 2, x1 = p.w / 2, z0 = -p.d / 2, z1 = p.d / 2, h = p.h;
+export const walls = (p: { w: number; h: number; d: number; zc?: number }) => {
+  const zc = p.zc ?? 0;
+  const x0 = -p.w / 2, x1 = p.w / 2, z0 = zc - p.d / 2, z1 = zc + p.d / 2, h = p.h;
   return new Sink()
     .quad([x0, 0, z0], [x1, 0, z0], [x1, h, z0], [x0, h, z0])
     .quad([x0, 0, z1], [x0, 0, z0], [x0, h, z0], [x0, h, z1])
@@ -15,8 +19,10 @@ export const walls = (p: { w: number; h: number; d: number }) => {
     .out();
 };
 
-export const ceiling = (p: { w: number; h: number; d: number }) =>
-  new Sink().quad([-p.w / 2, p.h, -p.d / 2], [p.w / 2, p.h, -p.d / 2], [p.w / 2, p.h, p.d / 2], [-p.w / 2, p.h, p.d / 2]).out();
+export const ceiling = (p: { w: number; h: number; d: number; zc?: number }) => {
+  const zc = p.zc ?? 0;
+  return new Sink().quad([-p.w / 2, p.h, zc - p.d / 2], [p.w / 2, p.h, zc - p.d / 2], [p.w / 2, p.h, zc + p.d / 2], [-p.w / 2, p.h, zc + p.d / 2]).out();
+};
 
 /** A thin slab on a wall (window, whiteboard). w runs along x before yaw. */
 export const panel = (p: { x: number; y: number; z: number; w: number; h: number; t: number; yaw: number }) =>
@@ -89,5 +95,12 @@ export const labRow = (p: { x: number; z0: number; gap: number; lift: number }) 
     s.box(p.x, 0.35, z + 0.3, 0.55, 0.7, 0.05);
     s.box(p.x + 0.05, 0.72 + 0.21, z, 0.4, 0.38, 0.4);
   }
+  return s.translate(0, (p.lift - 1) * 1.3, 0).out();
+};
+
+/** The dark screens on the lab row's monitors, a separate actor so they get their own colour. */
+export const labScreens = (p: { x: number; z0: number; gap: number; lift: number }) => {
+  const s = new Sink();
+  for (let k = 0; k < 3; k++) s.box(p.x + 0.05 - 0.2, 0.72 + 0.21, p.z0 + k * p.gap, 0.01, 0.3, 0.32);
   return s.translate(0, (p.lift - 1) * 1.3, 0).out();
 };

@@ -14,11 +14,13 @@ export type Actor = {
   at?: V3; // mesh position for rigs built at the origin (the fan)
 };
 
-export const ROOM = { w: 4.4, h: 2.8, d: 4.6 };
+// back wall at z = -2.3, floor runs to z = 4.1 so the camera never sees the front edge
+export const ROOM = { w: 4.4, h: 2.8, d: 6.4, zc: 0.9 };
+const BACK = ROOM.zc - ROOM.d / 2;
 
 export const STATIONS: Station[] = [
-  { cam: [0.3, 1.1, 2.3], look: [0, 0.8, -1.0], fov: 62 },
-  { cam: [-0.75, 1.5, 0.35], look: [0.15, 0.95, -1.5], fov: 56 },
+  { cam: [0.45, 1.4, 3.0], look: [0, 0.85, -1.2], fov: 70 },
+  { cam: [-1.15, 1.75, 1.25], look: [0.2, 0.9, -1.5], fov: 60 },
 ];
 
 const actor = <T>(id: string, rig: (p: T) => Float32Array, keys: T[], colors: string[], kind: Actor['kind'] = 'toon', outline = true, at?: V3): Actor => ({
@@ -35,7 +37,7 @@ const partColors: Record<Part, [string, string]> = {
 };
 
 export const ACTORS: Actor[] = [
-  actor('floor', P.floor, [{ w: ROOM.w, d: ROOM.d }, { w: ROOM.w, d: ROOM.d }], ['#D9B994', '#C9CFD3'], 'flat', false),
+  actor('floor', P.floor, [ROOM, ROOM], ['#D9B994', '#C9CFD3'], 'flat', false),
   actor('walls', P.walls, [ROOM, ROOM], ['#F9F4EC', '#E9EEF2'], 'flat', false),
   actor('ceiling', P.ceiling, [ROOM, ROOM], ['#FFFFFF', '#F5F9FC'], 'flat', false),
   // window becomes the whiteboard, on the left wall
@@ -61,14 +63,15 @@ export const ACTORS: Actor[] = [
     { x: 0, z: 0.55, rugR: 0.9, rugT: 0.012, seatW: 0.001, seatD: 0.001, seatH: 0.002, seatT: 0.001, legR: 0.001, backH: 0.001, yOff: -0.3 },
     { x: 0.05, z: -0.75, rugR: 0.001, rugT: 0.001, seatW: 0.46, seatD: 0.46, seatH: 0.45, seatT: 0.04, legR: 0.02, backH: 0.42, yOff: 0 },
   ], ['#B94A48', '#4A5560']),
-  actor('fan', P.fan, [{ rod: 0.3, r: 0.6, hub: 0.08 }, { rod: 0.3, r: 0.6, hub: 0.08 }], ['#9A9A96', '#9A9A96'], 'toon', true, [0, ROOM.h, -0.4]),
+  actor('fan', P.fan, [{ rod: 0.55, r: 0.6, hub: 0.08 }, { rod: 0.55, r: 0.6, hub: 0.08 }], ['#9A9A96', '#9A9A96'], 'toon', true, [0, ROOM.h, -0.4]),
   actor('poster', P.face, [
-    { x: 0.95, y: 1.75, z: -ROOM.d / 2 + 0.01, w: 0.42, h: 0.58 },
-    { x: 0.95, y: 1.75, z: -ROOM.d / 2 + 0.01, w: 0.001, h: 0.001 },
+    { x: 0.95, y: 1.75, z: BACK + 0.01, w: 0.42, h: 0.58 },
+    { x: 0.95, y: 1.75, z: BACK + 0.01, w: 0.001, h: 0.001 },
   ], ['#FFFFFF', '#FFFFFF'], 'poster', false),
   actor('shelf', P.shelf, [{ x: 1.35, y: 0.95, z: -2.1, w: 0.9, scale: 1 }, { x: 1.35, y: -0.6, z: -2.1, w: 0.9, scale: 0.001 }], ['#8B6B4A', '#8B6B4A']),
   actor('xbox', P.crate, [{ x: 0.78, y: 0.05, z: -1.45, w: 0.31, h: 0.08, d: 0.26 }, { x: 0.78, y: -0.5, z: -1.45, w: 0.001, h: 0.001, d: 0.001 }], ['#F4F4F2', '#F4F4F2']),
   actor('ball', P.ball, [{ x: -0.95, y: 0.11, z: 0.25, r: 0.11 }, { x: -0.95, y: -0.5, z: 0.25, r: 0.001 }], ['#FFFFFF', '#FFFFFF']),
   actor('labRow', P.labRow, [{ x: 1.65, z0: -1.4, gap: 0.85, lift: 0 }, { x: 1.65, z0: -1.4, gap: 0.85, lift: 1 }], ['#C8B79B', '#C8B79B']),
+  actor('labScreens', P.labScreens, [{ x: 1.65, z0: -1.4, gap: 0.85, lift: 0 }, { x: 1.65, z0: -1.4, gap: 0.85, lift: 1 }], ['#1C2A33', '#1C2A33'], 'toon', false),
   ...PARTS.map((part) => ({ id: `figure-${part}`, keys: [kid[part], teen[part]], colors: partColors[part], kind: 'toon' as const, outline: true })),
 ];

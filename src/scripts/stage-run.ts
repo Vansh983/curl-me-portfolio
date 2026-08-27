@@ -13,6 +13,7 @@ import { flatNormals } from '../lib/stage/rig.ts';
 import { FACE_UV } from '../lib/stage/props.ts';
 
 const OUTLINE = 0.0045; // metres pushed along the normal
+const INK = '#17282f'; // the ink of the authored scenes; the room is lit, so it stays dark in both themes
 const D = Math.PI / 180;
 
 type Built = { actor: Actor; mesh: Mesh; outline?: Mesh; a: Color[]; mat: Material & { color: Color } };
@@ -69,8 +70,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const grad = new DataTexture(new Uint8Array([100, 175, 255]), 3, 1, RedFormat);
   grad.minFilter = grad.magFilter = NearestFilter;
   grad.needsUpdate = true;
-  const ink = new Color(cssVar('--tx'));
-  const outlineMat = outlineMaterial(ink);
+  const outlineMat = outlineMaterial(new Color(INK));
 
   // the screen: video mixed into Notepad on a 2D canvas, uploaded as a texture
   const video = document.createElement('video');
@@ -124,7 +124,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const applyTheme = () => {
     renderer.setClearColor(new Color(cssVar('--bg')));
-    outlineMat.emissive.set(cssVar('--tx'));
     needs = true;
     kick();
   };
@@ -152,9 +151,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const f = shot(q);
     camera.position.set(...f.cam);
     camera.lookAt(new Vector3(...f.look));
-    // f.fov is horizontal: convert so narrow viewports keep the width of the shot
+    // f.fov is horizontal: convert so narrow viewports keep the width of the shot.
+    // In portrait the text owns the lower half, so the frustum is cropped from a taller
+    // one (setViewOffset) and the subject lands in the upper part without tilting the camera.
     const v = 2 * Math.atan(Math.tan((f.fov * D) / 2) / camera.aspect);
-    camera.fov = Math.min(95, Math.max(35, v / D));
+    camera.fov = Math.min(78, Math.max(35, v / D));
+    const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
+    const shift = Math.max(0, 1 - camera.aspect) * 0.9;
+    if (shift > 0.01) camera.setViewOffset(w, h * (1 + shift), 0, h * shift, w, h);
+    else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     for (const b of built) {
       const inf = b.mesh.morphTargetInfluences;
