@@ -1,5 +1,5 @@
 // Rasterise a stage composition to PNG so the art can be looked at.
-// Usage: npm run render -- --key 2 --bg src/lib/scenes/bg-sf.svg --scene src/lib/scenes/sc-2018.svg --out 2018.png
+// Usage: npm run render -- --bg src/lib/scenes/bg-sf.svg --scene src/lib/scenes/sc-2018.svg --out 2018.png
 //        npm run render -- --params .renders/try.json --out try.png
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -15,10 +15,8 @@ const flag = (name) => args.includes(name);
 
 let params = KEY_DEFAULT;
 if (opt('--params')) params = JSON.parse(readFileSync(resolve(opt('--params')), 'utf8'));
-else if (opt('--key') !== undefined) {
-  const { timeline } = await import('../src/data/timeline.ts');
-  params = timeline[Number(opt('--key'))].scene.figure;
-}
+// --key used to read the 2D figure keyframes from timeline.ts; the stage is 3D now
+// (src/lib/stage), so this tool renders the old 2D scenes with --params only.
 
 const dark = flag('--dark');
 const bg = dark ? '#0a0a0a' : '#fdfdfc';

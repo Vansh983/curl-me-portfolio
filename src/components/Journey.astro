@@ -1,107 +1,21 @@
 ---
-// The journey stage. A full-bleed sticky 3D scene behind the chapter text: layers
-// at different depths (old illustrations as images, authored SVG inlined), a camera
-// that rotates and drifts with scroll, and one figure that morphs and walks through
-// it. Docs 07 to 09 in docs/rebuild.
-import { timeline, type Layer } from '../data/timeline';
-import { pairSvgs } from '../lib/morph';
-import { existsSync } from 'node:fs';
+// The journey stage. A full-bleed sticky three.js world behind the chapter text.
+// Chapters are the timeline entries; the stage's stations sit on the first chapters
+// and the camera holds after the last station. Spec: docs/rebuild/11-journey-3d-spec.md.
+import { timeline } from '../data/timeline';
 
-// Raw SVG sources so each path and group can carry its own chapter timeline.
-const raw = import.meta.glob('../lib/scenes/*.svg', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
-const inlineSvg = (stem: string) => {
-  const s = raw[`../lib/scenes/${stem}.svg`];
-  if (!s) throw new Error(`missing scene ${stem}`);
-  // keep the root's presentation attributes (fill, stroke, stroke-width...) so the paths inherit them
-  const open = s.match(/<svg([^>]*)>/)?.[1] ?? '';
-  const attrs = open.replace(/\s(xmlns|width|height)="[^"]*"/g, '').trim();
-  // <image> slots point at files you can drop into public/; until the file exists the slot is left out
-  const body = s
-    .replace(/^[\s\S]*?<svg[^>]*>/, '')
-    .replace(/<\/svg>\s*$/, '')
-    .replace(/<image\b[^>]*href="\/([^"]+)"[^>]*\/>/g, (tag, file) => (existsSync(`public/${file}`) ? tag : ''));
-  return `<svg ${attrs} width="100%" focusable="false">${body}</svg>`;
-};
-
-const chapters = timeline.filter((m) => m.scene);
+const chapters = timeline;
 const n = chapters.length;
-const tl = (i: number) => `--ch-${i + 1}`;
-
-// Depth: with the camera at PERSPECTIVE px, a plane at z looks smaller by (P - z) / P.
-// Scaling it back up around the vanishing point keeps the composition exact at rest,
-// so the only thing depth does is parallax when the camera moves.
-const PERSPECTIVE = 1400;
-const comp = (z: number) => ((PERSPECTIVE - z) / PERSPECTIVE).toFixed(4);
-const layerStyle = (L: Layer, i: number) =>
-  `--z:${L.z}px; --c:${comp(L.z)}; animation-timeline: ${layerTimelines(L, i)};` +
-  ` animation-range: ${L.fadeIn ?? 'entry 45% entry 100%'}, ${L.fadeOut ?? 'exit 0% exit 55%'};`;
-// --tl lets everything inside the layer (groups with data-motion, paths that draw on) pick up the chapter timeline from CSS.
-const animStyle = (L: Layer, i: number) =>
-  `left:${L.x}px; top:${L.y}px; width:${L.w}px; --tl: ${tl(i)}; animation-timeline: ${tl(i)}, ${tl(i)};` + (L.range ? ` animation-range: ${L.range};` : '');
-const mediaStyle = (L: Layer) => {
-  const m = L.media!;
-  return `left:${m.x / m.viewW * 100}%; top:${m.y / m.viewH * 100}%; width:${m.w / m.viewW * 100}%; height:${m.h / m.viewH * 100}%;`;
-};
-
-// Morph layers: build the element pair list now, apply it at scroll time.
-const morphPlan = (L: Layer) => {
-  if (!L.to || !L.inline) return null;
-  const plan = pairSvgs(raw[`../lib/scenes/${L.inline}.svg`] ?? '', raw[`../lib/scenes/${L.to.inline}.svg`] ?? '');
-  if (!plan) console.warn(`[journey] ${L.inline} -> ${L.to.inline} do not line up, falling back to a crossfade`);
-  return plan;
-};
-const morphAttrs = (L: Layer, i: number) => {
-  const plan = morphPlan(L);
-  if (!plan) return {};
-  return {
-    'data-morph': JSON.stringify({ els: plan.els, from: { x: L.x, y: L.y, w: L.w }, to: { x: L.to!.x, y: L.to!.y, w: L.to!.w } }),
-    'data-span': String(i),
-  };
-};
-// a morphing layer stays for two chapters: in with its own, out with the next
-const layerTimelines = (L: Layer, i: number) => (L.to && morphPlan(L) ? `${tl(i)}, ${tl(i + 1)}` : `${tl(i)}, ${tl(i)}`);
-
-const scopeNames = Array.from({ length: 10 }, (_, i) => tl(i)).join(', ');
-const fallback =
-  `@supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {` +
-  chapters.map((_, i) => `.journey[data-chapter="${i}"] .layer[data-i="${i}"]{opacity:1}`).join('') +
-  '}';
 ---
 
-<section class="journey" data-n={n} data-chapter="0" style={`timeline-scope: ${scopeNames}`}>
+<section class="journey" data-n={n}>
   <div class="stage" aria-hidden="true">
-    <div class="world">
-      <div class="cam">
-        {chapters.map((m, i) =>
-          m.scene!.layers.map((L) => (
-            <div class="layer" data-i={i} data-id={L.id} style={layerStyle(L, i)} {...morphAttrs(L, i)}>
-              <div class="anim" data-motion={L.motion ?? 'none'} data-has-media={L.media ? 'true' : undefined} style={animStyle(L, i)}>
-                {L.media && (
-                  <div class="screen-media" style={mediaStyle(L)}>
-                    <video
-                      src={L.media.src}
-                      tabindex="-1"
-                      poster="/assets/scenes/zombies-poster.jpg"
-                      preload="auto"
-                      autoplay
-                      muted
-                      loop
-                      playsinline
-                    />
-                  </div>
-                )}
-                {L.src ? <img src={L.src} alt="" decoding="async" /> : <Fragment set:html={inlineSvg(L.inline!)} />}
-              </div>
-            </div>
-          )),
-        )}
-      </div>
-    </div>
+    <canvas class="gl"></canvas>
   </div>
 
   <div class="wall">
     {chapters.map((m, i) => (
-      <article class="ch" id={`ch-${i + 1}`} data-i={i} style={`view-timeline: ${tl(i)} block`}>
+      <article class="ch" id={`ch-${i + 1}`} data-i={i}>
         <div class="tx">
           {i === 0 && Astro.slots.has('hero') ? (
             <slot name="hero" />
@@ -123,22 +37,11 @@ const fallback =
   </div>
 </section>
 
-<style is:inline set:html={fallback} />
-<style is:global>
-  /* the Call of Duty wordmark in the bedroom scene */
-  @font-face {
-    font-family: 'Bebas Neue';
-    src: url('/fonts/bebas-neue.ttf') format('truetype');
-    font-display: swap;
-  }
-</style>
-
 <style>
   .journey {
     position: relative;
     width: 100vw;
     margin-left: calc(50% - 50vw);
-    view-timeline-name: --story;
   }
   .stage {
     position: sticky;
@@ -150,206 +53,11 @@ const fallback =
     z-index: 0;
     background: var(--bg);
   }
-  /* The world is a 1600 by 900 design space, scaled to cover the viewport and anchored bottom right.
-     --k is set by the script (max of width/1600 and height/900). */
-  .world {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 1600px;
-    height: 900px;
-    transform-origin: right bottom;
-    transform: scale(var(--k, 1));
-    perspective: 1400px;
-    perspective-origin: 1100px 600px;
-  }
-  .cam {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    animation-name: cam;
-    animation-duration: auto;
-    animation-timing-function: linear;
-    animation-fill-mode: both;
-    animation-timeline: --story;
-    animation-range: cover 0% cover 100%;
-  }
-  @keyframes cam {
-    from { transform: rotateY(-7deg) translateX(50px) translateZ(-40px); }
-    to { transform: rotateY(7deg) translateX(-50px) translateZ(60px); }
-  }
-  .layer {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    transform-origin: 1100px 600px;
-    transform: translateZ(var(--z)) scale(var(--c));
-    opacity: 0;
-    animation-name: fade-in, fade-out;
-    animation-duration: auto, auto;
-    animation-timing-function: linear, linear;
-    /* fade-in fills both ways; fade-out only forwards, or its backwards fill (opacity 1) would win before its range */
-    animation-fill-mode: both, forwards;
-    /* crossfade in the middle half of the gap between chapters, so each chapter rests alone */
-    animation-range: entry 45% entry 100%, exit 0% exit 55%;
-  }
-  .anim {
-    position: absolute;
-    transform-style: preserve-3d;
-    transform-origin: center bottom;
-    animation-duration: auto, auto;
-    animation-timing-function: linear, linear;
-    animation-fill-mode: both, both;
-    animation-range: entry 0% entry 100%;
-  }
-  .anim > :global(img),
-  .anim > :global(svg) {
-    display: block;
-    width: 100%;
-    height: auto;
-    color: #17282f; /* currentColor inside authored ink scenes */
-  }
-  .anim > :global(svg) {
-    position: relative;
-    z-index: 1;
-    pointer-events: none;
-  }
-  .screen-media {
-    position: absolute;
-    z-index: 2;
-    overflow: hidden;
-    border-radius: 2px;
-    background: #101815 url('/assets/scenes/zombies-poster.jpg') center / cover no-repeat;
-    pointer-events: none;
-  }
-  .screen-media video {
+  .gl {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    border: 0;
-    pointer-events: none;
   }
-  /* The live footage owns the bedroom screen. The authored UI fades back in as it becomes Notepad. */
-  .anim[data-has-media='true'] :global([data-screen-art]) {
-    opacity: 0;
-  }
-  /* Motions. The same names work on a layer wrapper and on any group inside an inlined SVG. */
-  .anim :global([data-motion]) {
-    transform-box: fill-box;
-    transform-origin: center bottom;
-    animation-duration: auto, auto;
-    animation-timing-function: linear, linear;
-    animation-fill-mode: both, both;
-    animation-timeline: var(--tl), var(--tl);
-    animation-range: entry 0% entry 100%;
-  }
-  .anim[data-motion='rise'],
-  .anim :global([data-motion='rise']) { animation-name: rise; }
-  .anim[data-motion='pop'],
-  .anim :global([data-motion='pop']) { animation-name: pop; }
-  .anim[data-motion='slide-l'],
-  .anim :global([data-motion='slide-l']) { animation-name: slide-l; }
-  .anim[data-motion='slide-r'],
-  .anim :global([data-motion='slide-r']) { animation-name: slide-r; }
-  .anim[data-motion='drift-l'],
-  .anim :global([data-motion='drift-l']) { animation-name: drift-l; }
-  .anim[data-motion='drift-r'],
-  .anim :global([data-motion='drift-r']) { animation-name: drift-r; }
-  .anim[data-motion='sail'],
-  .anim :global([data-motion='sail']) { animation-name: sail; }
-  .anim[data-motion='drop'],
-  .anim :global([data-motion='drop']) { animation-name: drop; }
-  .anim[data-motion='swing-in'],
-  .anim :global([data-motion='swing-in']) { animation-name: swing-in; transform-origin: right center; }
-  .anim[data-motion='burst'],
-  .anim :global([data-motion='burst']) { animation-name: burst; transform-origin: center; }
-  .anim[data-motion='spin'],
-  .anim :global([data-motion='spin']) { animation-name: spin; transform-origin: center; }
-  .anim[data-motion='shamble'],
-  .anim :global([data-motion='shamble']) { animation-name: shamble; }
-  .anim[data-motion='flicker'],
-  .anim :global([data-motion='flicker']) { animation-name: flicker; }
-  .anim[data-motion='pulse'],
-  .anim :global([data-motion='pulse']) { animation-name: pulse; transform-origin: center; }
-  .anim[data-motion='sway'],
-  .anim :global([data-motion='sway']) { animation-name: sway; }
-  .anim[data-motion='tilt'],
-  .anim :global([data-motion='tilt']) { animation-name: tilt; transform-origin: center; }
-  .anim[data-motion='steam'],
-  .anim :global([data-motion='steam']) { animation-name: steam; }
-  .anim[data-motion='roll'],
-  .anim :global([data-motion='roll']) { animation-name: roll; transform-origin: center; }
-  .anim[data-motion='dusk'],
-  .anim :global([data-motion='dusk']) { animation-name: dusk; }
-  .anim[data-motion='fly'],
-  .anim :global([data-motion='fly']) {
-    offset-path: path('M -160 300 C 300 220 700 120 1000 150 C 1300 180 1500 90 1780 20');
-    offset-rotate: auto;
-    animation-name: fly;
-  }
-  @keyframes rise { from { transform: translateY(460px); } to { transform: translateY(0); } }
-  @keyframes pop { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-  @keyframes slide-l { from { transform: translateX(-520px); } to { transform: translateX(0); } }
-  @keyframes slide-r { from { transform: translateX(520px); } to { transform: translateX(0); } }
-  @keyframes drift-l { from { transform: translateX(140px); } to { transform: translateX(-260px); } }
-  @keyframes drift-r { from { transform: translateX(-140px); } to { transform: translateX(260px); } }
-  @keyframes sail { from { transform: translateX(-90px) rotate(-3deg); } to { transform: translateX(110px) rotate(3deg); } }
-  @keyframes drop { from { transform: translateY(-320px); } to { transform: translateY(0); } }
-  @keyframes swing-in { from { transform: translateX(560px) translateZ(-300px) rotateY(-75deg); } to { transform: none; } }
-  @keyframes fly { from { offset-distance: 0%; } to { offset-distance: 100%; } }
-  /* things that keep moving on their own clock, not the scroll: the ceiling fan */
-  .anim :global([data-loop='spin']) {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: spin-loop 3.2s linear infinite;
-  }
-  .anim :global([data-loop='window']) {
-    transform-box: fill-box;
-    animation: window-drift 5.5s ease-in-out infinite alternate;
-  }
-  @keyframes spin-loop { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  @keyframes window-drift { from { transform: translateX(-58px); } to { transform: translateX(72px); } }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(1440deg); } }
-  @keyframes shamble { 0% { transform: translateX(-14px); } 50% { transform: translateX(16px); } 100% { transform: translateX(-10px); } }
-  @keyframes flicker {
-    0%, 9% { opacity: 1; } 10%, 13% { opacity: 0.15; } 14%, 31% { opacity: 1; } 32%, 34% { opacity: 0.2; }
-    35%, 58% { opacity: 1; } 59%, 61% { opacity: 0.1; } 62%, 80% { opacity: 1; } 81%, 84% { opacity: 0.25; } 85%, 100% { opacity: 1; }
-  }
-  @keyframes pulse { 0%, 100% { transform: scale(1); } 25% { transform: scale(1.3); } 50% { transform: scale(0.95); } 75% { transform: scale(1.25); } }
-  @keyframes sway { 0% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } 100% { transform: rotate(-1.5deg); } }
-  @keyframes tilt { 0% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(6deg) translateY(-4px); } 100% { transform: rotate(-4deg) translateY(0); } }
-  @keyframes steam { 0% { transform: translateY(10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-60px); opacity: 0; } }
-  @keyframes roll { from { transform: translateX(-640px) rotate(-900deg); } to { transform: translateX(0) rotate(0deg); } }
-  @keyframes dusk { from { transform: translateY(0); } to { transform: translateY(-60px); } }
-
-  /* Inside inlined SVGs, stroked paths with pathLength draw themselves on. */
-  .anim :global(path[pathLength]) {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation-name: draw;
-    animation-duration: auto;
-    animation-timing-function: linear;
-    animation-fill-mode: both;
-    animation-timeline: var(--tl);
-    animation-range: entry 60% exit 0%;
-  }
-  @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-  @keyframes burst { from { transform: scale(0); } to { transform: scale(1); } }
-  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
-
-  /* Where scroll timelines are missing, the script's data-chapter picks the layers (rules in the inline style above). */
-  @supports not ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
-    .layer, .anim, .cam, .anim :global([data-motion]) { animation-name: none; }
-    .layer { transition: opacity 0.4s; }
-    .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .cam, .anim, .anim :global([data-motion]), .anim :global([data-loop]) { animation-name: none; }
-    .anim :global(path[pathLength]) { animation-name: none; stroke-dashoffset: 0; }
-  }
-
   .wall {
     position: relative;
     z-index: 1;
@@ -401,7 +109,6 @@ const fallback =
     letter-spacing: 0.02em;
     color: var(--mut);
   }
-
   @media (max-width: 48rem) {
     .ch {
       padding-top: 52svh;
@@ -429,95 +136,21 @@ const fallback =
 </style>
 
 <script>
-  // Three jobs: scale the 1600 by 900 world to cover the viewport, keep data-chapter
-  // current for browsers without CSS scroll timelines, and drive the morph layers.
-  import { applyPlan, MORPH_TAGS, type MorphPlan } from '../lib/morph';
-  import { locate } from '../lib/lerp';
-
-  type Box = { x: number; y: number; w: number };
-  type Morph = {
-    span: number;
-    plan: MorphPlan;
-    from: Box;
-    to: Box;
-    anim: HTMLElement;
-    els: Element[];
-    media?: HTMLElement;
-    screenArt?: SVGElement;
-    last: number;
-  };
-
+  // Load the renderer only when the journey is within one viewport. three is its own chunk.
   const root = document.querySelector<HTMLElement>('.journey');
-  if (root) {
+  const canvas = root?.querySelector<HTMLCanvasElement>('canvas.gl');
+  if (root && canvas) {
     const n = Number(root.dataset.n) || 1;
-    const stage = root.querySelector<HTMLElement>('.stage')!;
-    const morphs: Morph[] = [];
-    root.querySelectorAll<HTMLElement>('.layer[data-morph]').forEach((layer) => {
-      const data = JSON.parse(layer.dataset.morph!) as { els: MorphPlan['els']; from: Box; to: Box };
-      const anim = layer.querySelector<HTMLElement>('.anim')!;
-      const els = Array.from(anim.querySelectorAll(MORPH_TAGS.join(',')));
-      const media = anim.querySelector<HTMLElement>('.screen-media') ?? undefined;
-      const screenArt = anim.querySelector<SVGElement>('[data-screen-art]') ?? undefined;
-      morphs.push({ span: Number(layer.dataset.span), plan: { els: data.els, count: els.length }, from: data.from, to: data.to, anim, els, media, screenArt, last: -1 });
-    });
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-
-    let last = -1;
-    let target = 0;
-    let cur = 0;
-    let raf = 0;
-
-    const progress = () => {
-      const r = root.getBoundingClientRect();
-      const total = r.height - innerHeight;
-      return total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
-    };
-    const draw = (p: number) => {
-      const { i, t } = locate(p, n);
-      const smoothstep = (a: number, b: number, v: number) => {
-        const x = Math.min(1, Math.max(0, (v - a) / (b - a)));
-        return x * x * (3 - 2 * x);
-      };
-      for (const m of morphs) {
-        const mt = i < m.span ? 0 : i === m.span ? t : 1;
-        if (mt === m.last) continue;
-        m.last = mt;
-        applyPlan(m.els, m.plan, mt);
-        const mix = (a: number, b: number) => a + (b - a) * mt;
-        m.anim.style.left = `${mix(m.from.x, m.to.x)}px`;
-        m.anim.style.top = `${mix(m.from.y, m.to.y)}px`;
-        m.anim.style.width = `${mix(m.from.w, m.to.w)}px`;
-        m.anim.style.setProperty('--morph', String(mt));
-        if (m.media) m.media.style.opacity = String(1 - smoothstep(0.18, 0.68, mt));
-        if (m.screenArt) m.screenArt.style.opacity = String(smoothstep(0.42, 0.76, mt));
-      }
-      const near = Math.round(p * (n - 1));
-      if (near !== last) {
-        last = near;
-        root.dataset.chapter = String(near);
-      }
-    };
-    const tick = () => {
-      raf = 0;
-      if (reduce.matches) cur = target;
-      else {
-        cur += (target - cur) * 0.2;
-        if (Math.abs(target - cur) < 0.0005) cur = target;
-      }
-      draw(cur);
-      if (cur !== target) raf = requestAnimationFrame(tick);
-    };
-    const onScroll = () => {
-      target = progress();
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-    const fit = () => {
-      const k = Math.max(stage.clientWidth / 1600, stage.clientHeight / 900);
-      stage.style.setProperty('--k', k.toFixed(4));
-      onScroll();
-    };
-    addEventListener('scroll', onScroll, { passive: true });
-    addEventListener('resize', fit);
-    fit();
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        import('../scripts/stage-run.ts')
+          .then((m) => m.mount(root, canvas, n))
+          .catch((err) => console.warn('[journey] stage did not start', err));
+      },
+      { rootMargin: '100% 0px' },
+    );
+    io.observe(root);
   }
 </script>
