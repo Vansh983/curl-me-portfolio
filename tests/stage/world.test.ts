@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { ACTORS, STATIONS } from '../../src/lib/stage/world.ts';
 
 test('every actor has one key and one colour per station, same count in each', () => {
-  assert.ok(STATIONS.length >= 2);
+  assert.equal(STATIONS.length, 3);
   for (const a of ACTORS) {
     assert.equal(a.keys.length, STATIONS.length, a.id);
     assert.equal(a.colors.length, STATIONS.length, a.id);
@@ -20,7 +20,7 @@ test('every actor has one key and one colour per station, same count in each', (
 
 test('the story beats are all on stage', () => {
   const ids = new Set(ACTORS.map((a) => a.id));
-  for (const id of ['poster', 'shelf', 'shelfLabels', 'xbox', 'xboxLogo', 'nuggets', 'ball', 'curtains', 'window', 'socket', 'wire', 'keyboard', 'clock', 'rug', 'chair', 'figure-hair', 'figure-held', 'figure-tie', 'banner', 'board', 'tubes', 'tower', 'labChairs', 'whiteboard']) {
+  for (const id of ['poster', 'shelf', 'shelfLabels', 'xbox', 'xboxLogo', 'nuggets', 'ball', 'curtains', 'window', 'socket', 'wire', 'keyboard', 'clock', 'rug', 'chair', 'figure-hair', 'figure-held', 'figure-tie', 'banner', 'board', 'tubes', 'tower', 'labChairs', 'whiteboard', 'bridge', 'sky', 'water', 'sign', 'palmL', 'lamp', 'figure-glasses', 'figure-badge']) {
     assert.ok(ids.has(id), id);
   }
 });

@@ -6,25 +6,25 @@ import { Sink, type Geo, type UVRect } from './rig.ts';
 const FULL: UVRect = [0, 0, 1, 1];
 
 /** Room slabs are centred on x = 0 and z = zc (default 0). */
-export const floor = (p: { w: number; d: number; zc?: number }): Geo => {
-  const zc = p.zc ?? 0;
-  return new Sink().quad([-p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc - p.d / 2], [-p.w / 2, 0, zc - p.d / 2], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
+export const floor = (p: { w: number; d: number; zc?: number; y?: number }): Geo => {
+  const zc = p.zc ?? 0, y = p.y ?? 0;
+  return new Sink().quad([-p.w / 2, y, zc + p.d / 2], [p.w / 2, y, zc + p.d / 2], [p.w / 2, y, zc - p.d / 2], [-p.w / 2, y, zc - p.d / 2], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
 };
 
 /** Back, left and right walls, inward facing. The front (camera side) is open. */
-export const walls = (p: { w: number; h: number; d: number; zc?: number }): Geo => {
-  const zc = p.zc ?? 0;
-  const x0 = -p.w / 2, x1 = p.w / 2, z0 = zc - p.d / 2, z1 = zc + p.d / 2, h = p.h;
+export const walls = (p: { w: number; h: number; d: number; zc?: number; y?: number }): Geo => {
+  const zc = p.zc ?? 0, y0 = p.y ?? 0;
+  const x0 = -p.w / 2, x1 = p.w / 2, z0 = zc - p.d / 2, z1 = zc + p.d / 2, h = y0 + p.h;
   return new Sink()
-    .quad([x0, 0, z0], [x1, 0, z0], [x1, h, z0], [x0, h, z0])
-    .quad([x0, 0, z1], [x0, 0, z0], [x0, h, z0], [x0, h, z1])
-    .quad([x1, 0, z0], [x1, 0, z1], [x1, h, z1], [x1, h, z0])
+    .quad([x0, y0, z0], [x1, y0, z0], [x1, h, z0], [x0, h, z0])
+    .quad([x0, y0, z1], [x0, y0, z0], [x0, h, z0], [x0, h, z1])
+    .quad([x1, y0, z0], [x1, y0, z1], [x1, h, z1], [x1, h, z0])
     .out();
 };
 
-export const ceiling = (p: { w: number; h: number; d: number; zc?: number }): Geo => {
-  const zc = p.zc ?? 0;
-  return new Sink().quad([-p.w / 2, p.h, zc - p.d / 2], [p.w / 2, p.h, zc - p.d / 2], [p.w / 2, p.h, zc + p.d / 2], [-p.w / 2, p.h, zc + p.d / 2]).out();
+export const ceiling = (p: { w: number; h: number; d: number; zc?: number; y?: number }): Geo => {
+  const zc = p.zc ?? 0, h = p.h + (p.y ?? 0);
+  return new Sink().quad([-p.w / 2, h, zc - p.d / 2], [p.w / 2, h, zc - p.d / 2], [p.w / 2, h, zc + p.d / 2], [-p.w / 2, h, zc + p.d / 2]).out();
 };
 
 /** A thin slab on a wall (the whiteboard). w runs along x before yaw. */
@@ -259,4 +259,113 @@ export const labScreens = (p: { x: number; z0: number; gap: number; lift: number
   const s = new Sink();
   for (let k = 0; k < 3; k++) s.box(p.x + 0.05 - 0.2, 0.72 + 0.21, p.z0 + k * p.gap, 0.01, 0.3, 0.32);
   return s.translate(0, (p.lift - 1) * 1.3, 0).out();
+};
+
+// ---- 2018: San Francisco. Everything below is tiny and sunk in the first two stations.
+
+/** The Golden Gate: deck, two towers with braces, main cables sampled as bones, suspenders. Built at (x, y, z), spanning x. */
+export const bridge = (p: { x: number; y: number; z: number; scale: number }): Geo => {
+  const k = p.scale, s = new Sink().color('#F2575D');
+  const L = 150 * k, TX = 48 * k, TH = 44 * k, DY = 12 * k;
+  s.box(p.x, p.y + DY, p.z, 2 * L, 1.3 * k, 6 * k);
+  s.color('#C24A48');
+  for (const tx of [-TX, TX]) {
+    for (const leg of [-1, 1]) s.box(p.x + tx, p.y + TH / 2, p.z + leg * 2.4 * k, 2.4 * k, TH, 1.6 * k);
+    for (const h of [DY + 6 * k, DY + 16 * k, DY + 26 * k, TH - 3 * k]) s.box(p.x + tx, p.y + h, p.z, 2.4 * k, 2.6 * k, 6.2 * k);
+  }
+  s.color('#F2575D');
+  const N = 24, M = 8, r = 0.38 * k;
+  const mainY = (t: number) => p.y + TH - (TH - DY - 2 * k) * (1 - (2 * t - 1) ** 2);
+  const sideY = (t: number) => p.y + DY + 1.5 * k + (TH - DY - 1.5 * k) * t * t;
+  for (const side of [-1, 1]) {
+    const cz = p.z + side * 2.4 * k;
+    for (let i = 0; i < N; i++) s.bone([p.x - TX + (2 * TX * i) / N, mainY(i / N), cz], [p.x - TX + (2 * TX * (i + 1)) / N, mainY((i + 1) / N), cz], r, r);
+    for (let i = 0; i < M; i++) {
+      s.bone([p.x - L + ((L - TX) * i) / M, sideY(i / M), cz], [p.x - L + ((L - TX) * (i + 1)) / M, sideY((i + 1) / M), cz], r, r);
+      s.bone([p.x + L - ((L - TX) * i) / M, sideY(i / M), cz], [p.x + L - ((L - TX) * (i + 1)) / M, sideY((i + 1) / M), cz], r, r);
+    }
+    for (let i = 1; i < N; i += 2) s.bone([p.x - TX + (2 * TX * i) / N, mainY(i / N), cz], [p.x - TX + (2 * TX * i) / N, p.y + DY, cz], 0.12 * k, 0.12 * k);
+    for (let i = 1; i < M; i += 2) {
+      s.bone([p.x - L + ((L - TX) * i) / M, sideY(i / M), cz], [p.x - L + ((L - TX) * i) / M, p.y + DY, cz], 0.12 * k, 0.12 * k);
+      s.bone([p.x + L - ((L - TX) * i) / M, sideY(i / M), cz], [p.x + L - ((L - TX) * i) / M, p.y + DY, cz], 0.12 * k, 0.12 * k);
+    }
+  }
+  return s.out();
+};
+
+/** A palm tree: a leaning trunk and seven fronds. */
+export const palm = (p: { x: number; z: number; h: number; scale: number }): Geo => {
+  const k = p.scale, s = new Sink().color('#8B6B4A');
+  const top: [number, number, number] = [0.35 * k, p.h * k, 0];
+  s.bone([0, 0, 0], top, 0.14 * k, 0.14 * k);
+  s.color('#4F8A3F');
+  for (let i = 0; i < 7; i++) {
+    const start = s.count;
+    s.sphere(top[0] + 1.3 * k, top[1] - 0.2 * k, top[2], 1.5 * k, 0.16 * k, 0.5 * k, 8, 4);
+    s.rotateZ(top[0], top[1], -0.4 - (i % 2) * 0.25, start).rotateY(top[0], top[2], (i * Math.PI * 2) / 7, start);
+  }
+  return s.translate(p.x, 0, p.z).out();
+};
+
+/** A green lamp post with a glowing lamp. */
+export const lamp = (p: { x: number; z: number; h: number; scale: number }): Geo => {
+  const k = p.scale;
+  return new Sink().color('#3F7F7A').cylinder(p.x, (p.h / 2) * k, p.z, 0.07 * k, p.h * k, 8).cylinder(p.x, 0.1 * k, p.z, 0.2 * k, 0.2 * k, 8)
+    .color('#FFF2B0').sphere(p.x, (p.h + 0.3) * k, p.z, 0.22 * k, 0.3 * k, 0.22 * k, 8, 5)
+    .color('#3F7F7A').cylinder(p.x, (p.h + 0.62) * k, p.z, 0.08 * k, 0.1 * k, 6)
+    .out();
+};
+
+/** The Google San Francisco sign: a white board on a grey base, the lettering is its texture (the `sign` face actor). */
+export const signBoard = (p: { x: number; y: number; z: number; w: number; h: number; scale: number }): Geo => {
+  const k = p.scale;
+  return new Sink().color('#F4F4F2').box(p.x, p.y, p.z - 0.06 * k, (p.w + 0.1) * k, (p.h + 0.1) * k, 0.12 * k)
+    .color('#6E7377').box(p.x, (p.y - p.h / 2) * 0.5 * k, p.z - 0.06 * k, p.w * 0.9 * k, (p.y - p.h / 2) * k, 0.12 * k)
+    .out();
+};
+
+/** A hedge in front of the sign, a wooden railing in front of the hedge. */
+export const hedge = (p: { x: number; z: number; w: number; scale: number }): Geo =>
+  new Sink().color('#3E7A3A').box(p.x, 0.36 * p.scale, p.z, p.w * p.scale, 0.72 * p.scale, 0.9 * p.scale)
+    .color('#6E5238').box(p.x, 0.92 * p.scale, p.z + 0.7 * p.scale, (p.w + 0.6) * p.scale, 0.05 * p.scale, 0.05 * p.scale)
+    .box(p.x - (p.w / 2) * p.scale, 0.46 * p.scale, p.z + 0.7 * p.scale, 0.05 * p.scale, 0.92 * p.scale, 0.05 * p.scale)
+    .box(p.x + (p.w / 2) * p.scale, 0.46 * p.scale, p.z + 0.7 * p.scale, 0.05 * p.scale, 0.92 * p.scale, 0.05 * p.scale)
+    .out();
+
+/** The bay: one big blue quad at y. */
+export const water = (p: { y: number; size: number; zc: number }): Geo =>
+  new Sink().color('#5F9BC4').quad([-p.size, p.y, p.zc + p.size], [p.size, p.y, p.zc + p.size], [p.size, p.y, p.zc - p.size], [-p.size, p.y, p.zc - p.size]).out();
+
+/** The Marin headlands behind the bridge: three soft hills. */
+export const hills = (p: { z: number; scale: number }): Geo => {
+  const k = p.scale, s = new Sink();
+  for (const [x, r, c] of [[-120, 90, '#6F8F5E'], [20, 110, '#7C9A66'], [150, 80, '#8A9C6C']] as const) s.color(c).sphere(x * k, -20 * k, p.z, r * k, 60 * k, 60 * k, 12, 6);
+  return s.out();
+};
+
+/** The sky: a big sphere around everything, seen from inside (the material is double sided). Textured. */
+export const sky = (p: { r: number; y: number }): Geo => new Sink().sphere(0, p.y, 0, p.r, p.r, p.r, 16, 10, [0, 0, 1, 1]).out();
+
+/** The sun, far away and unlit. */
+export const sun = (p: { x: number; y: number; z: number; r: number }): Geo => new Sink().color('#FFE9A8').sphere(p.x, p.y, p.z, p.r, p.r, p.r, 10, 6).out();
+
+/** Four clouds: flattened white spheres. */
+export const clouds = (p: { y: number; scale: number }): Geo => {
+  const k = p.scale, s = new Sink().color('#FFFFFF');
+  for (const [x, z, r] of [[-90, -120, 16], [-20, -160, 22], [70, -140, 18], [130, -100, 14]] as const) {
+    s.sphere(x * k, p.y * k, z * k, r * k, r * 0.32 * k, r * 0.6 * k, 10, 5);
+    s.sphere((x + r * 0.7) * k, (p.y + r * 0.1) * k, z * k, r * 0.7 * k, r * 0.3 * k, r * 0.5 * k, 8, 4);
+  }
+  return s.out();
+};
+
+/** Two sailboats on the bay. */
+export const boats = (p: { y: number; scale: number }): Geo => {
+  const k = p.scale, s = new Sink();
+  for (const [x, z, sail] of [[-28, -60, '#FFFFFF'], [40, -90, '#F2575D']] as const) {
+    s.color('#17282F').box(x * k, (p.y + 0.4) * k, z * k, 6 * k, 0.9 * k, 2.2 * k);
+    s.color('#8B6B4A').cylinder(x * k, (p.y + 4) * k, z * k, 0.12 * k, 7 * k, 6);
+    s.color(sail).bone([(x + 0.2) * k, (p.y + 1) * k, z * k], [(x + 0.2) * k, (p.y + 7.4) * k, z * k], 0.05 * k, 2.2 * k);
+  }
+  return s.out();
 };

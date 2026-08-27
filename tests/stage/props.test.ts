@@ -35,6 +35,17 @@ test('each rig keeps its count between two very different param sets', () => {
     ['board', P.board({ x: 1, y: 1.6, z: -2, w: 1, h: 0.6, scale: 1 }), P.board({ x: 1, y: 1.6, z: -2, w: 1, h: 0.6, scale: 0.001 })],
     ['tubes', P.tubes({ y: 2.8, z0: -1, gap: 1.5, scale: 1 }), P.tubes({ y: 2.8, z0: -1, gap: 1.5, scale: 0.001 })],
     ['tower', P.tower({ x: 0, y: 0, z: 0, scale: 1 }), P.tower({ x: 0, y: -1, z: 0, scale: 0.001 })],
+    ['bridge', P.bridge({ x: 0, y: 0, z: -100, scale: 1 }), P.bridge({ x: 0, y: -2, z: 0, scale: 0.001 })],
+    ['palm', P.palm({ x: 0, z: 0, h: 6, scale: 1 }), P.palm({ x: 1, z: 1, h: 6, scale: 0.001 })],
+    ['lamp', P.lamp({ x: 0, z: 0, h: 4, scale: 1 }), P.lamp({ x: 1, z: 1, h: 4, scale: 0.001 })],
+    ['signBoard', P.signBoard({ x: 0, y: 1.5, z: 0, w: 4, h: 2, scale: 1 }), P.signBoard({ x: 0, y: 1.5, z: 0, w: 4, h: 2, scale: 0.001 })],
+    ['hedge', P.hedge({ x: 0, z: 0, w: 5, scale: 1 }), P.hedge({ x: 0, z: 0, w: 5, scale: 0.001 })],
+    ['water', P.water({ y: 0, size: 100, zc: 0 }), P.water({ y: -1, size: 0.001, zc: 0 })],
+    ['hills', P.hills({ z: -100, scale: 1 }), P.hills({ z: 0, scale: 0.001 })],
+    ['sky', P.sky({ r: 100, y: 0 }), P.sky({ r: 0.001, y: -1 })],
+    ['sun', P.sun({ x: 0, y: 10, z: 0, r: 1 }), P.sun({ x: 0, y: -1, z: 0, r: 0.001 })],
+    ['clouds', P.clouds({ y: 50, scale: 1 }), P.clouds({ y: -1, scale: 0.001 })],
+    ['boats', P.boats({ y: 0, scale: 1 }), P.boats({ y: -1, scale: 0.001 })],
   ];
   for (const [name, a, b] of pairs) {
     assert.equal(a.pos.length, b.pos.length, name);

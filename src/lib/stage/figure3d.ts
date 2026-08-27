@@ -14,6 +14,8 @@ export interface Pose {
   foreSpread: number; // deg, forearms out (+) or in toward each other (-)
   torsoLean: number; // deg forward
   headTilt: number; // deg forward
+  rShoulder: number; // deg added to the right arm's shoulderFlex (raising the trophy)
+  rElbow: number; // deg added to the right arm's elbowFlex
 }
 export interface Figure {
   height: number; // metres standing
@@ -24,12 +26,16 @@ export interface Figure {
   hairTop: number; // 0..1, how far the hair cap comes down
   tie: number; // 0..1
   held: number; // 0 controller between the hands .. 1 mouse under the right hand
+  trophy: number; // 0..1, the held thing becomes a trophy raised in the right hand
+  glasses: number; // 0..1
+  lanyard: number; // 0..1, the lanyard and badge on the chest
+  smile: number; // 0..1
   x: number; y: number; z: number; // pelvis
   yaw: number; // radians, 0 faces -z
   crossLegs: number; // 0..1, shins cross inward (sitting on the floor)
   pose: Pose;
 }
-export const PARTS = ['skin', 'hair', 'shirt', 'sleeveL', 'sleeveR', 'legs', 'shoes', 'tie', 'held'] as const;
+export const PARTS = ['skin', 'hair', 'shirt', 'sleeveL', 'sleeveR', 'legs', 'shoes', 'tie', 'held', 'face', 'glasses', 'lanyard', 'badge'] as const;
 export type Part = (typeof PARTS)[number];
 
 const D = Math.PI / 180;
@@ -55,7 +61,7 @@ const TORSO: [number, number][] = [[0.88, 0], [0.92, 0.3], [1, 0.62], [1.06, 0.8
  * @returns one geometry per part, fixed vertex counts
  */
 export function figure(p: Figure): Record<Part, Geo> {
-  const S: Record<Part, Sink> = { skin: new Sink(), hair: new Sink(), shirt: new Sink(), sleeveL: new Sink(), sleeveR: new Sink(), legs: new Sink(), shoes: new Sink(), tie: new Sink(), held: new Sink() };
+  const S = Object.fromEntries(PARTS.map((k) => [k, new Sink()])) as Record<Part, Sink>;
   const H = p.height, q = p.pose;
   const torsoLen = H * 0.3, thigh = H * 0.24, shin = H * 0.23, upper = H * 0.16, fore = H * 0.15, neckLen = H * 0.035;
   const lean = q.torsoLean * D, tilt = q.headTilt * D;
@@ -70,19 +76,45 @@ export function figure(p: Figure): Record<Part, Geo> {
   // hair: a cap of a slightly bigger sphere, set back, coming down over the back of the head to the nape
   S.hair.sphere(head[0], head[1] + p.headR * 0.1, head[2] + p.headR * 0.12, p.headR * 1.04, p.headR * 1.1, p.headR * 1.08, 12, 8, undefined, 0.52 + 0.14 * p.hairTop);
   for (const sign of [-1, 1] as const) S.skin.sphere(head[0] + sign * p.headR * 0.97, head[1] - p.headR * 0.08, head[2] + p.headR * 0.04, p.headR * 0.13, p.headR * 0.2, p.headR * 0.09, 6, 4);
+  // the face: eyes, brows, a mouth that smiles; glasses as thin rims; all on the -z side of the head
+  const hr = p.headR, fz = head[2] - hr * 0.93;
+  for (const sign of [-1, 1] as const) {
+    S.face.sphere(head[0] + sign * hr * 0.34, head[1] + hr * 0.06, fz + hr * 0.02, hr * 0.075, hr * 0.09, hr * 0.05, 6, 4);
+    S.face.bone([head[0] + sign * hr * 0.5, head[1] + hr * 0.3, fz], [head[0] + sign * hr * 0.18, head[1] + hr * 0.32, fz], hr * 0.015, hr * 0.025);
+    // glasses: a rim of four bars around each eye, an arm back to the ear, a bridge between
+    const g = p.glasses, ex = head[0] + sign * hr * 0.34, ey = head[1] + hr * 0.06, rw = hr * 0.2 * g + 0.0005, rh = hr * 0.16 * g + 0.0005, t = hr * 0.014 * g + 0.0003;
+    S.glasses.bone([ex - rw, ey + rh, fz - 0.002], [ex + rw, ey + rh, fz - 0.002], t, t).bone([ex - rw, ey - rh, fz - 0.002], [ex + rw, ey - rh, fz - 0.002], t, t);
+    S.glasses.bone([ex - rw, ey - rh, fz - 0.002], [ex - rw, ey + rh, fz - 0.002], t, t).bone([ex + rw, ey - rh, fz - 0.002], [ex + rw, ey + rh, fz - 0.002], t, t);
+    S.glasses.bone([ex + sign * rw, ey + rh * 0.6, fz], [head[0] + sign * hr * 0.98 * g + (1 - g) * ex, ey + hr * 0.04, head[2] + hr * 0.02 * g + (1 - g) * fz], t, t);
+  }
+  S.glasses.bone([head[0] - hr * 0.14, head[1] + hr * 0.1, fz - 0.002], [head[0] + hr * 0.14, head[1] + hr * 0.1, fz - 0.002], hr * 0.012 * p.glasses + 0.0003, hr * 0.012 * p.glasses + 0.0003);
+  const my = head[1] - hr * 0.38;
+  S.face.box(head[0], my, fz + hr * 0.02, hr * 0.36, hr * 0.045, hr * 0.03);
+  for (const sign of [-1, 1] as const) S.face.box(head[0] + sign * hr * 0.2, my + hr * 0.05 * p.smile, fz + hr * 0.03, hr * 0.06, hr * 0.045, hr * 0.03);
   // tie: hangs from the collar down the front
   const tieTop = add(N, [0, -0.015, -(depth + 0.008)]);
   S.tie.bone(tieTop, add(tieTop, [0, -Math.cos(lean), Math.sin(lean) * 0.2], 0.001 + torsoLen * 0.52 * p.tie), 0.001 + 0.018 * p.tie, 0.004);
 
+  // lanyard from both sides of the neck to a badge on the chest
+  const ly = p.lanyard, badgeC = add(N, [0, -torsoLen * 0.42 * ly - 0.02, -(depth + 0.01)]);
+  for (const sign of [-1, 1] as const) S.lanyard.bone(add(N, [sign * p.headR * 0.3, 0, -depth * 0.6]), add(badgeC, [sign * 0.012, 0.03, 0.002]), 0.004 * ly + 0.0003, 0.002 * ly + 0.0003);
+  const bw = 0.03 * ly + 0.0005, bh = 0.042 * ly + 0.0005;
+  // wound to face -z, the front of the figure
+  S.badge.quad([badgeC[0] + bw, badgeC[1] - bh, badgeC[2]], [badgeC[0] - bw, badgeC[1] - bh, badgeC[2]], [badgeC[0] - bw, badgeC[1] + bh, badgeC[2]], [badgeC[0] + bw, badgeC[1] + bh, badgeC[2]], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+
   const wrists: Record<number, V3> = {};
+  const foreDir: Record<number, V3> = {};
   for (const sign of [-1, 1] as const) {
     const Sh = add(N, [sign * p.shoulder, -0.015, 0]);
-    const E = add(Sh, limb(q.shoulderFlex, q.armSpread, sign), upper);
-    const W = add(E, limb(q.shoulderFlex + q.elbowFlex, q.armSpread * 0.5 + q.foreSpread, sign), fore);
+    const sf = q.shoulderFlex + (sign > 0 ? q.rShoulder : 0), ef = q.elbowFlex + (sign > 0 ? q.rElbow : 0);
+    const E = add(Sh, limb(sf, q.armSpread, sign), upper);
+    const fd = limb(sf + ef, q.armSpread * 0.5 + q.foreSpread, sign);
+    const W = add(E, fd, fore);
     wrists[sign] = W;
+    foreDir[sign] = fd;
     (sign < 0 ? S.sleeveL : S.sleeveR).capsule(Sh, E, p.limbR * 1.08, 8, 2);
     S.skin.capsule(E, W, p.limbR * 0.88, 8, 2);
-    const hand = add(W, norm(mix(limb(q.shoulderFlex + q.elbowFlex, q.foreSpread, sign), [0, -1, 0], 0.3)), p.limbR * 0.6);
+    const hand = add(W, norm(mix(limb(sf + ef, q.foreSpread, sign), [0, -1, 0], 0.3)), p.limbR * 0.6);
     S.skin.sphere(hand[0], hand[1], hand[2], p.limbR * 1.15, p.limbR * 0.9, p.limbR * 1.25, 8, 5);
 
     const Hp: V3 = [sign * p.hip, 0, 0];
@@ -98,17 +130,23 @@ export function figure(p: Figure): Record<Part, Geo> {
   }
 
   // the controller between both hands becomes the mouse under the right hand
-  const WL = wrists[-1], WR = wrists[1];
+  const WL = wrists[-1], WR = wrists[1], fdR = foreDir[1];
   const ctrlA = mix(WL, WR, 0.12), ctrlB = mix(WL, WR, 0.88);
   const mouseA = add(WR, [0, -p.limbR * 0.9, 0.035]), mouseB = add(WR, [0, -p.limbR * 0.9, -0.035]);
-  const A = mix(ctrlA, mouseA, p.held), B = mix(ctrlB, mouseB, p.held);
-  S.held.color('#FFFFFF').capsule(A, B, lerp(p.limbR * 0.95, p.limbR * 0.75, p.held), 8, 2);
+  const hand = add(WR, fdR, p.limbR * 0.6);
+  const cupA = add(hand, fdR, 0.05), cupB = add(hand, fdR, 0.19);
+  const A = mix(mix(ctrlA, mouseA, p.held), cupA, p.trophy), B = mix(mix(ctrlB, mouseB, p.held), cupB, p.trophy);
+  S.held.color('#FFFFFF').capsule(A, B, lerp(lerp(p.limbR * 0.95, p.limbR * 0.75, p.held), 0.048, p.trophy), 8, 2);
+  // grips of the controller, then the handles of the cup; the stem of the cup from the hand
   for (const [end, sign] of [[A, -1], [B, 1]] as const) {
-    const gripLen = lerp(p.limbR * 1.6, 0.001, p.held);
-    S.held.capsule(end, add(end, norm([sign * 0.2, -0.75, 0.5]), gripLen), lerp(p.limbR * 0.6, 0.001, p.held), 6, 2);
+    const gripLen = lerp(lerp(p.limbR * 1.6, 0.001, p.held), 0.05, p.trophy);
+    const from = mix(end, mix(A, B, 0.62), p.trophy);
+    const dir = norm(mix(norm([sign * 0.2, -0.75, 0.5]), norm([sign, 0.1, 0]), p.trophy));
+    S.held.capsule(from, add(from, dir, gripLen), lerp(lerp(p.limbR * 0.6, 0.001, p.held), 0.01, p.trophy), 6, 2);
   }
+  S.held.capsule(mix(WR, hand, p.trophy), mix(WR, cupA, p.trophy), 0.001 + 0.012 * p.trophy, 6, 2);
   const mid = mix(A, B, 0.5);
-  const br = lerp(p.limbR * 0.34, 0.001, p.held);
+  const br = lerp(p.limbR * 0.34, 0.001, Math.max(p.held, p.trophy));
   S.held.color('#7AC142').sphere(mid[0], mid[1] + p.limbR * 0.7, mid[2], br, br * 0.5, br, 6, 3);
 
   const out = {} as Record<Part, Geo>;
@@ -118,13 +156,19 @@ export function figure(p: Figure): Record<Part, Geo> {
 
 // 2010: nine, cross-legged on the rug, controller in both hands, back to the camera.
 export const KID: Figure = {
-  height: 1.25, headR: 0.105, shoulder: 0.14, hip: 0.11, limbR: 0.036, hairTop: 0.9, tie: 0, held: 0,
+  height: 1.25, headR: 0.105, shoulder: 0.14, hip: 0.11, limbR: 0.036, hairTop: 0.9, tie: 0, held: 0, trophy: 0, glasses: 0, lanyard: 0, smile: 0.6,
   x: 0, y: 0.16, z: 0.55, yaw: 0, crossLegs: 1,
-  pose: { hipFlex: 70, hipSpread: 55, kneeFlex: 125, shoulderFlex: 25, elbowFlex: 95, armSpread: 14, foreSpread: -28, torsoLean: 6, headTilt: 3 },
+  pose: { hipFlex: 70, hipSpread: 55, kneeFlex: 125, shoulderFlex: 25, elbowFlex: 95, armSpread: 14, foreSpread: -28, torsoLean: 6, headTilt: 3, rShoulder: 0, rElbow: 0 },
 };
 // 2013: thirteen, still a kid, on the lab chair, white shirt and tie, right hand on the mouse.
 export const TWEEN: Figure = {
-  height: 1.48, headR: 0.1, shoulder: 0.165, hip: 0.125, limbR: 0.04, hairTop: 0.6, tie: 1, held: 1,
+  height: 1.48, headR: 0.1, shoulder: 0.165, hip: 0.125, limbR: 0.04, hairTop: 0.6, tie: 1, held: 1, trophy: 0, glasses: 0, lanyard: 0, smile: 0.4,
   x: 0.05, y: 0.5, z: -0.75, yaw: 0, crossLegs: 0,
-  pose: { hipFlex: 90, hipSpread: 10, kneeFlex: 85, shoulderFlex: 18, elbowFlex: 74, armSpread: 8, foreSpread: -2, torsoLean: 8, headTilt: 8 },
+  pose: { hipFlex: 90, hipSpread: 10, kneeFlex: 85, shoulderFlex: 18, elbowFlex: 74, armSpread: 8, foreSpread: -2, torsoLean: 8, headTilt: 8, rShoulder: 0, rElbow: 0 },
+};
+// 2018: seventeen, San Francisco, facing the camera, the Google Code-in trophy up in his right hand.
+export const TEEN: Figure = {
+  height: 1.72, headR: 0.1, shoulder: 0.2, hip: 0.14, limbR: 0.044, hairTop: 0.55, tie: 0, held: 1, trophy: 1, glasses: 1, lanyard: 1, smile: 1,
+  x: 0.9, y: 0.86, z: 1.4, yaw: Math.PI, crossLegs: 0,
+  pose: { hipFlex: 4, hipSpread: 7, kneeFlex: 3, shoulderFlex: 12, elbowFlex: 20, armSpread: 10, foreSpread: 4, torsoLean: 0, headTilt: -2, rShoulder: 140, rElbow: 12 },
 };

@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { figure, KID, TWEEN, PARTS, type Figure } from '../../src/lib/stage/figure3d.ts';
+import { figure, KID, TWEEN, TEEN, PARTS, type Figure } from '../../src/lib/stage/figure3d.ts';
 
 const rnd = (seed: number) => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
 const randomFigure = (r: () => number): Figure => ({
   ...KID,
   height: 0.8 + r(), headR: 0.06 + r() * 0.1, shoulder: 0.1 + r() * 0.15, hip: 0.08 + r() * 0.1, limbR: 0.02 + r() * 0.04,
-  hairTop: r(), tie: r(), held: r(), x: r() * 4 - 2, y: r(), z: r() * 4 - 2, yaw: r() * 6.28, crossLegs: r(),
-  pose: { hipFlex: r() * 120, hipSpread: r() * 60, kneeFlex: r() * 150, shoulderFlex: r() * 90, elbowFlex: r() * 120, armSpread: r() * 40, foreSpread: r() * 60 - 30, torsoLean: r() * 30 - 10, headTilt: r() * 20 - 10 },
+  hairTop: r(), tie: r(), held: r(), trophy: r(), glasses: r(), lanyard: r(), smile: r(), x: r() * 4 - 2, y: r(), z: r() * 4 - 2, yaw: r() * 6.28, crossLegs: r(),
+  pose: { hipFlex: r() * 120, hipSpread: r() * 60, kneeFlex: r() * 150, shoulderFlex: r() * 90, elbowFlex: r() * 120, armSpread: r() * 40, foreSpread: r() * 60 - 30, torsoLean: r() * 30 - 10, headTilt: r() * 20 - 10, rShoulder: r() * 160, rElbow: r() * 40 },
 });
 
 test('every part keeps its vertex count across params', () => {
@@ -17,12 +17,14 @@ test('every part keeps its vertex count across params', () => {
     const f = figure(randomFigure(r));
     for (const part of PARTS) assert.equal(f[part].pos.length, base[part].pos.length, part);
   }
-  const t = figure(TWEEN);
-  for (const part of PARTS) assert.equal(t[part].pos.length, base[part].pos.length, part);
+  for (const key of [TWEEN, TEEN]) {
+    const t = figure(key);
+    for (const part of PARTS) assert.equal(t[part].pos.length, base[part].pos.length, part);
+  }
 });
 
 test('positions are finite and the head sits above the pelvis', () => {
-  for (const p of [KID, TWEEN]) {
+  for (const p of [KID, TWEEN, TEEN]) {
     const f = figure(p);
     for (const part of PARTS) assert.ok(Array.from(f[part].pos).every(Number.isFinite), part);
     let maxY = -Infinity;
@@ -54,11 +56,19 @@ test('tie is flat when tie = 0, the controller shrinks into the mouse', () => {
   assert.ok(span(figure(KID).held.pos) > span(figure(TWEEN).held.pos) * 1.5);
 });
 
-test('shoes stay near the floor in both keys', () => {
-  for (const p of [KID, TWEEN]) {
+test('the trophy rises above the head in 2018', () => {
+  const f = figure(TEEN);
+  let heldMaxY = -Infinity, headMaxY = -Infinity;
+  for (let i = 1; i < f.held.pos.length; i += 3) heldMaxY = Math.max(heldMaxY, f.held.pos[i]);
+  for (let i = 1; i < f.skin.pos.length; i += 3) headMaxY = Math.max(headMaxY, f.skin.pos[i]);
+  assert.ok(heldMaxY > headMaxY, `trophy top ${heldMaxY} vs head ${headMaxY}`);
+});
+
+test('shoes stay near the floor in every key', () => {
+  for (const p of [KID, TWEEN, TEEN]) {
     const f = figure(p);
     let minY = Infinity;
     for (let i = 1; i < f.shoes.pos.length; i += 3) minY = Math.min(minY, f.shoes.pos[i]);
-    assert.ok(minY > -0.08 && minY < 0.14, `${p === KID ? 'kid' : 'tween'} lowest shoe point ${minY}`);
+    assert.ok(minY > -0.08 && minY < 0.14, `${p.height} lowest shoe point ${minY}`);
   }
 });

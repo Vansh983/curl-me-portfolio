@@ -21,8 +21,8 @@ type Mat = Material & { color: Color };
 interface Built { actor: Actor; mesh: Mesh; outline?: Mesh; a: Color[]; mat: Mat }
 type Ctx = CanvasRenderingContext2D;
 type Painter = (x: Ctx, w: number, h: number) => void;
-interface Paint { w: number; h: number; a: Painter; b?: Painter } // b only for 'mix'
-interface Mixer { a: HTMLCanvasElement; b: HTMLCanvasElement; out: HTMLCanvasElement; tex: CanvasTexture; last: number; live: boolean }
+interface Paint { w: number; h: number; frames: Painter[] } // one frame per station for 'mix', one frame for 'tex'
+interface Mixer { cv: HTMLCanvasElement[]; out: HTMLCanvasElement; tex: CanvasTexture; last: string; live: boolean }
 
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#000';
 const canvas2d = (w: number, h: number) => {
@@ -62,6 +62,18 @@ function outlineMaterial(ink: Color): MeshToonMaterial {
 /** Fills the canvas white first: every rig's default uv points at the corner, which must read white. */
 const white = (x: Ctx, w: number, h: number) => { x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h); };
 
+/** "Google" in the four colours, centred at cx with the baseline at y. The current font must be set. */
+function googleWord(x: Ctx, cx: number, y: number, size: number): void {
+  const letters: Array<[string, string]> = [['G', '#4285F4'], ['o', '#EA4335'], ['o', '#FBBC05'], ['g', '#4285F4'], ['l', '#34A853'], ['e', '#EA4335']];
+  const widths = letters.map(([l]) => x.measureText(l).width);
+  const total = widths.reduce((a, b) => a + b, 0) - size * 0.02 * letters.length;
+  let px = cx - total / 2;
+  const align = x.textAlign;
+  x.textAlign = 'left';
+  letters.forEach(([l, c], i) => { x.fillStyle = c; x.fillText(l, px, y); px += widths[i] - size * 0.02; });
+  x.textAlign = align;
+}
+
 /**
  * Everything painted. Canvas y runs down, texture v runs up, so "top" in the world is y = 0 here.
  * Images (the portrait, the Xbox logo) are drawn once they load and the texture is re-uploaded.
@@ -72,32 +84,36 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
     // the Barcelona 2013 home shirt from the back, then the white school shirt. u: 0 front seam, 0.5 the back.
     'figure-shirt': {
       w: 512, h: 512,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         const stripes = ['#A50044', '#004D98', '#A50044', '#004D98', '#A50044', '#004D98', '#A50044', '#004D98'];
         stripes.forEach((c, i) => { x.fillStyle = c; x.fillRect((i * w) / stripes.length, 0, w / stripes.length + 1, h); });
         x.fillStyle = '#F4C542'; x.fillRect(0, 0, w, 22); // collar
         x.textAlign = 'center'; x.fillStyle = '#F4C542';
         x.font = '700 44px Inter, system-ui, sans-serif'; x.fillText('MESSI', w / 2, 215);
         x.font = '700 140px Inter, system-ui, sans-serif'; x.fillText('10', w / 2, 360);
-      },
-      b: (x, w, h) => {
+      }, (x, w, h) => {
         white(x, w, h);
         x.fillStyle = '#E3E3DF'; x.fillRect(0, 0, w, 26); // collar
         x.fillStyle = '#D9D9D5'; x.fillRect(0, 0, 3, h); x.fillRect(w - 3, 0, 3, h); // the placket at the front seam
-      },
+      }, (x, w, h) => {
+        // the black Google tee: the logo sits on the chest, across the front seam (u = 0 and u = 1)
+        x.fillStyle = '#1A1A1A'; x.fillRect(0, 0, w, h);
+        x.font = '700 58px "Product Sans", "Google Sans", Arial, sans-serif'; x.textAlign = 'center';
+        for (const cx of [0, w]) googleWord(x, cx, 112, 58);
+        x.textAlign = 'left';
+      }],
     },
     // the TV picture with the Call of Duty HUD, then Notepad with the first website
     screen: {
       w: 512, h: 320,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.fillStyle = '#101815'; x.fillRect(0, 0, w, h);
         if (video.readyState >= 2) x.drawImage(video, 0, 0, w, h);
         x.textAlign = 'right';
         x.fillStyle = 'rgba(245,245,245,0.9)'; x.font = '26px "Bebas Neue", Impact, "Arial Narrow", sans-serif'; x.fillText('CALL·OF·DUTY', w - 18, 40);
         x.fillStyle = '#7AC142'; x.font = '17px "Bebas Neue", Impact, "Arial Narrow", sans-serif'; x.fillText('ZOMBIES · ROUND 12', w - 18, 62);
         x.textAlign = 'left';
-      },
-      b: (x, w, h) => {
+      }, (x, w, h) => {
         x.fillStyle = '#F4F4F2'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#245EDC'; x.fillRect(0, 0, w, 30);
         x.fillStyle = '#FFFFFF'; x.font = 'bold 15px Inter, system-ui, sans-serif'; x.fillText('index.html - Notepad', 10, 20);
@@ -107,12 +123,12 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         const lines = ['<!DOCTYPE html>', '<html>', '<head>', '  <title>My first website</title>', '</head>', '<body>', '  <h1>Hello world</h1>', '  <p>Made by Vansh, 2013</p>', '</body>', '</html>'];
         lines.forEach((l, i) => x.fillText(l, 12, 76 + i * 20));
         x.fillStyle = '#2B2B2B'; x.fillRect(12 + 7 * 9.1, 76 + 9 * 20 - 13, 2, 16); // the caret after </html>
-      },
+      }],
     },
     // the window: dusk over the Delhi rooftops, then daylight over the school trees
     window: {
       w: 512, h: 512,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.fillStyle = '#F7B267'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#E9A15E'; x.fillRect(0, 0, w, h * 0.43);
         x.fillStyle = '#C98352'; x.fillRect(0, 0, w, h * 0.23);
@@ -129,20 +145,19 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         x.lineTo(471, h * 0.52); x.lineTo(489, h * 0.52); x.lineTo(489, h * 0.7); x.lineTo(w, h * 0.7); x.lineTo(w, h); x.lineTo(0, h); x.closePath(); x.fill();
         x.fillStyle = '#2A4550';
         x.fillRect(84, h * 0.53, 36, 36); x.fillRect(300, h * 0.56, 33, 36); x.fillRect(0, h * 0.86, w, h * 0.14);
-      },
-      b: (x, w, h) => {
+      }, (x, w, h) => {
         x.fillStyle = '#CFE7F5'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#E8F3FA'; x.fillRect(0, 0, w, h * 0.3);
         x.fillStyle = '#9FB7A0';
         for (const [cx, r] of [[60, 70], [170, 90], [300, 60], [420, 85]] as const) { x.beginPath(); x.arc(cx, h * 0.78, r, 0, Math.PI * 2); x.fill(); }
         x.fillStyle = '#B9C4C9'; x.fillRect(230, h * 0.55, 90, h * 0.45); x.fillRect(360, h * 0.62, 60, h * 0.38);
         x.fillStyle = '#7F9A80'; x.fillRect(0, h * 0.9, w, h * 0.1);
-      },
+      }],
     },
     // the poster: the portrait on the left, the quote on the right, four drawing pins; then the Converge Clan team photo
     poster: {
       w: 800, h: 444,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.fillStyle = '#111111'; x.fillRect(0, 0, w, h);
         x.save(); x.translate(0, (h - 340) / 2);
         if (images.jobs) {
@@ -156,20 +171,19 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         x.restore();
         x.fillStyle = '#F7D44C';
         for (const [px, py] of [[20, 20], [780, 20], [20, h - 20], [780, h - 20]] as const) { x.beginPath(); x.arc(px, py, 10, 0, Math.PI * 2); x.fill(); }
-      },
-      b: (x, w, h) => {
+      }, (x, w, h) => {
         x.fillStyle = '#F4F4F2'; x.fillRect(0, 0, w, h);
         if (images.clan) {
           // crop the 4:3 photo to the board's 1.8:1, keeping the faces
           const iw = images.clan.naturalWidth, ih = images.clan.naturalHeight, ch = iw / (w / h);
           x.drawImage(images.clan, 0, Math.max(0, ih * 0.14), iw, Math.min(ch, ih), 0, 0, w, h);
         }
-      },
+      }],
     },
     // the Converge Clan banner: the hexagonal C on black, the name in teal
     banner: {
       w: 1024, h: 220,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.fillStyle = '#111111'; x.fillRect(0, 0, w, h);
         const cx = 110, cy = h / 2, r = 70;
         x.strokeStyle = '#2EE6C5'; x.lineWidth = 22; x.lineJoin = 'miter'; x.lineCap = 'butt';
@@ -179,12 +193,12 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         x.fillStyle = '#2EE6C5'; x.fillRect(cx - 6, cy - 12, 52, 24);
         x.font = '700 92px Inter, system-ui, sans-serif'; x.textBaseline = 'middle'; x.fillText('CONVERGE CLAN', 230, cy + 4);
         x.textBaseline = 'alphabetic';
-      },
+      }],
     },
     // the whiteboard: marker writing from a club session
     whiteboard: {
       w: 1024, h: 640,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         white(x, w, h);
         x.fillStyle = '#B8BFC4'; x.fillRect(0, h - 26, w, 26);
         x.fillStyle = '#245EDC'; x.font = '600 52px "Comic Sans MS", "Chalkboard SE", cursive';
@@ -197,28 +211,69 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         x.strokeStyle = '#2E8B57'; x.beginPath(); x.moveTo(60, 470); x.lineTo(420, 470); x.stroke();
         x.fillStyle = '#2E8B57'; x.fillText('meeting: fri 3pm', 60, 530);
         for (const [cx2, c] of [[900, '#2B2B2B'], [940, '#245EDC'], [980, '#D62828']] as const) { x.fillStyle = c; x.fillRect(cx2 - 14, h - 22, 28, 12); }
-      },
+      }],
     },
     // the floor: wood planks in the bedroom, lino tiles in the lab
     floor: {
       w: 1024, h: 1024,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.fillStyle = '#D9B994'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#C9A57E';
         for (let r = 0; r < 24; r++) { x.fillRect(0, r * (h / 24), w, 2); const off = (r % 2) * 180; for (let c = -1; c < 4; c++) x.fillRect(c * 360 + off, r * (h / 24), 2, h / 24); }
-      },
-      b: (x, w, h) => {
+      }, (x, w, h) => {
         x.fillStyle = '#C9CFD3'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#BFC6CB';
         for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) if ((r + c) % 2 === 0) x.fillRect(c * (w / 12), r * (h / 12), w / 12, h / 12);
         x.fillStyle = '#AEB6BC';
         for (let k = 0; k <= 12; k++) { x.fillRect(k * (w / 12), 0, 2, h); x.fillRect(0, k * (h / 12), w, 2); }
-      },
+      }, (x, w, h) => {
+        // the plaza by the bay: big pale slabs
+        x.fillStyle = '#C9C4BA'; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#B9B3A8';
+        for (let k = 0; k <= 16; k++) { x.fillRect(k * (w / 16), 0, 3, h); x.fillRect(0, k * (h / 16), w, 3); }
+      }],
+    },
+    // the sky: blue above, pale at the horizon (v = 0.5), a few thin clouds
+    sky: {
+      w: 1024, h: 512,
+      frames: [(x, w, h) => {
+        const g = x.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, '#2F7FD0'); g.addColorStop(0.35, '#6FB1E8'); g.addColorStop(0.5, '#DCEEF8'); g.addColorStop(0.52, '#CFE3EE'); g.addColorStop(1, '#B9CFDA');
+        x.fillStyle = g; x.fillRect(0, 0, w, h);
+        x.fillStyle = 'rgba(255,255,255,0.85)';
+        for (const [cx, cy, rx, ry] of [[150, 150, 90, 12], [420, 120, 70, 9], [700, 170, 120, 14], [900, 140, 60, 8]] as const) { x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); x.fill(); }
+      }],
+    },
+    // the Google San Francisco sign
+    sign: {
+      w: 1024, h: 490,
+      frames: [(x, w, h) => {
+        white(x, w, h);
+        x.textAlign = 'center';
+        x.font = '700 190px "Product Sans", "Google Sans", Arial, sans-serif';
+        googleWord(x, w / 2, 250, 190);
+        x.fillStyle = '#5F6368'; x.font = '500 62px Inter, system-ui, sans-serif'; x.fillText('San Francisco', w / 2, 400);
+        x.textAlign = 'left';
+      }],
+    },
+    // the Google Code-in badge on the lanyard
+    'figure-badge': {
+      w: 256, h: 360,
+      frames: [(x, w, h) => {
+        white(x, w, h);
+        x.fillStyle = '#FBBC05'; x.fillRect(0, 0, w, 54);
+        x.fillStyle = '#202124'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Google Code-in', 14, 38);
+        x.font = '700 56px Inter, system-ui, sans-serif'; x.fillText('Vansh', 14, 130);
+        x.font = '500 34px Inter, system-ui, sans-serif'; x.fillText('Sood', 14, 172);
+        x.fillStyle = '#EA4335'; x.fillRect(14, 200, 228, 60);
+        x.fillStyle = '#FFFFFF'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('GRAND PRIZE', 22, 241);
+        x.fillStyle = '#5F6368'; x.font = '500 28px Inter, system-ui, sans-serif'; x.fillText('06/25  San Francisco', 14, 320);
+      }],
     },
     // the spine titles, one cell per book, transparent elsewhere
     shelfLabels: {
       w: 1536, h: 256,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.clearRect(0, 0, w, h);
         x.fillStyle = '#F9F4EC'; x.textAlign = 'center'; x.textBaseline = 'middle';
         BOOKS.forEach((b, i) => {
@@ -227,19 +282,19 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
           x.fillText(b.title, 0, 0); x.restore();
         });
         x.textAlign = 'left'; x.textBaseline = 'alphabetic';
-      },
+      }],
     },
     xboxLogo: {
       w: 256, h: 64,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.clearRect(0, 0, w, h);
         if (images.xbox) x.drawImage(images.xbox, 0, 0, w, h);
-      },
+      }],
     },
     // the football: white with the black panels
     ball: {
       w: 512, h: 256,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         white(x, w, h);
         x.fillStyle = '#17282F';
         for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) {
@@ -248,12 +303,12 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
           for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * Math.PI * 2) / 5; x.lineTo(cx + 26 * Math.cos(a), cy + 26 * Math.sin(a)); }
           x.closePath(); x.fill();
         }
-      },
+      }],
     },
     // the keyboard: a dark slab with rows of keys
     keyboard: {
       w: 512, h: 192,
-      a: (x, w, h) => {
+      frames: [(x, w, h) => {
         x.fillStyle = '#2B2B2B'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#4A4A4A';
         for (let r = 0; r < 5; r++) {
@@ -263,7 +318,7 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
             x.fillRect(12 + c * kw + off + 2 + (r === 4 ? 0 : r * kw * 0.3), 12 + r * (h - 24) / 5, width - 4, (h - 24) / 5 - 4);
           }
         }
-      },
+      }],
     },
   };
 }
@@ -273,7 +328,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = SRGBColorSpace;
   const scene = new Scene();
-  const camera = new PerspectiveCamera(50, 1, 0.05, 30);
+  const camera = new PerspectiveCamera(50, 1, 0.05, 900);
   scene.add(new HemisphereLight(0xffffff, 0x8a8a8a, 1.1));
   const sun = new DirectionalLight(0xffffff, 2.2);
   sun.position.set(3, 5, 4);
@@ -299,36 +354,38 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const textureFor = (id: string): Texture | undefined => {
     const p = PAINT[id];
     if (!p) return undefined;
-    if (p.b) {
-      const a = canvas2d(p.w, p.h), b = canvas2d(p.w, p.h), out = canvas2d(p.w, p.h);
-      p.a(a.getContext('2d')!, p.w, p.h);
-      p.b(b.getContext('2d')!, p.w, p.h);
+    if (p.frames.length > 1) {
+      const cv = p.frames.map((f) => { const c = canvas2d(p.w, p.h); f(c.getContext('2d')!, p.w, p.h); return c; });
+      const out = canvas2d(p.w, p.h);
       const tex = new CanvasTexture(out);
       tex.colorSpace = SRGBColorSpace;
-      mixers[id] = { a, b, out, tex, last: -1, live: id === 'screen' };
+      mixers[id] = { cv, out, tex, last: '', live: id === 'screen' };
       return tex;
     }
     const c = canvas2d(p.w, p.h);
-    p.a(c.getContext('2d')!, p.w, p.h);
+    p.frames[0](c.getContext('2d')!, p.w, p.h);
     const tex = new CanvasTexture(c);
     tex.colorSpace = SRGBColorSpace;
     statics.push({ id, c, tex });
     return tex;
   };
   const repaint = (ids: string[]) => {
-    for (const s of statics) if (ids.includes(s.id)) { PAINT[s.id].a(s.c.getContext('2d')!, s.c.width, s.c.height); s.tex.needsUpdate = true; }
-    for (const id of ids) if (mixers[id]) { const m = mixers[id]; PAINT[id].a(m.a.getContext('2d')!, m.a.width, m.a.height); PAINT[id].b!(m.b.getContext('2d')!, m.b.width, m.b.height); m.last = -1; }
+    for (const s of statics) if (ids.includes(s.id)) { PAINT[s.id].frames[0](s.c.getContext('2d')!, s.c.width, s.c.height); s.tex.needsUpdate = true; }
+    for (const id of ids) if (mixers[id]) { const m = mixers[id]; m.cv.forEach((c, k) => PAINT[id].frames[k](c.getContext('2d')!, c.width, c.height)); m.last = ''; }
     needs = true; kick();
   };
-  const blend = (id: string, t: number) => {
+  /** Blends frame i into frame i+1 by t (clamped to the frames that exist). */
+  const blend = (id: string, i: number, t: number) => {
     const m = mixers[id];
-    if (!m || (m.last === t && !m.live)) return;
-    m.last = t;
-    if (m.live) PAINT[id].a(m.a.getContext('2d')!, m.a.width, m.a.height);
+    if (!m) return;
+    const n = m.cv.length, a = Math.min(i, n - 1), b = Math.min(i + 1, n - 1), tt = a === b ? 0 : t;
+    const key = `${a}:${tt.toFixed(3)}`;
+    if (m.last === key && !(m.live && a === 0)) return;
+    m.last = key;
+    if (m.live && a === 0) PAINT[id].frames[0](m.cv[0].getContext('2d')!, m.cv[0].width, m.cv[0].height);
     const x = m.out.getContext('2d')!;
-    x.globalAlpha = 1; x.drawImage(m.a, 0, 0);
-    x.globalAlpha = t; x.drawImage(m.b, 0, 0);
-    x.globalAlpha = 1;
+    x.globalAlpha = 1; x.drawImage(m.cv[a], 0, 0);
+    if (tt > 0) { x.globalAlpha = tt; x.drawImage(m.cv[b], 0, 0); x.globalAlpha = 1; }
     m.tex.needsUpdate = true;
   };
 
@@ -359,10 +416,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const bebas = new FontFace('Bebas Neue', 'url(/fonts/bebas-neue.ttf)');
   document.fonts.add(bebas);
   bebas.load().then(() => repaint(['screen'])).catch(() => {});
+  document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign', 'figure-shirt'])).catch(() => {});
 
   const shot = makeShot(STATIONS);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  let visible = false, target = 0, cur = 0, lastT = 0, t01 = 0;
+  let visible = false, target = 0, cur = 0, lastT = 0, station = 0;
 
   const applyTheme = () => {
     renderer.setClearColor(new Color(cssVar('--bg')));
@@ -411,9 +469,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const j = Math.min(f.i + 1, b.a.length - 1);
       b.mat.color.copy(b.a[f.i]).lerp(b.a[j], f.t);
     }
-    // the blended textures follow the first station gap only
-    t01 = f.i === 0 ? f.t : 1;
-    for (const id in mixers) blend(id, t01);
+    station = f.i;
+    for (const id in mixers) blend(id, f.i, f.t);
   };
 
   const tick = (now: number) => {
@@ -432,7 +489,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (fan?.outline) fan.outline.rotation.y = fan.mesh.rotation.y;
     renderer.render(scene, camera);
     needs = false;
-    const live = visible && ((!video.paused && t01 < 1) || (fan && !reduce.matches));
+    const live = visible && ((!video.paused && station === 0) || (fan && !reduce.matches && station < 2));
     if (cur !== target || live) raf = requestAnimationFrame(tick);
   };
   const onScroll = () => { target = progress(); kick(); };
