@@ -3,13 +3,19 @@
   <g data-motion="sway" style="animation-range: entry 0% exit 100%">
     <!-- crossed legs, knees out, feet tucked -->
     <path d="M 84 396 C 66 352 110 326 158 336 C 172 340 188 340 202 336 C 250 326 294 352 276 396 C 258 412 102 412 84 396 Z" fill="#33535F"/>
-    <path d="M 132 398 c -10 -14 -2 -30 14 -30 c 16 0 24 16 12 30 Z M 228 398 c 10 -14 2 -30 -14 -30 c -16 0 -24 16 -12 30 Z" fill="#F1C7A3"/>
-    <!-- t shirt, narrow shoulders, slim waist -->
-    <path d="M 132 190 C 146 174 214 174 228 190 L 240 350 C 210 362 150 362 120 350 Z" fill="#F2575D"/>
-    <path d="M 132 190 C 146 174 214 174 228 190 L 232 222 C 208 232 152 232 128 222 Z" fill="#CC4341"/>
+    <path d="M 132 398 c -10 -14 -2 -30 14 -30 c 16 0 24 16 12 30 Z M 228 398 c 10 -14 2 -30 -14 -30 c -16 0 -24 16 -12 30 Z" fill="#17282F" opacity="0"/>
+    <!-- 2013 Barcelona home shirt, seen from the back -->
+    <path d="M 132 190 C 146 174 214 174 228 190 L 240 350 C 210 362 150 362 120 350 Z" fill="#A50044"/>
+    <path d="M 132 190 C 146 174 214 174 228 190 L 232 222 C 208 232 152 232 128 222 Z" fill="#004D98"/>
+    <path d="M 132 190 C 138 182 146 179 154 177 L 158 358 C 144 357 130 354 120 350 Z" fill="#004D98" opacity="1"/>
+    <path d="M 168 176 C 176 174 186 174 194 176 L 199 359 C 187 361 175 361 163 359 Z" fill="#004D98" opacity="1"/>
+    <path d="M 210 179 C 218 181 224 185 228 190 L 240 350 C 230 354 218 357 207 358 Z" fill="#004D98" opacity="1"/>
+    <path d="M 154 181 C 163 190 171 194 180 194 C 189 194 197 190 206 181 L 202 178 C 194 185 188 188 180 188 C 172 188 166 185 158 178 Z" fill="#F4C542" opacity="1"/>
+    <text x="180" y="246" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="1.5" fill="#F4C542" opacity="1">MESSI</text>
+    <text x="180" y="316" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="76" letter-spacing="-5" fill="#F4C542" opacity="1">10</text>
     <!-- arms: elbows a little out, forearms coming together in front -->
-    <path d="M 126 194 C 96 206 82 246 90 282 C 96 292 110 292 116 284 C 112 258 122 236 136 226 Z" fill="#F2575D"/>
-    <path d="M 234 194 C 264 206 278 246 270 282 C 264 292 250 292 244 284 C 248 258 238 236 224 226 Z" fill="#F2575D"/>
+    <path d="M 126 194 C 96 206 82 246 90 282 C 96 292 110 292 116 284 C 112 258 122 236 136 226 Z" fill="#004D98"/>
+    <path d="M 234 194 C 264 206 278 246 270 282 C 264 292 250 292 244 284 C 248 258 238 236 224 226 Z" fill="#A50044"/>
     <path d="M 90 282 C 100 306 124 318 150 316 L 150 298 C 130 298 112 292 104 276 Z" fill="#F1C7A3"/>
     <path d="M 270 282 C 260 306 236 318 210 316 L 210 298 C 230 298 248 292 256 276 Z" fill="#F1C7A3"/>
     <!-- the controller, held at the lap, the top edge and both grips showing between the hands -->

@@ -76,8 +76,10 @@ Slots are wired. Drop the file and it appears automatically; until it exists the
 
 | Drop at | Appears on |
 |---|---|
-| `public/assets/scenes/jobs.jpg` | the Think Different poster (covers the drawn portrait) |
-| `public/assets/scenes/cod-logo.png` | the game case and the TV screen |
+| `public/assets/scenes/jobs.jpg` | the phone-free Steve Jobs portrait above the TV |
+| `public/assets/scenes/xbox-360-logo.png` | the compact standing Xbox beside the TV |
+| `public/assets/scenes/football.svg` | the rolling football on the bedroom floor |
+| `public/assets/scenes/zombies-gameplay.mp4` | the muted gameplay loop inside the TV |
 
 Same pattern for any future photo: add `<image href="/assets/scenes/x.png" .../>` inside the scene SVG.
 
@@ -141,6 +143,6 @@ Add a chapter: write its SVGs into `src/lib/scenes/`, add a `scene.layers` list 
 
 - The story markdown. Every chapter's words are placeholder until it lands.
 - Chapters after the lab: 2018 San Francisco, 2020 Webcube, 2022 Halifax, 2023 teaching, 2024 Bean, 2025 Floqer. The 2018 and 2020 scenes exist but predate the morph engine and the real-photo direction.
-- `jobs.jpg` and `cod-logo.png` to drop in.
+- Continue reviewing the first-scene composition at desktop and mobile sizes.
 - Mobile layout for the new stage has not been reviewed.
 - Firefox fallback path has not been checked in a real Firefox.

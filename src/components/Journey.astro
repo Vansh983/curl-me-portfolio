@@ -304,7 +304,12 @@ const fallback =
     transform-origin: center;
     animation: spin-loop 3.2s linear infinite;
   }
+  .anim :global([data-loop='window']) {
+    transform-box: fill-box;
+    animation: window-drift 5.5s ease-in-out infinite alternate;
+  }
   @keyframes spin-loop { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes window-drift { from { transform: translateX(-58px); } to { transform: translateX(72px); } }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(1440deg); } }
   @keyframes shamble { 0% { transform: translateX(-14px); } 50% { transform: translateX(16px); } 100% { transform: translateX(-10px); } }
   @keyframes flicker {
@@ -354,6 +359,11 @@ const fallback =
   .ch {
     min-height: 100svh;
     padding-top: 18svh;
+  }
+  @media (min-width: 48.001rem) {
+    .ch:first-child {
+      padding-top: 13svh;
+    }
   }
   .tx {
     max-width: min(var(--measure), 46ch);

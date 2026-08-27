@@ -1,27 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 320" fill="none" stroke="none">
-  <!-- the Think Different poster: Steve Jobs in black and white, the crazy ones underneath -->
-  <rect x="0" y="0" width="220" height="320" fill="#111111"/>
-  <!-- portrait: black turtleneck, hand on chin, round glasses, grey stubble -->
-  <path d="M 40 214 C 40 176 80 160 110 160 C 140 160 180 176 180 214 L 180 226 L 40 226 Z" fill="#050505"/>
-  <path d="M 62 226 L 62 214 C 62 182 158 182 158 214 L 158 226 Z" fill="#000000"/>
-  <ellipse cx="110" cy="110" rx="34" ry="42" fill="#C9C9C9"/>
-  <path d="M 76 104 C 74 66 146 66 144 104 C 136 86 124 78 110 78 C 96 78 84 86 76 104 Z" fill="#8A8A8A"/>
-  <path d="M 80 128 C 84 150 96 158 110 158 C 124 158 136 150 140 128 C 132 140 122 146 110 146 C 98 146 88 140 80 128 Z" fill="#7A7A7A"/>
-  <circle cx="96" cy="112" r="11" fill="none" stroke="#111111" stroke-width="2.5"/>
-  <circle cx="124" cy="112" r="11" fill="none" stroke="#111111" stroke-width="2.5"/>
-  <path d="M 107 112 h 6 M 85 110 l -8 -2 M 135 110 l 8 -2" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M 104 124 c 2 6 10 6 12 0" stroke="#111111" stroke-width="2" stroke-linecap="round"/>
-  <!-- the hand on the chin -->
-  <path d="M 120 150 C 136 146 150 152 150 166 C 150 178 140 184 128 180 C 120 176 118 162 120 150 Z" fill="#BDBDBD"/>
-  <path d="M 128 154 v 20 M 136 154 v 20 M 143 158 v 16" stroke="#9A9A9A" stroke-width="2" stroke-linecap="round"/>
-  <!-- drop the real photo at public/assets/scenes/jobs.jpg and it covers the drawing -->
-  <image href="/assets/scenes/jobs.jpg" x="8" y="8" width="204" height="226" preserveAspectRatio="xMidYMid slice"/>
-  <!-- the words -->
-  <text x="110" y="256" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="17" fill="#F5F5F5">Here's to the crazy ones.</text>
-  <text x="110" y="276" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="#BDBDBD">The misfits. The rebels. The troublemakers.</text>
-  <text x="110" y="290" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="#BDBDBD">The round pegs in the square holes.</text>
-  <text x="110" y="308" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="10" letter-spacing="1" fill="#F5F5F5">Think different.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 170" fill="none" stroke="none">
+  <!-- horizontal poster: a restrained portrait on the left, one quote on the right -->
+  <rect x="0" y="0" width="400" height="170" fill="#111111"/>
+  <image href="/assets/scenes/jobs.jpg" x="12" y="12" width="120" height="146" preserveAspectRatio="xMidYMid slice"/>
+  <path d="M 148 28 V 142" stroke="#3B3B3B" stroke-width="2"/>
+  <text x="170" y="76" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="22" fill="#F5F5F5">
+    <tspan x="170" y="76">Here's to the</tspan>
+    <tspan x="170" y="106">crazy ones.</tspan>
+  </text>
   <!-- drawing pins -->
-  <circle cx="10" cy="10" r="5" fill="#F7D44C"/><circle cx="210" cy="10" r="5" fill="#F7D44C"/>
-  <circle cx="10" cy="310" r="5" fill="#F7D44C"/><circle cx="210" cy="310" r="5" fill="#F7D44C"/>
+  <circle cx="10" cy="10" r="5" fill="#F7D44C"/><circle cx="390" cy="10" r="5" fill="#F7D44C"/>
+  <circle cx="10" cy="160" r="5" fill="#F7D44C"/><circle cx="390" cy="160" r="5" fill="#F7D44C"/>
 </svg>

@@ -16,6 +16,11 @@
       <rect x="1190" y="160" width="320" height="150" fill="#E9A15E"/>
       <rect x="1190" y="160" width="320" height="80" fill="#C98352"/>
     </g>
+    <g data-loop="window">
+      <ellipse cx="1248" cy="260" rx="34" ry="9" fill="#F9D7B0" opacity="0.62"/>
+      <ellipse cx="1274" cy="258" rx="22" ry="7" fill="#F9D7B0" opacity="0.62"/>
+      <ellipse cx="1440" cy="218" rx="42" ry="10" fill="#F5C99B" opacity="0.48"/>
+    </g>
     <circle cx="1300" cy="352" r="42" fill="#F2575D"/>
     <!-- Delhi rooftops out the window -->
     <path d="M 1190 400 h 40 v -30 h 60 v 18 h 40 v -40 h 30 v 52 h 50 v -22 h 40 v 30 h 30 v -70 h 12 v -60 l 6 -8 l 6 8 v 60 h 12 v 70 h 4 v 110 h -330 Z" fill="#33535F"/>

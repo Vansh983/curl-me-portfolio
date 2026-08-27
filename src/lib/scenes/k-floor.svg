@@ -1,20 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="none">
-  <!-- the floor: a rug, chai, a plate of chicken nuggets with ketchup, a cricket ball that rolls in, the extension board -->
+  <!-- the floor: a rug, a plate of chicken nuggets with ketchup, and a football that rolls in -->
   <ellipse cx="880" cy="846" rx="300" ry="46" fill="#8E3B46"/>
   <ellipse cx="880" cy="846" rx="240" ry="32" fill="#A84550"/>
   <ellipse cx="880" cy="846" rx="150" ry="18" fill="#8E3B46"/>
-  <!-- chai and the steam -->
-  <g>
-    <ellipse cx="1110" cy="856" rx="30" ry="7" fill="#F9F4EC"/>
-    <path d="M 1091 816 h 38 l -4 38 h -30 Z" fill="#F9F4EC"/>
-    <path d="M 1094 828 h 32 l -3 24 h -26 Z" fill="#B87333"/>
-    <path d="M 1129 822 c 12 0 16 16 5 22 l -3 -9 c 5 -2 2 -7 -2 -7 Z" fill="#F9F4EC"/>
-    <g data-motion="steam" style="animation-range: entry 0% exit 100%">
-      <path d="M 1102 808 c -8 -12 8 -18 0 -30 M 1118 804 c -8 -12 8 -18 0 -30" stroke="#F9F4EC" stroke-width="4" stroke-linecap="round" stroke-opacity="0.8"/>
-    </g>
-  </g>
   <!-- chicken nuggets on a plate, ketchup on the side -->
-  <g transform="translate(-200 0)">
+  <g transform="translate(-120 0)">
   <ellipse cx="1190" cy="862" rx="60" ry="14" fill="#F9F4EC"/>
   <ellipse cx="1190" cy="859" rx="50" ry="10" fill="#EFE8DC"/>
   <path d="M 1150 856 c -4 -10 6 -16 16 -14 c 8 2 12 10 6 16 c -6 4 -18 6 -22 -2 Z" fill="#D9A24D"/>
@@ -24,15 +14,8 @@
   <path d="M 1190 864 c 2 -8 14 -8 18 -2 c 4 6 0 12 -8 12 c -6 0 -12 -4 -10 -10 Z" fill="#E0AC55"/>
   <ellipse cx="1226" cy="864" rx="12" ry="6" fill="#D62828"/>
   </g>
-  <!-- the football -->
+  <!-- a properly panelled football, kept small against the room furniture -->
   <g data-motion="roll" style="animation-range: entry 0% entry 90%">
-    <circle cx="540" cy="840" r="20" fill="#F5F5F5"/>
-    <path d="M 540 832 l 8 6 l -3 9 h -10 l -3 -9 Z M 522 836 l 6 -8 l 6 4 l -2 8 l -8 2 Z M 558 836 l -6 -8 l -6 4 l 2 8 l 8 2 Z M 528 852 l 6 -4 l 6 6 l -2 6 l -8 -2 Z M 552 852 l -6 -4 l -6 6 l 2 6 l 8 -2 Z" fill="#17282F"/>
-    <circle cx="540" cy="840" r="20" fill="none" stroke="#C9C9C4" stroke-width="1.5"/>
+    <image href="/assets/scenes/football.svg" x="521" y="816" width="38" height="40" preserveAspectRatio="xMidYMid meet"/>
   </g>
-  <!-- an extension board with the console wire -->
-  <rect x="690" y="836" width="90" height="16" rx="3" fill="#F9F4EC"/>
-  <path d="M 702 844 h 8 M 718 844 h 8 M 734 844 h 8 M 750 844 h 8" stroke="#33535F" stroke-width="4" stroke-linecap="round"/>
-  <path d="M 690 844 C 650 844 630 800 610 760" stroke="#33535F" stroke-width="3" fill="none"/>
-  <path d="M 780 844 C 900 842 1000 846 1150 800" stroke="#33535F" stroke-width="3" fill="none"/>
 </svg>

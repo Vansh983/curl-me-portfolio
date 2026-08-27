@@ -16,6 +16,11 @@
       <rect x="240" y="110" width="1160" height="50" fill="#A9CBEA"/>
       <rect x="240" y="110" width="1160" height="24" fill="#8FB8DE"/>
     </g>
+    <g data-loop="window">
+      <ellipse cx="360" cy="140" rx="52" ry="10" fill="#F5F9FC" opacity="0.72"/>
+      <ellipse cx="398" cy="138" rx="32" ry="8" fill="#F5F9FC" opacity="0.72"/>
+      <ellipse cx="1050" cy="130" rx="64" ry="11" fill="#EEF6FB" opacity="0.58"/>
+    </g>
     <!-- the sun became the wall clock -->
     <circle cx="1480" cy="330" r="40" fill="#F9F4EC"/>
     <!-- trees and blocks outside -->

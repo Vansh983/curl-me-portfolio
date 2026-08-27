@@ -90,7 +90,7 @@ export const timeline: Milestone[] = [
         // the wall is oversized so the camera swing never shows its edge
         { id: 'room', inline: 'k-room', x: -220, y: -124, w: 2040, z: -720, to: { inline: 'lab-room', x: -220, y: -124, w: 2040 } },
         { id: 'fan', inline: 'k-fan', x: 250, y: 40, w: 480, z: -660, to: { inline: 'lab-fan', x: 250, y: 40, w: 480 } },
-        { id: 'poster', inline: 'k-poster', x: 900, y: 90, w: 160, z: -600, motion: 'drop', range: 'entry 10% entry 60%', fadeOut: 'exit 10% exit 45%' },
+        { id: 'poster', inline: 'k-poster', x: 810, y: 115, w: 280, z: -600, motion: 'drop', range: 'entry 10% entry 60%', fadeOut: 'exit 10% exit 45%' },
         { id: 'shelf', inline: 'k-shelf', x: 1190, y: 552, w: 300, z: -560, motion: 'slide-r', range: 'entry 20% entry 70%', fadeOut: 'exit 10% exit 45%' },
         {
           id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%',
@@ -100,7 +100,7 @@ export const timeline: Milestone[] = [
           },
           to: { inline: 'lab-monitor', x: 560, y: 370, w: 520 },
         },
-        { id: 'xbox', inline: 'k-xbox', x: 1190, y: 758, w: 300, z: -300, motion: 'rise', range: 'entry 15% entry 65%', fadeOut: 'exit 10% exit 45%' },
+        { id: 'xbox', inline: 'k-xbox', x: 1115, y: 635, w: 90, z: -300, motion: 'rise', range: 'entry 15% entry 65%', fadeOut: 'exit 10% exit 45%' },
         { id: 'floor', inline: 'k-floor', x: 0, y: 0, w: 1600, z: -200, fadeOut: 'exit 10% exit 45%' },
         { id: 'kid', inline: 'k-kid', x: 700, y: 450, w: 360, z: -130, motion: 'pop', range: 'entry 30% entry 80%', to: { inline: 'lab-kid', x: 690, y: 452, w: 360 } },
       ],
