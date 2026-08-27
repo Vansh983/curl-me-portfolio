@@ -8,7 +8,7 @@ const FULL: UVRect = [0, 0, 1, 1];
 /** Room slabs are centred on x = 0 and z = zc (default 0). */
 export const floor = (p: { w: number; d: number; zc?: number }): Geo => {
   const zc = p.zc ?? 0;
-  return new Sink().quad([-p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc - p.d / 2], [-p.w / 2, 0, zc - p.d / 2]).out();
+  return new Sink().quad([-p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc + p.d / 2], [p.w / 2, 0, zc - p.d / 2], [-p.w / 2, 0, zc - p.d / 2], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
 };
 
 /** Back, left and right walls, inward facing. The front (camera side) is open. */
@@ -29,7 +29,7 @@ export const ceiling = (p: { w: number; h: number; d: number; zc?: number }): Ge
 
 /** A thin slab on a wall (the whiteboard). w runs along x before yaw. */
 export const panel = (p: { x: number; y: number; z: number; w: number; h: number; t: number; yaw: number }): Geo =>
-  new Sink().box(0, 0, 0, p.w, p.h, p.t).rotateY(0, 0, p.yaw).translate(p.x, p.y, p.z).out();
+  new Sink().box(0, 0, 0, p.w, p.h, p.t, { pz: FULL }).rotateY(0, 0, p.yaw).translate(p.x, p.y, p.z).out();
 
 /** Top slab on two side panels. y is the floor under it, h the height of the top surface. */
 export const table = (p: { x: number; y: number; z: number; w: number; h: number; d: number; top: number }): Geo => {
@@ -193,6 +193,52 @@ export const clock = (p: { x: number; y: number; z: number; r: number }): Geo =>
   const s = new Sink().color('#FFFFFF').cylinder(0, 0, 0, p.r, 0.03, 16).color('#2B2B2B').cylinder(0, 0, 0, p.r * 1.06, 0.02, 16);
   s.color('#2B2B2B').box(0, 0.016, p.r * 0.3, 0.012, 0.004, p.r * 0.6).box(p.r * 0.2, 0.016, 0, p.r * 0.4, 0.004, 0.012);
   return s.rotateX(0, 0, Math.PI / 2).translate(p.x, p.y, p.z).out();
+};
+
+/** A cork notice board with a frame and four pins; the photo is its own actor on top. scale grows it from nothing. */
+export const board = (p: { x: number; y: number; z: number; w: number; h: number; scale: number }): Geo => {
+  const k = p.scale, s = new Sink();
+  s.color('#C8A26B').box(p.x, p.y, p.z, p.w * k, p.h * k, 0.02 * k);
+  s.color('#6E5238').box(p.x, p.y + (p.h / 2) * k, p.z, (p.w + 0.04) * k, 0.04 * k, 0.03 * k).box(p.x, p.y - (p.h / 2) * k, p.z, (p.w + 0.04) * k, 0.04 * k, 0.03 * k);
+  s.box(p.x - (p.w / 2) * k, p.y, p.z, 0.04 * k, p.h * k, 0.03 * k).box(p.x + (p.w / 2) * k, p.y, p.z, 0.04 * k, p.h * k, 0.03 * k);
+  s.color('#F2575D');
+  for (const [sx, sy] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) s.sphere(p.x + sx * (p.w / 2 - 0.06) * k, p.y + sy * (p.h / 2 - 0.06) * k, p.z + 0.015 * k, 0.012 * k, 0.012 * k, 0.008 * k, 6, 3);
+  s.color('#FFFFFF').box(p.x - (p.w / 2 - 0.16) * k, p.y - (p.h / 2 - 0.12) * k, p.z + 0.012 * k, 0.16 * k, 0.12 * k, 0.003 * k);
+  s.color('#F9E27D').box(p.x + (p.w / 2 - 0.14) * k, p.y - (p.h / 2 - 0.11) * k, p.z + 0.012 * k, 0.12 * k, 0.1 * k, 0.003 * k);
+  return s.out();
+};
+
+/** Two ceiling tube lights, growing from nothing in the bedroom. */
+export const tubes = (p: { y: number; z0: number; gap: number; scale: number }): Geo => {
+  const s = new Sink().color('#FFFFFF');
+  for (let k = 0; k < 2; k++) s.box(0, p.y - 0.03 * p.scale, p.z0 + k * p.gap, 1.4 * p.scale, 0.05 * p.scale, 0.12 * p.scale);
+  return s.out();
+};
+
+/** The CPU tower under the lab desk. */
+export const tower = (p: { x: number; y: number; z: number; scale: number }): Geo =>
+  new Sink().color('#E5DCC5').box(p.x, p.y + 0.2 * p.scale, p.z, 0.18 * p.scale, 0.4 * p.scale, 0.42 * p.scale)
+    .color('#CFC9BA').box(p.x - 0.09 * p.scale, p.y + 0.3 * p.scale, p.z + 0.1 * p.scale, 0.005 * p.scale, 0.03 * p.scale, 0.14 * p.scale)
+    .color('#7AC142').sphere(p.x - 0.09 * p.scale, p.y + 0.12 * p.scale, p.z + 0.1 * p.scale, 0.004 * p.scale, 0.006 * p.scale, 0.006 * p.scale, 6, 3)
+    .out();
+
+/** Chairs for the lab row, facing the desks on the right wall. lift 0 sinks them. */
+export const labChairs = (p: { x: number; z0: number; gap: number; lift: number }): Geo => {
+  const s = new Sink();
+  for (let k = 0; k < 3; k++) {
+    const z = p.z0 + k * p.gap;
+    s.box(p.x, 0.43, z, 0.42, 0.04, 0.42);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) s.box(p.x + sx * 0.18, 0.205, z + sz * 0.18, 0.04, 0.41, 0.04);
+    s.box(p.x - 0.19, 0.66, z, 0.04, 0.42, 0.42);
+  }
+  return s.translate(0, (p.lift - 1) * 1.3, 0).out();
+};
+
+/** Keyboards on the lab row desks. */
+export const labKeyboards = (p: { x: number; z0: number; gap: number; lift: number }): Geo => {
+  const s = new Sink().color('#2B2B2B');
+  for (let k = 0; k < 3; k++) s.box(p.x - 0.18, 0.73, p.z0 + k * p.gap, 0.12, 0.02, 0.36);
+  return s.translate(0, (p.lift - 1) * 1.3, 0).out();
 };
 
 /** Three lab desks with monitors in a row along z. lift 0 puts the whole row under the floor. */

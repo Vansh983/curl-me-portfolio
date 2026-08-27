@@ -20,7 +20,7 @@ test('every actor has one key and one colour per station, same count in each', (
 
 test('the story beats are all on stage', () => {
   const ids = new Set(ACTORS.map((a) => a.id));
-  for (const id of ['poster', 'shelf', 'shelfLabels', 'xbox', 'xboxLogo', 'nuggets', 'ball', 'curtains', 'window', 'socket', 'wire', 'keyboard', 'clock', 'rug', 'chair', 'figure-hair', 'figure-held', 'figure-tie']) {
+  for (const id of ['poster', 'shelf', 'shelfLabels', 'xbox', 'xboxLogo', 'nuggets', 'ball', 'curtains', 'window', 'socket', 'wire', 'keyboard', 'clock', 'rug', 'chair', 'figure-hair', 'figure-held', 'figure-tie', 'banner', 'board', 'tubes', 'tower', 'labChairs', 'whiteboard']) {
     assert.ok(ids.has(id), id);
   }
 });

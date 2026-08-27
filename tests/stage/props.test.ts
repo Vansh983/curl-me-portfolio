@@ -30,6 +30,11 @@ test('each rig keeps its count between two very different param sets', () => {
     ['clock', P.clock({ x: 0, y: 2, z: 0, r: 0.15 }), P.clock({ x: 1, y: 2, z: 0, r: 0.001 })],
     ['labRow', P.labRow({ x: 1.6, z0: -1.2, gap: 0.8, lift: 0 }), P.labRow({ x: 1.6, z0: -1.2, gap: 0.8, lift: 1 })],
     ['labScreens', P.labScreens({ x: 1.6, z0: -1.2, gap: 0.8, lift: 0 }), P.labScreens({ x: 1.6, z0: -1.2, gap: 0.8, lift: 1 })],
+    ['labChairs', P.labChairs({ x: 1.0, z0: -1.2, gap: 0.8, lift: 0 }), P.labChairs({ x: 1.0, z0: -1.2, gap: 0.8, lift: 1 })],
+    ['labKeyboards', P.labKeyboards({ x: 1.6, z0: -1.2, gap: 0.8, lift: 0 }), P.labKeyboards({ x: 1.6, z0: -1.2, gap: 0.8, lift: 1 })],
+    ['board', P.board({ x: 1, y: 1.6, z: -2, w: 1, h: 0.6, scale: 1 }), P.board({ x: 1, y: 1.6, z: -2, w: 1, h: 0.6, scale: 0.001 })],
+    ['tubes', P.tubes({ y: 2.8, z0: -1, gap: 1.5, scale: 1 }), P.tubes({ y: 2.8, z0: -1, gap: 1.5, scale: 0.001 })],
+    ['tower', P.tower({ x: 0, y: 0, z: 0, scale: 1 }), P.tower({ x: 0, y: -1, z: 0, scale: 0.001 })],
   ];
   for (const [name, a, b] of pairs) {
     assert.equal(a.pos.length, b.pos.length, name);

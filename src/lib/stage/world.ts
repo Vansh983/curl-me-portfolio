@@ -25,7 +25,7 @@ const BACK = ROOM.zc - ROOM.d / 2;
 
 export const STATIONS: Station[] = [
   { cam: [0.45, 1.4, 3.0], look: [0, 0.85, -1.2], fov: 70 },
-  { cam: [-1.15, 1.75, 1.25], look: [0.2, 0.9, -1.5], fov: 60 },
+  { cam: [-1.15, 1.7, 1.25], look: [0.35, 1.2, -1.5], fov: 64 },
 ];
 
 type Opts = Partial<Pick<Actor, 'shade' | 'tex' | 'vc' | 'outline' | 'transparent' | 'at'>>;
@@ -53,16 +53,18 @@ const TV = { x: 0, y: 0.45 + 0.375, z: -1.7 }, MON = { x: 0.1, y: 0.72 + 0.06 + 
 const SHELF = { x: 1.35, y: 0.95, z: BACK + 0.13, w: 0.9 };
 const WIN0 = { x: -1.05, y: 1.62, z: BACK + 0.01, w: 0.9, h: 1.0 }, WIN1 = { x: -0.9, y: 2.35, z: BACK + 0.01, w: 2.2, h: 0.42 };
 const SOCKET = { x: 1.0, y: 0.32, z: BACK + 0.012 };
+const PHOTO0 = { x: 0.95, y: 1.75, z: BACK + 0.012, w: 0.9, h: 0.5 }, PHOTO1 = { x: 1.35, y: 1.68, z: BACK + 0.035, w: 0.86, h: 0.48 };
+const ROW = { x: 1.65, z0: -1.4, gap: 0.85 };
 
 export const ACTORS: Actor[] = [
-  actor('floor', P.floor, [ROOM, ROOM], ['#D9B994', '#C9CFD3'], { shade: 'flat', outline: false }),
+  actor('floor', P.floor, [ROOM, ROOM], W2, { shade: 'flat', tex: 'mix', outline: false }),
   actor('walls', P.walls, [ROOM, ROOM], ['#F9F4EC', '#E9EEF2'], { shade: 'flat', outline: false }),
   actor('ceiling', P.ceiling, [ROOM, ROOM], ['#FFFFFF', '#F5F9FC'], { shade: 'flat', outline: false }),
   // the whiteboard grows on the left wall in the lab
   actor('whiteboard', P.panel, [
     { x: -ROOM.w / 2 + 0.01, y: 1.45, z: -0.8, w: 0.001, h: 0.001, t: 0.001, yaw: Math.PI / 2 },
     { x: -ROOM.w / 2 + 0.01, y: 1.45, z: -0.8, w: 1.8, h: 1.1, t: 0.02, yaw: Math.PI / 2 },
-  ], W2),
+  ], W2, { tex: 'tex' }),
   // the window onto the Delhi rooftops becomes the lab's high window strip
   actor('window', P.face, [
     { x: WIN0.x, y: WIN0.y, z: WIN0.z, w: WIN0.w, h: WIN0.h },
@@ -73,7 +75,14 @@ export const ACTORS: Actor[] = [
     { x: WIN0.x, y: WIN0.y + WIN0.h / 2 + 0.1, z: WIN0.z, w: WIN0.w, h: 1.3, scale: 1 },
     { x: WIN1.x, y: WIN1.y + WIN1.h / 2 + 0.05, z: WIN1.z, w: WIN1.w, h: 1.3, scale: 0.001 },
   ], W2, { vc: true }),
-  actor('clock', P.clock, [{ x: -0.5, y: 2.3, z: BACK + 0.03, r: 0.001 }, { x: 0.9, y: 2.25, z: BACK + 0.03, r: 0.16 }], W2, { vc: true }),
+  actor('clock', P.clock, [{ x: 0.3, y: 2.3, z: BACK + 0.03, r: 0.001 }, { x: 0.3, y: 2.3, z: BACK + 0.03, r: 0.14 }], W2, { vc: true }),
+  actor('tubes', P.tubes, [{ y: ROOM.h, z0: -1.4, gap: 1.6, scale: 0.001 }, { y: ROOM.h, z0: -1.4, gap: 1.6, scale: 1 }], W2, { vc: true, shade: 'flat' }),
+  // Converge Clan: the banner up top, the team photo on the notice board (the Steve Jobs poster becomes it)
+  actor('banner', P.face, [
+    { x: 1.4, y: 2.3, z: BACK + 0.01, w: 0.001, h: 0.001 },
+    { x: 1.4, y: 2.3, z: BACK + 0.01, w: 1.15, h: 0.25 },
+  ], W2, { shade: 'flat', tex: 'tex', outline: false }),
+  actor('board', P.board, [{ x: PHOTO1.x, y: PHOTO1.y, z: BACK + 0.012, w: 1.04, h: 0.66, scale: 0.001 }, { x: PHOTO1.x, y: PHOTO1.y, z: BACK + 0.012, w: 1.04, h: 0.66, scale: 1 }], W2, { vc: true }),
   // cabinet under the TV becomes the lab desk
   actor('table', P.table, [
     { x: 0, y: 0, z: -1.7, w: 1.3, h: 0.45, d: 0.55, top: 0.04 },
@@ -106,10 +115,7 @@ export const ACTORS: Actor[] = [
   actor('ball', P.ball, [{ x: -0.95, y: 0.11, z: 0.25, r: 0.11 }, { x: -0.95, y: -0.5, z: 0.25, r: 0.001 }], W2, { tex: 'tex' }),
   actor('fan', P.fan, [{ rod: 0.55, r: 0.6, hub: 0.08 }, { rod: 0.55, r: 0.6, hub: 0.08 }], ['#9A9A96', '#9A9A96'], { at: [0, ROOM.h, -0.4] }),
   // the poster: Steve Jobs and the quote, drawing pins; it shrinks to nothing in the lab
-  actor('poster', P.face, [
-    { x: 0.95, y: 1.75, z: BACK + 0.01, w: 0.9, h: 0.38 },
-    { x: 0.95, y: 1.75, z: BACK + 0.01, w: 0.001, h: 0.001 },
-  ], W2, { shade: 'flat', tex: 'tex', outline: false }),
+  actor('poster', P.face, [PHOTO0, PHOTO1], W2, { shade: 'flat', tex: 'mix', outline: false }),
   actor('shelf', P.shelf, [{ ...SHELF, scale: 1 }, { ...SHELF, y: -0.7, scale: 0.001 }], W2, { vc: true }),
   actor('shelfLabels', P.shelfLabels, [{ ...SHELF, scale: 1 }, { ...SHELF, y: -0.7, scale: 0.001 }], W2, { shade: 'flat', tex: 'tex', outline: false, transparent: true }),
   actor('xbox', P.xbox, [{ x: 0.78, y: 0, z: -1.45, scale: 1 }, { x: 0.78, y: -0.6, z: -1.45, scale: 0.001 }], W2, { vc: true }),
@@ -117,8 +123,11 @@ export const ACTORS: Actor[] = [
     { x: 0.78, y: 0.235, z: -1.45 + 0.13 + 0.002, w: 0.06, h: 0.016 },
     { x: 0.78, y: -0.4, z: -1.45 + 0.13 + 0.002, w: 0.001, h: 0.001 },
   ], W2, { shade: 'flat', tex: 'tex', outline: false, transparent: true }),
-  actor('labRow', P.labRow, [{ x: 1.65, z0: -1.4, gap: 0.85, lift: 0 }, { x: 1.65, z0: -1.4, gap: 0.85, lift: 1 }], ['#C8B79B', '#C8B79B']),
-  actor('labScreens', P.labScreens, [{ x: 1.65, z0: -1.4, gap: 0.85, lift: 0 }, { x: 1.65, z0: -1.4, gap: 0.85, lift: 1 }], ['#1C2A33', '#1C2A33'], { outline: false }),
+  actor('labRow', P.labRow, [{ ...ROW, lift: 0 }, { ...ROW, lift: 1 }], ['#C8B79B', '#C8B79B']),
+  actor('labScreens', P.labScreens, [{ ...ROW, lift: 0 }, { ...ROW, lift: 1 }], ['#1C2A33', '#1C2A33'], { outline: false }),
+  actor('labChairs', P.labChairs, [{ ...ROW, x: 1.05, lift: 0 }, { ...ROW, x: 1.05, lift: 1 }], ['#4A5560', '#4A5560']),
+  actor('labKeyboards', P.labKeyboards, [{ ...ROW, lift: 0 }, { ...ROW, lift: 1 }], W2, { vc: true, outline: false }),
+  actor('tower', P.tower, [{ x: -0.42, y: -0.5, z: -1.5, scale: 0.001 }, { x: -0.42, y: 0, z: -1.5, scale: 1 }], W2, { vc: true }),
   ...PARTS.map((part): Actor => ({
     id: `figure-${part}`,
     keys: [kid[part].pos, tween[part].pos],

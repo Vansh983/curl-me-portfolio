@@ -66,7 +66,7 @@ const white = (x: Ctx, w: number, h: number) => { x.fillStyle = '#FFFFFF'; x.fil
  * Everything painted. Canvas y runs down, texture v runs up, so "top" in the world is y = 0 here.
  * Images (the portrait, the Xbox logo) are drawn once they load and the texture is re-uploaded.
  */
-function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null }, video: HTMLVideoElement): Record<string, Paint> {
+function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null }, video: HTMLVideoElement): Record<string, Paint> {
   const mono = '15px ui-monospace, Menlo, monospace';
   return {
     // the Barcelona 2013 home shirt from the back, then the white school shirt. u: 0 front seam, 0.5 the back.
@@ -139,11 +139,12 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         x.fillStyle = '#7F9A80'; x.fillRect(0, h * 0.9, w, h * 0.1);
       },
     },
-    // the poster: the portrait on the left, the quote on the right, four drawing pins
+    // the poster: the portrait on the left, the quote on the right, four drawing pins; then the Converge Clan team photo
     poster: {
-      w: 800, h: 340,
+      w: 800, h: 444,
       a: (x, w, h) => {
         x.fillStyle = '#111111'; x.fillRect(0, 0, w, h);
+        x.save(); x.translate(0, (h - 340) / 2);
         if (images.jobs) {
           const iw = images.jobs.naturalWidth, ih = images.jobs.naturalHeight, s = Math.max(240 / iw, 292 / ih);
           x.save(); x.beginPath(); x.rect(24, 24, 240, 292); x.clip();
@@ -152,8 +153,66 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
         x.fillStyle = '#3B3B3B'; x.fillRect(296, 56, 3, 228);
         x.fillStyle = '#F5F5F5'; x.font = '600 44px Inter, system-ui, sans-serif';
         x.fillText("Here's to the", 340, 152); x.fillText('crazy ones.', 340, 212);
+        x.restore();
         x.fillStyle = '#F7D44C';
-        for (const [px, py] of [[20, 20], [780, 20], [20, 320], [780, 320]] as const) { x.beginPath(); x.arc(px, py, 10, 0, Math.PI * 2); x.fill(); }
+        for (const [px, py] of [[20, 20], [780, 20], [20, h - 20], [780, h - 20]] as const) { x.beginPath(); x.arc(px, py, 10, 0, Math.PI * 2); x.fill(); }
+      },
+      b: (x, w, h) => {
+        x.fillStyle = '#F4F4F2'; x.fillRect(0, 0, w, h);
+        if (images.clan) {
+          // crop the 4:3 photo to the board's 1.8:1, keeping the faces
+          const iw = images.clan.naturalWidth, ih = images.clan.naturalHeight, ch = iw / (w / h);
+          x.drawImage(images.clan, 0, Math.max(0, ih * 0.14), iw, Math.min(ch, ih), 0, 0, w, h);
+        }
+      },
+    },
+    // the Converge Clan banner: the hexagonal C on black, the name in teal
+    banner: {
+      w: 1024, h: 220,
+      a: (x, w, h) => {
+        x.fillStyle = '#111111'; x.fillRect(0, 0, w, h);
+        const cx = 110, cy = h / 2, r = 70;
+        x.strokeStyle = '#2EE6C5'; x.lineWidth = 22; x.lineJoin = 'miter'; x.lineCap = 'butt';
+        x.beginPath();
+        for (let k = 0; k <= 4; k++) { const a = Math.PI / 6 + (k * Math.PI) / 3; const px = cx + r * Math.cos(a + Math.PI / 2), py = cy + r * Math.sin(a + Math.PI / 2); k ? x.lineTo(px, py) : x.moveTo(px, py); }
+        x.stroke();
+        x.fillStyle = '#2EE6C5'; x.fillRect(cx - 6, cy - 12, 52, 24);
+        x.font = '700 92px Inter, system-ui, sans-serif'; x.textBaseline = 'middle'; x.fillText('CONVERGE CLAN', 230, cy + 4);
+        x.textBaseline = 'alphabetic';
+      },
+    },
+    // the whiteboard: marker writing from a club session
+    whiteboard: {
+      w: 1024, h: 640,
+      a: (x, w, h) => {
+        white(x, w, h);
+        x.fillStyle = '#B8BFC4'; x.fillRect(0, h - 26, w, 26);
+        x.fillStyle = '#245EDC'; x.font = '600 52px "Comic Sans MS", "Chalkboard SE", cursive';
+        x.fillText('Web Dev 101', 60, 96);
+        x.fillStyle = '#2B2B2B'; x.font = '44px "Comic Sans MS", "Chalkboard SE", cursive';
+        ['<html>', '  <head> <title>', '  <body>', '    <h1> hello </h1>'].forEach((l, i) => x.fillText(l, 60, 180 + i * 60));
+        x.strokeStyle = '#D62828'; x.lineWidth = 6;
+        x.strokeRect(600, 150, 360, 260); x.strokeRect(620, 170, 320, 50); x.strokeRect(620, 240, 150, 150); x.strokeRect(790, 240, 150, 40); x.strokeRect(790, 300, 150, 40);
+        x.fillStyle = '#D62828'; x.font = '30px "Comic Sans MS", "Chalkboard SE", cursive'; x.fillText('wireframe', 600, 450);
+        x.strokeStyle = '#2E8B57'; x.beginPath(); x.moveTo(60, 470); x.lineTo(420, 470); x.stroke();
+        x.fillStyle = '#2E8B57'; x.fillText('meeting: fri 3pm', 60, 530);
+        for (const [cx2, c] of [[900, '#2B2B2B'], [940, '#245EDC'], [980, '#D62828']] as const) { x.fillStyle = c; x.fillRect(cx2 - 14, h - 22, 28, 12); }
+      },
+    },
+    // the floor: wood planks in the bedroom, lino tiles in the lab
+    floor: {
+      w: 1024, h: 1024,
+      a: (x, w, h) => {
+        x.fillStyle = '#D9B994'; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#C9A57E';
+        for (let r = 0; r < 24; r++) { x.fillRect(0, r * (h / 24), w, 2); const off = (r % 2) * 180; for (let c = -1; c < 4; c++) x.fillRect(c * 360 + off, r * (h / 24), 2, h / 24); }
+      },
+      b: (x, w, h) => {
+        x.fillStyle = '#C9CFD3'; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#BFC6CB';
+        for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) if ((r + c) % 2 === 0) x.fillRect(c * (w / 12), r * (h / 12), w / 12, h / 12);
+        x.fillStyle = '#AEB6BC';
+        for (let k = 0; k <= 12; k++) { x.fillRect(k * (w / 12), 0, 2, h); x.fillRect(0, k * (h / 12), w, 2); }
       },
     },
     // the spine titles, one cell per book, transparent elsewhere
@@ -228,7 +287,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const video = document.createElement('video');
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'auto' });
   video.setAttribute('playsinline', '');
-  const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null };
+  const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null };
   const PAINT = painters(images, video);
 
   let needs = true, raf = 0;
@@ -258,7 +317,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const repaint = (ids: string[]) => {
     for (const s of statics) if (ids.includes(s.id)) { PAINT[s.id].a(s.c.getContext('2d')!, s.c.width, s.c.height); s.tex.needsUpdate = true; }
-    for (const id of ids) if (mixers[id]) { const m = mixers[id]; PAINT[id].a(m.a.getContext('2d')!, m.a.width, m.a.height); m.last = -1; }
+    for (const id of ids) if (mixers[id]) { const m = mixers[id]; PAINT[id].a(m.a.getContext('2d')!, m.a.width, m.a.height); PAINT[id].b!(m.b.getContext('2d')!, m.b.width, m.b.height); m.last = -1; }
     needs = true; kick();
   };
   const blend = (id: string, t: number) => {
@@ -296,6 +355,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
   loadImage('/assets/scenes/xbox-360-logo.png').then((i) => { images.xbox = i; repaint(['xboxLogo']); });
+  loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
   const bebas = new FontFace('Bebas Neue', 'url(/fonts/bebas-neue.ttf)');
   document.fonts.add(bebas);
   bebas.load().then(() => repaint(['screen'])).catch(() => {});
