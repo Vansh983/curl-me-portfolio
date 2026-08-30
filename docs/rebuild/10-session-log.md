@@ -1,5 +1,28 @@
 # Session log: the journey stage
 
+## 2026-08-30, night: the first scene is now
+
+Vansh: "the first view should be what I am currently doing." Set 0 is a condo thirty floors up
+in Toronto at night: him at a black desk in the corner, side on, two monitors (code, Floqer) and a
+laptop (a terminal), a desk lamp and steel shelves with books behind, a single bed along a
+5 m window with the CN Tower and the skyline painted outside (`CITY_PAINT.toronto`). The
+2010 room follows through a door on its -x wall; the dolly now has four sets and three doorways.
+
+- **Him.** Quaternius's Animated Base Character (CC-BY 3.0, via Poly Pizza, 121 KB after
+  keeping only `Sitting_Idle_Loop`). Untextured, so every vertex takes the colour of the bone that
+  moves it most: skin for head, neck, forearms and hands; a black tee; jeans; shoes
+  (`OUTFIT` in `stage-run.ts`, a varying set in `skinbase_vertex`). Hair and glasses are code-built
+  and ride `DEF-head`, placed in world terms then handed to the bone. The sitting idle plays.
+- **Assets** now allow `source: 'url'` with a licence and `anims` to keep; `scripts/stage-assets.mjs`
+  trims clips with `@gltf-transform/core` (added as a dev dependency). 4.0 MB total, 17 models.
+- **Review aids.** `?cam=x,y,z,lx,ly,lz` pins the camera; `?debug` logs every placed object's
+  bounds (found `steel_frame_shelves_01` exported in centimetres, placed at scale 0.1, and the plank
+  painters leaving black cells at the tile's left edge).
+- Dolly continuity test now checks the turn rate (under 2 degrees per 1/1000 of scroll) as well as
+  the step. Timeline gained a `Now` entry at index 0; the hero slot covers its words.
+- Still to do here: his hands on the keyboard (a typing pose over the idle), the Floqer screen
+  reads washed, the chair could be a real model.
+
 ## 2026-08-30, later: designed surfaces, light enough for a phone
 
 Vansh on the scans: "like some horror game", and the page had become too heavy to load. The

@@ -172,6 +172,24 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
  * plaza pavers. Tiled in metres by the material's `tile`; the grain comes from a normal map.
  */
 export const SURFACE_PAINT: Record<string, Paint> = {
+  planksPale: {
+    w: 512, h: 512,
+    frames: [(x, w, h) => {
+      // pale engineered oak, wide boards, for the condo
+      const rows = 6, ph = h / rows;
+      for (let r = 0; r < rows; r++) {
+        const off = (r % 3) * (w / 3);
+        for (let c = -2; c < 3; c++) {
+          const t = ((r * 7 + c * 3 + 5) % 9) / 9;
+          x.fillStyle = `hsl(${34 + t * 6} ${28 + t * 8}% ${66 + t * 7}%)`;
+          x.fillRect(c * (w / 2) + off, r * ph, w / 2, ph);
+        }
+        x.fillStyle = 'rgba(90,70,45,0.35)';
+        x.fillRect(0, r * ph, w, 2);
+        for (let c = -2; c < 3; c++) x.fillRect(c * (w / 2) + off, r * ph, 2, ph);
+      }
+    }],
+  },
   planks: {
     w: 512, h: 512,
     frames: [(x, w, h) => {
@@ -179,14 +197,14 @@ export const SURFACE_PAINT: Record<string, Paint> = {
       const rows = 8, ph = h / rows;
       for (let r = 0; r < rows; r++) {
         const off = (r % 3) * (w / 3);
-        for (let c = -1; c < 3; c++) {
+        for (let c = -2; c < 3; c++) {
           const t = ((r * 7 + c * 3 + 5) % 9) / 9;
           x.fillStyle = `hsl(${26 + t * 6} ${46 + t * 10}% ${34 + t * 9}%)`;
           x.fillRect(c * (w / 2) + off, r * ph, w / 2, ph);
         }
         x.fillStyle = 'rgba(60,35,15,0.55)';
         x.fillRect(0, r * ph, w, 2);
-        for (let c = -1; c < 3; c++) x.fillRect(c * (w / 2) + off, r * ph, 2, ph);
+        for (let c = -2; c < 3; c++) x.fillRect(c * (w / 2) + off, r * ph, 2, ph);
       }
       // faint grain lines along each plank
       x.strokeStyle = 'rgba(70,40,20,0.10)';
@@ -223,6 +241,128 @@ export const SURFACE_PAINT: Record<string, Paint> = {
       }
       x.fillStyle = 'rgba(120,110,95,0.55)';
       for (let k = 0; k <= n; k++) { x.fillRect(k * s - 2, 0, 5, h); x.fillRect(0, k * s - 2, w, 5); }
+    }],
+  },
+};
+
+/** The city at night out of the Toronto window: a navy sky, towers with lit windows, the CN Tower. 2:1, drawn once. */
+export const CITY_PAINT: Record<string, Paint> = {
+  toronto: {
+    w: 2048, h: 1024,
+    frames: [(x, w, h) => {
+      const sky = x.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#070B1A'); sky.addColorStop(0.55, '#101A3A'); sky.addColorStop(1, '#2A3358');
+      x.fillStyle = sky; x.fillRect(0, 0, w, h);
+      // a few stars
+      x.fillStyle = 'rgba(255,255,255,0.5)';
+      for (let i = 0; i < 90; i++) x.fillRect((i * 733) % w, (i * 197) % (h * 0.45), 1.5, 1.5);
+      // the lake at the bottom, and a horizon glow
+      const glow = x.createLinearGradient(0, h * 0.62, 0, h * 0.8);
+      glow.addColorStop(0, 'rgba(255,170,90,0)'); glow.addColorStop(1, 'rgba(255,170,90,0.18)');
+      x.fillStyle = glow; x.fillRect(0, h * 0.62, w, h * 0.18);
+      x.fillStyle = '#0B1226'; x.fillRect(0, h * 0.8, w, h * 0.2);
+      // towers: a skyline of rectangles, each with a grid of lit windows
+      const towers: Array<[number, number, number]> = [];
+      let cx = 0, i = 0;
+      while (cx < w) {
+        const tw = 40 + ((i * 47) % 90), th = 120 + ((i * 131) % 380);
+        towers.push([cx, tw, th]);
+        cx += tw + 6 + ((i * 13) % 30);
+        i++;
+      }
+      for (const [tx, tw, th] of towers) {
+        const top = h * 0.8 - th;
+        x.fillStyle = '#141B33'; x.fillRect(tx, top, tw, th);
+        x.fillStyle = 'rgba(255,214,150,0.85)';
+        const cols = Math.max(2, Math.floor(tw / 9)), rows = Math.floor(th / 11);
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          if (((r * 31 + c * 17 + tx) % 7) < 4) x.fillRect(tx + 3 + c * (tw - 6) / cols, top + 4 + r * 11, 4, 6);
+        }
+        // reflection in the lake
+        x.fillStyle = 'rgba(255,214,150,0.08)'; x.fillRect(tx, h * 0.8, tw, Math.min(th * 0.5, h * 0.2));
+      }
+      // the CN Tower: a tapering shaft, the pod, the antenna; lit
+      const bx = w * 0.62, base = h * 0.8, tall = h * 0.72;
+      x.fillStyle = '#23294A';
+      x.beginPath(); x.moveTo(bx - 22, base); x.lineTo(bx - 8, base - tall * 0.66); x.lineTo(bx + 8, base - tall * 0.66); x.lineTo(bx + 22, base); x.closePath(); x.fill();
+      x.fillStyle = '#2E3560';
+      x.beginPath(); x.ellipse(bx, base - tall * 0.68, 54, 22, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = '#3A4270'; x.fillRect(bx - 44, base - tall * 0.72, 88, 26);
+      x.fillStyle = 'rgba(255,220,160,0.9)';
+      for (let c = 0; c < 14; c++) x.fillRect(bx - 40 + c * 6, base - tall * 0.71, 3, 5);
+      x.fillStyle = '#23294A';
+      x.beginPath(); x.moveTo(bx - 7, base - tall * 0.72); x.lineTo(bx - 3, base - tall * 0.9); x.lineTo(bx + 3, base - tall * 0.9); x.lineTo(bx + 7, base - tall * 0.72); x.closePath(); x.fill();
+      x.fillStyle = '#4A5288'; x.beginPath(); x.ellipse(bx, base - tall * 0.9, 18, 8, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = '#1C2140'; x.fillRect(bx - 2, base - tall, 4, tall * 0.1);
+      x.fillStyle = '#FF4A4A'; x.beginPath(); x.arc(bx, base - tall, 4, 0, Math.PI * 2); x.fill();
+      // the tower's coloured lighting: a soft violet along the shaft
+      const lit = x.createLinearGradient(bx - 22, 0, bx + 22, 0);
+      lit.addColorStop(0, 'rgba(120,110,255,0)'); lit.addColorStop(0.5, 'rgba(120,110,255,0.35)'); lit.addColorStop(1, 'rgba(120,110,255,0)');
+      x.fillStyle = lit; x.fillRect(bx - 22, base - tall * 0.66, 44, tall * 0.66);
+    }],
+  },
+};
+
+/** What is on his screens now: an editor, the Floqer app, a terminal on the laptop. */
+export const SCREEN_PAINT: Record<string, Paint> = {
+  screenCode: {
+    w: 768, h: 432,
+    frames: [(x, w, h) => {
+      x.fillStyle = '#1E1F26'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#16171C'; x.fillRect(0, 0, 190, h);
+      x.font = '13px ui-monospace, Menlo, monospace';
+      const tree = ['src/', '  lib/', '    stage/', '      sets.ts', '      dolly.ts', '      built.ts', '  scripts/', '    stage-run.ts', 'tests/', 'package.json'];
+      tree.forEach((l, i) => { x.fillStyle = i === 3 ? '#E6E6E6' : '#8A8F9E'; x.fillText(l, 14, 30 + i * 20); });
+      const code = [
+        ['export const ', '#C792EA'], ['SETS', '#82AAFF'], [': StageSet[] = [', '#E6E6E6'],
+      ];
+      const lines = [
+        "import { type V3 } from './rig.ts';", '', 'export const SETS: StageSet[] = [', "  { id: 'now', env: 'studio',", "    tint: { sky: '#5A6E96', power: 0.3 },",
+        '    props: [', "      { build: 'desk', at: [-9.0, 0, 0.4] },", "      { model: 'base_character', live: 'him' },", '    ],', '  },', '];',
+        '', 'export function makeDolly(keys) {', '  const cam = new CatmullRomCurve3(', "    keys.map((k) => new Vector3(...k.cam)), false, 'centripetal');",
+      ];
+      x.font = '14px ui-monospace, Menlo, monospace';
+      lines.forEach((l, i) => {
+        const y = 30 + i * 22;
+        x.fillStyle = '#4A4F60'; x.fillText(String(i + 1).padStart(2, ' '), 204, y);
+        x.fillStyle = /^(import|export)/.test(l) ? '#C792EA' : /'[^']*'/.test(l) ? '#C3E88D' : '#D6DAE6';
+        x.fillText(l, 236, y);
+      });
+      void code;
+      x.fillStyle = '#82AAFF'; x.fillRect(236 + 8 * 26, 30 + 7 * 22 - 13, 2, 17);
+    }],
+  },
+  screenFloqer: {
+    w: 768, h: 432,
+    frames: [(x, w, h) => {
+      x.fillStyle = '#F7F7F8'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, 176, h);
+      x.fillStyle = '#E8E8EC'; x.fillRect(176, 0, 1, h);
+      x.fillStyle = '#111111'; x.font = '700 18px Inter, system-ui, sans-serif'; x.fillText('Floqer', 20, 34);
+      x.font = '13px Inter, system-ui, sans-serif';
+      ['Workflows', 'Sources', 'Shortcuts', 'Runs', 'Settings'].forEach((l, i) => { x.fillStyle = i === 0 ? '#111111' : '#6B6F7A'; x.fillText(l, 20, 76 + i * 28); });
+      x.fillStyle = '#111111'; x.font = '600 16px Inter, system-ui, sans-serif'; x.fillText('Lead enrichment', 200, 36);
+      // a table of rows with a status pill
+      for (let r = 0; r < 9; r++) {
+        const y = 62 + r * 38;
+        x.fillStyle = r % 2 ? '#F1F1F4' : '#FFFFFF'; x.fillRect(196, y - 14, w - 216, 34);
+        x.fillStyle = '#2B2D33'; x.font = '13px Inter, system-ui, sans-serif'; x.fillText(`row ${1041 + r * 7}`, 210, y + 7);
+        x.fillStyle = '#6B6F7A'; x.fillText(['acme.io', 'north.co', 'lumen.app', 'bay.dev', 'kite.so', 'pier.ai', 'orbit.gg', 'mesa.ly', 'vale.io'][r], 330, y + 7);
+        x.fillStyle = r < 6 ? '#DDF5E3' : '#FFF1D6'; x.fillRect(560, y - 6, 74, 20);
+        x.fillStyle = r < 6 ? '#1B7F3B' : '#9A5B00'; x.font = '600 11px Inter, system-ui, sans-serif'; x.fillText(r < 6 ? 'ENRICHED' : 'RUNNING', 568, y + 8);
+      }
+      x.fillStyle = '#111111'; x.fillRect(640, 22, 108, 30);
+      x.fillStyle = '#FFFFFF'; x.font = '600 12px Inter, system-ui, sans-serif'; x.fillText('Run workflow', 655, 41);
+    }],
+  },
+  screenTerminal: {
+    w: 640, h: 400,
+    frames: [(x, w, h) => {
+      x.fillStyle = '#0F1117'; x.fillRect(0, 0, w, h);
+      x.font = '13px ui-monospace, Menlo, monospace';
+      const lines = ['$ npm test', '', '✔ three sets and a dolly', '✔ every placement sits somewhere finite', '✔ the camera never jumps', '✔ the whole set stays under 4 MB', '', 'ℹ pass 58', 'ℹ fail 0', '', '$ git log --oneline -1', 'feat(stage): the desk, now', '$ '];
+      lines.forEach((l, i) => { x.fillStyle = l.startsWith('✔') ? '#7BD88F' : l.startsWith('$') ? '#E6E6E6' : '#9AA0B0'; x.fillText(l, 16, 28 + i * 22); });
+      x.fillStyle = '#E6E6E6'; x.fillRect(34, 28 + 12 * 22 - 12, 8, 15);
     }],
   },
 };

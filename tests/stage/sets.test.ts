@@ -7,8 +7,8 @@ import { MATS } from '../../src/lib/stage/materials.ts';
 const ids = new Set(ASSETS.map((a) => a.id));
 const finite = (v: number[]) => v.every((n) => Number.isFinite(n));
 
-test('three sets, each lit and finite', () => {
-  assert.equal(SETS.length, 3);
+test('four sets, each lit and finite', () => {
+  assert.equal(SETS.length, 4);
   for (const s of SETS) {
     assert.ok(s.env === 'studio' || s.env === 'sky');
     assert.ok(s.tint.power >= 0);
@@ -30,12 +30,13 @@ test('every placement names a model in the manifest or a code-built prop, and si
 });
 
 test('shells use designed materials and open where the dolly passes', () => {
-  const [room, lab] = SETS;
-  for (const s of [room, lab]) {
+  const [now, room, lab] = SETS;
+  for (const s of [now, room, lab]) {
     assert.ok(s.shell);
     assert.ok(MATS[s.shell!.floor] && MATS[s.shell!.wall] && MATS[s.shell!.ceiling ?? s.shell!.wall], `${s.id} materials`);
     assert.ok(s.shell!.openings.some((o) => o.h > 1.9 && (o.sill ?? 0) === 0), `${s.id} has a door`);
   }
-  assert.ok(room.shell!.openings.some((o) => o.wall === 'x+'));
+  assert.ok(now.shell!.openings.some((o) => o.wall === 'x+'));
+  assert.ok(room.shell!.openings.some((o) => o.wall === 'x-') && room.shell!.openings.some((o) => o.wall === 'x+'));
   assert.ok(lab.shell!.openings.some((o) => o.wall === 'x-') && lab.shell!.openings.some((o) => o.wall === 'x+'));
 });

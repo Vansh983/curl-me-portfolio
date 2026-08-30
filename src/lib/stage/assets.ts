@@ -1,23 +1,37 @@
-// Every scanned model on the stage, by name. The fetch script (scripts/stage-assets.mjs) turns
-// this into optimised .glb files under public/assets/stage/ and a credits file; the runtime only
-// ever asks assetUrl(). All of it is Poly Haven, CC0. Textures are capped at 512 px: the whole
-// set has to stay light enough for a phone on a bad connection.
-export type AssetKind = 'model';
+// Every downloaded model on the stage, by name. The fetch script (scripts/stage-assets.mjs)
+// turns this into optimised .glb files under public/assets/stage/ and a credits file; the runtime
+// only ever asks assetUrl(). Poly Haven models are CC0; the one rigged character is Quaternius's
+// (CC-BY 3.0, credited). Textures are capped at 512 px: the whole set has to stay light enough
+// for a phone on a bad connection.
+export type Licence = 'CC0' | 'CC-BY-3.0';
 export interface Asset {
-  id: string; // the Poly Haven slug
-  kind: AssetKind;
+  id: string; // the Poly Haven slug, or our own name for a url asset
+  kind: 'model';
+  source: 'polyhaven' | 'url';
+  url?: string; // source 'url': a direct .glb
   res: '1k';
-  licence: 'CC0';
+  licence: Licence;
   author: string;
   use: string; // where it goes, for the credits file
   maxTex: 256 | 512;
   simplify?: number; // meshopt simplification error (fraction of the mesh's size); off when absent
+  anims?: string[]; // rigged models: the animation clips to keep, the rest are dropped
 }
 
 const model = (id: string, author: string, use: string, maxTex: 256 | 512 = 512, simplify?: number): Asset =>
-  ({ id, kind: 'model', res: '1k', licence: 'CC0', author, use, maxTex, simplify });
+  ({ id, kind: 'model', source: 'polyhaven', res: '1k', licence: 'CC0', author, use, maxTex, simplify });
 
 export const ASSETS: Asset[] = [
+  // him, now: a rigged base character, recoloured and dressed in code, sitting
+  {
+    id: 'base_character', kind: 'model', source: 'url', url: 'https://static.poly.pizza/0b65e14d-a349-44cc-836c-efdeb6933d48.glb',
+    res: '1k', licence: 'CC-BY-3.0', author: 'Quaternius', use: 'the figure at the desk (Animated Base Character, via Poly Pizza)', maxTex: 256,
+    anims: ['Rig|Sitting_Idle_Loop'],
+  },
+  // now, Toronto
+  model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp', 256),
+  model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),
+  model('potted_plant_01', 'Rico Cilliers', 'the plant by the window', 256, 0.004),
   // 2010, the room
   model('television_02', 'Benny Weimer', 'the CRT television, and scaled down, the lab monitors'),
   model('ceiling_fan', 'Ulan Cabanilla', 'the ceiling fan'),

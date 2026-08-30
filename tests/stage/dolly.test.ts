@@ -6,15 +6,15 @@ test('keys are ordered in q from 0 to 1 and land on the three sets', () => {
   assert.equal(DOLLY[0].q, 0);
   assert.equal(DOLLY[DOLLY.length - 1].q, 1);
   for (let k = 1; k < DOLLY.length; k++) assert.ok(DOLLY[k].q > DOLLY[k - 1].q);
-  assert.deepEqual([...new Set(DOLLY.map((k) => k.set))], [0, 1, 2]);
+  assert.deepEqual([...new Set(DOLLY.map((k) => k.set))], [0, 1, 2, 3]);
 });
 
 test('blend windows come in pairs, 0 then 1, and the set flips inside them', () => {
   const dolly = makeDolly(DOLLY);
   const zeros = DOLLY.filter((k) => k.blend === 0), ones = DOLLY.filter((k) => k.blend === 1);
-  assert.equal(zeros.length, 2);
-  assert.equal(ones.length, 2);
-  for (let w = 0; w < 2; w++) {
+  assert.equal(zeros.length, 3);
+  assert.equal(ones.length, 3);
+  for (let w = 0; w < 3; w++) {
     const a = zeros[w], b = ones[w];
     assert.ok(b.q > a.q);
     const mid = (a.q + b.q) / 2;
@@ -25,15 +25,21 @@ test('blend windows come in pairs, 0 then 1, and the set flips inside them', () 
   }
 });
 
-test('the camera never jumps: 1/1000 steps move under 0.06 m and the look under 0.1 m', () => {
+test('the camera never jumps: 1/1000 steps move under 0.06 m and turn under 2 degrees', () => {
   const dolly = makeDolly(DOLLY);
+  const dir = (f: { cam: number[]; look: number[] }) => {
+    const v = [f.look[0] - f.cam[0], f.look[1] - f.cam[1], f.look[2] - f.cam[2]];
+    const n = Math.hypot(...v);
+    return v.map((x) => x / n);
+  };
   let prev = dolly(0);
   for (let i = 1; i <= 1000; i++) {
     const f = dolly(i / 1000);
     const d = Math.hypot(f.cam[0] - prev.cam[0], f.cam[1] - prev.cam[1], f.cam[2] - prev.cam[2]);
-    const l = Math.hypot(f.look[0] - prev.look[0], f.look[1] - prev.look[1], f.look[2] - prev.look[2]);
+    const a = dir(prev), b = dir(f);
+    const deg = (Math.acos(Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])) * 180) / Math.PI;
     assert.ok(d < 0.06, `cam step ${d} at ${i}`);
-    assert.ok(l < 0.1, `look step ${l} at ${i}`);
+    assert.ok(deg < 2, `turn ${deg} degrees at ${i}`);
     assert.ok(f.fov >= 40 && f.fov <= 60);
     prev = f;
   }
@@ -41,8 +47,10 @@ test('the camera never jumps: 1/1000 steps move under 0.06 m and the look under 
 
 test('the dolly is inside the doorway when it says it is', () => {
   const dolly = makeDolly(DOLLY);
-  const f = dolly(0.27);
+  const e = dolly(0.21);
+  assert.ok(Math.abs(e.cam[0] + 4.1) < 0.05 && Math.abs(e.cam[2] - 1.6) < 0.1, `${e.cam}`);
+  const f = dolly(0.513);
   assert.ok(Math.abs(f.cam[0] - 2.6) < 0.05 && Math.abs(f.cam[2] - 1.6) < 0.1, `${f.cam}`);
-  const g = dolly(0.77);
+  const g = dolly(0.85);
   assert.ok(Math.abs(g.cam[0] - 12.1) < 0.05 && Math.abs(g.cam[2] - 3.4) < 0.1, `${g.cam}`);
 });

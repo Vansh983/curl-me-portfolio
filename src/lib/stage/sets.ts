@@ -1,10 +1,12 @@
 // The world as data: three sets along +x, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
-//   Set 0 ROOM     x -2.2..2.2   z -2.5..2.5   h 2.8   door on +x wall at z 1.6
+//   Set 0 NOW      x -10.2..-4.2 z -3.0..3.0   h 2.6   Toronto, high up; window on z-, door on +x wall at z 1.6
+//   Passage        x -4.2..-2.2  z  1.0..2.2   h 2.4
+//   Set 1 ROOM     x -2.2..2.2   z -2.5..2.5   h 2.8   doors on x- and x+ walls at z 1.6
 //   Passage        x  2.2..5.2   z  1.0..2.2   h 2.4   plain, one bulb
-//   Set 1 LAB      x  5.2..12.2  z -1.5..4.5   h 3.0   door in at z 1.6 (x-), door out at z 3.4 (x+)
-//   Set 2 PLAZA    x 12.2..80    z -60..20     open    the bay beyond z < -35, the bridge at z -150
+//   Set 2 LAB      x  5.2..12.2  z -1.5..4.5   h 3.0   door in at z 1.6 (x-), door out at z 3.4 (x+)
+//   Set 3 PLAZA    x 12.2..80    z -60..20     open    the bay beyond z < -35, the bridge at z -150
 export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
@@ -21,7 +23,7 @@ export interface Shell {
   openings: Opening[];
 }
 
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'him' | 'lamp' | 'screen' | 'city';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 export interface Placement {
@@ -62,6 +64,40 @@ const DZ = (r: number) => 0.5 - r * 1.6;
 
 export const SETS: StageSet[] = [
   {
+    // now: a condo high above Toronto at night. The desk lamp and the screens light him; the city
+    // through the window lights the rest, cool and faint.
+    id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.14 }, exposure: 0.85, envPower: 0.08,
+    sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.35, shadow: 0.7 },
+    fog: { color: '#141826', near: 10, far: 50 },
+    shell: {
+      x: [-10.2, -4.2], z: [-3.0, 3.0], h: 2.6,
+      floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
+      openings: [
+        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
+        { wall: 'z-', at: -7.2, w: 5.0, h: 2.0, sill: 0.5 },
+      ],
+    },
+    props: [
+      { build: 'mullions', at: [-7.2, 0.5, -3.0] },
+      { build: 'toronto', at: [-7.2, 1.2, -9.5], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.' },
+      { build: 'rugGrey', at: [-8.9, 0, 0.4] },
+      { build: 'desk', at: [-9.3, 0, 0.4], rot: [0, 90, 0], cap: 'Building Floqer. Most days, most nights.' },
+      { build: 'monitor', at: [-9.55, 0.74, 0.05], rot: [0, 100, 0], live: 'screen' },
+      { build: 'monitorApp', at: [-9.55, 0.74, 0.72], rot: [0, 80, 0], live: 'screen' },
+      { build: 'laptop', at: [-9.15, 0.74, 1.05], rot: [0, 120, 0], live: 'screen' },
+      { build: 'pcTower', at: [-9.55, 0, -0.1], rot: [0, 90, 0] },
+      { model: 'desk_lamp_arm_01', at: [-9.6, 0.74, 1.3], rot: [0, 150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
+      { build: 'officeChair', at: [-8.55, 0, 0.4], rot: [0, 90, 0], scale: [1.1, 1.12, 1.1] },
+      { model: 'base_character', at: [-8.55, 0, 0.4], rot: [0, 90, 0], scale: 0.92, live: 'him', cap: 'Me. Black tee, glasses, two screens and a laptop.' },
+      { model: 'steel_frame_shelves_01', at: [-9.9, 0, 2.2], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
+      { model: 'book_encyclopedia_set_01', at: [-9.9, 0.98, 2.2], rot: [0, 90, 0], scale: 0.9 },
+      { model: 'book_encyclopedia_set_01', at: [-9.9, 1.5, 2.15], rot: [0, 90, 0], scale: 0.8 },
+      { build: 'bed', at: [-6.4, 0, -2.45] },
+      { model: 'potted_plant_01', at: [-4.7, 0, -2.5] },
+      { build: 'passage', at: [-4.2, 0, 1.0], live: 'bulb' },
+    ],
+  },
+  {
     id: 'room', env: 'studio', tint: { sky: '#FFE6C6', ground: '#9C7B5A', power: 0.3 }, exposure: 0.8, envPower: 0.3,
     sun: { dir: [-0.3, 0.5, -0.8], color: '#FFD9A8', power: 3.2, shadow: 0.9 },
     fog: { color: '#EFE3D0', near: 12, far: 60 },
@@ -69,6 +105,7 @@ export const SETS: StageSet[] = [
       x: [-2.2, 2.2], z: [-2.5, 2.5], h: 2.8,
       floor: 'roomFloor', wall: 'roomWall', ceiling: 'roomCeiling',
       openings: [
+        { wall: 'x-', at: 1.6, w: 0.9, h: 2.05 },
         { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
         { wall: 'z-', at: -1.1, w: 1.3, h: 1.4, sill: 0.95 },
       ],

@@ -1,6 +1,6 @@
 // The camera path, as data, and the function from stage progress to a frame. Pure.
 //
-// One dolly runs through the three sets. Keys carry a stage progress q; between two keys the
+// One dolly runs through the four sets. Keys carry a stage progress q; between two keys the
 // curve parameter is linear in q, so the spacing of keys sets the speed. A pair of keys marked
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
@@ -11,16 +11,24 @@ export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: numb
 export interface Frame { q: number; set: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
 
 export const DOLLY: DollyKey[] = [
-  { q: 0.0, cam: [0.3, 1.15, 2.1], look: [0, 0.95, -2.3], fov: 46, set: 0 }, // the room, the TV
-  { q: 0.2, cam: [1.4, 1.2, 1.7], look: [2.6, 1.2, 1.6], fov: 50, set: 0 }, // turning to the door
-  { q: 0.27, cam: [2.6, 1.2, 1.6], look: [4.5, 1.2, 1.6], fov: 54, set: 0, blend: 0 }, // door jamb
-  { q: 0.32, cam: [3.7, 1.2, 1.6], look: [5.6, 1.2, 1.6], fov: 54, set: 1, blend: 1 }, // mid passage
-  { q: 0.38, cam: [5.4, 1.25, 1.6], look: [7.5, 1.1, 0.4], fov: 50, set: 1 }, // into the lab
-  { q: 0.5, cam: [6.6, 1.35, 2.6], look: [8.2, 1.0, 0.6], fov: 46, set: 1 }, // over the desk, the CRT
-  { q: 0.7, cam: [9.5, 1.3, 2.8], look: [12.4, 1.2, 3.4], fov: 50, set: 1 }, // to the far door
-  { q: 0.77, cam: [12.1, 1.3, 3.4], look: [14, 1.3, 3.4], fov: 54, set: 1, blend: 0 }, // door jamb
-  { q: 0.82, cam: [13.4, 1.35, 3.4], look: [16, 1.4, 1.5], fov: 54, set: 2, blend: 1 }, // just outside
-  { q: 1.0, cam: [16.5, 1.6, 6.5], look: [24, 1.6, -12], fov: 48, set: 2 }, // the plaza, the sign, the bridge
+  // now: him at the desk from the side, the window on the right; then the camera pulls back and turns to the door
+  { q: 0.0, cam: [-5.75, 1.5, 2.55], look: [-8.5, 1.0, -0.5], fov: 48, set: 0 },
+  { q: 0.05, cam: [-6.1, 1.35, 1.9], look: [-7.4, 1.1, -1.5], fov: 47, set: 0 },
+  { q: 0.11, cam: [-5.8, 1.28, 1.55], look: [-5.2, 1.3, -0.6], fov: 48, set: 0 },
+  { q: 0.175, cam: [-5.6, 1.25, 1.6], look: [-3.8, 1.2, 1.6], fov: 50, set: 0 },
+  { q: 0.21, cam: [-4.1, 1.2, 1.6], look: [-2.4, 1.2, 1.6], fov: 54, set: 0, blend: 0 }, // door jamb
+  { q: 0.25, cam: [-3.1, 1.2, 1.6], look: [-1.0, 1.2, 1.4], fov: 54, set: 1, blend: 1 }, // mid passage
+  { q: 0.29, cam: [-1.7, 1.18, 1.75], look: [0.0, 1.0, -0.8], fov: 50, set: 1 }, // into the 2010 room
+  { q: 0.333, cam: [0.3, 1.15, 2.1], look: [0, 0.95, -2.3], fov: 46, set: 1 }, // the room, the TV
+  { q: 0.467, cam: [1.4, 1.2, 1.7], look: [2.6, 1.2, 1.6], fov: 50, set: 1 }, // turning to the door
+  { q: 0.513, cam: [2.6, 1.2, 1.6], look: [4.5, 1.2, 1.6], fov: 54, set: 1, blend: 0 }, // door jamb
+  { q: 0.547, cam: [3.7, 1.2, 1.6], look: [5.6, 1.2, 1.6], fov: 54, set: 2, blend: 1 }, // mid passage
+  { q: 0.587, cam: [5.4, 1.25, 1.6], look: [7.5, 1.1, 0.4], fov: 50, set: 2 }, // into the lab
+  { q: 0.667, cam: [6.6, 1.35, 2.6], look: [8.2, 1.0, 0.6], fov: 46, set: 2 }, // over the desk, the CRT
+  { q: 0.8, cam: [9.5, 1.3, 2.8], look: [12.4, 1.2, 3.4], fov: 50, set: 2 }, // to the far door
+  { q: 0.85, cam: [12.1, 1.3, 3.4], look: [14, 1.3, 3.4], fov: 54, set: 2, blend: 0 }, // door jamb
+  { q: 0.885, cam: [13.4, 1.35, 3.4], look: [16, 1.4, 1.5], fov: 54, set: 3, blend: 1 }, // just outside
+  { q: 1.0, cam: [16.5, 1.6, 6.5], look: [24, 1.6, -12], fov: 48, set: 3 }, // the plaza, the sign, the bridge
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

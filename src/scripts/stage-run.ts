@@ -10,6 +10,7 @@ import {
   BufferGeometry, BufferAttribute, MeshStandardMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture,
   DataTexture, RepeatWrapping, SRGBColorSpace, ACESFilmicToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
   RGBAFormat, UnsignedByteType, LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
+  AnimationMixer, AnimationClip, SkinnedMesh, Box3, Quaternion,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -26,9 +27,10 @@ import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress } from '../lib/stage/shot.ts';
 import { detailMap, type Kind } from '../lib/stage/surface.ts';
-import { painters, loadImage, canvas2d, SURFACE_PAINT, type Paint } from './stage-paint.ts';
+import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, type Paint } from './stage-paint.ts';
 
 const D = Math.PI / 180;
+const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#000';
 
 /** A placed thing: its root in the scene and the placement it came from. */
@@ -37,6 +39,15 @@ interface Placed { root: Object3D; p: Placement; set: number }
 /** The screen face of television_02 in its own metres: where the glass is, seen from the front. */
 const TV_SCREEN = { w: 0.3, h: 0.24, at: [0, 0.2, 0.178] as const };
 const GRAIN = 128; // pixels per grain tile: a faint normal, never a texture you would look at
+
+/** What each bone of the base character wears: skin, a black tee, jeans, shoes. Matched by name prefix. */
+const OUTFIT: Array<[RegExp, string]> = [
+  [/^DEF-(head|neck|hand|f_|thumb|forearm)/, 'skin'],
+  [/^DEF-(spine|shoulder|upper_arm)/, 'tee'],
+  [/^DEF-(hips|thigh|shin)/, 'jeans'],
+  [/^DEF-(foot|toe)/, 'shoes'],
+];
+const OUTFIT_COLOR: Record<string, string> = { skin: '#C68E6A', tee: '#141416', jeans: '#26334A', shoes: '#1A1A1C' };
 
 export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): () => void {
   const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -90,8 +101,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // ---- loaders and caches
   const gltf = new GLTFLoader();
   gltf.setMeshoptDecoder(MeshoptDecoder);
-  const modelCache = new Map<string, Promise<Group>>();
-  const loadModel = (id: string): Promise<Group> => {
+  interface Loaded { scene: Group; animations: AnimationClip[] }
+  const modelCache = new Map<string, Promise<Loaded>>();
+  const loadModel = (id: string): Promise<Loaded> => {
     let p = modelCache.get(id);
     if (!p) {
       p = gltf.loadAsync(assetUrl(asset(id))).then((g) => {
@@ -106,11 +118,71 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
             }
           }
         });
-        return g.scene;
+        return { scene: g.scene, animations: g.animations };
       });
       modelCache.set(id, p);
     }
     return p;
+  };
+
+  /**
+   * Dresses the base character: every vertex takes the colour of the bone that moves it most
+   * (skin, tee, jeans, shoes), so one untextured mesh reads as a person in a black tee. Then hair
+   * and glasses ride the head bone, and the sitting idle plays.
+   */
+  const dressHim = (loaded: Loaded): { root: Group; mixer: AnimationMixer } => {
+    const root = loaded.scene;
+    const skinned: SkinnedMesh[] = [];
+    root.traverse((o) => { if (o instanceof SkinnedMesh) skinned.push(o); });
+    for (const m of skinned) {
+      m.frustumCulled = false;
+      const bones = m.skeleton.bones;
+      const colors = bones.map((b) => {
+        const kind = OUTFIT.find(([re]) => re.test(b.name))?.[1] ?? 'tee';
+        return new Color(OUTFIT_COLOR[kind]);
+      });
+      const mat = new MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.85, metalness: 0, envMapIntensity: 0.8 });
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uBone = { value: colors };
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', `#include <common>\nuniform vec3 uBone[${bones.length}];\nvarying vec3 vBody;`)
+          .replace('#include <skinbase_vertex>', '#include <skinbase_vertex>\n vBody = uBone[int(skinIndex.x)];');
+        sh.fragmentShader = sh.fragmentShader
+          .replace('#include <common>', '#include <common>\nvarying vec3 vBody;')
+          .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb = vBody;');
+      };
+      m.material = mat;
+      m.castShadow = true;
+      m.receiveShadow = true;
+    }
+    // hair and glasses ride the head bone. Whatever units the rig is in, the parts are built in
+    // metres, so they are scaled by the inverse of the bone's world scale and offset in bone units
+    const mixer = new AnimationMixer(root);
+    const clip = loaded.animations.find((a) => /Sitting_Idle/.test(a.name)) ?? loaded.animations[0];
+    if (clip) mixer.clipAction(clip).play();
+    mixer.update(0);
+    const head = root.getObjectByName('DEF-head');
+    if (head) {
+      // the parts are built upright and facing +z in the character's own frame; they are placed in
+      // world terms (up is up, forward is his forward) and then handed to the head bone, so they
+      // follow the nod without inheriting the bone's own axes or units
+      root.updateWorldMatrix(true, true);
+      const headPos = new Vector3(), rootQuat = new Quaternion(), headQuat = new Quaternion(), ws = new Vector3();
+      head.getWorldPosition(headPos);
+      head.getWorldQuaternion(headQuat);
+      root.getWorldQuaternion(rootQuat);
+      head.getWorldScale(ws);
+      const forward = new Vector3(0, 0, 1).applyQuaternion(rootQuat);
+      for (const [name, up, fwd] of [['hair', 0.155, 0.005], ['glasses', 0.112, 0.075]] as const) {
+        const part = placeBuilt(name, { build: name, at: [0, 0, 0] });
+        const world = headPos.clone().addScaledVector(new Vector3(0, 1, 0), up).addScaledVector(forward, fwd);
+        part.position.copy(head.worldToLocal(world));
+        part.quaternion.copy(headQuat).invert().multiply(rootQuat);
+        part.scale.setScalar(1 / (ws.x || 1));
+        head.add(part);
+      }
+    }
+    return { root, mixer };
   };
 
   // ---- painted canvases
@@ -118,7 +190,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
   const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null };
-  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT };
+  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
     const p = PAINT[name];
@@ -192,6 +264,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const builtMaterial = (s: BuiltSurface, live?: Live): Material => {
     if ('paint' in s) {
       const [name, frame] = s.paint.split(':');
+      // screens and the city at night give off their own light: unlit, not tone mapped, no fog on the city
+      if (name.startsWith('screen') || name === 'toronto') return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: name !== 'toronto' });
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
     // emitters and the water get their own copy so their state does not leak into the shared one
@@ -202,7 +276,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
 
   // ---- live things
-  const live = { fans: [] as Object3D[], curtains: [] as MeshStandardMaterial[], water: [] as MeshStandardMaterial[], tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[] };
+  const live = { fans: [] as Object3D[], curtains: [] as MeshStandardMaterial[], water: [] as MeshStandardMaterial[], tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[], mixers: [] as AnimationMixer[] };
   let fanSpeed = 0, tubeOn = 0, tubeClock = -1;
   const timeU = { value: 0 };
 
@@ -248,6 +322,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         g.add(light);
         live.tubes.push({ mat: material as MeshStandardMaterial, light });
       }
+      if (p.live === 'screen' && 'paint' in piece.surface && name === 'monitor') {
+        // the screens light his face and the desk: one cool light for the pair
+        const light = new PointLight('#9FB8FF', 1.6, 2.5, 1.8);
+        light.position.set(0, 0.7, 0.35);
+        g.add(light);
+      }
       if (p.live === 'bulb' && 'mat' in piece.surface && piece.surface.mat === 'bulb') {
         const light = new PointLight('#FFC978', 3, 5, 1.6);
         light.position.set(1.5, 2.1, 0.6);
@@ -260,9 +340,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const place = async (p: Placement, set: number): Promise<void> => {
     let obj: Object3D;
-    if (p.model) {
-      obj = (await loadModel(p.model)).clone();
+    if (p.model && p.live === 'him') {
+      const him = dressHim(await loadModel(p.model));
+      obj = him.root;
+      live.mixers.push(him.mixer);
+    } else if (p.model) {
+      obj = (await loadModel(p.model)).scene.clone();
       if (p.live === 'fan') live.fans.push(obj);
+      if (p.live === 'lamp') {
+        const light = new PointLight('#FFC98A', 5, 4, 1.8);
+        light.position.set(0.05, 0.78, 0.2);
+        obj.add(light);
+      }
       if (p.live === 'tv') addScreen(obj, p, videoTex);
       if (p.live === 'monitor') addScreen(obj, p, paintTex('screen', 1));
     } else {
@@ -273,6 +362,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (p.scale !== undefined) typeof p.scale === 'number' ? obj.scale.setScalar(p.scale) : obj.scale.set(...p.scale);
     groups[set].add(obj);
     if (p.cap) hot.push({ root: obj, p, set });
+    if (DEBUG) {
+      obj.updateWorldMatrix(true, true);
+      const b = new Box3().setFromObject(obj);
+      console.warn(`[stage] ${p.model ?? p.build} min ${b.min.toArray().map((v) => v.toFixed(2))} max ${b.max.toArray().map((v) => v.toFixed(2))}`);
+    }
   };
 
   const loadSet = async (i: number): Promise<void> => {
@@ -367,7 +461,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (i === 1 && tubeClock < 0) tubeClock = 0;
   };
 
-  const frame = (f: Frame) => {
+  // review only: ?cam=x,y,z,lx,ly,lz pins the camera anywhere, so a set can be looked at from outside the dolly
+  const pinned = new URLSearchParams(location.search).get('cam')?.split(',').map(Number);
+  const frame = (fIn: Frame) => {
+    const f: Frame = pinned && pinned.length === 6 && pinned.every(Number.isFinite) ? { ...fIn, cam: [pinned[0], pinned[1], pinned[2]], look: [pinned[3], pinned[4], pinned[5]] } : fIn;
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     // portrait: the text owns the lower half, so the frustum is cropped from a taller one
     camera.position.set(...f.cam);
@@ -490,6 +587,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const t = now / 1000;
     const still = reduce.matches;
     if (!still) {
+      for (const m of live.mixers) m.update(dt);
       fanSpeed = Math.min(6, fanSpeed + dt * 2);
       for (const f of live.fans) f.rotation.y += dt * fanSpeed;
       timeU.value = t;

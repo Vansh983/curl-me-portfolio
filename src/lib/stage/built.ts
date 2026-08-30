@@ -34,11 +34,89 @@ const face = (w: number, h: number, z = 0): Geo => new Sink().quad([-w / 2, -h /
 /** A flat rectangle in the xz plane at y, w along x and d along z, centred. */
 const slab = (w: number, d: number, y = 0): Geo => new Sink().quad([-w / 2, y, d / 2], [w / 2, y, d / 2], [w / 2, y, -d / 2], [-w / 2, y, -d / 2]).out();
 
+/** Moves a geometry by (dx, dy, dz). */
+const offsetGeo = (g: Geo, dx: number, dy: number, dz: number): Geo => {
+  const pos = new Float32Array(g.pos);
+  for (let i = 0; i < pos.length; i += 3) { pos[i] += dx; pos[i + 1] += dy; pos[i + 2] += dz; }
+  return { ...g, pos };
+};
+
 /** Four thin bars around a w × h face, t thick, at depth z. */
 const frame = (w: number, h: number, t: number, z: number): Sink =>
   new Sink().box(0, h / 2 + t / 2, z, w + 2 * t, t, t).box(0, -h / 2 - t / 2, z, w + 2 * t, t, t).box(-w / 2 - t / 2, 0, z, t, h, t).box(w / 2 + t / 2, 0, z, t, h, t);
 
 export const BUILT: Record<string, () => BuiltPart> = {
+  // ---- now, Toronto
+  /** The desk: a black slab 1.8 × 0.75 on two steel frames; the top is at 0.74. */
+  desk: () => {
+    const top = new Sink().box(0, 0.725, 0, 1.8, 0.03, 0.75);
+    const legs = new Sink();
+    for (const sx of [-0.8, 0.8]) legs.box(sx, 0.355, 0, 0.04, 0.71, 0.6).box(sx, 0.02, 0, 0.06, 0.04, 0.68);
+    return [piece(top.out(), M('deskTop')), piece(legs.out(), M('deskLeg'))];
+  },
+  /** A 27 inch monitor on a stand: 0.61 × 0.36 panel, the screen a painted face towards +z. */
+  monitor: () => {
+    const body = new Sink().box(0, 0.5, -0.015, 0.62, 0.37, 0.02);
+    const stand = new Sink().box(0, 0.18, -0.06, 0.05, 0.36, 0.03).box(0, 0.006, -0.06, 0.26, 0.012, 0.18);
+    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenCode' }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
+  },
+  /** The second monitor, same body, the Floqer app on it. */
+  monitorApp: () => {
+    const body = new Sink().box(0, 0.5, -0.015, 0.62, 0.37, 0.02);
+    const stand = new Sink().box(0, 0.18, -0.06, 0.05, 0.36, 0.03).box(0, 0.006, -0.06, 0.26, 0.012, 0.18);
+    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenFloqer' }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
+  },
+  /** A laptop, open at 105 degrees, a terminal on it; the hinge is at the origin, the base runs toward +z. */
+  laptop: () => {
+    const base = new Sink().box(0, 0.008, 0.11, 0.31, 0.016, 0.22);
+    const keys = new Sink().box(0, 0.017, 0.07, 0.27, 0.003, 0.1).box(0, 0.017, 0.17, 0.1, 0.002, 0.06);
+    const lid = new Sink().box(0, 0.105, -0.004, 0.31, 0.21, 0.008).rotateX(0, 0, -0.26);
+    const screen = new Sink().quad([-0.145, 0.015, 0.001], [0.145, 0.015, 0.001], [0.145, 0.2, 0.001], [-0.145, 0.2, 0.001], [[0, 0], [1, 0], [1, 1], [0, 1]]).rotateX(0, 0, -0.26);
+    return [piece(screen.out(), { paint: 'screenTerminal' }), piece(base.out(), M('aluminium')), piece(keys.out(), M('bezel')), piece(lid.out(), M('aluminium'))];
+  },
+  /** A small PC tower under the desk, 0.2 × 0.38 × 0.36, a power light. */
+  pcTower: () => [piece(new Sink().box(0, 0.19, 0, 0.2, 0.38, 0.36).out(), M('bezel')), piece(new Sink().box(0.06, 0.34, 0.181, 0.01, 0.01, 0.002).out(), M('powerLed'))],
+  /** An office chair: a five-star base, a gas lift, a seat and a curved back; seat at 0.46. The back is toward -z. */
+  officeChair: () => {
+    const base = new Sink();
+    for (let i = 0; i < 5; i++) { const start = base.count; base.box(0.16, 0.03, 0, 0.32, 0.03, 0.04).rotateY(0, 0, (i * Math.PI * 2) / 5, start); }
+    base.cylinder(0, 0.24, 0, 0.025, 0.4, 8);
+    const seat = new Sink().box(0, 0.45, 0.02, 0.48, 0.06, 0.48);
+    const back = new Sink().box(0, 0.78, -0.24, 0.44, 0.56, 0.05);
+    const arms = new Sink().box(-0.26, 0.62, 0, 0.04, 0.03, 0.3).box(0.26, 0.62, 0, 0.04, 0.03, 0.3).box(-0.26, 0.54, 0, 0.03, 0.14, 0.03).box(0.26, 0.54, 0, 0.03, 0.14, 0.03);
+    return [piece(base.out(), M('chairBase')), piece(seat.out(), M('chairFabric')), piece(back.out(), M('chairFabric')), piece(arms.out(), M('chairBase'))];
+  },
+  /** A single bed along the window: a low oak frame, a mattress, a navy duvet turned back, a pillow. 2.0 along x, 0.95 along z. */
+  bed: () => {
+    const frame = new Sink().box(0, 0.12, 0, 2.02, 0.24, 0.97).box(-0.99, 0.45, 0, 0.04, 0.9, 0.97);
+    const mattress = new Sink().box(0, 0.32, 0, 1.96, 0.18, 0.92);
+    const duvet = new Sink().box(0.2, 0.44, 0, 1.5, 0.08, 0.94).box(0.2, 0.47, 0.05, 1.46, 0.02, 0.6);
+    const pillow = new Sink().box(-0.72, 0.46, 0, 0.5, 0.1, 0.7);
+    return [piece(frame.out(), M('bedFrame')), piece(mattress.out(), M('mattress'), { smooth: true }), piece(duvet.out(), M('duvet'), { smooth: true }), piece(pillow.out(), M('pillow'), { smooth: true })];
+  },
+  /** A grey rug under the desk, 2.4 × 1.8. */
+  rugGrey: () => [piece(new Sink().box(0, 0.006, 0, 2.4, 0.012, 1.8).out(), M('rugGrey'), { metres: 'xz' })],
+  /** The city out of the window: a painted 14 × 7 quad facing +z, hung well outside. */
+  toronto: () => [piece(face(14, 7), { paint: 'toronto' })],
+  /** The window's mullions: a thin frame across the opening, 5.0 × 2.0, at the wall. */
+  mullions: () => {
+    const s = new Sink().box(0, 0, 0, 5.02, 0.05, 0.06).box(0, 2.0, 0, 5.02, 0.05, 0.06);
+    for (const x of [-2.5, -0.85, 0.85, 2.5]) s.box(x, 1.0, 0, 0.05, 2.0, 0.06);
+    return [piece(s.out(), M('windowFrame'))];
+  },
+  /** Short dark hair for the base character: a cap that sits on the head bone, built around the origin of the head. */
+  hair: () => [piece(new Sink().sphere(0, 0.045, -0.012, 0.115, 0.105, 0.12, 14, 8, undefined, 0.62).out(), M('hair'), { smooth: true })],
+  /** Thin glasses: two rims and a bridge, at the head's eye height, facing +z. */
+  glasses: () => {
+    const s = new Sink();
+    for (const sx of [-1, 1]) {
+      s.bone([sx * 0.06 - 0.035, 0.03, 0.098], [sx * 0.06 + 0.035, 0.03, 0.098], 0.003, 0.003).bone([sx * 0.06 - 0.035, 0.0, 0.098], [sx * 0.06 + 0.035, 0.0, 0.098], 0.003, 0.003);
+      s.bone([sx * 0.06 - 0.035, 0.0, 0.098], [sx * 0.06 - 0.035, 0.03, 0.098], 0.003, 0.003).bone([sx * 0.06 + 0.035, 0.0, 0.098], [sx * 0.06 + 0.035, 0.03, 0.098], 0.003, 0.003);
+      s.bone([sx * 0.095, 0.025, 0.098], [sx * 0.11, 0.02, -0.02], 0.003, 0.003);
+    }
+    s.bone([-0.025, 0.02, 0.098], [0.025, 0.02, 0.098], 0.003, 0.003);
+    return [piece(s.out(), M('glassFrame'))];
+  },
   /** The TV cabinet: a dark wood top on four legs, 1.1 × 0.62 × 0.5. */
   tvTable: () => {
     const s = new Sink().box(0, 0.6, 0, 1.1, 0.04, 0.5);

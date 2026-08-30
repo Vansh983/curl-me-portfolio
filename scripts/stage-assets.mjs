@@ -5,7 +5,7 @@ import { mkdir, writeFile, stat, copyFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import sharp from 'sharp';
+import { NodeIO } from '@gltf-transform/core';
 
 const { ASSETS, assetUrl } = await import('../src/lib/stage/assets.ts');
 const CACHE = '.cache/polyhaven', OUT = 'public/assets/stage';
@@ -28,12 +28,37 @@ const credits = [];
 const authors = {};
 let total = 0;
 
+/** Keeps only the named animation clips, so a rigged character does not ship forty it never plays. */
+async function keepAnims(src, dst, names) {
+  const io = new NodeIO();
+  const doc = await io.read(src);
+  for (const anim of doc.getRoot().listAnimations()) if (!names.includes(anim.getName())) anim.dispose();
+  await io.write(dst, doc);
+}
+
 for (const a of ASSETS) {
+  const out = `public${assetUrl(a)}`;
+  if (a.source === 'url') {
+    authors[a.id] = a.author;
+    const dir = `${CACHE}/${a.id}`;
+    let src = `${dir}/${a.id}.glb`;
+    await fetchTo(a.url, src);
+    if (a.anims) { const trimmed = `${dir}/${a.id}.anims.glb`; await keepAnims(src, trimmed, a.anims); src = trimmed; }
+    if (!existsSync(out)) {
+      await mkdir(path.dirname(out), { recursive: true });
+      execFileSync('npx', ['gltf-transform', 'optimize', src, out,
+        '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', String(a.maxTex ?? 512),
+        '--simplify', 'false', '--instance', 'false', '--palette', 'false', '--join', 'false', '--flatten', 'false'], { stdio: 'inherit' });
+    }
+    total += await size(out);
+    credits.push(`- \`${a.id}\` (${a.kind}) by ${a.author}, ${a.licence}, ${a.url}. ${a.use}.`);
+    console.log(a.id, '|', a.author, '|', a.use);
+    continue;
+  }
   const info = await api(`/info/${a.id}`);
   const author = Object.keys(info.authors ?? {})[0] ?? a.author;
   authors[a.id] = author;
   const files = await api(`/files/${a.id}`);
-  const out = `public${assetUrl(a)}`;
   if (a.kind === 'model') {
     const g = files.gltf?.[a.res]?.gltf;
     if (!g) throw new Error(`${a.id}: no gltf at ${a.res} (has ${Object.keys(files.gltf ?? {}).join(', ') || 'no gltf at all'})`);
@@ -43,7 +68,7 @@ for (const a of ASSETS) {
     for (const [rel, f] of Object.entries(g.include)) await fetchTo(f.url, `${dir}/${rel}`);
     if (!existsSync(out)) {
       await mkdir(path.dirname(out), { recursive: true });
-      execFileSync('npx', ['--yes', '@gltf-transform/cli', 'optimize', src, out,
+      execFileSync('npx', ['gltf-transform', 'optimize', src, out,
         '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', String(a.maxTex ?? 512),
         ...(a.simplify ? ['--simplify', 'true', '--simplify-error', String(a.simplify)] : ['--simplify', 'false']),
         '--instance', 'false', '--palette', 'false'], { stdio: 'inherit' });
@@ -72,7 +97,7 @@ for (const a of ASSETS) {
   credits.push(`- \`${a.id}\` (${a.kind}) by ${author}, CC0, https://polyhaven.com/a/${a.id}. ${a.use}.`);
   console.log(a.id, '|', author, '|', a.use);
 }
-await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nAll from [Poly Haven](https://polyhaven.com), CC0. Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n`);
+await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels from [Poly Haven](https://polyhaven.com) (CC0) and one rigged character by Quaternius (CC-BY 3.0, via Poly Pizza). Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n`);
 const wrong = ASSETS.filter((a) => a.author !== authors[a.id]).map((a) => `${a.id}: manifest says ${a.author}, site says ${authors[a.id]}`);
 if (wrong.length) console.log('authors to fix in the manifest:\n  ' + wrong.join('\n  '));
 console.log(`total ${(total / 1e6).toFixed(1)} MB`);

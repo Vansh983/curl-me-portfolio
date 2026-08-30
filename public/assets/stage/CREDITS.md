@@ -1,7 +1,11 @@
 # Stage assets
 
-All from [Poly Haven](https://polyhaven.com), CC0. Optimised by scripts/stage-assets.mjs.
+Models from [Poly Haven](https://polyhaven.com) (CC0) and one rigged character by Quaternius (CC-BY 3.0, via Poly Pizza). Optimised by scripts/stage-assets.mjs.
 
+- `base_character` (model) by Quaternius, CC-BY-3.0, https://static.poly.pizza/0b65e14d-a349-44cc-836c-efdeb6933d48.glb. the figure at the desk (Animated Base Character, via Poly Pizza).
+- `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp.
+- `steel_frame_shelves_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/steel_frame_shelves_01. the shelves behind the desk.
+- `potted_plant_01` (model) by Rico Cilliers, CC0, https://polyhaven.com/a/potted_plant_01. the plant by the window.
 - `television_02` (model) by Benny Weimer, CC0, https://polyhaven.com/a/television_02. the CRT television, and scaled down, the lab monitors.
 - `ceiling_fan` (model) by Ulan Cabanilla, CC0, https://polyhaven.com/a/ceiling_fan. the ceiling fan.
 - `gaming_console` (model) by Sean Buckley, CC0, https://polyhaven.com/a/gaming_console. the Xbox 360.

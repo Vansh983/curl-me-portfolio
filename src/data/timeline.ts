@@ -14,6 +14,13 @@ export type Milestone = {
 
 export const timeline: Milestone[] = [
   {
+    // now: the hero slot replaces these words on the page; the stage's first set is this desk
+    year: 'Now',
+    lane: 'Toronto',
+    title: 'Building Floqer',
+    body: 'A desk by a big window, thirty floors up. Two screens, a laptop, the CN Tower.',
+  },
+  {
     // Placeholder words until the story markdown lands; the scene is the point.
     year: '2010',
     lane: 'Delhi',

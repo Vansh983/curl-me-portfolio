@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { buildShell } from '../../src/lib/stage/shell.ts';
 import { SETS } from '../../src/lib/stage/sets.ts';
 
-const room = SETS[0].shell!;
+const room = SETS[1].shell!;
 
 const area = (s: { pos: Float32Array }) => {
   let a = 0;

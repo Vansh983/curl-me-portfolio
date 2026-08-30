@@ -10,11 +10,33 @@ export interface Mat {
   metal?: number;
   grain?: Kind; // a faint normal map, tiled every `tile` metres
   amp?: number; // normal strength, 0..1 (default 0.25)
-  paint?: 'planks' | 'tiles' | 'pavers'; // a painted colour map, tiled every `tile` metres
+  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers'; // a painted colour map, tiled every `tile` metres
   tile: number;
 }
 
 export const MATS: Record<string, Mat> = {
+  // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
+  condoWall: { color: '#ECE9E3', rough: 0.92, grain: 'plaster', amp: 0.08, tile: 2.5 },
+  condoCeiling: { color: '#F6F5F2', rough: 0.95, tile: 1 },
+  condoFloor: { color: '#FFFFFF', rough: 0.45, paint: 'planksPale', grain: 'plank', amp: 0.15, tile: 2.4 },
+  deskTop: { color: '#1F1F22', rough: 0.45, tile: 1 },
+  deskLeg: { color: '#2A2A2E', rough: 0.4, metal: 0.6, tile: 1 },
+  bezel: { color: '#141416', rough: 0.35, tile: 1 },
+  aluminium: { color: '#B9BCC2', rough: 0.35, metal: 0.9, tile: 1 },
+  chairFabric: { color: '#2B2D33', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.2 },
+  chairBase: { color: '#17181B', rough: 0.4, metal: 0.5, tile: 1 },
+  mattress: { color: '#F2F0EA', rough: 0.9, grain: 'weave', amp: 0.15, tile: 0.4 },
+  duvet: { color: '#2F4562', rough: 0.95, grain: 'weave', amp: 0.25, tile: 0.35 },
+  pillow: { color: '#F6F4EE', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.3 },
+  bedFrame: { color: '#8C6B4E', rough: 0.55, grain: 'grain', amp: 0.15, tile: 0.6 },
+  rugGrey: { color: '#9AA0A6', rough: 0.98, grain: 'pile', amp: 0.35, tile: 0.4 },
+  skin: { color: '#C68E6A', rough: 0.7, tile: 1 },
+  tee: { color: '#141416', rough: 0.9, grain: 'weave', amp: 0.15, tile: 0.15 },
+  jeans: { color: '#26334A', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.15 },
+  hair: { color: '#17120F', rough: 0.55, grain: 'strand', amp: 0.3, tile: 0.08 },
+  glassFrame: { color: '#1A1A1A', rough: 0.4, metal: 0.3, tile: 1 },
+  windowFrame: { color: '#2A2A2E', rough: 0.5, metal: 0.4, tile: 1 },
+  powerLed: { color: '#4BD1FF', rough: 0.4, tile: 1 },
   // 2010, the room: cream distemper, teak planks, a red rug, cotton at the window
   roomWall: { color: '#F2E6D2', rough: 0.92, grain: 'plaster', amp: 0.12, tile: 2.5 },
   roomCeiling: { color: '#FAF6EE', rough: 0.95, tile: 1 },

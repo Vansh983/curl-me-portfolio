@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import { existsSync, statSync } from 'node:fs';
 import { ASSETS, assetUrl } from '../../src/lib/stage/assets.ts';
 
-test('every asset is named once, credited, CC0, and capped at 512 px', () => {
+test('every asset is named once, credited, licensed, and capped at 512 px', () => {
   const ids = new Set<string>();
   for (const a of ASSETS) {
     assert.ok(!ids.has(a.id), `${a.id} twice`);
     ids.add(a.id);
-    assert.equal(a.licence, 'CC0');
+    assert.ok(a.licence === 'CC0' || a.licence === 'CC-BY-3.0', `${a.id} licence`);
+    if (a.source === 'url') assert.match(a.url ?? '', /^https:\/\/.+\.glb$/, `${a.id} url`);
     assert.ok(a.author.length > 1, `${a.id} author`);
     assert.ok(a.use.length > 3, `${a.id} use`);
     assert.match(a.id, /^[a-z0-9_]+$/i);
