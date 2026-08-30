@@ -50,7 +50,6 @@ export const ASSETS: Asset[] = [
   tex('concrete_pavement', 'Charlotte Baglioni', 'the plaza'),
   tex('dirty_carpet', 'Rohit Seervi', 'the rug'),
   tex('cotton_jersey', 'colormass', 'the curtains'),
-  tex('leafy_grass', 'Charlotte Baglioni', 'the hills'),
 ];
 
 export const assetUrl = (a: Asset): string =>

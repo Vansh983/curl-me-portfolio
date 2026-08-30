@@ -169,12 +169,6 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     return [piece(s.out(), { color: '#C0392B', rough: 0.55, metal: 0.2 })];
   },
-  /** The Marin headlands: three soft hills, grass scan. */
-  hills: () => {
-    const s = new Sink();
-    for (const [x, r] of [[-120, 90], [20, 110], [150, 80]] as const) s.sphere(x, -20, 0, r, 60, 60, 16, 8);
-    return [piece(s.out(), { tex: 'leafy_grass', tile: 40 }, { smooth: true, tileXZ: 40 })];
-  },
   /** Two sailboats: hull, mast, sail. */
   boats: () => {
     const hull = new Sink(), mast = new Sink(), sail = new Sink();

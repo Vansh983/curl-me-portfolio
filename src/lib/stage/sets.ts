@@ -4,7 +4,7 @@
 //   Set 0 ROOM     x -2.2..2.2   z -2.5..2.5   h 2.8   door on +x wall at z 1.6
 //   Passage        x  2.2..5.2   z  1.0..2.2   h 2.4   dark, one bulb
 //   Set 1 LAB      x  5.2..12.2  z -1.5..4.5   h 3.0   door in at z 1.6 (x-), door out at z 3.4 (x+)
-//   Set 2 PLAZA    x 12.2..80    z -60..20     open    the bay beyond z < -22, the bridge at z -120
+//   Set 2 PLAZA    x 12.2..80    z -60..20     open    the bay beyond z < -35, the bridge at z -150
 export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */

@@ -29,4 +29,3 @@ All from [Poly Haven](https://polyhaven.com), CC0. Optimised by scripts/stage-as
 - `concrete_pavement` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/concrete_pavement. the plaza.
 - `dirty_carpet` (texture) by Rohit Seervi, CC0, https://polyhaven.com/a/dirty_carpet. the rug.
 - `cotton_jersey` (texture) by colormass, CC0, https://polyhaven.com/a/cotton_jersey. the curtains.
-- `leafy_grass` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/leafy_grass. the hills.
