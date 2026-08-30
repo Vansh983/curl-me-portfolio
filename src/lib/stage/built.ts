@@ -27,6 +27,7 @@ function piece(g: Geo, surface: BuiltSurface, o: { smooth?: boolean; metres?: 'x
 }
 
 const M = (mat: string): BuiltSurface => ({ mat });
+const UNIT: [number, number, number, number] = [0, 0, 1, 1];
 
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
 const face = (w: number, h: number, z = 0): Geo => new Sink().quad([-w / 2, -h / 2, z], [w / 2, -h / 2, z], [w / 2, h / 2, z], [-w / 2, h / 2, z], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
@@ -96,8 +97,56 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** A grey rug under the desk, 2.4 × 1.8. */
   rugGrey: () => [piece(new Sink().box(0, 0.006, 0, 2.4, 0.012, 1.8).out(), M('rugGrey'), { metres: 'xz' })],
-  /** The city out of the window: a painted 14 × 7 quad facing +z, hung well outside. */
-  toronto: () => [piece(face(14, 7), { paint: 'toronto' })],
+  /**
+   * Toronto at night, in metres, built with its ground at the origin and the condo looking toward -z.
+   * Sixty-odd towers with lit windows (uv in bays and floors, so the window tile keeps its size),
+   * their reflections in the lake, the CN Tower with its pod, SkyPod and antenna, the Rogers Centre
+   * dome at its foot. Deterministic.
+   */
+  city: () => {
+    let seed = 91;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    const towers = new Sink(), tops = new Sink(), mirror = new Sink();
+    const far = new Sink();
+    const tower = (cx: number, cz: number, w: number, d: number, h: number, into: Sink = towers) => {
+      const u0 = rnd() * 4, v0 = rnd() * 4; // a different patch of the window tile per tower
+      const fx = (len: number): [number, number, number, number] => [u0, v0, u0 + len / 48, v0 + h / 35];
+      into.box(cx, h / 2, cz, w, h, d, { pz: fx(w), nz: fx(w), px: fx(d), nx: fx(d) });
+      tops.box(cx, h + 0.4, cz, w, 0.8, d);
+      mirror.box(cx, -h / 2, cz, w, h, d, { pz: fx(w), nz: fx(w), px: fx(d), nx: fx(d) });
+    };
+    // the core: tall, dense, centred a little left of the window's axis
+    for (let i = 0; i < 34; i++) {
+      const cx = -140 + (rnd() - 0.5) * 520, cz = -560 - (rnd() - 0.5) * 300;
+      const w = 26 + rnd() * 26, d = 26 + rnd() * 26, h = 70 + rnd() * rnd() * 190;
+      tower(cx, cz, w, d, h);
+    }
+    // the ring: lower, wider spread, closer and further
+    for (let i = 0; i < 30; i++) {
+      const cx = (rnd() - 0.5) * 1300, cz = -230 - rnd() * 700;
+      const w = 22 + rnd() * 30, d = 22 + rnd() * 30, h = 28 + rnd() * 70;
+      tower(cx, cz, w, d, h, far);
+    }
+    // the CN Tower: shaft to 330 m, the main pod, the shaft on to the SkyPod at 447, the antenna to 553
+    const cn = new Sink().lathe([[15, 0], [11, 120], [8.5, 300], [7.5, 330], [7.5, 350], [6, 440], [4, 447], [3.5, 455], [2.2, 456], [1.6, 553]], -60, 0, -720, 1, 1, 0, 14);
+    const pod = new Sink().lathe([[8, 328], [30, 331], [33, 338], [32, 346], [24, 352], [8, 354]], -60, 0, -720, 1, 1, 0, 18)
+      .lathe([[4, 446], [11, 447], [12, 452], [9, 456], [4, 457]], -60, 0, -720, 1, 1, 0, 14);
+    const light = new Sink().sphere(-60, 553, -720, 2.2, 2.2, 2.2, 8, 6).sphere(-60, 456, -720, 1.6, 1.6, 1.6, 8, 6);
+    // the Rogers Centre: a low white dome
+    const dome = new Sink().sphere(-125, -6, -690, 105, 46, 105, 20, 8, undefined, 0.5);
+    return [
+      piece(towers.out(), M('tower')),
+      piece(far.out(), M('towerFar')),
+      piece(tops.out(), M('towerTop')),
+      piece(mirror.out(), M('towerReflect')),
+      piece(cn.out(), M('cnShaft'), { smooth: true }),
+      piece(pod.out(), M('cnPod'), { smooth: true }),
+      piece(light.out(), M('cnLight'), { smooth: true }),
+      piece(dome.out(), M('dome'), { smooth: true }),
+    ];
+  },
+  /** The night sky: a dome 2.4 km out, beyond the city, the gradient painted bottom to top. */
+  nightSky: () => [piece(new Sink().sphere(0, 0, 0, 2400, 2400, 2400, 24, 12, UNIT).out(), M('nightSky'))],
   /** The window's mullions: a thin frame across the opening, 5.0 × 2.0, at the wall. */
   mullions: () => {
     const s = new Sink().box(0, 0, 0, 5.02, 0.05, 0.06).box(0, 2.0, 0, 5.02, 0.05, 0.06);

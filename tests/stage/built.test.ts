@@ -4,7 +4,7 @@ import { BUILT } from '../../src/lib/stage/built.ts';
 import { MATS } from '../../src/lib/stage/materials.ts';
 import { SETS } from '../../src/lib/stage/sets.ts';
 
-const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal'];
+const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky'];
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {
@@ -34,7 +34,7 @@ test('building twice gives the same thing: no hidden state', () => {
 });
 
 test('painted faces span uv 0..1 so the canvas lands whole', () => {
-  for (const name of ['skyline', 'whiteboard', 'banner', 'teamPhoto', 'jobsPoster', 'sign', 'toronto', 'monitor', 'monitorApp', 'laptop']) {
+  for (const name of ['skyline', 'whiteboard', 'banner', 'teamPhoto', 'jobsPoster', 'sign', 'monitor', 'monitorApp', 'laptop']) {
     const painted = BUILT[name]().find((p) => 'paint' in p.surface)!;
     const us = Array.from({ length: painted.uv.length / 2 }, (_, i) => painted.uv[i * 2]);
     const vs = Array.from({ length: painted.uv.length / 2 }, (_, i) => painted.uv[i * 2 + 1]);

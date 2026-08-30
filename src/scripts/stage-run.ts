@@ -27,7 +27,7 @@ import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress } from '../lib/stage/shot.ts';
 import { detailMap, type Kind } from '../lib/stage/surface.ts';
-import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, type Paint } from './stage-paint.ts';
+import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, type Paint } from './stage-paint.ts';
 
 const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
@@ -62,7 +62,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const scene = new Scene();
   const fog = new Fog(new Color('#EFE3D0'), 12, 60);
   scene.fog = fog;
-  const camera = new PerspectiveCamera(50, 1, 0.05, 900);
+  const camera = new PerspectiveCamera(50, 1, 0.05, 2600); // the city outside the condo is a kilometre away
 
   // one sun that casts, one hemisphere that tints; the rest of the light is the environment
   const sun = new DirectionalLight(0xffffff, 1);
@@ -271,7 +271,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
   const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null };
-  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT };
+  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
     const p = PAINT[name];
@@ -316,7 +316,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     let m = mats.get(name);
     if (m) return m;
     const s: Mat = matSpec(name);
-    m = new MeshStandardMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: 1 });
+    m = s.unlit
+      ? (new MeshBasicMaterial({ color: s.color, fog: s.fog !== false }) as unknown as MeshStandardMaterial)
+      : new MeshStandardMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: 1, fog: s.fog !== false });
+    if (s.emissive && !s.unlit) { m.emissive.set(s.emissive); m.emissiveIntensity = s.emissivePower ?? 1; }
+    if (s.inside) m.side = BackSide;
     if (s.paint) {
       let t = surfacePaint.get(s.paint);
       if (!t) { t = paintTex(s.paint); t.wrapS = t.wrapT = RepeatWrapping; surfacePaint.set(s.paint, t); }
@@ -324,7 +328,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       map.repeat.set(1 / s.tile, 1 / s.tile);
       m.map = map;
     }
-    if (s.grain) {
+    if (s.grain && !s.unlit) {
       const n = grainFor(s.grain).clone();
       n.repeat.set(1 / s.tile, 1 / s.tile);
       m.normalMap = n;

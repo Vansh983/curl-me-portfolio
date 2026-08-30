@@ -79,7 +79,8 @@ export const SETS: StageSet[] = [
     },
     props: [
       { build: 'mullions', at: [-6.3, 0.5, -2.2], scale: [0.72, 0.95, 1] },
-      { build: 'toronto', at: [-6.3, 1.2, -8.0], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.' },
+      { build: 'city', at: [-1050, -165, -700], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.', shadow: false },
+      { build: 'nightSky', at: [-6.3, 0, -2.2], shadow: false },
       { build: 'rugGrey', at: [-7.5, 0, -0.4] },
       { build: 'desk', at: [-8.02, 0, -0.4], rot: [0, 90, 0], cap: 'Building Floqer. Most days, most nights.' },
       { build: 'monitor', at: [-8.27, 0.74, -0.75], rot: [0, 100, 0], live: 'screen' },

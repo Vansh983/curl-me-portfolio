@@ -10,8 +10,13 @@ export interface Mat {
   metal?: number;
   grain?: Kind; // a faint normal map, tiled every `tile` metres
   amp?: number; // normal strength, 0..1 (default 0.25)
-  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers'; // a painted colour map, tiled every `tile` metres
+  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky'; // a painted colour map, tiled every `tile` metres
   tile: number;
+  emissive?: string; // glows on its own
+  emissivePower?: number;
+  unlit?: boolean; // a basic material: the map or colour is the light (screens, the city at night)
+  fog?: false; // outside the room's fog, kilometres away
+  inside?: true; // seen from inside (a sky dome): back faces
 }
 
 export const MATS: Record<string, Mat> = {
@@ -38,6 +43,17 @@ export const MATS: Record<string, Mat> = {
   glassFrame: { color: '#1A1A1A', rough: 0.4, metal: 0.3, tile: 1 },
   windowFrame: { color: '#2A2A2E', rough: 0.5, metal: 0.4, tile: 1 },
   powerLed: { color: '#4BD1FF', rough: 0.4, tile: 1 },
+  // the city outside the window at night, kilometres away: unlit, outside the fog
+  tower: { color: '#FFFFFF', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
+  towerReflect: { color: '#3A4666', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
+  towerTop: { color: '#0A0D18', rough: 1, unlit: true, tile: 1, fog: false },
+  lake: { color: '#070A16', rough: 1, unlit: true, tile: 1, fog: false },
+  cnShaft: { color: '#3E4370', rough: 0.7, emissive: '#5B5FC8', emissivePower: 0.45, tile: 1, fog: false },
+  cnPod: { color: '#3A3F60', rough: 0.6, emissive: '#FFE7B0', emissivePower: 1.1, tile: 1, fog: false },
+  cnLight: { color: '#FF4A4A', rough: 0.5, emissive: '#FF3030', emissivePower: 4, tile: 1, fog: false },
+  dome: { color: '#C9CED8', rough: 0.9, emissive: '#3A4260', emissivePower: 0.5, tile: 1, fog: false },
+  nightSky: { color: '#FFFFFF', rough: 1, paint: 'nightSky', tile: 1, unlit: true, fog: false, inside: true },
+  towerFar: { color: '#9AA6C8', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
   // 2010, the room: cream distemper, teak planks, a red rug, cotton at the window
   roomWall: { color: '#F2E6D2', rough: 0.92, grain: 'plaster', amp: 0.12, tile: 2.5 },
   roomCeiling: { color: '#FAF6EE', rough: 0.95, tile: 1 },

@@ -303,6 +303,41 @@ export const CITY_PAINT: Record<string, Paint> = {
   },
 };
 
+/** One tile of a tower at night: 12 bays by 10 floors (48 m by 35 m), most windows dark, some warm, a few cool. */
+export const WINDOW_PAINT: Record<string, Paint> = {
+  windows: {
+    w: 512, h: 448,
+    frames: [(x, w, h) => {
+      x.fillStyle = '#0B0F1C'; x.fillRect(0, 0, w, h);
+      const cols = 12, rows = 10, bw = w / cols, bh = h / rows;
+      let seed = 7;
+      const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const u = rnd();
+        if (u < 0.5) continue; // dark
+        const warm = u < 0.9;
+        const l = 62 + rnd() * 25;
+        x.fillStyle = warm ? `hsl(38 ${60 + rnd() * 20}% ${l}%)` : `hsl(210 40% ${l + 5}%)`;
+        x.globalAlpha = 0.6 + rnd() * 0.4;
+        x.fillRect(c * bw + bw * 0.22, r * bh + bh * 0.2, bw * 0.56, bh * 0.5);
+      }
+      x.globalAlpha = 1;
+      // the floor slabs, a faint line between rows
+      x.fillStyle = 'rgba(255,255,255,0.04)';
+      for (let r = 0; r <= rows; r++) x.fillRect(0, r * bh - 1, w, 2);
+    }],
+  },
+  nightSky: {
+    w: 16, h: 512,
+    frames: [(x, w, h) => {
+      // v runs bottom to top on the dome: horizon glow at the bottom, deep navy overhead
+      const g = x.createLinearGradient(0, h, 0, 0);
+      g.addColorStop(0, '#2A2A3E'); g.addColorStop(0.08, '#1C2240'); g.addColorStop(0.3, '#0E1530'); g.addColorStop(1, '#05070F');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+    }],
+  },
+};
+
 /** What is on his screens now: an editor, the Floqer app, a terminal on the laptop. */
 export const SCREEN_PAINT: Record<string, Paint> = {
   screenCode: {
