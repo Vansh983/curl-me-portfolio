@@ -1,5 +1,40 @@
 # Session log: the journey stage
 
+## 2026-08-30: real light, real things, one dolly
+
+"It needs to be natural, like it needs to look real." Spec `13-journey-real-spec.md`, plan
+`14-journey-real-plan.md`. The morph engine, the toon-to-PBR shading and the code-built props
+are gone; what stands in the scene is scanned, and what lights it is a photograph.
+
+- **Assets.** `src/lib/stage/assets.ts` names 28 Poly Haven CC0 things (3 HDRIs, 15 models,
+  10 scanned surface sets). `npm run stage:assets` fetches them through the Poly Haven API,
+  runs gltf-transform (meshopt, webp, 1k or 512 textures, the tree simplified from 1.6 M
+  triangles to about a tenth), writes `public/assets/stage/` and `CREDITS.md`. 23.3 MB on
+  disk, committed; sources cached under `.cache/`.
+- **Light.** One HDRI per set is the environment; the plaza's is also the sky, on a dome
+  inside the set so it is there when seen through the lab door. One directional sun per set
+  casts the shadows (PCF, 2048). No hemisphere, no fills, no bloom, no grade. ACES, GTAO, FXAA.
+- **World.** `sets.ts`: three sets along +x, each a shell (floor, walls with holes, ceiling,
+  built by `shell.ts` with uv in metres so the scans land at real scale) plus placements.
+  `built.ts` covers what has no scan: the TV cabinet, the rug, curtains, the passage, keyboards,
+  the whiteboard, banner, photos, tube light, the plaza slab, the sign and counter, the trophy,
+  the bay, the bridge, the boats. Painted canvases (window, whiteboard, banner, posters, sign,
+  Notepad) live in `stage-paint.ts`.
+- **Motion.** Nothing morphs. `dolly.ts` runs one centripetal CatmullRom through ten keys:
+  room, door, passage, lab, door, plaza. A pair of keys marks a doorway; inside it the
+  environment dips to 12 percent and at the midpoint the set swaps (environment, sun, fog,
+  exposure) while the frame is door jamb. Fan spins up, TV plays, curtains breathe (vertex
+  wind), the tube light catches with three flickers on entering the lab, the water ripples.
+- **Figure.** Off camera by his choice; `figure3d.ts` stays in the tree, unmounted, until the
+  avatar decision.
+- **Cost.** Stage chunk 187.5 KB gz (was 165; GLTF, HDR and meshopt loaders). On this machine at
+  2880 x 1800, pixel ratio 1.5: room 8.5 ms, lab 16.3 ms, plaza 8.3 ms median. Nine point lights
+  on the lab monitors cost 75 ms a frame; only the television keeps its light.
+- `npm test` 55: manifest and files, sets, dolly continuity and doorway windows, shells (area
+  removed by openings, normals and winding inward), built props.
+- Known: the view out of the Delhi window is still the painted skyline; the lab plaster
+  (`white_plaster_02`) reads grimy; the Marin hills in the HDRI sit below the code bridge.
+
 ## 2026-08-29: the body, lofted
 
 He looked like parts glued together because he was: capsules touching a lathe, spheres for

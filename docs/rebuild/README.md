@@ -16,6 +16,8 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [10-session-log.md](./10-session-log.md) | **What actually got built**: the three engines (layers, motions, morphing), file map, reused old assets, photo slots, commits, decisions, what is next |
 | [11-journey-3d-spec.md](./11-journey-3d-spec.md) | **Stage v2 spec**: real three.js, one continuous shot, code-built low-poly rigs with fixed topology, GPU morph targets |
 | [12-journey-3d-plan.md](./12-journey-3d-plan.md) | **Stage v2 plan**: 8 tasks with the full code for the rigs, figure, world, shot, renderer and the Astro wiring |
+| [13-journey-real-spec.md](./13-journey-real-spec.md) | **Stage v3 spec**: real light (HDRI), scanned CC0 models and surfaces from Poly Haven, three sets joined by one dolly through doorways, nothing morphs |
+| [14-journey-real-plan.md](./14-journey-real-plan.md) | **Stage v3 plan**: 6 tasks, asset manifest and fetch, sets and dolly as data, shell builder, code-built props, the runtime, tuning |
 
 ## The one-paragraph verdict
 

@@ -198,8 +198,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const plane = new Mesh(new PlaneGeometry(TV_SCREEN.w, TV_SCREEN.h), new MeshBasicMaterial({ map, toneMapped: false }));
     plane.position.set(TV_SCREEN.at[0], TV_SCREEN.at[1], TV_SCREEN.at[2]);
     model.add(plane);
-    // the screen lights the room a little
-    const light = new PointLight(p.live === 'tv' ? '#9CC4FF' : '#DDE8FF', p.live === 'tv' ? 1.2 : 0.4, 1.8 * k, 2);
+    // the television lights the room a little; nine monitors would be nine more lights in every
+    // shader, so those keep to their emissive glass
+    if (p.live !== 'tv') return;
+    const light = new PointLight('#9CC4FF', 1.2, 1.8 * k, 2);
     light.position.set(0, TV_SCREEN.at[1], TV_SCREEN.at[2] + 0.1);
     model.add(light);
     live.screens.push(light);
