@@ -27,7 +27,7 @@ import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress } from '../lib/stage/shot.ts';
 import { detailMap, type Kind } from '../lib/stage/surface.ts';
-import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, type Paint } from './stage-paint.ts';
+import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, type Paint } from './stage-paint.ts';
 
 const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
@@ -271,7 +271,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
   const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null };
-  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT };
+  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
     const p = PAINT[name];

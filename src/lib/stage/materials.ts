@@ -43,6 +43,9 @@ export const MATS: Record<string, Mat> = {
   glassFrame: { color: '#1A1A1A', rough: 0.4, metal: 0.3, tile: 1 },
   windowFrame: { color: '#2A2A2E', rough: 0.5, metal: 0.4, tile: 1 },
   powerLed: { color: '#4BD1FF', rough: 0.4, tile: 1 },
+  lanyard: { color: '#EA4335', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.05 },
+  book0: { color: '#2B2D33', rough: 0.7, tile: 1 }, book1: { color: '#4A3B7A', rough: 0.7, tile: 1 }, book2: { color: '#1E5A7A', rough: 0.7, tile: 1 }, book3: { color: '#8A3A3A', rough: 0.7, tile: 1 },
+  book4: { color: '#3A6A4A', rough: 0.7, tile: 1 }, book5: { color: '#E9E2D0', rough: 0.8, tile: 1 }, book6: { color: '#20242C', rough: 0.7, tile: 1 }, book7: { color: '#B8862B', rough: 0.6, tile: 1 },
   // the city outside the window at night, kilometres away: unlit, outside the fog
   tower: { color: '#FFFFFF', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
   towerReflect: { color: '#3A4666', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },

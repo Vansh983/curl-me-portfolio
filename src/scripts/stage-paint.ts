@@ -338,6 +338,23 @@ export const WINDOW_PAINT: Record<string, Paint> = {
   },
 };
 
+/** The Google Code-in 2018 grand prize winner badge. */
+export const BADGE_PAINT: Record<string, Paint> = {
+  badge: {
+    w: 256, h: 360,
+    frames: [(x, w, h) => {
+      x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#FBBC05'; x.fillRect(0, 0, w, 54);
+      x.fillStyle = '#202124'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Google Code-in', 14, 38);
+      x.font = '700 56px Inter, system-ui, sans-serif'; x.fillText('Vansh', 14, 130);
+      x.font = '500 34px Inter, system-ui, sans-serif'; x.fillText('Sood', 14, 172);
+      x.fillStyle = '#EA4335'; x.fillRect(14, 200, 228, 60);
+      x.fillStyle = '#FFFFFF'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('GRAND PRIZE', 22, 241);
+      x.fillStyle = '#5F6368'; x.font = '500 26px Inter, system-ui, sans-serif'; x.fillText('2018 · San Francisco', 14, 320);
+    }],
+  },
+};
+
 /** What is on his screens now: an editor, the Floqer app, a terminal on the laptop. */
 export const SCREEN_PAINT: Record<string, Paint> = {
   screenCode: {

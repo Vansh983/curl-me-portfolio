@@ -75,6 +75,37 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const screen = new Sink().quad([-0.145, 0.015, 0.001], [0.145, 0.015, 0.001], [0.145, 0.2, 0.001], [-0.145, 0.2, 0.001], [[0, 0], [1, 0], [1, 1], [0, 1]]).rotateX(0, 0, -0.26);
     return [piece(screen.out(), { paint: 'screenTerminal' }), piece(base.out(), M('aluminium')), piece(keys.out(), M('bezel')), piece(lid.out(), M('aluminium'))];
   },
+  /** A black hutch on the back of the desk: two uprights, a shelf above the monitors and one behind them, 1.8 wide, 0.28 deep, 1.05 tall from the desk top. */
+  deskHutch: () => {
+    const s = new Sink();
+    for (const z of [-0.9, 0.9]) s.box(0, 0.525, z, 0.28, 1.05, 0.025);
+    s.box(0, 0.95, 0, 0.28, 0.025, 1.8).box(0, 0.45, 0, 0.26, 0.02, 1.78).box(0, 1.045, 0, 0.28, 0.02, 1.8);
+    s.box(-0.13, 0.525, 0, 0.02, 1.05, 1.8); // the back panel
+    return [piece(s.out(), M('deskTop'))];
+  },
+  /** A row of books, 0.5 long along z, mixed heights, spines out toward +x. */
+  books: () => {
+    const s = new Sink();
+    let z = -0.25, i = 0;
+    const cols = ['#2B2D33', '#4A3B7A', '#1E5A7A', '#8A3A3A', '#3A6A4A', '#E9E2D0', '#20242C', '#B8862B'];
+    const pieces: Built[] = [];
+    while (z < 0.25) {
+      const t = 0.018 + ((i * 7) % 5) * 0.006, h = 0.19 + ((i * 3) % 4) * 0.02;
+      const b = new Sink().box(0, h / 2, z + t / 2, 0.16, h, t);
+      pieces.push(piece(b.out(), { mat: `book${i % cols.length}` }));
+      z += t + 0.003;
+      i++;
+    }
+    void s;
+    return pieces;
+  },
+  /** The Google Code-in winner badge on its lanyard, hanging from a shelf edge: the loop, the clip, the card. Hangs down from the origin. */
+  badge: () => {
+    const lanyard = new Sink().box(0, -0.08, 0, 0.004, 0.16, 0.014).box(0, -0.165, 0, 0.012, 0.012, 0.02);
+    const card = new Sink().box(0, -0.235, 0, 0.004, 0.12, 0.085);
+    const face = new Sink().quad([0.0025, -0.295, -0.0425], [0.0025, -0.295, 0.0425], [0.0025, -0.175, 0.0425], [0.0025, -0.175, -0.0425], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+    return [piece(lanyard.out(), M('lanyard')), piece(card.out(), M('board')), piece(face.out(), { paint: 'badge' })];
+  },
   /** A small PC tower under the desk, 0.2 × 0.38 × 0.36, a power light. */
   pcTower: () => [piece(new Sink().box(0, 0.19, 0, 0.2, 0.38, 0.36).out(), M('bezel')), piece(new Sink().box(0.06, 0.34, 0.181, 0.01, 0.01, 0.002).out(), M('powerLed'))],
   /** An office chair: a five-star base, a gas lift, a seat and a curved back; seat at 0.46. The back is toward -z. */
@@ -98,51 +129,58 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** A grey rug under the desk, 2.4 × 1.8. */
   rugGrey: () => [piece(new Sink().box(0, 0.006, 0, 2.4, 0.012, 1.8).out(), M('rugGrey'), { metres: 'xz' })],
   /**
-   * Toronto at night, in metres, built with its ground at the origin and the condo looking toward -z.
-   * Sixty-odd towers with lit windows (uv in bays and floors, so the window tile keeps its size),
-   * their reflections in the lake, the CN Tower with its pod, SkyPod and antenna, the Rogers Centre
-   * dome at its foot. Deterministic.
+   * Toronto at night, in metres, built with the street at the origin and the condo looking toward -z
+   * from a hundred metres up. He lives among the towers: the nearest are across the street, most
+   * top out below him, a few rise past. Lit windows (uv in bays and floors, so the tile keeps its
+   * size), the CN Tower half a kilometre off with its pod, SkyPod and antenna, the Rogers Centre
+   * dome at its foot, a dark ground. Deterministic.
    */
   city: () => {
     let seed = 91;
     const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-    const towers = new Sink(), tops = new Sink(), mirror = new Sink();
-    const far = new Sink();
-    const tower = (cx: number, cz: number, w: number, d: number, h: number, into: Sink = towers) => {
+    const near = new Sink(), far = new Sink(), tops = new Sink();
+    const tower = (cx: number, cz: number, w: number, d: number, h: number, into: Sink) => {
       const u0 = rnd() * 4, v0 = rnd() * 4; // a different patch of the window tile per tower
       const fx = (len: number): [number, number, number, number] => [u0, v0, u0 + len / 48, v0 + h / 35];
       into.box(cx, h / 2, cz, w, h, d, { pz: fx(w), nz: fx(w), px: fx(d), nx: fx(d) });
       tops.box(cx, h + 0.4, cz, w, 0.8, d);
-      mirror.box(cx, -h / 2, cz, w, h, d, { pz: fx(w), nz: fx(w), px: fx(d), nx: fx(d) });
     };
-    // the core: tall, dense, centred a little left of the window's axis
-    for (let i = 0; i < 34; i++) {
-      const cx = -140 + (rnd() - 0.5) * 520, cz = -560 - (rnd() - 0.5) * 300;
-      const w = 26 + rnd() * 26, d = 26 + rnd() * 26, h = 70 + rnd() * rnd() * 190;
-      tower(cx, cz, w, d, h);
+    // across the street and the next blocks: 60 to 320 m out, most below the 30th floor, some past it
+    const taken: Array<[number, number, number]> = [];
+    const fits = (x: number, z: number, r: number) => taken.every(([tx, tz, tr]) => Math.hypot(tx - x, tz - z) > r + tr + 12);
+    let tries = 0;
+    while (taken.length < 26 && tries++ < 400) {
+      const cx = (rnd() - 0.5) * 620, cz = -60 - rnd() * 260;
+      const w = 24 + rnd() * 22, d = 24 + rnd() * 22;
+      if (Math.abs(cx) < 40 && cz > -90) continue; // the street below the window stays open
+      if (!fits(cx, cz, Math.max(w, d) / 2)) continue;
+      taken.push([cx, cz, Math.max(w, d) / 2]);
+      const h = 40 + rnd() * rnd() * 150 + (rnd() < 0.2 ? 60 : 0);
+      tower(cx, cz, w, d, h, near);
     }
-    // the ring: lower, wider spread, closer and further
-    for (let i = 0; i < 30; i++) {
-      const cx = (rnd() - 0.5) * 1300, cz = -230 - rnd() * 700;
-      const w = 22 + rnd() * 30, d = 22 + rnd() * 30, h = 28 + rnd() * 70;
+    // the rest of downtown, 320 to 900 m out, dimmer
+    for (let i = 0; i < 44; i++) {
+      const cx = (rnd() - 0.5) * 1400, cz = -320 - rnd() * 580;
+      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = 35 + rnd() * rnd() * 200;
       tower(cx, cz, w, d, h, far);
     }
-    // the CN Tower: shaft to 330 m, the main pod, the shaft on to the SkyPod at 447, the antenna to 553
-    const cn = new Sink().lathe([[15, 0], [11, 120], [8.5, 300], [7.5, 330], [7.5, 350], [6, 440], [4, 447], [3.5, 455], [2.2, 456], [1.6, 553]], -60, 0, -720, 1, 1, 0, 14);
-    const pod = new Sink().lathe([[8, 328], [30, 331], [33, 338], [32, 346], [24, 352], [8, 354]], -60, 0, -720, 1, 1, 0, 18)
-      .lathe([[4, 446], [11, 447], [12, 452], [9, 456], [4, 457]], -60, 0, -720, 1, 1, 0, 14);
-    const light = new Sink().sphere(-60, 553, -720, 2.2, 2.2, 2.2, 8, 6).sphere(-60, 456, -720, 1.6, 1.6, 1.6, 8, 6);
-    // the Rogers Centre: a low white dome
-    const dome = new Sink().sphere(-125, -6, -690, 105, 46, 105, 20, 8, undefined, 0.5);
+    // the CN Tower, half a kilometre off: shaft to 330 m, the main pod, on to the SkyPod at 447, the antenna to 553
+    const TX = 90, TZ = -520;
+    const cn = new Sink().lathe([[15, 0], [11, 120], [8.5, 300], [7.5, 330], [7.5, 350], [6, 440], [4, 447], [3.5, 455], [2.2, 456], [1.6, 553]], TX, 0, TZ, 1, 1, 0, 14);
+    const pod = new Sink().lathe([[8, 328], [30, 331], [33, 338], [32, 346], [24, 352], [8, 354]], TX, 0, TZ, 1, 1, 0, 18)
+      .lathe([[4, 446], [11, 447], [12, 452], [9, 456], [4, 457]], TX, 0, TZ, 1, 1, 0, 14);
+    const light = new Sink().sphere(TX, 553, TZ, 2.2, 2.2, 2.2, 8, 6).sphere(TX, 456, TZ, 1.6, 1.6, 1.6, 8, 6);
+    const dome = new Sink().sphere(TX - 80, -6, TZ + 40, 105, 46, 105, 20, 8, undefined, 0.5);
+    const ground = new Sink().quad([-1200, -0.2, 200], [1200, -0.2, 200], [1200, -0.2, -1400], [-1200, -0.2, -1400]);
     return [
-      piece(towers.out(), M('tower')),
+      piece(near.out(), M('tower')),
       piece(far.out(), M('towerFar')),
       piece(tops.out(), M('towerTop')),
-      piece(mirror.out(), M('towerReflect')),
       piece(cn.out(), M('cnShaft'), { smooth: true }),
       piece(pod.out(), M('cnPod'), { smooth: true }),
       piece(light.out(), M('cnLight'), { smooth: true }),
       piece(dome.out(), M('dome'), { smooth: true }),
+      piece(ground.out(), M('lake')),
     ];
   },
   /** The night sky: a dome 2.4 km out, beyond the city, the gradient painted bottom to top. */
