@@ -30,32 +30,32 @@ export const SURFACE: Record<SurfaceName, Surface> = {
   paint: { kind: 'orange', rough: 0.93, metal: 0, tile: 0.2, bump: 0.1, roughAmp: 0.07, env: 0.85 },
   plaster: { kind: 'plaster', rough: 0.96, metal: 0, tile: 0.55, bump: 0.25, roughAmp: 0.1, env: 0.8 },
   // furniture: sealed board, and the floor's planks
-  wood: { kind: 'grain', rough: 0.6, metal: 0, tile: 0.5, bump: 0.18, roughAmp: 0.16, env: 1 },
-  plank: { kind: 'plank', rough: 0.56, metal: 0, tile: 1.1, bump: 0.28, roughAmp: 0.2, env: 1 },
+  wood: { kind: 'grain', rough: 0.74, metal: 0, tile: 0.5, bump: 0.18, roughAmp: 0.16, env: 1 },
+  plank: { kind: 'plank', rough: 0.7, metal: 0, tile: 1.1, bump: 0.28, roughAmp: 0.2, env: 1 },
   // cloth: the shirt takes the fine weave, curtains and the rug the coarse one
   cotton: { kind: 'weave', rough: 0.86, metal: 0, tile: 0.05, bump: 0.16, roughAmp: 0.1, env: 0.7 },
   fabric: { kind: 'weave', rough: 0.9, metal: 0, tile: 0.11, bump: 0.25, roughAmp: 0.12, env: 0.6 },
   carpet: { kind: 'pile', rough: 0.98, metal: 0, tile: 0.09, bump: 0.3, roughAmp: 0.06, env: 0.5 },
   // moulded things: consoles, keys, monitor shells
-  plastic: { kind: 'orange', rough: 0.4, metal: 0, tile: 0.045, bump: 0.06, roughAmp: 0.08, env: 1.15 },
+  plastic: { kind: 'orange', rough: 0.58, metal: 0, tile: 0.045, bump: 0.06, roughAmp: 0.08, env: 0.9 },
   rubber: { kind: 'speckle', rough: 0.82, metal: 0, tile: 0.04, bump: 0.15, roughAmp: 0.08, env: 0.75 },
   // metal: the fan, the tower, the bridge; gold for the trophy
-  metal: { kind: 'brushed', rough: 0.36, metal: 0.9, tile: 0.3, bump: 0.12, roughAmp: 0.14, env: 1.25 },
-  steel: { kind: 'brushed', rough: 0.28, metal: 1, tile: 0.8, bump: 0.1, roughAmp: 0.12, env: 1.35 },
-  gold: { kind: 'brushed', rough: 0.2, metal: 1, tile: 0.05, bump: 0.08, roughAmp: 0.1, env: 1.5 },
+  metal: { kind: 'brushed', rough: 0.5, metal: 0.9, tile: 0.3, bump: 0.12, roughAmp: 0.14, env: 1 },
+  steel: { kind: 'brushed', rough: 0.42, metal: 1, tile: 0.8, bump: 0.1, roughAmp: 0.12, env: 1 },
+  gold: { kind: 'brushed', rough: 0.34, metal: 1, tile: 0.05, bump: 0.08, roughAmp: 0.1, env: 1.1 },
   // paper, tiles, concrete
   paper: { kind: 'pores', rough: 0.88, metal: 0, tile: 0.1, bump: 0.1, roughAmp: 0.06, env: 0.7 },
-  ceramic: { kind: 'orange', rough: 0.22, metal: 0, tile: 0.4, bump: 0.05, roughAmp: 0.06, env: 1.3 },
+  ceramic: { kind: 'orange', rough: 0.42, metal: 0, tile: 0.4, bump: 0.05, roughAmp: 0.06, env: 1 },
   concrete: { kind: 'pebble', rough: 0.93, metal: 0, tile: 1.4, bump: 0.25, roughAmp: 0.18, env: 0.9 },
   stone: { kind: 'pebble', rough: 0.8, metal: 0, tile: 0.8, bump: 0.25, roughAmp: 0.2, env: 1 },
   // him
-  skin: { kind: 'pores', rough: 0.62, metal: 0, tile: 0.03, bump: 0.06, roughAmp: 0.08, env: 0.95 },
-  hair: { kind: 'strand', rough: 0.48, metal: 0, tile: 0.045, bump: 0.3, roughAmp: 0.18, env: 1.1 },
+  skin: { kind: 'pores', rough: 0.78, metal: 0, tile: 0.03, bump: 0.06, roughAmp: 0.08, env: 0.7 },
+  hair: { kind: 'strand', rough: 0.72, metal: 0, tile: 0.045, bump: 0.3, roughAmp: 0.18, env: 0.7 },
   // outside
   foliage: { kind: 'leaf', rough: 0.72, metal: 0, tile: 0.26, bump: 0.22, roughAmp: 0.14, env: 0.9 },
-  glass: { kind: 'smooth', rough: 0.06, metal: 0, tile: 1, bump: 0, roughAmp: 0, env: 1.6 },
+  glass: { kind: 'smooth', rough: 0.12, metal: 0, tile: 1, bump: 0, roughAmp: 0, env: 1.2 },
   // the bay: nearly a mirror, with a swell big enough to break the sun into a path
-  water: { kind: 'ripple', rough: 0.1, metal: 0, tile: 7, bump: 0.35, roughAmp: 0.12, env: 1.7 },
+  water: { kind: 'ripple', rough: 0.22, metal: 0, tile: 7, bump: 0.35, roughAmp: 0.12, env: 1.2 },
 };
 
 const TAU = Math.PI * 2;

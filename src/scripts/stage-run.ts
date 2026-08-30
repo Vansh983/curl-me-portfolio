@@ -118,9 +118,9 @@ vec3 detailNormal( out float hOut ) {
 const GRADE = {
   uniforms: {
     tDiffuse: { value: null as Texture | null },
-    uSat: { value: 1.08 },
-    uCon: { value: 1.02 },
-    uVig: { value: 0.1 },
+    uSat: { value: 1.0 },
+    uCon: { value: 1.0 },
+    uVig: { value: 0.06 },
   },
   vertexShader: `
 varying vec2 vUv;
@@ -636,7 +636,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   gtao.updatePdMaterial({ lumaPhi: 8, depthPhi: 2.5, normalPhi: 3.5, radius: 3, rings: 2, samples: 12 });
   gtao.blendIntensity = 0.5;
   composer.addPass(gtao);
-  composer.addPass(new UnrealBloomPass(new Vector2(1, 1), 0.35, 0.8, 1.0));
+  composer.addPass(new UnrealBloomPass(new Vector2(1, 1), 0.12, 0.6, 1.0));
   composer.addPass(new OutputPass());
   composer.addPass(new ShaderPass(GRADE)); // graded in display space, after the tone map
   composer.addPass(new FXAAPass());
