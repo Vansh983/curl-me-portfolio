@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { ASSETS, assetUrl } from '../../src/lib/stage/assets.ts';
 
-test('every asset is named once, credited, and CC0', () => {
+test('every asset is named once, credited, CC0, and capped at 512 px', () => {
   const ids = new Set<string>();
   for (const a of ASSETS) {
     assert.ok(!ids.has(a.id), `${a.id} twice`);
@@ -12,23 +12,24 @@ test('every asset is named once, credited, and CC0', () => {
     assert.ok(a.author.length > 1, `${a.id} author`);
     assert.ok(a.use.length > 3, `${a.id} use`);
     assert.match(a.id, /^[a-z0-9_]+$/i);
+    assert.ok(a.maxTex <= 512);
   }
 });
 
-test('urls are under /assets/stage and follow the kind', () => {
+test('urls are under /assets/stage and end in .glb', () => {
   for (const a of ASSETS) {
     const u = assetUrl(a);
     assert.ok(u.startsWith('/assets/stage/'), u);
-    if (a.kind === 'model') assert.ok(u.endsWith('.glb'));
-    if (a.kind === 'hdri') assert.ok(u.endsWith(`_${a.res}.hdr`));
-    if (a.kind === 'texture') assert.ok(u.endsWith(`/tex/${a.id}`));
+    assert.ok(u.endsWith('.glb'));
   }
 });
 
-test('the built files exist once the fetch has run', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
+test('the built files exist and the whole set stays under 4 MB', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
+  let total = 0;
   for (const a of ASSETS) {
-    const u = assetUrl(a);
-    const files = a.kind === 'texture' ? ['_diff.webp', '_nor.webp', '_arm.webp'].map((s) => `public${u}${s}`) : [`public${u}`];
-    for (const f of files) assert.ok(existsSync(f), f);
+    const f = `public${assetUrl(a)}`;
+    assert.ok(existsSync(f), f);
+    total += statSync(f).size;
   }
+  assert.ok(total < 4e6, `${(total / 1e6).toFixed(2)} MB`);
 });

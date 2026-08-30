@@ -1,6 +1,6 @@
 // Rooms as geometry: a floor, four walls with holes for doors and windows, a ceiling. Every
-// vertex carries a normal facing into the room and a uv in metres over the tile size, so a
-// scanned plaster or plank set lands at its real scale wherever the wall is.
+// vertex carries a normal facing into the room and a uv in metres, so a material's tile size
+// means the same wherever the wall is.
 import type { Shell, Opening } from './sets.ts';
 
 export interface Slab { pos: Float32Array; nor: Float32Array; uv: Float32Array }
@@ -54,7 +54,7 @@ function cut(u0: number, u1: number, h: number, holes: Rect[]): Rect[] {
 interface Wall { id: Opening['wall']; o: P3; a: P3; n: P3; len: number; from: number }
 
 export function buildShell(s: Shell): { floor: Slab; walls: Slab; ceiling: Slab } {
-  const [x0, x1] = s.x, [z0, z1] = s.z, h = s.h, tf = s.tile.floor, tw = s.tile.wall;
+  const [x0, x1] = s.x, [z0, z1] = s.z, h = s.h, tf = 1, tw = 1;
   const floor = new Bag(), ceiling = new Bag(), walls = new Bag();
   floor.rect([x0, 0, z0], [x1 - x0, 0, 0], [0, 0, z1 - z0], [0, 1, 0], [x0 / tf, z0 / tf], (x1 - x0) / tf, (z1 - z0) / tf);
   ceiling.rect([x0, h, z1], [x1 - x0, 0, 0], [0, 0, z0 - z1], [0, -1, 0], [x0 / tf, z1 / tf], (x1 - x0) / tf, (z0 - z1) / tf);

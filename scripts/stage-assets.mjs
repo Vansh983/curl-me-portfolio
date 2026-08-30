@@ -44,7 +44,7 @@ for (const a of ASSETS) {
     if (!existsSync(out)) {
       await mkdir(path.dirname(out), { recursive: true });
       execFileSync('npx', ['--yes', '@gltf-transform/cli', 'optimize', src, out,
-        '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', String(a.maxTex ?? 1024),
+        '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', String(a.maxTex ?? 512),
         ...(a.simplify ? ['--simplify', 'true', '--simplify-error', String(a.simplify)] : ['--simplify', 'false']),
         '--instance', 'false', '--palette', 'false'], { stdio: 'inherit' });
     }

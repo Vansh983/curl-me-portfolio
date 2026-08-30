@@ -1,10 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { BUILT } from '../../src/lib/stage/built.ts';
-import { ASSETS } from '../../src/lib/stage/assets.ts';
+import { MATS } from '../../src/lib/stage/materials.ts';
 import { SETS } from '../../src/lib/stage/sets.ts';
 
-const texIds = new Set(ASSETS.filter((a) => a.kind === 'texture').map((a) => a.id));
 const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen'];
 const paintName = (p: string) => p.split(':')[0];
 
@@ -20,9 +19,8 @@ test('every code-built prop the sets use exists, and every piece is finite with 
       for (const v of piece.pos) assert.ok(Number.isFinite(v), name);
       for (const v of piece.nor) assert.ok(Number.isFinite(v), `${name} normal`);
       const su = piece.surface;
-      if ('tex' in su) assert.ok(texIds.has(su.tex), `${name}: ${su.tex}`);
-      else if ('paint' in su) assert.ok(PAINTS.includes(paintName(su.paint)), `${name}: ${su.paint}`);
-      else assert.match(su.color, /^#[0-9a-f]{6}$/i);
+      if ('mat' in su) assert.ok(MATS[su.mat], `${name}: ${su.mat}`);
+      else assert.ok(PAINTS.includes(paintName(su.paint)), `${name}: ${su.paint}`);
     }
   }
 });

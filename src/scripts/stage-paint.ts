@@ -166,3 +166,63 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
     },
   };
 }
+
+/**
+ * Designed surface colour maps, one tile each, drawn at runtime: teak planks, pale lab tiles,
+ * plaza pavers. Tiled in metres by the material's `tile`; the grain comes from a normal map.
+ */
+export const SURFACE_PAINT: Record<string, Paint> = {
+  planks: {
+    w: 512, h: 512,
+    frames: [(x, w, h) => {
+      // eight planks across a 2.4 m tile, staggered, each its own warm teak
+      const rows = 8, ph = h / rows;
+      for (let r = 0; r < rows; r++) {
+        const off = (r % 3) * (w / 3);
+        for (let c = -1; c < 3; c++) {
+          const t = ((r * 7 + c * 3 + 5) % 9) / 9;
+          x.fillStyle = `hsl(${26 + t * 6} ${46 + t * 10}% ${34 + t * 9}%)`;
+          x.fillRect(c * (w / 2) + off, r * ph, w / 2, ph);
+        }
+        x.fillStyle = 'rgba(60,35,15,0.55)';
+        x.fillRect(0, r * ph, w, 2);
+        for (let c = -1; c < 3; c++) x.fillRect(c * (w / 2) + off, r * ph, 2, ph);
+      }
+      // faint grain lines along each plank
+      x.strokeStyle = 'rgba(70,40,20,0.10)';
+      x.lineWidth = 1;
+      for (let i = 0; i < 160; i++) {
+        const y = (i * 37) % h, len = 60 + ((i * 53) % 200);
+        x.beginPath(); x.moveTo((i * 91) % w, y); x.lineTo(((i * 91) % w) + len, y + ((i % 3) - 1)); x.stroke();
+      }
+    }],
+  },
+  tiles: {
+    w: 512, h: 512,
+    frames: [(x, w, h) => {
+      // four 30 cm tiles across a 1.2 m tile, a soft grey with a hint of variation and a fine joint
+      const n = 4, s = w / n;
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+        const t = ((r * 5 + c * 3) % 7) / 7;
+        x.fillStyle = `hsl(210 8% ${82 + t * 5}%)`;
+        x.fillRect(c * s, r * s, s, s);
+      }
+      x.fillStyle = 'rgba(90,95,100,0.5)';
+      for (let k = 0; k <= n; k++) { x.fillRect(k * s - 1, 0, 3, h); x.fillRect(0, k * s - 1, w, 3); }
+    }],
+  },
+  pavers: {
+    w: 512, h: 512,
+    frames: [(x, w, h) => {
+      // three 60 cm pavers across a 1.8 m tile, warm pale concrete, wider joints
+      const n = 3, s = w / n;
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+        const t = ((r * 4 + c * 5) % 6) / 6;
+        x.fillStyle = `hsl(38 ${12 + t * 6}% ${64 + t * 6}%)`;
+        x.fillRect(c * s, r * s, s, s);
+      }
+      x.fillStyle = 'rgba(120,110,95,0.55)';
+      for (let k = 0; k <= n; k++) { x.fillRect(k * s - 2, 0, 5, h); x.fillRect(0, k * s - 2, w, 5); }
+    }],
+  },
+};

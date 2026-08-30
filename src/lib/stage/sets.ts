@@ -2,7 +2,7 @@
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
 //   Set 0 ROOM     x -2.2..2.2   z -2.5..2.5   h 2.8   door on +x wall at z 1.6
-//   Passage        x  2.2..5.2   z  1.0..2.2   h 2.4   dark, one bulb
+//   Passage        x  2.2..5.2   z  1.0..2.2   h 2.4   plain, one bulb
 //   Set 1 LAB      x  5.2..12.2  z -1.5..4.5   h 3.0   door in at z 1.6 (x-), door out at z 3.4 (x+)
 //   Set 2 PLAZA    x 12.2..80    z -60..20     open    the bay beyond z < -35, the bridge at z -150
 export type V3 = [number, number, number];
@@ -10,7 +10,7 @@ export type V3 = [number, number, number];
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
 export interface Opening { wall: 'x+' | 'x-' | 'z+' | 'z-'; at: number; w: number; h: number; sill?: number }
 
-/** A room: floor, four walls, ceiling, with scanned surfaces. `tile` is metres per texture repeat. */
+/** A room: floor, four walls, ceiling, each a designed material (materials.ts). uv is in metres. */
 export interface Shell {
   x: [number, number];
   z: [number, number];
@@ -19,7 +19,6 @@ export interface Shell {
   wall: string;
   ceiling?: string;
   openings: Opening[];
-  tile: { floor: number; wall: number };
 }
 
 export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb';
@@ -41,11 +40,10 @@ export interface SunSpec { dir: V3; color: string; power: number; shadow: number
 
 export interface StageSet {
   id: string;
-  hdri: string; // manifest id
-  hdriRot: number; // degrees about y, so the photograph's sun lands where the window is
+  env: 'studio' | 'sky'; // a soft studio room (indoors) or a clear sky with the sun (outdoors)
+  tint: { sky: string; ground: string; power: number }; // a hemisphere that colours the studio light
   exposure: number;
   envPower: number;
-  background: boolean; // the HDRI is visible (outdoors) or only lights (indoors)
   sun: SunSpec;
   fog: { color: string; near: number; far: number };
   shell?: Shell;
@@ -64,13 +62,12 @@ const DZ = (r: number) => 0.5 - r * 1.6;
 
 export const SETS: StageSet[] = [
   {
-    id: 'room', hdri: 'small_empty_room_1', hdriRot: 90, exposure: 1.15, envPower: 1, background: false,
-    sun: { dir: [-0.3, 0.5, -0.8], color: '#FFD9A8', power: 3, shadow: 1 },
-    fog: { color: '#E9DCC6', near: 12, far: 60 },
+    id: 'room', env: 'studio', tint: { sky: '#FFE6C6', ground: '#9C7B5A', power: 0.3 }, exposure: 0.8, envPower: 0.3,
+    sun: { dir: [-0.3, 0.5, -0.8], color: '#FFD9A8', power: 3.2, shadow: 0.9 },
+    fog: { color: '#EFE3D0', near: 12, far: 60 },
     shell: {
       x: [-2.2, 2.2], z: [-2.5, 2.5], h: 2.8,
-      floor: 'plank_flooring', wall: 'plastered_wall', ceiling: 'ceiling_interior',
-      tile: { floor: 2.0, wall: 3.0 },
+      floor: 'roomFloor', wall: 'roomWall', ceiling: 'roomCeiling',
       openings: [
         { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
         { wall: 'z-', at: -1.1, w: 1.3, h: 1.4, sill: 0.95 },
@@ -82,8 +79,8 @@ export const SETS: StageSet[] = [
       { model: 'gaming_console', at: [0.55, 0.005, -2.05], rot: [0, -20, 0], cap: 'The Xbox 360.' },
       { model: 'gamepad', at: [-0.35, 0.005, 0.2], rot: [0, 35, 0] },
       { model: 'ceiling_fan', at: [0, 2.8, 0.2], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
-      { model: 'wooden_bookshelf_worn', at: [1.5, 0, -2.2], scale: 0.85 },
-      { model: 'book_encyclopedia_set_01', at: [1.5, 1.06, -2.2], scale: 0.9 },
+      { build: 'shelf', at: [1.5, 0, -2.3] },
+      { model: 'book_encyclopedia_set_01', at: [1.5, 1.24, -2.28], scale: 0.9 },
       { build: 'jobsPoster', at: [0.75, 1.9, -2.485], cap: "Here's to the crazy ones." },
       { build: 'rug', at: [0, 0.002, 0.3] },
       { model: 'throw_pillows_01', at: [-0.9, 0, 0.9], rot: [0, 60, 0] },
@@ -94,13 +91,12 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    id: 'lab', hdri: 'school_hall', hdriRot: 0, exposure: 0.95, envPower: 1, background: false,
-    sun: { dir: [-0.2, 0.9, 0.3], color: '#EEF3FF', power: 1.4, shadow: 0.7 },
-    fog: { color: '#E1E8EE', near: 14, far: 70 },
+    id: 'lab', env: 'studio', tint: { sky: '#E9F1FF', ground: '#A6ADB3', power: 0.35 }, exposure: 0.85, envPower: 0.6,
+    sun: { dir: [-0.2, 0.9, 0.3], color: '#EEF3FF', power: 1.6, shadow: 0.6 },
+    fog: { color: '#E6ECF1', near: 14, far: 70 },
     shell: {
       x: [5.2, 12.2], z: [-1.5, 4.5], h: 3.0,
-      floor: 'old_linoleum_flooring_01', wall: 'white_plaster_02', ceiling: 'ceiling_interior',
-      tile: { floor: 2.0, wall: 3.0 },
+      floor: 'labFloor', wall: 'labWall', ceiling: 'labCeiling',
       openings: [
         { wall: 'x-', at: 1.6, w: 0.9, h: 2.05 },
         { wall: 'x+', at: 3.4, w: 0.9, h: 2.05 },
@@ -123,9 +119,9 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    id: 'plaza', hdri: 'golden_gate_hills', hdriRot: 200, exposure: 0.85, envPower: 1, background: true,
-    sun: { dir: [0.35, 0.55, -0.75], color: '#FFF1D6', power: 3.2, shadow: 1 },
-    fog: { color: '#D6E3EC', near: 60, far: 700 },
+    id: 'plaza', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.25 }, exposure: 0.8, envPower: 0.7,
+    sun: { dir: [0.35, 0.55, -0.75], color: '#FFF1D6', power: 2.6, shadow: 1 },
+    fog: { color: '#C6D8E6', near: 200, far: 900 },
     props: [
       { build: 'plazaFloor', at: [12.2, 0, 0] },
       { build: 'counter', at: [22, 0, -10] },

@@ -1,5 +1,24 @@
 # Session log: the journey stage
 
+## 2026-08-30, later: designed surfaces, light enough for a phone
+
+Vansh on the scans: "like some horror game", and the page had become too heavy to load. The
+open world and the dolly stay; the photographs go.
+
+- **Surfaces are designed, not photographed** (`materials.ts`): a colour, a roughness, at most a
+  faint procedural grain (a 128 px normal from `surface.ts`) or a colour map drawn on a canvas at
+  runtime (`SURFACE_PAINT`: teak planks, pale lab tiles, plaza pavers). One palette per set: warm
+  cream and teak for 2010, off-white and grey tile for 2013, pale pavers and deep blue for 2018.
+  The worn scans (bookshelf, plaster, lino, carpet) are gone; a clean teak shelf is built in code.
+- **Light is made in code.** `RoomEnvironment` (three's studio room) through PMREM for the two
+  interiors, tinted by a hemisphere per set; a gradient dome (deep blue overhead to a pale
+  horizon, pavers below) for the plaza, also the environment. No HDRI files. One sun still casts.
+- **Weight.** Assets 3.2 MB (was 21): thirteen models, textures capped at 512 or 256 px, the tree
+  simplified to 1 MB. Stage chunk 179 KB gz. No occlusion pass; shadow map 1024; pixel ratio
+  capped at 1.25; at rest the loop idles at 30 fps. Measured 8.3 ms a frame in every set at
+  2880 x 1800 (was 8 to 75).
+- `npm test` 55, including "the whole set stays under 4 MB".
+
 ## 2026-08-30: real light, real things, one dolly
 
 "It needs to be natural, like it needs to look real." Spec `13-journey-real-spec.md`, plan

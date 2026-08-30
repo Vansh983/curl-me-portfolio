@@ -1,32 +1,32 @@
-// The journey stage, client side. Three sets along +x lit by photographs (HDRIs), dressed with
-// scanned models and scanned surfaces on code-built shells, joined by one camera dolly that
-// changes set while the frame is inside a doorway. Spec: docs/rebuild/13-journey-real-spec.md.
+// The journey stage, client side. Three sets along +x, lit by a soft studio environment indoors
+// and a clear sky outdoors (both made in code, nothing downloaded), dressed with a few scanned
+// models and designed materials on code-built shells, joined by one camera dolly that changes set
+// while the frame is inside a doorway. Spec: docs/rebuild/13-journey-real-spec.md.
 //
 // Everything here touches the DOM or the renderer. The world (sets.ts), the camera path (dolly.ts),
-// the shells (shell.ts) and the code-built props (built.ts) are pure and tested in node.
+// the shells (shell.ts), the props (built.ts) and the materials (materials.ts) are pure and tested.
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, PointLight, Mesh, Group, Object3D,
-  BufferGeometry, BufferAttribute, MeshStandardMaterial, MeshBasicMaterial, PlaneGeometry, Texture, TextureLoader,
-  CanvasTexture, VideoTexture, DataTexture, RepeatWrapping, SRGBColorSpace, ACESFilmicToneMapping, PCFShadowMap,
-  EquirectangularReflectionMapping, PMREMGenerator, Raycaster, Vector2, Vector3, Euler, RGBAFormat, UnsignedByteType,
-  LinearFilter, LinearMipmapLinearFilter, Material, UVMapping, SphereGeometry, BackSide,
+  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D,
+  BufferGeometry, BufferAttribute, MeshStandardMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture,
+  DataTexture, RepeatWrapping, SRGBColorSpace, ACESFilmicToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
+  RGBAFormat, UnsignedByteType, LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
-import { SETS, type Placement, type StageSet } from '../lib/stage/sets.ts';
+import { SETS, type Placement, type StageSet, type Live } from '../lib/stage/sets.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
 import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
+import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress } from '../lib/stage/shot.ts';
-import { detailMap } from '../lib/stage/surface.ts';
-import { painters, loadImage, canvas2d, type Paint } from './stage-paint.ts';
+import { detailMap, type Kind } from '../lib/stage/surface.ts';
+import { painters, loadImage, canvas2d, SURFACE_PAINT, type Paint } from './stage-paint.ts';
 
 const D = Math.PI / 180;
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#000';
@@ -36,40 +36,60 @@ interface Placed { root: Object3D; p: Placement; set: number }
 
 /** The screen face of television_02 in its own metres: where the glass is, seen from the front. */
 const TV_SCREEN = { w: 0.3, h: 0.24, at: [0, 0.2, 0.178] as const };
+const GRAIN = 128; // pixels per grain tile: a faint normal, never a texture you would look at
 
 export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): () => void {
   const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-  const dprCap = Math.min(devicePixelRatio, 1.5);
+  const dprCap = Math.min(devicePixelRatio, 1.25);
   let dpr = dprCap;
   renderer.setPixelRatio(dpr);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
-  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  const maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const scene = new Scene();
-  const fog = new Fog(new Color('#E9DCC6'), 12, 60);
+  const fog = new Fog(new Color('#EFE3D0'), 12, 60);
   scene.fog = fog;
   const camera = new PerspectiveCamera(50, 1, 0.05, 900);
 
-  // one sun; everything else about the light is the photograph
+  // one sun that casts, one hemisphere that tints; the rest of the light is the environment
   const sun = new DirectionalLight(0xffffff, 1);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1024, 1024);
   Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 0.5, far: 80 });
-  sun.shadow.bias = -0.0003;
-  sun.shadow.normalBias = 0.02;
-  sun.shadow.radius = 3;
-  scene.add(sun, sun.target);
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.03;
+  sun.shadow.radius = 2;
+  const hemi = new HemisphereLight(0xffffff, 0x888888, 0.5);
+  scene.add(sun, sun.target, hemi);
+
+  // ---- light made in code: a soft studio room for indoors, a clear sky for outdoors
+  const pmrem = new PMREMGenerator(renderer);
+  const studioEnv = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  // the sky is a designed gradient, deep blue overhead to a pale haze at the horizon, and the
+  // ground half is the pale warm of the pavers, so the environment lights the plaza the same way
+  const skyGeo = new SphereGeometry(800, 32, 24); // inside the camera far plane
+  const top = new Color('#3F87D2'), horizon = new Color('#D3E3F0'), ground = new Color('#CFC9BF');
+  const pos = skyGeo.getAttribute('position');
+  const col: number[] = [];
+  const c = new Color();
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i) / 800;
+    if (y >= 0) c.copy(horizon).lerp(top, Math.pow(Math.min(1, y * 2.2), 0.6));
+    else c.copy(horizon).lerp(ground, Math.min(1, -y * 6));
+    col.push(c.r, c.g, c.b);
+  }
+  skyGeo.setAttribute('color', new Float32BufferAttribute(col, 3));
+  const sky = new Mesh(skyGeo, new MeshBasicMaterial({ vertexColors: true, side: BackSide, fog: false }));
+  const skyScene = new Scene();
+  skyScene.add(sky);
+  const skyEnv = pmrem.fromScene(skyScene, 0, 0.1, 3000).texture;
+  skyScene.remove(sky);
 
   // ---- loaders and caches
   const gltf = new GLTFLoader();
   gltf.setMeshoptDecoder(MeshoptDecoder);
-  const rgbe = new RGBELoader();
-  const texLoader = new TextureLoader();
-  const pmrem = new PMREMGenerator(renderer);
-  pmrem.compileEquirectangularShader();
-
   const modelCache = new Map<string, Promise<Group>>();
   const loadModel = (id: string): Promise<Group> => {
     let p = modelCache.get(id);
@@ -93,49 +113,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return p;
   };
 
-  interface Scan { map: Texture; normalMap: Texture; aoMap: Texture; roughnessMap: Texture; metalnessMap: Texture }
-  const scanCache = new Map<string, Promise<Scan>>();
-  const loadScan = (id: string): Promise<Scan> => {
-    let p = scanCache.get(id);
-    if (!p) {
-      const base = assetUrl(asset(id));
-      const one = (suffix: string, srgb: boolean) => texLoader.loadAsync(`${base}_${suffix}.webp`).then((t) => {
-        t.wrapS = t.wrapT = RepeatWrapping;
-        t.anisotropy = maxAniso;
-        if (srgb) t.colorSpace = SRGBColorSpace;
-        return t;
-      });
-      p = Promise.all([one('diff', true), one('nor', false), one('arm', false)]).then(([map, normalMap, arm]) => ({
-        map, normalMap, aoMap: arm, roughnessMap: arm, metalnessMap: arm,
-      }));
-      scanCache.set(id, p);
-    }
-    return p;
-  };
-
-  const hdriCache = new Map<string, Promise<{ env: Texture; sky: Texture }>>();
-  const loadHdri = (id: string) => {
-    let p = hdriCache.get(id);
-    if (!p) {
-      p = rgbe.loadAsync(assetUrl(asset(id))).then((sky) => {
-        sky.mapping = EquirectangularReflectionMapping;
-        const env = pmrem.fromEquirectangular(sky).texture;
-        return { env, sky };
-      });
-      hdriCache.set(id, p);
-    }
-    return p;
-  };
-
   // ---- painted canvases
   const video = document.createElement('video');
-  Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'auto' });
+  Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
   const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null };
-  const PAINT = painters(images, video);
+  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
-    const p: Paint = PAINT[name];
+    const p = PAINT[name];
     const c = canvas2d(p.w, p.h);
     p.frames[frame](c.getContext('2d')!, p.w, p.h);
     const tex = new CanvasTexture(c);
@@ -155,13 +141,45 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const videoTex = new VideoTexture(video);
   videoTex.colorSpace = SRGBColorSpace;
 
-  // the ripple on the bay: a procedural normal map, scrolled
-  const ripple = new DataTexture(detailMap('ripple', 256), 256, 256, RGBAFormat, UnsignedByteType);
-  ripple.wrapS = ripple.wrapT = RepeatWrapping;
-  ripple.magFilter = LinearFilter;
-  ripple.minFilter = LinearMipmapLinearFilter;
-  ripple.generateMipmaps = true;
-  ripple.needsUpdate = true;
+  // ---- designed materials: a colour, a roughness, a faint grain, maybe a painted map
+  const grains = new Map<Kind, DataTexture>();
+  const grainFor = (kind: Kind): DataTexture => {
+    let t = grains.get(kind);
+    if (!t) {
+      t = new DataTexture(detailMap(kind, GRAIN), GRAIN, GRAIN, RGBAFormat, UnsignedByteType);
+      t.wrapS = t.wrapT = RepeatWrapping;
+      t.magFilter = LinearFilter;
+      t.minFilter = LinearMipmapLinearFilter;
+      t.generateMipmaps = true;
+      t.anisotropy = maxAniso;
+      t.needsUpdate = true;
+      grains.set(kind, t);
+    }
+    return t;
+  };
+  const surfacePaint = new Map<string, CanvasTexture>();
+  const mats = new Map<string, MeshStandardMaterial>();
+  const matFor = (name: string): MeshStandardMaterial => {
+    let m = mats.get(name);
+    if (m) return m;
+    const s: Mat = matSpec(name);
+    m = new MeshStandardMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: 1 });
+    if (s.paint) {
+      let t = surfacePaint.get(s.paint);
+      if (!t) { t = paintTex(s.paint); t.wrapS = t.wrapT = RepeatWrapping; surfacePaint.set(s.paint, t); }
+      const map = t.clone();
+      map.repeat.set(1 / s.tile, 1 / s.tile);
+      m.map = map;
+    }
+    if (s.grain) {
+      const n = grainFor(s.grain).clone();
+      n.repeat.set(1 / s.tile, 1 / s.tile);
+      m.normalMap = n;
+      m.normalScale.set(s.amp ?? 0.25, s.amp ?? 0.25);
+    }
+    mats.set(name, m);
+    return m;
+  };
 
   // ---- geometry helpers
   const slabGeometry = (s: Slab): BufferGeometry => {
@@ -169,27 +187,22 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     g.setAttribute('position', new BufferAttribute(s.pos, 3));
     g.setAttribute('normal', new BufferAttribute(s.nor, 3));
     g.setAttribute('uv', new BufferAttribute(s.uv, 2));
-    g.setAttribute('uv1', new BufferAttribute(s.uv, 2));
     return g;
   };
-  const scanMaterial = async (id: string): Promise<MeshStandardMaterial> => {
-    const maps = await loadScan(id);
-    return new MeshStandardMaterial({ ...maps, roughness: 1, metalness: 1, envMapIntensity: 1 });
-  };
-  const builtMaterial = async (s: BuiltSurface): Promise<Material> => {
-    if ('tex' in s) return scanMaterial(s.tex);
+  const builtMaterial = (s: BuiltSurface, live?: Live): Material => {
     if ('paint' in s) {
       const [name, frame] = s.paint.split(':');
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
-    const m = new MeshStandardMaterial({ color: s.color, roughness: s.rough, metalness: s.metal, envMapIntensity: 1 });
-    if (s.emissive) { m.emissive.set(s.emissive); m.emissiveIntensity = s.emissivePower ?? 1; }
-    if (s.ripple) { m.normalMap = ripple; m.normalScale.set(0.35, 0.35); }
-    return m;
+    // emitters and the water get their own copy so their state does not leak into the shared one
+    if (live === 'bulb' && s.mat === 'bulb') { const m = matFor(s.mat).clone(); m.emissive.set('#FFC978'); m.emissiveIntensity = 6; return m; }
+    if (live === 'tube' && s.mat === 'tubeGlass') { const m = matFor(s.mat).clone(); m.emissive.set('#EAF2FF'); m.emissiveIntensity = 0; return m; }
+    if (live === 'water') { const m = matFor(s.mat).clone(); m.envMapIntensity = 0.25; return m; }
+    return matFor(s.mat);
   };
 
   // ---- live things
-  const live = { fans: [] as Object3D[], curtains: [] as MeshStandardMaterial[], water: [] as MeshStandardMaterial[], tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[], screens: [] as PointLight[] };
+  const live = { fans: [] as Object3D[], curtains: [] as MeshStandardMaterial[], water: [] as MeshStandardMaterial[], tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[] };
   let fanSpeed = 0, tubeOn = 0, tubeClock = -1;
   const timeU = { value: 0 };
 
@@ -204,24 +217,22 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const light = new PointLight('#9CC4FF', 1.2, 1.8 * k, 2);
     light.position.set(0, TV_SCREEN.at[1], TV_SCREEN.at[2] + 0.1);
     model.add(light);
-    live.screens.push(light);
   };
 
   // ---- the sets
   const groups: Group[] = SETS.map(() => new Group());
-  const envs: Array<{ env: Texture; sky: Texture } | undefined> = SETS.map(() => undefined);
   const hot: Placed[] = [];
-  const placed: Placed[] = [];
 
-  const placeBuilt = async (name: string, p: Placement, set: number): Promise<Object3D> => {
+  const placeBuilt = (name: string, p: Placement): Object3D => {
     const part: Built[] = BUILT[name]();
     const g = new Group();
     for (const piece of part) {
-      const mesh = new Mesh(slabGeometry(piece), await builtMaterial(piece.surface));
-      mesh.castShadow = p.shadow ?? !('tex' in piece.surface && piece.pos.length > 200);
+      const material = builtMaterial(piece.surface, p.live);
+      const mesh = new Mesh(slabGeometry(piece), material);
+      mesh.castShadow = p.shadow ?? piece.pos.length < 20000;
       mesh.receiveShadow = true;
-      if (p.live === 'curtain' && 'tex' in piece.surface) {
-        const m = mesh.material as MeshStandardMaterial;
+      if (p.live === 'curtain' && 'mat' in piece.surface && piece.surface.mat === 'curtain') {
+        const m = (mesh.material = (material as MeshStandardMaterial).clone());
         m.onBeforeCompile = (sh) => {
           sh.uniforms.uTime = timeU;
           sh.vertexShader = sh.vertexShader
@@ -230,15 +241,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         };
         live.curtains.push(m);
       }
-      if (p.live === 'water') live.water.push(mesh.material as MeshStandardMaterial);
-      if (p.live === 'tube' && 'emissive' in piece.surface && piece.surface.emissive) {
+      if (p.live === 'water') live.water.push(material as MeshStandardMaterial);
+      if (p.live === 'tube' && 'mat' in piece.surface && piece.surface.mat === 'tubeGlass') {
         const light = new PointLight('#EAF2FF', 0, 9, 1.5);
         light.position.set(0, -0.2, 0);
         g.add(light);
-        live.tubes.push({ mat: mesh.material as MeshStandardMaterial, light });
+        live.tubes.push({ mat: material as MeshStandardMaterial, light });
       }
-      if (p.live === 'bulb' && 'emissive' in piece.surface && piece.surface.emissive) {
-        const light = new PointLight('#FFC978', 4, 5, 1.6);
+      if (p.live === 'bulb' && 'mat' in piece.surface && piece.surface.mat === 'bulb') {
+        const light = new PointLight('#FFC978', 3, 5, 1.6);
         light.position.set(1.5, 2.1, 0.6);
         g.add(light);
       }
@@ -255,51 +266,35 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (p.live === 'tv') addScreen(obj, p, videoTex);
       if (p.live === 'monitor') addScreen(obj, p, paintTex('screen', 1));
     } else {
-      obj = await placeBuilt(p.build!, p, set);
+      obj = placeBuilt(p.build!, p);
     }
     obj.position.set(...p.at);
     if (p.rot) obj.rotation.set(p.rot[0] * D, p.rot[1] * D, p.rot[2] * D);
     if (p.scale !== undefined) typeof p.scale === 'number' ? obj.scale.setScalar(p.scale) : obj.scale.set(...p.scale);
     groups[set].add(obj);
-    const entry = { root: obj, p, set };
-    placed.push(entry);
-    if (p.cap) hot.push(entry);
+    if (p.cap) hot.push({ root: obj, p, set });
   };
 
   const loadSet = async (i: number): Promise<void> => {
     const S = SETS[i];
-    const jobs: Promise<unknown>[] = [loadHdri(S.hdri).then((e) => {
-      envs[i] = e;
-      if (!S.background) return;
-      const sky = e.sky.clone();
-      sky.mapping = UVMapping;
-      sky.needsUpdate = true;
-      const dome = new Mesh(new SphereGeometry(700, 48, 24), new MeshBasicMaterial({ map: sky, side: BackSide, fog: false }));
-      dome.rotation.y = S.hdriRot * D;
-      dome.position.set(...DOLLY[DOLLY.length - 1].cam);
-      dome.position.y = 0;
-      groups[i].add(dome);
-    })];
     if (S.shell) {
       const sh = buildShell(S.shell);
-      jobs.push(scanMaterial(S.shell.floor).then((m) => { const f = new Mesh(slabGeometry(sh.floor), m); f.receiveShadow = true; groups[i].add(f); }));
-      jobs.push(scanMaterial(S.shell.wall).then((m) => { const w = new Mesh(slabGeometry(sh.walls), m); w.receiveShadow = true; w.castShadow = true; groups[i].add(w); }));
-      jobs.push(scanMaterial(S.shell.ceiling ?? S.shell.wall).then((m) => { const c = new Mesh(slabGeometry(sh.ceiling), m); c.receiveShadow = true; groups[i].add(c); }));
+      const floor = new Mesh(slabGeometry(sh.floor), matFor(S.shell.floor));
+      const walls = new Mesh(slabGeometry(sh.walls), matFor(S.shell.wall));
+      const ceiling = new Mesh(slabGeometry(sh.ceiling), matFor(S.shell.ceiling ?? S.shell.wall));
+      floor.receiveShadow = walls.receiveShadow = ceiling.receiveShadow = true;
+      walls.castShadow = true;
+      groups[i].add(floor, walls, ceiling);
     }
-    for (const p of S.props) jobs.push(place(p, i));
-    await Promise.all(jobs);
+    if (S.env === 'sky') groups[i].add(sky);
+    await Promise.all(S.props.map((p) => place(p, i)));
     scene.add(groups[i]);
     needs = true; kick();
   };
 
-  // ---- pipeline
+  // ---- pipeline: render, tone map, anti-alias. Nothing per pixel beyond that.
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const gtao = new GTAOPass(scene, camera, 1, 1);
-  gtao.updateGtaoMaterial({ radius: 0.25, distanceExponent: 1, thickness: 1, scale: 1, samples: 12, distanceFallOff: 1, screenSpaceRadius: false });
-  gtao.updatePdMaterial({ lumaPhi: 8, depthPhi: 2.5, normalPhi: 3.5, radius: 3, rings: 2, samples: 12 });
-  gtao.blendIntensity = 0.6;
-  composer.addPass(gtao);
   composer.addPass(new OutputPass());
   composer.addPass(new FXAAPass());
 
@@ -310,7 +305,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const dolly = makeDolly(DOLLY);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  let needs = true, raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1, last: Frame | undefined;
+  let needs = true, raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1;
   const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
 
   const applyTheme = () => {
@@ -356,14 +351,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
   };
 
-  /** Switches the light to a set: environment, sky, exposure, fog. Called while the frame is in a doorway. */
+  /** Switches the light to a set: environment, tint, exposure, fog. Called while the frame is in a doorway. */
   const enter = (i: number) => {
     curSet = i;
     const S = SETS[i];
-    const e = envs[i];
-    scene.environment = e?.env ?? null;
-    scene.environmentRotation = new Euler(0, S.hdriRot * D, 0);
+    scene.environment = S.env === 'sky' ? skyEnv : studioEnv;
     renderer.toneMappingExposure = S.exposure;
+    hemi.color.set(S.tint.sky);
+    hemi.groundColor.set(S.tint.ground);
     sun.color.set(S.sun.color);
     sun.shadow.intensity = S.sun.shadow;
     fog.color.set(S.fog.color);
@@ -373,7 +368,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
 
   const frame = (f: Frame) => {
-    last = f;
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     // portrait: the text owns the lower half, so the frustum is cropped from a taller one
     camera.position.set(...f.cam);
@@ -387,8 +381,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
     if (f.set !== curSet) enter(f.set);
     const S: StageSet = SETS[f.set];
-    if (!scene.environment && envs[f.set]) enter(f.set);
     scene.environmentIntensity = S.envPower * f.envDip;
+    hemi.intensity = S.tint.power * f.envDip;
     sun.intensity = S.sun.power * f.envDip;
     // the sun follows the look, so the shadow map stays tight around what is in frame
     const look = new Vector3(...f.look);
@@ -411,12 +405,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (!(m instanceof Mesh)) return;
       if (on) {
         if (!tinted.has(m)) tinted.set(m, m.material);
-        const mats = (Array.isArray(m.material) ? m.material : [m.material]).map((x) => {
+        const list = (Array.isArray(m.material) ? m.material : [m.material]).map((x) => {
           const c = x.clone();
           if (c instanceof MeshStandardMaterial) { c.emissive.copy(accent); c.emissiveIntensity = 0.28; }
           return c;
         });
-        m.material = Array.isArray(m.material) ? mats : mats[0];
+        m.material = Array.isArray(m.material) ? list : list[0];
       } else if (tinted.has(m)) {
         m.material = tinted.get(m)!;
         tinted.delete(m);
@@ -499,7 +493,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       fanSpeed = Math.min(6, fanSpeed + dt * 2);
       for (const f of live.fans) f.rotation.y += dt * fanSpeed;
       timeU.value = t;
-      for (const m of live.water) { m.normalMap!.offset.set(0.02 * t, 0.013 * t); }
+      for (const m of live.water) m.normalMap?.offset.set(0.02 * t, 0.013 * t);
     }
     if (tubeClock >= 0 && tubeClock < 0.7) {
       // the tube light catches: three flickers, then on
@@ -511,8 +505,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (hovered && pointer) setHover(pick(pointer.x, pointer.y));
     composer.render();
     needs = false;
-    const running = visible && !still && (curSet === 0 || curSet === 1 || live.water.length > 0 || tubeClock < 0.7);
-    if (cur !== target || running) raf = requestAnimationFrame(tick);
+    // scrolling renders every frame; at rest, the live things (fan, video, curtains, water) run at
+    // thirty, which is what a laptop on battery can give all day
+    const running = visible && !still;
+    if (cur !== target) raf = requestAnimationFrame(tick);
+    else if (running) { raf = -1; setTimeout(() => { raf = requestAnimationFrame(tick); }, 33); }
   };
   const onScroll = () => { target = progress(); kick(); };
   const io = new IntersectionObserver(([e]) => {
@@ -529,7 +526,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   loadSet(0).then(() => { enter(0); needs = true; kick(); return loadSet(1); }).then(() => loadSet(2)).catch((err) => console.warn('[journey] a set did not load', err));
 
   return () => {
-    cancelAnimationFrame(raf);
+    if (raf > 0) cancelAnimationFrame(raf);
+    raf = -1;
     removeEventListener('scroll', onScroll);
     canvas.removeEventListener('pointermove', onMove);
     canvas.removeEventListener('pointerleave', onLeave);
