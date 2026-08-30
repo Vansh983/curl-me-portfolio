@@ -74,19 +74,19 @@ export const SETS: StageSet[] = [
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
         { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
-        { wall: 'z-', at: -6.3, w: 3.6, h: 1.9, sill: 0.5 },
+        { wall: 'z-', at: -6.3, w: 4.0, h: 2.5, sill: 0 }, // floor to ceiling glass
       ],
     },
     props: [
-      { build: 'mullions', at: [-6.3, 0.5, -2.2], scale: [0.72, 0.95, 1] },
+      { build: 'mullions', at: [-6.3, 0, -2.2], scale: [0.8, 1.25, 1] },
       { build: 'city', at: [-6.3, -100, -2.2], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.', shadow: false },
       { build: 'nightSky', at: [-6.3, 0, -2.2], shadow: false },
       { build: 'rugGrey', at: [-5.1, 0, -0.4] },
       { build: 'desk', at: [-4.58, 0, -0.4], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
       { build: 'deskHutch', at: [-4.34, 0.74, -0.4] },
       { build: 'books', at: [-4.34, 1.71, -0.55], cap: 'The shelf. Mostly systems and design.' },
-      { build: 'books', at: [-4.34, 1.21, 0.3] },
-      { build: 'badge', at: [-4.2, 1.69, 0.72], cap: 'Google Code-in 2018. Grand prize.' },
+      { build: 'books', at: [-4.34, 1.21, 0.0] },
+      { build: 'badge', at: [-4.5, 1.69, -1.05], cap: 'Google Code-in 2018. Grand prize.' },
       { build: 'monitor', at: [-4.56, 0.74, -0.75], rot: [0, -100, 0], live: 'screen' },
       { build: 'monitorApp', at: [-4.56, 0.74, -0.08], rot: [0, -80, 0], live: 'screen' },
       { build: 'laptop', at: [-4.73, 0.74, 0.25], rot: [0, -120, 0], live: 'screen' },
