@@ -1,0 +1,48 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
+
+test('keys are ordered in q from 0 to 1 and land on the three sets', () => {
+  assert.equal(DOLLY[0].q, 0);
+  assert.equal(DOLLY[DOLLY.length - 1].q, 1);
+  for (let k = 1; k < DOLLY.length; k++) assert.ok(DOLLY[k].q > DOLLY[k - 1].q);
+  assert.deepEqual([...new Set(DOLLY.map((k) => k.set))], [0, 1, 2]);
+});
+
+test('blend windows come in pairs, 0 then 1, and the set flips inside them', () => {
+  const dolly = makeDolly(DOLLY);
+  const zeros = DOLLY.filter((k) => k.blend === 0), ones = DOLLY.filter((k) => k.blend === 1);
+  assert.equal(zeros.length, 2);
+  assert.equal(ones.length, 2);
+  for (let w = 0; w < 2; w++) {
+    const a = zeros[w], b = ones[w];
+    assert.ok(b.q > a.q);
+    const mid = (a.q + b.q) / 2;
+    assert.equal(dolly(a.q + 1e-6).set, a.set);
+    assert.equal(dolly(mid + 1e-6).set, b.set);
+    assert.ok(dolly(mid).envDip < 0.2);
+    assert.equal(dolly(a.q - 0.01).envDip, 1);
+  }
+});
+
+test('the camera never jumps: 1/1000 steps move under 0.06 m and the look under 0.1 m', () => {
+  const dolly = makeDolly(DOLLY);
+  let prev = dolly(0);
+  for (let i = 1; i <= 1000; i++) {
+    const f = dolly(i / 1000);
+    const d = Math.hypot(f.cam[0] - prev.cam[0], f.cam[1] - prev.cam[1], f.cam[2] - prev.cam[2]);
+    const l = Math.hypot(f.look[0] - prev.look[0], f.look[1] - prev.look[1], f.look[2] - prev.look[2]);
+    assert.ok(d < 0.06, `cam step ${d} at ${i}`);
+    assert.ok(l < 0.1, `look step ${l} at ${i}`);
+    assert.ok(f.fov >= 40 && f.fov <= 60);
+    prev = f;
+  }
+});
+
+test('the dolly is inside the doorway when it says it is', () => {
+  const dolly = makeDolly(DOLLY);
+  const f = dolly(0.27);
+  assert.ok(Math.abs(f.cam[0] - 2.6) < 0.05 && Math.abs(f.cam[2] - 1.6) < 0.1, `${f.cam}`);
+  const g = dolly(0.77);
+  assert.ok(Math.abs(g.cam[0] - 12.1) < 0.05 && Math.abs(g.cam[2] - 3.4) < 0.1, `${g.cam}`);
+});
