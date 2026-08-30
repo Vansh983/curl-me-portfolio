@@ -8,7 +8,8 @@
     "preview": "astro preview",
     "check": "astro check",
     "test": "node --experimental-strip-types --test \"tests/**/*.test.ts\"",
-    "render": "node --experimental-strip-types scripts/render.mjs"
+    "render": "node --experimental-strip-types scripts/render.mjs",
+    "stage:assets": "node --experimental-strip-types scripts/stage-assets.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

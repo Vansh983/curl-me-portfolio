@@ -24,3 +24,6 @@ yarn-error.log*
 # vercel
 .vercel
 .renders/
+
+# stage asset sources (outputs under public/assets/stage are committed)
+.cache/
