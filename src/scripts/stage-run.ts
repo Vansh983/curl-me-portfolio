@@ -20,7 +20,7 @@ import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { ACTORS, STATIONS, type Actor } from '../lib/stage/world.ts';
 import { makeShot, stageProgress, type Frame } from '../lib/stage/shot.ts';
-import { flatNormals } from '../lib/stage/rig.ts';
+import { smoothNormals } from '../lib/stage/rig.ts';
 import { BOOKS } from '../lib/stage/props.ts';
 import { timed } from '../lib/stage/ease.ts';
 import { SURFACE, detailMap, type Kind, type Surface } from '../lib/stage/surface.ts';
@@ -58,11 +58,11 @@ function geometryFor(actor: Actor): BufferGeometry {
   const g = new BufferGeometry();
   const [base, ...rest] = actor.keys;
   g.setAttribute('position', new Float32BufferAttribute(base, 3));
-  g.setAttribute('normal', new Float32BufferAttribute(flatNormals(base), 3));
+  g.setAttribute('normal', new Float32BufferAttribute(smoothNormals(base), 3));
   g.setAttribute('uv', new Float32BufferAttribute(actor.uv, 2));
   g.setAttribute('color', new Float32BufferAttribute(actor.col, 3));
   g.morphAttributes.position = rest.map((k) => new Float32BufferAttribute(k, 3));
-  g.morphAttributes.normal = rest.map((k) => new Float32BufferAttribute(flatNormals(k), 3));
+  g.morphAttributes.normal = rest.map((k) => new Float32BufferAttribute(smoothNormals(k), 3));
   return g;
 }
 
@@ -118,9 +118,9 @@ vec3 detailNormal( out float hOut ) {
 const GRADE = {
   uniforms: {
     tDiffuse: { value: null as Texture | null },
-    uSat: { value: 1.16 },
-    uCon: { value: 1.06 },
-    uVig: { value: 0.2 },
+    uSat: { value: 1.08 },
+    uCon: { value: 1.02 },
+    uVig: { value: 0.1 },
   },
   vertexShader: `
 varying vec2 vUv;
@@ -632,9 +632,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   const gtao = new GTAOPass(scene, camera, 1, 1);
-  gtao.updateGtaoMaterial({ radius: 0.34, distanceExponent: 1.6, thickness: 0.55, scale: 1.15, samples: 16, screenSpaceRadius: false });
+  gtao.updateGtaoMaterial({ radius: 0.22, distanceExponent: 1.4, thickness: 0.5, scale: 1.0, samples: 16, screenSpaceRadius: false });
   gtao.updatePdMaterial({ lumaPhi: 8, depthPhi: 2.5, normalPhi: 3.5, radius: 3, rings: 2, samples: 12 });
-  gtao.blendIntensity = 0.9;
+  gtao.blendIntensity = 0.5;
   composer.addPass(gtao);
   composer.addPass(new UnrealBloomPass(new Vector2(1, 1), 0.14, 0.7, 1.0));
   composer.addPass(new OutputPass());

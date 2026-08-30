@@ -35,7 +35,7 @@ export const ENVS: EnvSpec[] = [
     exposure: 0.95,
     envPower: 0.95,
     hemi: { sky: '#FFE8CC', ground: '#7A6448', power: 0.42 },
-    sun: { from: [-2.5, 9, 3.5], color: '#FFC98A', power: 2.0, shadow: 0.45 },
+    sun: { from: [-2.5, 9, 3.5], color: '#FFC98A', power: 1.8, shadow: 0.34 },
     fills: [
       { from: [-6, 3, 4], color: '#FFCF9E', power: 0.55 },
       { from: [0, 0.3, -2.2], color: '#8FC0F5', power: 0.4 },
@@ -54,7 +54,7 @@ export const ENVS: EnvSpec[] = [
     exposure: 0.88,
     envPower: 0.95,
     hemi: { sky: '#DCEBFA', ground: '#6F7A82', power: 0.55 },
-    sun: { from: [-2.2, 9, 3.2], color: '#EAF2FF', power: 1.3, shadow: 0.32 },
+    sun: { from: [-2.2, 9, 3.2], color: '#EAF2FF', power: 1.2, shadow: 0.26 },
     fills: [
       { from: [0, 4, 0.2], color: '#F2F7FF', power: 0.6 },
       { from: [-5, 3, -1], color: '#CFE6FF', power: 0.4 },

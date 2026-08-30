@@ -8,6 +8,8 @@ export type V3 = [number, number, number];
 export type UV = [number, number];
 export type UVRect = [number, number, number, number]; // u0 v0 u1 v1
 export type Geo = { pos: Float32Array; uv: Float32Array; col: Float32Array };
+/** One cross-section of a loft: centre, the two in-plane unit axes, and the radius along each. */
+export interface Ring { c: V3; u: V3; v: V3; ru: number; rv: number }
 
 const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -127,6 +129,25 @@ export class Sink {
         this.quad(p(i, j), p(i, j + 1), p(i + 1, j + 1), p(i + 1, j), [uv(i, j), uv(i, j + 1), uv(i + 1, j + 1), uv(i + 1, j)]);
     return this;
   }
+  /**
+   * A skin over a run of rings: each pair of neighbours is joined by a band of quads, so a limb,
+   * a neck, a hand or a shoe is one continuous surface rather than parts touching. Close an end
+   * with a ring of radius 0.001. (rings.length - 1) * segs * 6 vertices. uv: u around, v along.
+   */
+  loft(rings: Ring[], segs = 12, r?: UVRect): this {
+    const n = rings.length - 1;
+    const p = (i: number, j: number): V3 => {
+      const th = (j / segs) * Math.PI * 2;
+      const g = rings[i];
+      return madd(madd(g.c, g.u, g.ru * Math.cos(th)), g.v, g.rv * Math.sin(th));
+    };
+    const uv = (i: number, j: number): UV => (r ? [r[0] + (r[2] - r[0]) * (j / segs), r[1] + (r[3] - r[1]) * (i / n)] : WHITE);
+    // rings are right-handed (u x v points along the path), so this order faces outward
+    for (let i = 0; i < n; i++)
+      for (let j = 0; j < segs; j++)
+        this.quad(p(i, j), p(i, j + 1), p(i + 1, j + 1), p(i + 1, j), [uv(i, j), uv(i, j + 1), uv(i + 1, j + 1), uv(i + 1, j)]);
+    return this;
+  }
   /** Cylinder on the y axis, centre (cx, cy, cz), segs * 12 vertices. */
   cylinder(cx: number, cy: number, cz: number, r: number, h: number, segs = 8): this {
     const y0 = cy - h / 2, y1 = cy + h / 2;
@@ -218,6 +239,74 @@ export class Sink {
   out(): Geo {
     return { pos: Float32Array.from(this.pos), uv: Float32Array.from(this.uv), col: Float32Array.from(this.col) };
   }
+}
+
+/**
+ * Rings along a polyline, one per point, with the radii given. The frame is carried along the
+ * path (each ring's u is the previous one projected onto the new plane, starting from `ref`),
+ * so a bend never twists the skin and the same limb in two poses morphs without spinning.
+ * @param pts ring centres
+ * @param rad [ru, rv] per point
+ * @param ref the direction u starts from (say, outward from the body)
+ */
+export function tube(pts: V3[], rad: Array<[number, number]>, ref: V3): Ring[] {
+  const out: Ring[] = [];
+  let u: V3 = ref;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    let t = sub(b, a);
+    if (len(t) < 1e-9) t = i > 0 ? sub(pts[i], pts[i - 1]) : [0, -1, 0];
+    t = norm(t);
+    const d = u[0] * t[0] + u[1] * t[1] + u[2] * t[2];
+    let uu: V3 = [u[0] - t[0] * d, u[1] - t[1] * d, u[2] - t[2] * d];
+    if (len(uu) < 1e-6) uu = frame(t).side;
+    u = norm(uu);
+    out.push({ c: pts[i], u, v: cross(t, u), ru: rad[i][0], rv: rad[i][1] });
+  }
+  return out;
+}
+
+/**
+ * Smooth normals across faces that meet at less than `maxDeg`, hard across the rest: a limb
+ * rounds off, a table keeps its edge. Vertices are welded by position (a tenth of a
+ * millimetre), contributions are area weighted. Works per key, so morph normals stay right.
+ */
+export function smoothNormals(pos: Float32Array, maxDeg = 62): Float32Array {
+  const nTri = pos.length / 9;
+  const area = new Float32Array(nTri * 3);
+  const unit = new Float32Array(nTri * 3);
+  for (let f = 0; f < nTri; f++) {
+    const i = f * 9;
+    const a: V3 = [pos[i], pos[i + 1], pos[i + 2]], b: V3 = [pos[i + 3], pos[i + 4], pos[i + 5]], c: V3 = [pos[i + 6], pos[i + 7], pos[i + 8]];
+    const v = cross(sub(b, a), sub(c, a));
+    const l = len(v);
+    area.set(v, f * 3);
+    unit.set(l < 1e-12 ? [0, 1, 0] : [v[0] / l, v[1] / l, v[2] / l], f * 3);
+  }
+  const buckets = new Map<string, number[]>();
+  const keyOf = (v: number) => `${Math.round(pos[v * 3] * 1e4)},${Math.round(pos[v * 3 + 1] * 1e4)},${Math.round(pos[v * 3 + 2] * 1e4)}`;
+  const nV = pos.length / 3;
+  for (let v = 0; v < nV; v++) {
+    const k = keyOf(v);
+    const b = buckets.get(k);
+    if (b) b.push(v); else buckets.set(k, [v]);
+  }
+  const cosMax = Math.cos((maxDeg * Math.PI) / 180);
+  const out = new Float32Array(pos.length);
+  for (let v = 0; v < nV; v++) {
+    const f = Math.floor(v / 3);
+    const fx = unit[f * 3], fy = unit[f * 3 + 1], fz = unit[f * 3 + 2];
+    let x = 0, y = 0, z = 0;
+    for (const w of buckets.get(keyOf(v))!) {
+      const g = Math.floor(w / 3);
+      if (unit[g * 3] * fx + unit[g * 3 + 1] * fy + unit[g * 3 + 2] * fz < cosMax) continue;
+      x += area[g * 3]; y += area[g * 3 + 1]; z += area[g * 3 + 2];
+    }
+    const l = Math.hypot(x, y, z);
+    if (l < 1e-12) { x = fx; y = fy; z = fz; } else { x /= l; y /= l; z /= l; }
+    out[v * 3] = x; out[v * 3 + 1] = y; out[v * 3 + 2] = z;
+  }
+  return out;
 }
 
 /** One flat normal per triangle, repeated for its three vertices. Zero-area triangles get (0,1,0). */

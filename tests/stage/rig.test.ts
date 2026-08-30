@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Sink, flatNormals, linear } from '../../src/lib/stage/rig.ts';
+import { Sink, flatNormals, linear, tube, type V3 } from '../../src/lib/stage/rig.ts';
 
 const centre = (p: Float32Array) => {
   let x = 0, y = 0, z = 0;
@@ -70,4 +70,25 @@ test('rotations and translate move every vertex', () => {
   assert.ok(Math.abs(centre(z.out().pos)[1] - 1) < 1e-6);
   const x = new Sink().box(0, 1, 0, 0.2, 0.2, 0.2).rotateX(0, 0, Math.PI / 2);
   assert.ok(Math.abs(centre(x.out().pos)[2] - 1) < 1e-6);
+});
+
+test('a loft through tube rings faces outward, whichever way the path runs', () => {
+  for (const pts of [[[0, 0, 0], [0, -0.3, 0], [0, -0.6, -0.1]], [[0, 0, 0], [0.3, 0, 0], [0.5, 0.2, 0]], [[0, 0, 0], [0, 0, -0.4]]] as V3[][]) {
+    const g = new Sink().loft(tube(pts, pts.map(() => [0.05, 0.04]), [1, 0, 0]), 8).out();
+    const c = pts.reduce((a, b) => [a[0] + b[0] / pts.length, a[1] + b[1] / pts.length, a[2] + b[2] / pts.length], [0, 0, 0] as V3);
+    let bad = 0;
+    for (let i = 0; i < g.pos.length; i += 9) {
+      const a = g.pos.subarray(i, i + 3), b = g.pos.subarray(i + 3, i + 6), d = g.pos.subarray(i + 6, i + 9);
+      const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [d[0] - a[0], d[1] - a[1], d[2] - a[2]];
+      const n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
+      // outward: the normal leaves the nearest point of the path
+      const m = [(a[0] + b[0] + d[0]) / 3, (a[1] + b[1] + d[1]) / 3, (a[2] + b[2] + d[2]) / 3];
+      let best = Infinity, near: V3 = pts[0];
+      for (const q of pts) { const dd = Math.hypot(m[0] - q[0], m[1] - q[1], m[2] - q[2]); if (dd < best) { best = dd; near = q; } }
+      const r = [m[0] - near[0], m[1] - near[1], m[2] - near[2]];
+      if (n[0] * r[0] + n[1] * r[1] + n[2] * r[2] < 0) bad++;
+    }
+    void c;
+    assert.ok(bad < g.pos.length / 9 * 0.1, `${bad} inward faces`);
+  }
 });

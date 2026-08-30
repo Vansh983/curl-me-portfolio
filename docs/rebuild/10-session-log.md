@@ -1,5 +1,31 @@
 # Session log: the journey stage
 
+## 2026-08-29: the body, lofted
+
+He looked like parts glued together because he was: capsules touching a lathe, spheres for
+hands, flat normals on everything. Same rig contract (fixed vertex counts, morph keys), new body.
+
+- **Lofts.** `Sink.loft(rings)` skins a run of cross-sections; `tube(points, radii, ref)` lays
+  the rings along a path with a carried frame (no twist between poses). `rounded()` turns each
+  joint into a quadratic arc, so a knee or an elbow bends instead of creasing.
+- **One skin per limb.** Each arm runs from inside the torso over the deltoid, through a rounded
+  elbow and the wrist, into a flat palm, knuckles and fingers, with a thumb off the palm's front
+  edge. Each leg from inside the pelvis through a rounded knee to the ankle, tucking into a shoe
+  that is a loft along the foot with a flat sole. Sleeves start inside the torso and end at a
+  cuff set by `sleeve` (short in 2010 and 2018, to the wrist in 2013), then turn inside the arm.
+- **Neck and head.** One loft: neck, chin pushed forward, jaw, cheeks, temples, crown. A head is
+  narrower than it is deep (0.8 : 0.94 of `headR`). The shirt's collar turns down inside so the
+  neck rises out of an opening; the hem turns in under the trousers. The shoulder joint sits at
+  the torso's widest ring, not its top. Proportions: torso 0.31 H, upper arm 0.155, forearm
+  0.135, hand 0.09, head radius H/16 to H/12 by age.
+- **Smooth normals.** `smoothNormals(pos, 62°)` welds by position and averages across faces that
+  meet below 62 degrees, per key: limbs round off, tables keep their edges. Everything uses it.
+- **Less shading.** Occlusion at half strength and a smaller radius, bump amplitudes cut by two
+  thirds, sun shadows softer, the grade nearly neutral. The first pass read as dirt.
+- Reviewing the figure: a turntable page (`dev-figure.astro`, kept in the session scratchpad,
+  drop into `src/pages/` to use) renders one key from `?k=` at angle `?a=`; `turn.mjs` stitches
+  six angles into a contact sheet. Look at the model, not the stage, when the model is the question.
+
 ## 2026-08-29: physically based render
 
 The stage looked like solids glued together because it was lit like solids glued together: toon
