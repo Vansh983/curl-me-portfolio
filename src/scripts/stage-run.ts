@@ -141,15 +141,19 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         const kind = OUTFIT.find(([re]) => re.test(b.name))?.[1] ?? 'tee';
         return new Color(OUTFIT_COLOR[kind]);
       });
+      // under the hoodie the mannequin's torso and upper arms are not drawn at all: alpha 0 in the
+      // colour array marks them, and the fragment discards
+      const hidden = bones.map((b) => (/^DEF-(spine|shoulder|upper_arm|forearm)/.test(b.name) ? 1 : 0));
       const mat = new MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.85, metalness: 0, envMapIntensity: 0.8 });
       mat.onBeforeCompile = (sh) => {
         sh.uniforms.uBone = { value: colors };
+        sh.uniforms.uHide = { value: hidden };
         sh.vertexShader = sh.vertexShader
-          .replace('#include <common>', `#include <common>\nuniform vec3 uBone[${bones.length}];\nvarying vec3 vBody;`)
-          .replace('#include <skinbase_vertex>', '#include <skinbase_vertex>\n vBody = uBone[int(skinIndex.x)];');
+          .replace('#include <common>', `#include <common>\nuniform vec3 uBone[${bones.length}];\nuniform float uHide[${bones.length}];\nvarying vec3 vBody;\nvarying float vHide;`)
+          .replace('#include <skinbase_vertex>', '#include <skinbase_vertex>\n vBody = uBone[int(skinIndex.x)];\n vHide = uHide[int(skinIndex.x)];');
         sh.fragmentShader = sh.fragmentShader
-          .replace('#include <common>', '#include <common>\nvarying vec3 vBody;')
-          .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb = vBody;');
+          .replace('#include <common>', '#include <common>\nvarying vec3 vBody;\nvarying float vHide;')
+          .replace('#include <color_fragment>', '#include <color_fragment>\n if (vHide > 0.5) discard;\n diffuseColor.rgb = vBody;');
       };
       m.material = mat;
       m.castShadow = true;
@@ -161,26 +165,103 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const clip = loaded.animations.find((a) => /Sitting_Idle/.test(a.name)) ?? loaded.animations[0];
     if (clip) mixer.clipAction(clip).play();
     mixer.update(0);
-    const head = root.getObjectByName('DEF-head');
+    // Clothes and hair are built in metres, upright, facing +z, and placed in world terms at the
+    // rest pose; then each is handed to a bone (position via worldToLocal, orientation as the bone's
+    // inverse times the wanted world orientation), so it follows the animation without inheriting
+    // the bone's own axes or units.
+    root.updateWorldMatrix(true, true);
+    // the character faces -z in its own frame; the parts are built facing +z, so they are turned round
+    const rootQuat = new Quaternion();
+    root.getWorldQuaternion(rootQuat);
+    const faceQuat = rootQuat.clone().multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+    const forward = new Vector3(0, 0, -1).applyQuaternion(rootQuat);
+    // GLTFLoader strips dots from node names (DEF-spine.002 becomes DEF-spine002), so look up the same way
+    const bone = (name: string) => root.getObjectByName(name.replace(/\./g, ''));
+    const at = (name: string) => { const v = new Vector3(); bone(name)?.getWorldPosition(v); return v; };
+    const hand = (part: Object3D, holder: Object3D, worldPos: Vector3, worldQuat: Quaternion, scale: Vector3) => {
+      const bq = new Quaternion(), bs = new Vector3();
+      holder.getWorldQuaternion(bq);
+      holder.getWorldScale(bs);
+      part.position.copy(holder.worldToLocal(worldPos.clone()));
+      part.quaternion.copy(bq).invert().multiply(worldQuat);
+      part.scale.set(scale.x / (bs.x || 1), scale.y / (bs.y || 1), scale.z / (bs.z || 1));
+      holder.add(part);
+    };
+    const head = bone('DEF-head');
     if (head) {
-      // the parts are built upright and facing +z in the character's own frame; they are placed in
-      // world terms (up is up, forward is his forward) and then handed to the head bone, so they
-      // follow the nod without inheriting the bone's own axes or units
-      root.updateWorldMatrix(true, true);
-      const headPos = new Vector3(), rootQuat = new Quaternion(), headQuat = new Quaternion(), ws = new Vector3();
-      head.getWorldPosition(headPos);
-      head.getWorldQuaternion(headQuat);
-      root.getWorldQuaternion(rootQuat);
-      head.getWorldScale(ws);
-      const forward = new Vector3(0, 0, 1).applyQuaternion(rootQuat);
-      for (const [name, up, fwd] of [['hair', 0.155, 0.005], ['glasses', 0.112, 0.075]] as const) {
-        const part = placeBuilt(name, { build: name, at: [0, 0, 0] });
-        const world = headPos.clone().addScaledVector(new Vector3(0, 1, 0), up).addScaledVector(forward, fwd);
-        part.position.copy(head.worldToLocal(world));
-        part.quaternion.copy(headQuat).invert().multiply(rootQuat);
-        part.scale.setScalar(1 / (ws.x || 1));
-        head.add(part);
+      // the skull as skinned right now: hair and glasses are sized and placed from its box, not guessed
+      const box = new Box3();
+      const v = new Vector3();
+      for (const m of skinned) {
+        m.skeleton.update();
+        const headIdx = m.skeleton.bones.indexOf(head as never);
+        const idx = m.geometry.getAttribute('skinIndex'), n = m.geometry.getAttribute('position').count;
+        for (let i = 0; i < n; i++) {
+          if (idx.getX(i) !== headIdx) continue;
+          m.getVertexPosition(i, v);
+          box.expandByPoint(m.localToWorld(v));
+        }
       }
+      const c = box.getCenter(new Vector3()), size = box.getSize(new Vector3());
+      const upV = new Vector3(0, 1, 0);
+      // the box holds the neck too, so the skull is the upper part of it
+      const skullH = size.y * 0.78, skullC = c.clone().addScaledVector(upV, size.y / 2 - skullH / 2);
+      const hair = placeBuilt('hair', { build: 'hair', at: [0, 0, 0] });
+      hand(hair, head, skullC.clone().addScaledVector(upV, skullH * 0.02).addScaledVector(forward, -0.004), faceQuat, new Vector3(size.x / 2 + 0.008, skullH / 2 + 0.008, size.z / 2 + 0.006));
+      const glasses = placeBuilt('glasses', { build: 'glasses', at: [0, 0, 0] });
+      hand(glasses, head, skullC.clone().addScaledVector(upV, skullH * 0.08).addScaledVector(forward, size.z / 2 - 0.095), faceQuat, new Vector3(size.x / 0.2, size.x / 0.2, size.x / 0.2));
+    }
+    // the hoodie: a torso from the hips to the collar, sized from the shoulders; a sleeve per arm
+    // segment, aligned to the bone; the hood down behind the neck
+    const chest = bone('DEF-spine.002'), neck = bone('DEF-neck');
+    if (chest && neck) {
+      // the shoulder joints are where the upper arms start; the shoulder bones themselves begin at the spine
+      const hips = at('DEF-hips'), collar = at('DEF-neck'), sl = at('DEF-upper_arm.L'), sr = at('DEF-upper_arm.R');
+      const halfW = sl.distanceTo(sr) / 2 + 0.075, halfD = halfW * 0.6, height = collar.y - hips.y + 0.14;
+      const torso = placeBuilt('hoodieTorso', { build: 'hoodieTorso', at: [0, 0, 0] });
+      hand(torso, chest, new Vector3(hips.x, hips.y - 0.08, hips.z), faceQuat, new Vector3(halfW, height, halfD));
+      const hood = placeBuilt('hood', { build: 'hood', at: [0, 0, 0] });
+      hand(hood, neck, collar.clone(), faceQuat, new Vector3(1, 1, 1));
+      const up = new Vector3(0, 1, 0);
+      for (const side of ['L', 'R'] as const) {
+        for (const [a, b, r] of [[`DEF-upper_arm.${side}`, `DEF-forearm.${side}`, 0.075], [`DEF-forearm.${side}`, `DEF-hand.${side}`, 0.062]] as const) {
+          const holder = bone(a);
+          if (!holder) continue;
+          const from = at(a), to = at(b);
+          const dir = to.clone().sub(from), len = dir.length();
+          if (len < 1e-3) continue;
+          const q = new Quaternion().setFromUnitVectors(up, dir.normalize());
+          const sleeve = placeBuilt('sleeve', { build: 'sleeve', at: [0, 0, 0] });
+          hand(sleeve, holder, from.clone().addScaledVector(dir, -0.03), q, new Vector3(r, len + 0.05, r));
+        }
+      }
+    }
+    if (DEBUG) {
+      root.updateWorldMatrix(true, true);
+      // the skinned extent of the head: where the skull top, the chin and the face front really are
+      for (const m of skinned) {
+        const headIdx = m.skeleton.bones.findIndex((b) => b.name === 'DEF-head');
+        const idx = m.geometry.getAttribute('skinIndex'), n = m.geometry.getAttribute('position').count;
+        const v = new Vector3(), lo = new Vector3(Infinity, Infinity, Infinity), hi = new Vector3(-Infinity, -Infinity, -Infinity);
+        for (let i = 0; i < n; i++) {
+          if (idx.getX(i) !== headIdx) continue;
+          m.getVertexPosition(i, v);
+          lo.min(v); hi.max(v);
+        }
+        console.warn(`[him] head skin min ${lo.toArray().map((x) => x.toFixed(3))} max ${hi.toArray().map((x) => x.toFixed(3))} bone ${at('DEF-head').toArray().map((x) => x.toFixed(3))}`);
+      }
+      for (const name of ['DEF-hips', 'DEF-spine.002', 'DEF-neck', 'DEF-head', 'DEF-upper_arm.L', 'DEF-hand.L']) {
+        const b = bone(name);
+        if (!b) continue;
+        const ws = new Vector3(); b.getWorldScale(ws);
+        console.warn(`[him] ${name} at ${at(name).toArray().map((v) => v.toFixed(2))} scale ${ws.x.toFixed(3)}`);
+      }
+      root.traverse((o) => {
+        if (o instanceof Mesh && !(o instanceof SkinnedMesh)) {
+          const bb = new Box3().setFromObject(o);
+          console.warn(`[him] part ${o.parent?.parent?.name}/${o.parent?.name} min ${bb.min.toArray().map((v) => v.toFixed(2))} max ${bb.max.toArray().map((v) => v.toFixed(2))}`);
+        }
+      });
     }
     return { root, mixer };
   };

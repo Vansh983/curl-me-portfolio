@@ -1,7 +1,7 @@
 // The world as data: three sets along +x, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
-//   Set 0 NOW      x -10.2..-4.2 z -3.0..3.0   h 2.6   Toronto, high up; window on z-, door on +x wall at z 1.6
+//   Set 0 NOW      x -8.4..-4.2  z -2.2..2.2   h 2.5   Toronto, high up; window on z-, door on +x wall at z 1.6
 //   Passage        x -4.2..-2.2  z  1.0..2.2   h 2.4
 //   Set 1 ROOM     x -2.2..2.2   z -2.5..2.5   h 2.8   doors on x- and x+ walls at z 1.6
 //   Passage        x  2.2..5.2   z  1.0..2.2   h 2.4   plain, one bulb
@@ -64,36 +64,36 @@ const DZ = (r: number) => 0.5 - r * 1.6;
 
 export const SETS: StageSet[] = [
   {
-    // now: a condo high above Toronto at night. The desk lamp and the screens light him; the city
-    // through the window lights the rest, cool and faint.
+    // now: a small condo room high above Toronto at night. The desk lamp and the screens light
+    // him; the city through the window lights the rest, cool and faint. Everything is close.
     id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.14 }, exposure: 0.85, envPower: 0.08,
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.35, shadow: 0.7 },
-    fog: { color: '#141826', near: 10, far: 50 },
+    fog: { color: '#141826', near: 8, far: 40 },
     shell: {
-      x: [-10.2, -4.2], z: [-3.0, 3.0], h: 2.6,
+      x: [-8.4, -4.2], z: [-2.2, 2.2], h: 2.5,
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
         { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
-        { wall: 'z-', at: -7.2, w: 5.0, h: 2.0, sill: 0.5 },
+        { wall: 'z-', at: -6.3, w: 3.6, h: 1.9, sill: 0.5 },
       ],
     },
     props: [
-      { build: 'mullions', at: [-7.2, 0.5, -3.0] },
-      { build: 'toronto', at: [-7.2, 1.2, -9.5], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.' },
-      { build: 'rugGrey', at: [-8.9, 0, 0.4] },
-      { build: 'desk', at: [-9.3, 0, 0.4], rot: [0, 90, 0], cap: 'Building Floqer. Most days, most nights.' },
-      { build: 'monitor', at: [-9.55, 0.74, 0.05], rot: [0, 100, 0], live: 'screen' },
-      { build: 'monitorApp', at: [-9.55, 0.74, 0.72], rot: [0, 80, 0], live: 'screen' },
-      { build: 'laptop', at: [-9.15, 0.74, 1.05], rot: [0, 120, 0], live: 'screen' },
-      { build: 'pcTower', at: [-9.55, 0, -0.1], rot: [0, 90, 0] },
-      { model: 'desk_lamp_arm_01', at: [-9.6, 0.74, 1.3], rot: [0, 150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
-      { build: 'officeChair', at: [-8.55, 0, 0.4], rot: [0, 90, 0], scale: [1.1, 1.12, 1.1] },
-      { model: 'base_character', at: [-8.55, 0, 0.4], rot: [0, 90, 0], scale: 0.92, live: 'him', cap: 'Me. Black tee, glasses, two screens and a laptop.' },
-      { model: 'steel_frame_shelves_01', at: [-9.9, 0, 2.2], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
-      { model: 'book_encyclopedia_set_01', at: [-9.9, 0.98, 2.2], rot: [0, 90, 0], scale: 0.9 },
-      { model: 'book_encyclopedia_set_01', at: [-9.9, 1.5, 2.15], rot: [0, 90, 0], scale: 0.8 },
-      { build: 'bed', at: [-6.4, 0, -2.45] },
-      { model: 'potted_plant_01', at: [-4.7, 0, -2.5] },
+      { build: 'mullions', at: [-6.3, 0.5, -2.2], scale: [0.72, 0.95, 1] },
+      { build: 'toronto', at: [-6.3, 1.2, -8.0], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.' },
+      { build: 'rugGrey', at: [-7.5, 0, -0.4] },
+      { build: 'desk', at: [-8.02, 0, -0.4], rot: [0, 90, 0], cap: 'Building Floqer. Most days, most nights.' },
+      { build: 'monitor', at: [-8.27, 0.74, -0.75], rot: [0, 100, 0], live: 'screen' },
+      { build: 'monitorApp', at: [-8.27, 0.74, -0.08], rot: [0, 80, 0], live: 'screen' },
+      { build: 'laptop', at: [-7.87, 0.74, 0.25], rot: [0, 120, 0], live: 'screen' },
+      { build: 'pcTower', at: [-8.27, 0, 0.1], rot: [0, 90, 0] },
+      { model: 'desk_lamp_arm_01', at: [-8.3, 0.74, -1.15], rot: [0, 150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
+      { build: 'officeChair', at: [-7.3, 0, -0.4], rot: [0, 90, 0], scale: [1.1, 1.12, 1.1] },
+      { model: 'base_character', at: [-7.3, 0, -0.4], rot: [0, 90, 0], scale: 0.92, live: 'him', cap: 'Me. Hoodie, glasses, two screens and a laptop.' },
+      { model: 'steel_frame_shelves_01', at: [-8.12, 0, 1.4], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
+      { model: 'book_encyclopedia_set_01', at: [-8.12, 0.98, 1.4], rot: [0, 90, 0], scale: 0.9 },
+      { model: 'book_encyclopedia_set_01', at: [-8.12, 1.5, 1.35], rot: [0, 90, 0], scale: 0.8 },
+      { build: 'bed', at: [-5.9, 0, -1.72] },
+      { model: 'potted_plant_01', at: [-4.55, 0, -1.85], scale: 0.9 },
       { build: 'passage', at: [-4.2, 0, 1.0], live: 'bulb' },
     ],
   },

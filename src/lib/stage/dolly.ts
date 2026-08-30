@@ -12,10 +12,11 @@ export interface Frame { q: number; set: number; blend: number; cam: V3; look: V
 
 export const DOLLY: DollyKey[] = [
   // now: him at the desk from the side, the window on the right; then the camera pulls back and turns to the door
-  { q: 0.0, cam: [-5.75, 1.5, 2.55], look: [-8.5, 1.0, -0.5], fov: 48, set: 0 },
-  { q: 0.05, cam: [-6.1, 1.35, 1.9], look: [-7.4, 1.1, -1.5], fov: 47, set: 0 },
-  { q: 0.11, cam: [-5.8, 1.28, 1.55], look: [-5.2, 1.3, -0.6], fov: 48, set: 0 },
-  { q: 0.175, cam: [-5.6, 1.25, 1.6], look: [-3.8, 1.2, 1.6], fov: 50, set: 0 },
+  // now: the whole room from the door corner, him at the desk on the left, the window and the bed on the right
+  { q: 0.0, cam: [-4.35, 1.8, 2.05], look: [-7.0, 0.85, -0.9], fov: 60, set: 0 },
+  { q: 0.05, cam: [-4.55, 1.65, 1.85], look: [-6.7, 0.95, -1.4], fov: 56, set: 0 },
+  { q: 0.11, cam: [-4.8, 1.45, 1.7], look: [-4.9, 1.3, -0.3], fov: 52, set: 0 },
+  { q: 0.19, cam: [-5.0, 1.25, 1.6], look: [-3.6, 1.2, 1.6], fov: 50, set: 0 },
   { q: 0.21, cam: [-4.1, 1.2, 1.6], look: [-2.4, 1.2, 1.6], fov: 54, set: 0, blend: 0 }, // door jamb
   { q: 0.25, cam: [-3.1, 1.2, 1.6], look: [-1.0, 1.2, 1.4], fov: 54, set: 1, blend: 1 }, // mid passage
   { q: 0.29, cam: [-1.7, 1.18, 1.75], look: [0.0, 1.0, -0.8], fov: 50, set: 1 }, // into the 2010 room

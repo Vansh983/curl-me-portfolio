@@ -104,8 +104,23 @@ export const BUILT: Record<string, () => BuiltPart> = {
     for (const x of [-2.5, -0.85, 0.85, 2.5]) s.box(x, 1.0, 0, 0.05, 2.0, 0.06);
     return [piece(s.out(), M('windowFrame'))];
   },
-  /** Short dark hair for the base character: a cap that sits on the head bone, built around the origin of the head. */
-  hair: () => [piece(new Sink().sphere(0, 0.045, -0.012, 0.115, 0.105, 0.12, 14, 8, undefined, 0.62).out(), M('hair'), { smooth: true })],
+  /** Short dark hair: a cap hugging the top and back of the head, centred on the head's centre, the face toward +z. */
+  hair: () => {
+    // a unit cap (radius 1) over the top 46 percent of the skull; the runtime scales it to the head
+    const s = new Sink().sphere(0, 0, 0, 1, 1, 1, 18, 10, undefined, 0.46);
+    return [piece(s.out(), M('hair'), { smooth: true })];
+  },
+  /** A hoodie torso: a loose elliptic tube from the hips to the collar, built for a unit torso (height 1, half width 1, half depth 1); scaled at runtime. */
+  hoodieTorso: () => [piece(new Sink().lathe([[0.86, 0], [0.98, 0.18], [1.0, 0.55], [0.94, 0.85], [0.6, 1.0]], 0, 0, 0, 1, 1, 0, 18).out(), M('hoodie'), { smooth: true })],
+  /** A sleeve: a unit cylinder along +y from 0 to 1 with a slight flare, radius 1; scaled at runtime to the arm segment. */
+  sleeve: () => [piece(new Sink().lathe([[1.0, 0], [1.05, 0.5], [0.95, 1.0]], 0, 0, 0, 1, 1, 0, 12).out(), M('hoodie'), { smooth: true })],
+  /** The hood, down: a soft cowl behind the neck and a collar ring, built around the base of the neck, the face toward +z. */
+  hood: () => {
+    const s = new Sink();
+    s.sphere(0, 0.04, -0.09, 0.13, 0.11, 0.1, 14, 8, undefined, 0.75).rotateX(0.04, -0.09, 0.9);
+    s.lathe([[0.075, 0], [0.09, 0.03], [0.085, 0.06]], 0, 0.0, -0.01, 1.15, 1, 0, 16);
+    return [piece(s.out(), M('hoodie'), { smooth: true })];
+  },
   /** Thin glasses: two rims and a bridge, at the head's eye height, facing +z. */
   glasses: () => {
     const s = new Sink();
