@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ACTORS, STATIONS } from '../../src/lib/stage/world.ts';
+import { SURFACE } from '../../src/lib/stage/surface.ts';
 
 test('every actor has one key and one colour per station, same count in each', () => {
   assert.equal(STATIONS.length, 3);
@@ -14,6 +15,8 @@ test('every actor has one key and one colour per station, same count in each', (
     assert.equal(a.uv.length, (a.keys[0].length / 3) * 2, `${a.id} uv`);
     assert.equal(a.col.length, a.keys[0].length, `${a.id} col`);
     assert.match(a.colors[0], /^#[0-9a-f]{6}$/i, a.id);
+    assert.equal(a.surface.length, STATIONS.length, `${a.id} surface`);
+    for (const s of a.surface) assert.ok(SURFACE[s], `${a.id} ${s}`);
   }
   assert.equal(new Set(ACTORS.map((a) => a.id)).size, ACTORS.length);
 });

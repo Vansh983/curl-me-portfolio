@@ -1,5 +1,37 @@
 # Session log: the journey stage
 
+## 2026-08-29: physically based render
+
+The stage looked like solids glued together because it was lit like solids glued together: toon
+ramps, flat facets, no occlusion, no environment. The geometry did not change; the render did.
+
+- **Materials.** Every lit actor is a `MeshStandardMaterial` now, with a real roughness, metalness
+  and environment weight per station (`src/lib/stage/surface.ts`). Twenty surfaces: distemper,
+  plaster, sealed board, floor planks, cotton weave, cut pile, moulded ABS, brushed steel, cast
+  gold, cork, ceramic, plaza concrete, skin, hair, leaf, glass, water. `MATERIAL` in `world.ts`
+  says what each thing is made of; the floor changes under him, boards to concrete.
+- **Surface detail.** Each material carries a procedural height field packed into one RGBA map
+  (rgb the tangent-space normal, alpha the height) and sampled **triplanar by world position**, so
+  no rig needed a second uv set and a grain stays the same millimetres wherever it lands. The
+  height also modulates roughness, which is what puts a sheen on a plank edge and holds it in a
+  pit. Fields tile seamlessly (wrapping lattice noise) and are generated deterministically.
+- **Light.** `src/lib/stage/env.ts` holds one spec per station: hemisphere, a sun that casts, two
+  shadowless fills, fog, exposure, and four emissive panels that are convolved into an image-based
+  light. Every number and colour blends between stations, so the warm Delhi dusk cools into
+  fluorescent and opens onto the bay without a cut. The environment map itself is rebuilt in
+  sixteen steps a gap.
+- **Pipeline.** `EffectComposer`: render to half float, GTAO ambient occlusion, a narrow bloom,
+  ACES tone mapping, a grade pass (saturation back after ACES, a little contrast, a soft vignette),
+  then FXAA. FXAA over SMAA saves 37 KB gz and holds up on the bridge cables.
+- **Outlines.** The always-on ink hull is off (`INK_OUTLINE`); the render carries its own edges.
+  The hull is still there for the hover highlight.
+- **Cost.** 165 KB gz for the lazy stage chunk (was 135). Measured 45 fps over 2880x1800 and 90
+  over 2160x1350, so retina renders at pixel ratio 1.5. Below that a pacer drops a quarter step at
+  a time, checks whether the frame actually got faster, and stands down if it did not (a frame lost
+  to the page compositor is not one a smaller buffer can win back).
+- `npm test` covers the height fields (range, tiling, direction, packed normals) and the light
+  (blend endpoints, continuity, the hold past the last station).
+
 ## 2026-08-27: stage v2, three.js
 
 The CSS layer engine below is gone (reference point: tag `pre-3d`, commit `d2c696e`). The stage is a `<canvas>` driven by `src/scripts/stage-run.ts`, loaded lazily (135 KB gz three chunk, 1 KB entry). Spec: [11-journey-3d-spec.md](./11-journey-3d-spec.md), plan: [12-journey-3d-plan.md](./12-journey-3d-plan.md).

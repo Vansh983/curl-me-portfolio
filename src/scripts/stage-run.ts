@@ -5,23 +5,36 @@
 // distance fog outdoors, motion on its own clock (fan, boats, clouds, the rolling ball),
 // a spring-damped camera, and hotspots that caption what you point at.
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, Mesh, BufferGeometry, Float32BufferAttribute, MeshToonMaterial,
-  MeshBasicMaterial, MeshLambertMaterial, DataTexture, RedFormat, NearestFilter, HemisphereLight, DirectionalLight,
-  Color, BackSide, DoubleSide, CanvasTexture, SRGBColorSpace, Vector3, Vector2, Raycaster, Fog, PCFShadowMap,
-  type Material, type Texture,
+  WebGLRenderer, Scene, PerspectiveCamera, Mesh, BufferGeometry, Float32BufferAttribute, BoxGeometry,
+  MeshBasicMaterial, MeshStandardMaterial, DataTexture, RGBAFormat, UnsignedByteType, LinearFilter,
+  LinearMipmapLinearFilter, RepeatWrapping, PMREMGenerator, HemisphereLight, DirectionalLight,
+  ACESFilmicToneMapping, Color, BackSide, FrontSide, DoubleSide, CanvasTexture, SRGBColorSpace, Vector3, Vector2,
+  Raycaster, Fog, PCFShadowMap, type Material, type Texture, type WebGLRenderTarget,
 } from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { ACTORS, STATIONS, type Actor } from '../lib/stage/world.ts';
 import { makeShot, stageProgress, type Frame } from '../lib/stage/shot.ts';
 import { flatNormals } from '../lib/stage/rig.ts';
 import { BOOKS } from '../lib/stage/props.ts';
 import { timed } from '../lib/stage/ease.ts';
+import { SURFACE, detailMap, type Kind, type Surface } from '../lib/stage/surface.ts';
+import { ENVS, envAt, type EnvSpec } from '../lib/stage/env.ts';
 
-const OUTLINE = 0.0012; // metres pushed along the normal, per metre of distance (constant width on screen)
-const INK = '#17282f'; // the ink of the authored scenes; the room is lit, so it stays dark in both themes
+const OUTLINE = 0.0022; // metres pushed along the normal, per metre of distance (constant width on screen)
+const INK_OUTLINE = false; // the drawn look: an ink hull on everything. Off, the render carries the edges itself
+const DETAIL = 256; // the detail maps are 256 square; power of two, so they mip
 const D = Math.PI / 180;
 
 type Mat = Material & { color: Color };
-interface Built { actor: Actor; mesh: Mesh; outline?: Mesh; a: Color[]; mat: Mat; e: number }
+/** The uniforms one lit material needs; they move with the story, so they are held, not re-made. */
+interface Det { map: { value: Texture }; tile: { value: number }; bump: { value: number }; ramp: { value: number } }
+interface Built { actor: Actor; mesh: Mesh; outline?: Mesh; a: Color[]; mat: Mat; e: number; surf: Surface[]; det?: Det }
 type Ctx = CanvasRenderingContext2D;
 type Painter = (x: Ctx, w: number, h: number) => void;
 interface Paint { w: number; h: number; frames: Painter[] } // one frame per station for 'mix', one frame for 'tex'
@@ -54,8 +67,8 @@ function geometryFor(actor: Actor): BufferGeometry {
 }
 
 /** Inverted hull: same geometry, back faces, pushed out along the (morphed) normal by an amount that grows with distance. */
-function outlineMaterial(ink: Color): MeshToonMaterial {
-  const m = new MeshToonMaterial({ color: 0x000000, emissive: ink, side: BackSide });
+function outlineMaterial(ink: Color): MeshBasicMaterial {
+  const m = new MeshBasicMaterial({ color: ink, side: BackSide, fog: false, toneMapped: false });
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uOut = { value: OUTLINE };
     shader.vertexShader = 'uniform float uOut;\n' + shader.vertexShader.replace(
@@ -63,6 +76,98 @@ function outlineMaterial(ink: Color): MeshToonMaterial {
       '#include <morphtarget_vertex>\n\tvec4 mvp0 = modelViewMatrix * vec4(transformed, 1.0);\n\ttransformed += objectNormal * uOut * clamp(-mvp0.z, 0.6, 120.0);',
     );
   };
+  return m;
+}
+
+/**
+ * Surface detail, sampled triplanar. The map holds a tangent-space normal in rgb and the height
+ * in alpha; three projections are taken by world position, blended by which way the face points
+ * (so nothing stretches on a slope), and the result both tilts the shading normal and moves the
+ * roughness: a peak takes a polish, a pit holds the light. World position means no rig needs a
+ * second uv set, and one plaster grain stays the same millimetres wherever it lands.
+ */
+const DET_PARS = `
+uniform sampler2D uDet;
+uniform float uTile;
+uniform float uBump;
+uniform float uRamp;
+varying vec3 vDetP;
+varying vec3 vDetN;
+vec3 detailNormal( out float hOut ) {
+	vec3 n = normalize( vDetN );
+	vec3 w = abs( n ); w *= w; w *= w; w /= ( w.x + w.y + w.z );
+	vec4 tx = texture2D( uDet, vDetP.zy * uTile );
+	vec4 ty = texture2D( uDet, vDetP.xz * uTile );
+	vec4 tz = texture2D( uDet, vDetP.xy * uTile );
+	hOut = tx.a * w.x + ty.a * w.y + tz.a * w.z;
+	vec3 mx = mix( vec3( 0.0, 0.0, 1.0 ), tx.xyz * 2.0 - 1.0, uBump );
+	vec3 my = mix( vec3( 0.0, 0.0, 1.0 ), ty.xyz * 2.0 - 1.0, uBump );
+	vec3 mz = mix( vec3( 0.0, 0.0, 1.0 ), tz.xyz * 2.0 - 1.0, uBump );
+	vec3 nx = vec3( mx.xy + n.zy, abs( mx.z ) * n.x ).zyx;
+	vec3 ny = vec3( my.xy + n.xz, abs( my.z ) * n.y ).xzy;
+	vec3 nz = vec3( mz.xy + n.xy, abs( mz.z ) * n.z ).xyz;
+	return normalize( nx * w.x + ny * w.y + nz * w.z );
+}
+`;
+
+/**
+ * The grade. ACES rolls the highlights off beautifully and takes some colour with them, so a
+ * last pass puts the saturation back, adds a little contrast, and closes the corners down a
+ * touch: the eye lands on him rather than on the brightest wall in the frame.
+ */
+const GRADE = {
+  uniforms: {
+    tDiffuse: { value: null as Texture | null },
+    uSat: { value: 1.16 },
+    uCon: { value: 1.06 },
+    uVig: { value: 0.2 },
+  },
+  vertexShader: `
+varying vec2 vUv;
+void main() {
+	vUv = uv;
+	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+}`,
+  fragmentShader: `
+uniform sampler2D tDiffuse;
+uniform float uSat;
+uniform float uCon;
+uniform float uVig;
+varying vec2 vUv;
+void main() {
+	vec4 c = texture2D( tDiffuse, vUv );
+	float l = dot( c.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
+	c.rgb = mix( vec3( l ), c.rgb, uSat );
+	c.rgb = clamp( ( c.rgb - 0.5 ) * uCon + 0.5, 0.0, 1.0 );
+	c.rgb *= 1.0 - uVig * smoothstep( 0.34, 0.98, distance( vUv, vec2( 0.5 ) ) );
+	gl_FragColor = c;
+}`,
+};
+
+function withDetail(m: MeshStandardMaterial, det: Det): MeshStandardMaterial {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uDet = det.map;
+    sh.uniforms.uTile = det.tile;
+    sh.uniforms.uBump = det.bump;
+    sh.uniforms.uRamp = det.ramp;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vDetP;\nvarying vec3 vDetN;')
+      .replace(
+        '#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\n\tvDetP = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;\n\tvDetN = normalize( mat3( modelMatrix ) * objectNormal );',
+      );
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>' + DET_PARS)
+      .replace(
+        '#include <roughnessmap_fragment>',
+        'float detH;\n\tvec3 detN = detailNormal( detH );\n\t#include <roughnessmap_fragment>\n\troughnessFactor = clamp( roughnessFactor + uRamp * ( detH - 0.5 ) * 2.0, 0.045, 1.0 );',
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        '#include <normal_fragment_maps>\n\tnormal = normalize( ( viewMatrix * vec4( detN, 0.0 ) ).xyz );',
+      );
+  };
+  m.customProgramCacheKey = () => 'stage-detail';
   return m;
 }
 
@@ -331,30 +436,91 @@ function painters(images: { jobs: HTMLImageElement | null; xbox: HTMLImageElemen
 }
 
 export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): () => void {
-  const renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  // the pipeline costs real milliseconds per pixel: measured on this machine, the full chain
+  // runs at 45 fps over 2880x1800 and 90 over 2160x1350, so a retina display is rendered at
+  // one and a half rather than two. Anti-aliasing is a pass, not a sample count, so the edges
+  // do not suffer for it. Below that the pacer takes over.
+  const dprCap = Math.min(devicePixelRatio, 1.5);
+  let dpr = dprCap;
+  renderer.setPixelRatio(dpr);
   renderer.outputColorSpace = SRGBColorSpace;
+  renderer.toneMapping = ACESFilmicToneMapping; // the composer's OutputPass applies it
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
   const scene = new Scene();
-  scene.fog = new Fog(new Color('#D6E6EF'), 30, 420);
+  const fog = new Fog(new Color('#D6E6EF'), 30, 420);
+  scene.fog = fog;
   const camera = new PerspectiveCamera(50, 1, 0.05, 900);
-  scene.add(new HemisphereLight(0xffffff, 0x8a8a8a, 0.85));
-  // one sun; it follows the subject so its shadow map stays tight around what matters
-  const sun = new DirectionalLight(0xffffff, 1.7);
+
+  // the lights are the same four everywhere; what changes is their colour, power and angle,
+  // read every frame from the blended environment spec, so the light travels instead of cutting
+  const hemi = new HemisphereLight(0xffffff, 0x888888, 1);
+  const sun = new DirectionalLight(0xffffff, 1);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 0.5, far: 40 });
-  sun.shadow.bias = -0.0005;
-  sun.shadow.normalBias = 0.02;
-  sun.shadow.radius = 5;
-  sun.shadow.intensity = 0.42; // a soft daylight shadow, not a black one
-  scene.add(sun, sun.target);
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.022;
+  sun.shadow.radius = 4;
+  const fillA = new DirectionalLight(0xffffff, 0);
+  const fillB = new DirectionalLight(0xffffff, 0);
+  scene.add(hemi, sun, sun.target, fillA, fillA.target, fillB, fillB.target);
 
-  const grad = new DataTexture(new Uint8Array([100, 175, 255]), 3, 1, RedFormat);
-  grad.minFilter = grad.magFilter = NearestFilter;
-  grad.needsUpdate = true;
-  const outlineMat = outlineMaterial(new Color(INK));
+  // ---- the environment: a handful of emissive panels convolved into an image-based light, so
+  // every rough surface has a room to reflect and every metal one a window to catch
+  const pmrem = new PMREMGenerator(renderer);
+  const envScene = new Scene();
+  const unit = new BoxGeometry(1, 1, 1);
+  const domeMat = new MeshBasicMaterial({ side: BackSide });
+  envScene.add(new Mesh(new BoxGeometry(120, 120, 120), domeMat));
+  const panelMats = ENVS[0].panels.map(() => new MeshBasicMaterial());
+  const panels = panelMats.map((m) => {
+    const mesh = new Mesh(unit, m);
+    envScene.add(mesh);
+    return mesh;
+  });
+  let envRT: WebGLRenderTarget | null = null;
+  let envKey = -1;
+  const buildEnv = (spec: EnvSpec) => {
+    domeMat.color.set(spec.dome);
+    spec.panels.forEach((q, i) => {
+      panelMats[i].color.set(q.color).multiplyScalar(q.power); // an emitter, so it may go past white
+      panels[i].position.set(...q.at);
+      panels[i].scale.set(...q.size);
+    });
+    const rt = pmrem.fromScene(envScene, 0.035);
+    envRT?.dispose();
+    envRT = rt;
+    scene.environment = rt.texture;
+  };
+  /** Rebuilds the image-based light in steps: it is low frequency, so sixteen a gap is invisible. */
+  const stepEnv = (i: number, e: number, spec: EnvSpec) => {
+    const q = Math.round((i + e) * 16);
+    if (q === envKey) return;
+    envKey = q;
+    buildEnv(spec);
+  };
+
+  // ---- one detail map per kind of surface, shared by everything made of it
+  const details = new Map<Kind, Texture>();
+  const detailFor = (kind: Kind): Texture => {
+    let t = details.get(kind);
+    if (!t) {
+      t = new DataTexture(detailMap(kind, DETAIL), DETAIL, DETAIL, RGBAFormat, UnsignedByteType);
+      t.wrapS = t.wrapT = RepeatWrapping;
+      t.magFilter = LinearFilter;
+      t.minFilter = LinearMipmapLinearFilter;
+      t.generateMipmaps = true;
+      t.anisotropy = maxAniso;
+      t.needsUpdate = true;
+      details.set(kind, t);
+    }
+    return t;
+  };
+
+  const outlineMat = outlineMaterial(new Color('#17282f'));
   const hotMat = outlineMaterial(new Color(cssVar('--acc')));
 
   const video = document.createElement('video');
@@ -413,12 +579,30 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const g = geometryFor(actor);
     const colors = actor.colors.map((c) => new Color(c));
     const map = actor.tex ? textureFor(actor.id) : undefined;
+    if (map) map.anisotropy = maxAniso;
     const common = { color: colors[0], vertexColors: actor.vc, transparent: actor.transparent ?? false, ...(map ? { map } : {}) };
-    const mat: Mat =
-      actor.shade === 'unlit' ? new MeshBasicMaterial({ ...common, side: DoubleSide, fog: actor.id !== 'sky' })
-      // floors and walls keep more than half their colour whatever the light does; the sun adds shape and shadows
-      : actor.shade === 'lambert' ? new MeshLambertMaterial({ ...common, side: DoubleSide, emissive: colors[0], emissiveIntensity: 0.28 })
-      : new MeshToonMaterial({ ...common, gradientMap: grad });
+    const surf = actor.surface.map((n) => SURFACE[n]);
+    let det: Det | undefined;
+    let mat: Mat;
+    if (actor.shade === 'unlit') {
+      mat = new MeshBasicMaterial({ ...common, side: DoubleSide, fog: actor.id !== 'sky' });
+    } else {
+      const s0 = surf[0];
+      det = {
+        map: { value: detailFor(s0.kind) },
+        tile: { value: 1 / s0.tile },
+        bump: { value: s0.bump },
+        ramp: { value: s0.roughAmp },
+      };
+      mat = withDetail(new MeshStandardMaterial({
+        ...common,
+        roughness: s0.rough,
+        metalness: s0.metal,
+        envMapIntensity: s0.env,
+        // floors, walls and ceilings are single sheets: the camera passes through them, so both faces light
+        side: actor.shade === 'shell' ? DoubleSide : FrontSide,
+      }), det);
+    }
     const mesh = new Mesh(g, mat);
     if (actor.at) mesh.position.set(...actor.at);
     if (actor.path) mesh.position.set(...actor.path[0]);
@@ -430,14 +614,32 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (actor.outline) {
       outline = new Mesh(g, outlineMat);
       outline.position.copy(mesh.position);
+      outline.visible = INK_OUTLINE; // otherwise it is only the hull the hover highlight uses
+      outline.castShadow = false;
+      outline.receiveShadow = false;
       scene.add(outline);
     }
-    const b: Built = { actor, mesh, outline, a: colors, mat, e: 0 };
+    const b: Built = { actor, mesh, outline, a: colors, mat, e: 0, surf, det };
     built.push(b);
     byId[actor.id] = b;
   }
   const fan = byId.fan, boats = byId.boats, clouds = byId.clouds;
   const hot = built.filter((b) => b.actor.cap);
+
+  // ---- the pipeline. The scene goes to a half-float buffer, ambient occlusion is traced from
+  // its depth and normals (which is what stops a pile of solids reading as a pile of solids),
+  // the few pixels above white bloom, then one pass tone maps to sRGB and one anti-aliases.
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const gtao = new GTAOPass(scene, camera, 1, 1);
+  gtao.updateGtaoMaterial({ radius: 0.34, distanceExponent: 1.6, thickness: 0.55, scale: 1.15, samples: 16, screenSpaceRadius: false });
+  gtao.updatePdMaterial({ lumaPhi: 8, depthPhi: 2.5, normalPhi: 3.5, radius: 3, rings: 2, samples: 12 });
+  gtao.blendIntensity = 0.9;
+  composer.addPass(gtao);
+  composer.addPass(new UnrealBloomPass(new Vector2(1, 1), 0.14, 0.7, 1.0));
+  composer.addPass(new OutputPass());
+  composer.addPass(new ShaderPass(GRADE)); // graded in display space, after the tone map
+  composer.addPass(new FXAAPass());
 
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
@@ -454,7 +656,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const applyTheme = () => {
     renderer.setClearColor(new Color(cssVar('--bg')));
-    hotMat.emissive.set(cssVar('--acc'));
+    hotMat.color.set(cssVar('--acc'));
     needs = true;
     kick();
   };
@@ -466,12 +668,46 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const fit = () => {
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     renderer.setSize(w, h, false);
+    composer.setSize(w, h);
     camera.aspect = w / h;
     needs = true;
     kick();
   };
   const ro = new ResizeObserver(fit);
   ro.observe(canvas);
+
+  /**
+   * Adaptive resolution, downwards only, and only when it actually buys something. Ambient
+   * occlusion, the bloom chain and the grade are paid per pixel, so a weak GPU wants a smaller
+   * buffer. But a frame can also be lost to the page compositor rather than to us, and there
+   * shrinking the render costs sharpness and wins nothing: so each drop is measured, and if the
+   * frame did not get at least a tenth faster the step is put back and the pacer stands down.
+   */
+  let ema = 1 / 60, paced = 0, pacing = true, tried = 0;
+  const pace = (dt: number) => {
+    if (!pacing) return;
+    ema += (dt - ema) * 0.08;
+    if (++paced < 60) return;
+    paced = 0;
+    const apply = (next: number) => {
+      dpr = next;
+      renderer.setPixelRatio(dpr);
+      composer.setPixelRatio(dpr);
+      fit();
+    };
+    if (tried) {
+      // the verdict on the last step down
+      if (ema > tried * 0.9) {
+        apply(Math.min(dprCap, dpr + 0.25));
+        pacing = false;
+      }
+      tried = 0;
+      return;
+    }
+    if (dpr <= 1 || ema < 1 / 50) return;
+    tried = ema;
+    apply(Math.max(1, dpr - 0.25));
+  };
 
   const progress = () => {
     const r = root.getBoundingClientRect();
@@ -495,10 +731,26 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (shift > 0.01) camera.setViewOffset(w, h * (1 + shift), 0, h * shift, w, h);
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();
-    // the sun keeps its shadow box on the subject
-    sun.target.position.set(...f.subject);
-    // high and from the window side, so indoor shadows stay short
-    sun.position.set(f.subject[0] - 2.5, f.subject[1] + 9, f.subject[2] + 3.5);
+    // the light of the place he is in, blended with the place he is going to
+    const spec = envAt(f.i, f.t);
+    hemi.color.set(spec.hemi.sky);
+    hemi.groundColor.set(spec.hemi.ground);
+    hemi.intensity = spec.hemi.power;
+    // the sun follows the subject, so its shadow map stays tight around what matters
+    for (const [light, dir] of [[sun, spec.sun], [fillA, spec.fills[0]], [fillB, spec.fills[1]]] as const) {
+      light.color.set(dir.color);
+      light.intensity = dir.power;
+      light.position.set(f.subject[0] + dir.from[0], f.subject[1] + dir.from[1], f.subject[2] + dir.from[2]);
+      light.target.position.set(...f.subject);
+      light.target.updateMatrixWorld();
+    }
+    sun.shadow.intensity = spec.sun.shadow;
+    fog.color.set(spec.fog.color);
+    fog.near = spec.fog.near;
+    fog.far = spec.fog.far;
+    renderer.toneMappingExposure = spec.exposure;
+    scene.environmentIntensity = spec.envPower;
+    stepEnv(f.i, f.t, spec);
 
     const gap = Math.min(f.i, STATIONS.length - 2);
     for (const b of built) {
@@ -516,7 +768,20 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       }
       const j = Math.min(f.i + 1, b.a.length - 1);
       b.mat.color.copy(b.a[f.i]).lerp(b.a[j], e);
-      if (b.actor.shade === 'lambert') (b.mat as MeshLambertMaterial).emissive.copy(b.mat.color);
+      if (b.det) {
+        // the material travels too: a plank floor turning to plaza concrete gets rougher and
+        // coarser on the way. The numbers cross-fade; the detail map itself changes hands at halfway.
+        const s0 = b.surf[f.i], s1 = b.surf[j];
+        const std = b.mat as MeshStandardMaterial;
+        std.roughness = lerp(s0.rough, s1.rough, e);
+        std.metalness = lerp(s0.metal, s1.metal, e);
+        std.envMapIntensity = lerp(s0.env, s1.env, e);
+        b.det.tile.value = 1 / lerp(s0.tile, s1.tile, e);
+        b.det.bump.value = lerp(s0.bump, s1.bump, e);
+        b.det.ramp.value = lerp(s0.roughAmp, s1.roughAmp, e);
+        const kind = (e > 0.5 ? s1 : s0).kind;
+        if (b.det.map.value !== details.get(kind)) b.det.map.value = detailFor(kind);
+      }
       if (b.actor.path) {
         // travels along its path; a rolling ball turns by the distance covered over its radius
         const p0 = b.actor.path[f.i], p1 = b.actor.path[j];
@@ -543,9 +808,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const setHover = (b: Built | undefined) => {
     if (hovered === b) return;
-    if (hovered?.outline) hovered.outline.material = outlineMat;
+    if (hovered?.outline) { hovered.outline.material = outlineMat; hovered.outline.visible = INK_OUTLINE; }
     hovered = b;
-    if (hovered?.outline) hovered.outline.material = hotMat;
+    if (hovered?.outline) { hovered.outline.material = hotMat; hovered.outline.visible = true; }
     const text = captionAt(hovered);
     cap.textContent = text;
     cap.classList.toggle('on', !!text);
@@ -593,6 +858,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     raf = 0;
     const dt = Math.min(0.05, (now - lastT) / 1000 || 0);
     lastT = now;
+    if (dt > 0) pace(dt);
     if (reduce.matches) { cur = target; vel = 0; }
     else {
       // a critically damped spring toward the scroll position: weight without wobble
@@ -616,7 +882,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     if (clouds && station >= 1 && !reduce.matches) clouds.mesh.position.x = 8 * Math.sin(t * 0.03);
     if (hovered && pointer) setHover(pick(pointer.x, pointer.y));
-    renderer.render(scene, camera);
+    composer.render();
     needs = false;
     const live = visible && !reduce.matches;
     if (cur !== target || live) raf = requestAnimationFrame(tick);
@@ -642,6 +908,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     scheme.removeEventListener('change', applyTheme);
     video.pause(); video.src = '';
     cap.remove();
+    for (const t of details.values()) t.dispose();
+    envRT?.dispose();
+    pmrem.dispose();
+    composer.dispose();
     renderer.dispose();
   };
 }
