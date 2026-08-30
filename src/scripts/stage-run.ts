@@ -577,7 +577,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const byId: Record<string, Built> = {};
   for (const actor of ACTORS) {
     const g = geometryFor(actor);
-    const colors = actor.colors.map((c) => new Color(c));
+    const colors = actor.colors.map((c) => new Color(c).multiplyScalar(actor.glow ?? 1));
     const map = actor.tex ? textureFor(actor.id) : undefined;
     if (map) map.anisotropy = maxAniso;
     const common = { color: colors[0], vertexColors: actor.vc, transparent: actor.transparent ?? false, ...(map ? { map } : {}) };
@@ -636,7 +636,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   gtao.updatePdMaterial({ lumaPhi: 8, depthPhi: 2.5, normalPhi: 3.5, radius: 3, rings: 2, samples: 12 });
   gtao.blendIntensity = 0.5;
   composer.addPass(gtao);
-  composer.addPass(new UnrealBloomPass(new Vector2(1, 1), 0.14, 0.7, 1.0));
+  composer.addPass(new UnrealBloomPass(new Vector2(1, 1), 0.35, 0.8, 1.0));
   composer.addPass(new OutputPass());
   composer.addPass(new ShaderPass(GRADE)); // graded in display space, after the tone map
   composer.addPass(new FXAAPass());
@@ -768,6 +768,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       }
       const j = Math.min(f.i + 1, b.a.length - 1);
       b.mat.color.copy(b.a[f.i]).lerp(b.a[j], e);
+      if (b.actor.bounce && b.det) (b.mat as MeshStandardMaterial).emissive.copy(b.mat.color).multiplyScalar(b.actor.bounce);
       if (b.det) {
         // the material travels too: a plank floor turning to plaza concrete gets rougher and
         // coarser on the way. The numbers cross-fade; the detail map itself changes hands at halfway.

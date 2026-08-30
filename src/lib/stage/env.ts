@@ -32,7 +32,7 @@ export const ENVS: EnvSpec[] = [
   // floor throwing it back warm, and the television putting a cold patch on everything near it.
   {
     dome: '#3A3226',
-    exposure: 0.95,
+    exposure: 1.05,
     envPower: 0.95,
     hemi: { sky: '#FFE8CC', ground: '#7A6448', power: 0.42 },
     sun: { from: [-2.5, 9, 3.5], color: '#FFC98A', power: 1.8, shadow: 0.34 },
@@ -79,7 +79,7 @@ export const ENVS: EnvSpec[] = [
       { from: [-2, 3, 10], color: '#FFF6E6', power: 0.6 },
       { from: [4, 1, -6], color: '#9CC6E0', power: 0.25 },
     ],
-    fog: { color: '#D6E6EF', near: 40, far: 460 },
+    fog: { color: '#D6E6EF', near: 110, far: 640 },
     panels: [
       { at: [0, 14, 0], size: [44, 0.06, 44], color: '#BFDFF5', power: 1.0 },
       { at: [4, 9, -14], size: [3.2, 3.2, 3.2], color: '#FFF6E0', power: 8 },

@@ -25,6 +25,8 @@ export interface Actor {
   vc: boolean; // use the vertex colours
   outline: boolean;
   transparent?: boolean;
+  bounce?: number; // a share of its own colour it gives off: light-coloured surfaces bouncing the room's light
+  glow?: number; // colour multiplier above 1: an emitter the bloom picks up (the sun)
   at?: V3; // mesh position for rigs built at the origin (the fan)
   path?: V3[]; // mesh position per station, for rigs built at the origin that travel (the ball)
   roll?: number; // radius: the mesh rolls about x as it travels along z
@@ -55,7 +57,7 @@ const DROP = T(0.55, 1, 'bounce'); // lands and bounces
 const GROW = T(0.6, 1, 'out');
 const SMOOTH = T(0.2, 0.8, 'inOut');
 
-type Opts = Partial<Pick<Actor, 'shade' | 'tex' | 'vc' | 'outline' | 'transparent' | 'at' | 'path' | 'roll' | 'timing' | 'cap' | 'href'>>
+type Opts = Partial<Pick<Actor, 'shade' | 'tex' | 'vc' | 'outline' | 'transparent' | 'bounce' | 'glow' | 'at' | 'path' | 'roll' | 'timing' | 'cap' | 'href'>>
   & { surface?: SurfaceName | SurfaceName[] };
 
 /**
@@ -75,7 +77,7 @@ const MATERIAL: Record<string, SurfaceName | SurfaceName[]> = {
   labScreens: 'glass',
   wire: 'rubber', ball: 'rubber', nuggets: 'ceramic',
   curtains: 'fabric', rug: 'carpet',
-  hills: 'foliage', palmL: 'foliage', palmR: 'foliage', hedge: 'foliage', water: 'water',
+  hills: 'foliage', palmL: 'foliage', palmR: 'foliage', hedge: 'foliage', water: 'water', clouds: 'plaster',
   'figure-skin': 'skin', 'figure-face': 'skin', 'figure-hair': 'hair',
   'figure-shirt': 'cotton', 'figure-sleeveL': 'cotton', 'figure-sleeveR': 'cotton',
   'figure-legs': 'cotton', 'figure-tie': 'cotton', 'figure-lanyard': 'cotton',
@@ -92,7 +94,7 @@ const actor = <U>(id: string, rig: (p: U) => Geo, keys: U[], colors: string[], o
   return {
     id, keys: built.map((g) => g.pos), uv: built[0].uv, col: built[0].col, colors,
     shade: o.shade ?? 'solid', surface: spread(o.surface ?? MATERIAL[id] ?? 'plastic', keys.length),
-    tex: o.tex, vc: o.vc ?? false, outline: o.outline ?? true, transparent: o.transparent,
+    tex: o.tex, vc: o.vc ?? false, outline: o.outline ?? true, transparent: o.transparent, bounce: o.bounce, glow: o.glow,
     at: o.at, path: o.path, roll: o.roll, timing: o.timing, cap: o.cap, href: o.href,
   };
 };
@@ -133,9 +135,9 @@ const LIFT = 9; // y of the ceiling once the room has opened to the sky
 const ABOVE = 2.9; // y of things waiting above the ceiling to drop in
 
 export const ACTORS: Actor[] = [
-  actor('floor', P.floor, [ROOM, ROOM, PLAZA], ['#FFFFFF', '#FFFFFF', '#E2DDD2'], { shade: 'shell', tex: 'mix', outline: false, timing: [T(0.2, 0.8, 'linear'), T(0.3, 0.8, 'linear')] }),
-  actor('walls', P.walls, [ROOM, ROOM, { ...ROOM, y: SUNK }], ['#F9F4EC', '#E9EEF2', '#E9EEF2'], { shade: 'shell', outline: false, timing: [SMOOTH, T(0, 0.5, 'in')] }),
-  actor('ceiling', P.ceiling, [ROOM, ROOM, { ...ROOM, y: LIFT }], ['#FFFFFF', '#F5F9FC', '#F5F9FC'], { shade: 'shell', outline: false, timing: [SMOOTH, T(0, 0.5, 'in')] }),
+  actor('floor', P.floor, [ROOM, ROOM, PLAZA], ['#FFFFFF', '#FFFFFF', '#CFC9BE'], { shade: 'shell', tex: 'mix', outline: false, bounce: 0.06, timing: [T(0.2, 0.8, 'linear'), T(0.3, 0.8, 'linear')] }),
+  actor('walls', P.walls, [ROOM, ROOM, { ...ROOM, y: SUNK }], ['#F6E9D2', '#E6ECF1', '#E6ECF1'], { shade: 'shell', outline: false, bounce: 0.14, timing: [SMOOTH, T(0, 0.5, 'in')] }),
+  actor('ceiling', P.ceiling, [ROOM, ROOM, { ...ROOM, y: LIFT }], ['#FFFFFF', '#F5F9FC', '#F5F9FC'], { shade: 'shell', outline: false, bounce: 0.42, timing: [SMOOTH, T(0, 0.5, 'in')] }),
   actor('fan', P.fan, [{ rod: 0.55, r: 0.6, hub: 0.08 }, { rod: 0.55, r: 0.6, hub: 0.08 }, { rod: 0.55, r: 0.6, hub: 0.08, y: LIFT - ROOM.h }], ['#9A9A96', '#9A9A96', '#9A9A96'], {
     at: [0, ROOM.h, -0.4], timing: [HOLD, T(0, 0.5, 'in')], cap: ['The ceiling fan. Delhi summers.', 'The fan stayed.', ''],
   }),
@@ -241,7 +243,7 @@ export const ACTORS: Actor[] = [
   // San Francisco: hidden under the floor or the bay until the room opens up
   actor('sky', P.sky, [{ r: 0.001, y: -1 }, { r: 0.001, y: -1 }, { r: 320, y: 0 }], W3, { shade: 'unlit', tex: 'tex', outline: false, timing: [HOLD, T(0, 0.3, 'out')] }),
   actor('sun', P.sun, [{ x: 0, y: -1, z: 0, r: 0.001 }, { x: 0, y: -1, z: 0, r: 0.001 }, { x: 70, y: 95, z: -230, r: 9 }], W3, { shade: 'unlit', vc: true, outline: false, timing: [HOLD, T(0.3, 0.7, 'out')] }),
-  actor('clouds', P.clouds, [{ y: -1, scale: 0.001 }, { y: -1, scale: 0.001 }, { y: 60, scale: 1 }], W3, { shade: 'unlit', vc: true, outline: false, timing: [HOLD, T(0.3, 0.7, 'out')] }),
+  actor('clouds', P.clouds, [{ y: -1, scale: 0.001 }, { y: -1, scale: 0.001 }, { y: 60, scale: 1 }], W3, { vc: true, outline: false, bounce: 0.35, timing: [HOLD, T(0.3, 0.7, 'out')] }),
   actor('water', P.water, [{ y: -1, size: 0.001, zc: 0 }, { y: -1, size: 0.001, zc: 0 }, { y: -1.6, size: 400, zc: -100 }], W3, { shade: 'shell', vc: true, outline: false, timing: [HOLD, T(0.2, 0.6, 'out')], cap: ['', '', 'The bay.'] }),
   actor('hills', P.hills, [{ z: -1, scale: 0.001 }, { z: -1, scale: 0.001 }, { z: -250, scale: 1 }], W3, { vc: true, outline: false, timing: [HOLD, T(0.3, 0.7, 'out')] }),
   // the bridge rises out of the bay

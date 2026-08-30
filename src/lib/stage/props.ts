@@ -201,7 +201,7 @@ export const board = (p: { x: number; y: number; z: number; w: number; h: number
   s.color('#C8A26B').box(p.x, p.y, p.z, p.w * k, p.h * k, 0.02 * k);
   s.color('#6E5238').box(p.x, p.y + (p.h / 2) * k, p.z, (p.w + 0.04) * k, 0.04 * k, 0.03 * k).box(p.x, p.y - (p.h / 2) * k, p.z, (p.w + 0.04) * k, 0.04 * k, 0.03 * k);
   s.box(p.x - (p.w / 2) * k, p.y, p.z, 0.04 * k, p.h * k, 0.03 * k).box(p.x + (p.w / 2) * k, p.y, p.z, 0.04 * k, p.h * k, 0.03 * k);
-  s.color('#F2575D');
+  s.color('#E8552E');
   for (const [sx, sy] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) s.sphere(p.x + sx * (p.w / 2 - 0.06) * k, p.y + sy * (p.h / 2 - 0.06) * k, p.z + 0.015 * k, 0.012 * k, 0.012 * k, 0.008 * k, 6, 3);
   s.color('#FFFFFF').box(p.x - (p.w / 2 - 0.16) * k, p.y - (p.h / 2 - 0.12) * k, p.z + 0.012 * k, 0.16 * k, 0.12 * k, 0.003 * k);
   s.color('#F9E27D').box(p.x + (p.w / 2 - 0.14) * k, p.y - (p.h / 2 - 0.11) * k, p.z + 0.012 * k, 0.12 * k, 0.1 * k, 0.003 * k);
@@ -265,15 +265,15 @@ export const labScreens = (p: { x: number; z0: number; gap: number; lift: number
 
 /** The Golden Gate: deck, two towers with braces, main cables sampled as bones, suspenders. Built at (x, y, z), spanning x. */
 export const bridge = (p: { x: number; y: number; z: number; scale: number }): Geo => {
-  const k = p.scale, s = new Sink().color('#F2575D');
+  const k = p.scale, s = new Sink().color('#E8552E');
   const L = 150 * k, TX = 48 * k, TH = 44 * k, DY = 12 * k;
   s.box(p.x, p.y + DY, p.z, 2 * L, 1.3 * k, 6 * k);
-  s.color('#C24A48');
+  s.color('#B93E22');
   for (const tx of [-TX, TX]) {
     for (const leg of [-1, 1]) s.box(p.x + tx, p.y + TH / 2, p.z + leg * 2.4 * k, 2.4 * k, TH, 1.6 * k);
     for (const h of [DY + 6 * k, DY + 16 * k, DY + 26 * k, TH - 3 * k]) s.box(p.x + tx, p.y + h, p.z, 2.4 * k, 2.6 * k, 6.2 * k);
   }
-  s.color('#F2575D');
+  s.color('#E8552E');
   const N = 24, M = 8, r = 0.38 * k;
   const mainY = (t: number) => p.y + TH - (TH - DY - 2 * k) * (1 - (2 * t - 1) ** 2);
   const sideY = (t: number) => p.y + DY + 1.5 * k + (TH - DY - 1.5 * k) * t * t;
