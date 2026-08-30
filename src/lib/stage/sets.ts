@@ -83,7 +83,7 @@ export const SETS: StageSet[] = [
       { model: 'gamepad', at: [-0.35, 0.005, 0.2], rot: [0, 35, 0] },
       { model: 'ceiling_fan', at: [0, 2.8, 0.2], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
       { model: 'wooden_bookshelf_worn', at: [1.55, 0, -2.3] },
-      { model: 'decorative_book_set_01', at: [1.55, 0.92, -2.28] },
+      { model: 'book_encyclopedia_set_01', at: [1.55, 0.92, -2.28] },
       { model: 'hanging_picture_frame_01', at: [1.0, 1.75, -2.47], cap: "Here's to the crazy ones." },
       { build: 'rug', at: [0, 0.002, 0.3] },
       { model: 'throw_pillows_01', at: [-0.9, 0, 0.9], rot: [0, 60, 0] },
