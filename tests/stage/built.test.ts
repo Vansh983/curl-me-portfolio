@@ -6,6 +6,7 @@ import { SETS } from '../../src/lib/stage/sets.ts';
 
 const texIds = new Set(ASSETS.filter((a) => a.kind === 'texture').map((a) => a.id));
 const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen'];
+const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {
   for (const s of SETS) for (const p of s.props) if (p.build) assert.ok(BUILT[p.build], `${p.build} missing`);
@@ -20,7 +21,7 @@ test('every code-built prop the sets use exists, and every piece is finite with 
       for (const v of piece.nor) assert.ok(Number.isFinite(v), `${name} normal`);
       const su = piece.surface;
       if ('tex' in su) assert.ok(texIds.has(su.tex), `${name}: ${su.tex}`);
-      else if ('paint' in su) assert.ok(PAINTS.includes(su.paint), `${name}: ${su.paint}`);
+      else if ('paint' in su) assert.ok(PAINTS.includes(paintName(su.paint)), `${name}: ${su.paint}`);
       else assert.match(su.color, /^#[0-9a-f]{6}$/i);
     }
   }
@@ -35,7 +36,7 @@ test('building twice gives the same thing: no hidden state', () => {
 });
 
 test('painted faces span uv 0..1 so the canvas lands whole', () => {
-  for (const name of ['skyline', 'whiteboard', 'banner', 'teamPhoto', 'sign']) {
+  for (const name of ['skyline', 'whiteboard', 'banner', 'teamPhoto', 'jobsPoster', 'sign']) {
     const painted = BUILT[name]().find((p) => 'paint' in p.surface)!;
     const us = Array.from({ length: painted.uv.length / 2 }, (_, i) => painted.uv[i * 2]);
     const vs = Array.from({ length: painted.uv.length / 2 }, (_, i) => painted.uv[i * 2 + 1]);

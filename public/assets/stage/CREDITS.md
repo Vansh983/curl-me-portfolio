@@ -19,9 +19,11 @@ All from [Poly Haven](https://polyhaven.com), CC0. Optimised by scripts/stage-as
 - `wall_clock` (model) by PierreB3D, CC0, https://polyhaven.com/a/wall_clock. the clock.
 - `street_lamp_01` (model) by Josh Dean, CC0, https://polyhaven.com/a/street_lamp_01. the lamp post.
 - `modular_street_seating` (model) by Stuart Attenborrow, CC0, https://polyhaven.com/a/modular_street_seating. the bench.
-- `island_tree_01` (model) by Rob Tuytel, CC0, https://polyhaven.com/a/island_tree_01. the trees by the plaza (1.6 M triangles scanned, simplified to about 60 k).
+- `island_tree_01` (model) by Rob Tuytel, CC0, https://polyhaven.com/a/island_tree_01. the trees by the plaza (1.6 M triangles scanned, simplified to about a tenth).
 - `plank_flooring` (texture) by Dario Barresi, CC0, https://polyhaven.com/a/plank_flooring. the room floor.
-- `painted_plaster_wall` (texture) by Amal Kumar, CC0, https://polyhaven.com/a/painted_plaster_wall. the room and lab walls.
+- `painted_plaster_wall` (texture) by Amal Kumar, CC0, https://polyhaven.com/a/painted_plaster_wall. the passage walls.
+- `plastered_wall` (texture) by Amal Kumar, CC0, https://polyhaven.com/a/plastered_wall. the room walls, cream distemper.
+- `white_plaster_02` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/white_plaster_02. the lab walls.
 - `ceiling_interior` (texture) by Dimitrios Savva, CC0, https://polyhaven.com/a/ceiling_interior. the ceilings.
 - `old_linoleum_flooring_01` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/old_linoleum_flooring_01. the lab floor.
 - `concrete_pavement` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/concrete_pavement. the plaza.

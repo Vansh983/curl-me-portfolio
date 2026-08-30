@@ -39,10 +39,12 @@ export const ASSETS: Asset[] = [
   // 2018, the plaza
   model('street_lamp_01', 'Josh Dean', 'the lamp post'),
   model('modular_street_seating', 'Stuart Attenborrow', 'the bench'),
-  model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified to about 60 k)', 512, 0.004),
+  model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified to about a tenth)', 512, 0.0015),
   // surfaces on code-built shells
   tex('plank_flooring', 'Dario Barresi', 'the room floor'),
-  tex('painted_plaster_wall', 'Amal Kumar', 'the room and lab walls'),
+  tex('painted_plaster_wall', 'Amal Kumar', 'the passage walls'),
+  tex('plastered_wall', 'Amal Kumar', 'the room walls, cream distemper'),
+  tex('white_plaster_02', 'Rob Tuytel', 'the lab walls'),
   tex('ceiling_interior', 'Dimitrios Savva', 'the ceilings'),
   tex('old_linoleum_flooring_01', 'Charlotte Baglioni', 'the lab floor'),
   tex('concrete_pavement', 'Charlotte Baglioni', 'the plaza'),

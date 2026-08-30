@@ -7,7 +7,7 @@ import { buildShell } from './shell.ts';
 
 export type BuiltSurface =
   | { tex: string; tile: number } // a scanned set from the manifest
-  | { paint: string } // a canvas painted at runtime by name (window, whiteboard, banner, poster, sign, screen)
+  | { paint: string } // a canvas painted at runtime, 'name' or 'name:frame' (window, whiteboard, banner, poster:0, poster:1, sign)
   | { color: string; rough: number; metal: number; emissive?: string; emissivePower?: number; ripple?: boolean };
 
 export interface Built { pos: Float32Array; nor: Float32Array; uv: Float32Array; surface: BuiltSurface }
@@ -73,8 +73,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
       piece(rod.out(), { color: '#8A6E4E', rough: 0.5, metal: 0.2 }, { smooth: true }),
     ];
   },
-  /** The view out of the window: a painted quad 2.4 × 1.6 facing +z. */
-  skyline: () => [piece(face(2.4, 1.6), { paint: 'window' })],
+  /** The view out of the window: a painted quad 2.6 × 2.0 facing +z, big enough to fill the window from anywhere on the dolly. */
+  skyline: () => [piece(face(2.6, 2.0), { paint: 'window' })],
   /** The passage: 3 m long, 1.2 wide, 2.4 high, open at both ends, a bulb halfway. Built with its floor at the origin corner. */
   passage: () => {
     const sh = buildShell({
@@ -107,11 +107,17 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** The Converge Clan banner, 2.2 × 0.5, painted. */
   banner: () => [piece(face(2.2, 0.5, 0.01), { paint: 'banner' })],
+  /** The Jobs poster, 1.2 × 0.67, painted (frame 0 of `poster`), in a thin black frame. */
+  jobsPoster: () => {
+    const f = new Sink();
+    f.box(0, 0.345, 0.01, 1.24, 0.02, 0.02).box(0, -0.345, 0.01, 1.24, 0.02, 0.02).box(-0.61, 0, 0.01, 0.02, 0.67, 0.02).box(0.61, 0, 0.01, 0.02, 0.67, 0.02);
+    return [piece(face(1.2, 0.67, 0.005), { paint: 'poster:0' }), piece(f.out(), { color: '#1A1A1A', rough: 0.5, metal: 0 })];
+  },
   /** The team photo, 1.0 × 0.7, painted, in a wooden frame. */
   teamPhoto: () => {
     const f = new Sink();
     f.box(0, 0.365, 0.01, 1.06, 0.03, 0.03).box(0, -0.365, 0.01, 1.06, 0.03, 0.03).box(-0.515, 0, 0.01, 0.03, 0.7, 0.03).box(0.515, 0, 0.01, 0.03, 0.7, 0.03);
-    return [piece(face(1.0, 0.7, 0.005), { paint: 'poster' }), piece(f.out(), { color: '#5C4033', rough: 0.6, metal: 0 })];
+    return [piece(face(1.0, 0.7, 0.005), { paint: 'poster:1' }), piece(f.out(), { color: '#5C4033', rough: 0.6, metal: 0 })];
   },
   /** A tube light: the tube in a tray, 1.2 m, along x, hanging below the origin. */
   tube: () => {
