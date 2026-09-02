@@ -8,7 +8,8 @@ import { CatmullRomCurve3, Vector3 } from 'three';
 import type { V3 } from './sets.ts';
 
 export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1 }
-export interface Frame { q: number; set: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
+/** `from` and `into` are the sets a doorway joins; outside a doorway both equal `set`. */
+export interface Frame { q: number; set: number; from: number; into: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
 
 export const DOLLY: DollyKey[] = [
   // now: him at the desk from the side, the window on the right; then the camera pulls back and turns to the door
@@ -51,15 +52,16 @@ export function makeDolly(keys: DollyKey[]): (q: number) => Frame {
     const a = keys[k], b = keys[k + 1];
     const f = clamp01((q - a.q) / (b.q - a.q));
     const u = (k + f) / (n - 1);
-    let set = a.set, blend = 0, envDip = 1;
+    let set = a.set, from = a.set, into = a.set, blend = 0, envDip = 1;
     for (const [s, e] of windows) {
       if (q < keys[s].q || q > keys[e].q) continue;
       blend = clamp01((q - keys[s].q) / (keys[e].q - keys[s].q));
-      set = blend < 0.5 ? keys[s].set : keys[e].set;
+      from = keys[s].set; into = keys[e].set;
+      set = blend < 0.5 ? from : into;
       envDip = 1 - 0.88 * Math.sin(Math.PI * blend);
     }
     return {
-      q, set, blend, envDip,
+      q, set, from, into, blend, envDip,
       cam: cam.getPoint(u).toArray() as V3,
       look: look.getPoint(u).toArray() as V3,
       fov: a.fov + (b.fov - a.fov) * f,

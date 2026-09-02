@@ -22,6 +22,13 @@ test('blend windows come in pairs, 0 then 1, and the set flips inside them', () 
     assert.equal(dolly(mid + 1e-6).set, b.set);
     assert.ok(dolly(mid).envDip < 0.2);
     assert.equal(dolly(a.q - 0.01).envDip, 1);
+    for (const q of [a.q + 1e-6, mid, b.q - 1e-6]) {
+      assert.equal(dolly(q).from, a.set);
+      assert.equal(dolly(q).into, b.set);
+    }
+    const outside = dolly(a.q - 0.01);
+    assert.equal(outside.from, outside.set);
+    assert.equal(outside.into, outside.set);
   }
 });
 

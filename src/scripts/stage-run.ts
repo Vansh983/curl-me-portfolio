@@ -582,9 +582,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
     if (f.set !== curSet) enter(f.set);
     const S: StageSet = SETS[f.set];
-    scene.environmentIntensity = S.envPower * f.envDip;
-    hemi.intensity = S.tint.power * f.envDip;
-    sun.intensity = S.sun.power * f.envDip;
+    // inside a doorway the light dips, except a door onto daylight: there the frame flares white
+    // instead, the way eyes meet the sun, so the plaza is never seen dark under a bright sky
+    const daylight = f.from !== f.into && SETS[f.into].env === 'sky' && SETS[f.from].env !== 'sky';
+    const dip = daylight ? 1 : f.envDip;
+    scene.environmentIntensity = S.envPower * dip;
+    hemi.intensity = S.tint.power * dip;
+    sun.intensity = S.sun.power * dip;
+    renderer.toneMappingExposure = S.exposure * (daylight ? 1 + 4.5 * (1 - f.envDip) : 1);
     // the sun follows the look, so the shadow map stays tight around what is in frame
     const look = new Vector3(...f.look);
     sun.position.copy(look).addScaledVector(new Vector3(...S.sun.dir).normalize(), 30);
