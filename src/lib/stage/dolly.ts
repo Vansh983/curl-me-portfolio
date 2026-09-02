@@ -32,7 +32,8 @@ export const DOLLY: DollyKey[] = [
   { q: 0.8, cam: [9.5, 1.3, 2.8], look: [12.4, 1.2, 3.4], fov: 50, set: 2 }, // to the far door
   { q: 0.85, cam: [12.1, 1.3, 3.4], look: [14, 1.3, 3.4], fov: 54, set: 2, blend: 0 }, // door jamb
   { q: 0.885, cam: [13.4, 1.35, 3.4], look: [16, 1.4, 1.5], fov: 54, set: 3, blend: 1 }, // just outside
-  { q: 1.0, cam: [16.5, 1.6, 6.5], look: [24, 1.6, -12], fov: 48, set: 3 }, // the plaza, the sign, the bridge
+  { q: 0.94, cam: [15.0, 1.45, 2.6], look: [19.5, 1.3, 0.4], fov: 50, set: 3 }, // the sign and him come round
+  { q: 1.0, cam: [15.9, 1.45, 2.4], look: [20.8, 1.2, 0.05], fov: 54, set: 3 }, // him at the rail, the sign, the road and the bridge behind
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

@@ -42,10 +42,10 @@ const TV_SCREEN = { w: 0.3, h: 0.24, at: [0, 0.2, 0.178] as const };
 const GRAIN = 128; // pixels per grain tile: a faint normal, never a texture you would look at
 
 /** What he wears in a set, by bone: the top covers spine, shoulders and upper arms, long sleeves the forearms too, shorts leave the shins bare. */
-interface Wear { skin: string; top: string; legs: string; shoes: string; sleeves: 'long' | 'short'; shorts?: boolean; hoodie?: boolean; glasses?: boolean; tie?: boolean }
+interface Wear { skin: string; top: string; legs: string; shoes: string; sleeves: 'long' | 'short'; shorts?: boolean; hoodie?: boolean; glasses?: boolean; tie?: boolean; lanyard?: boolean }
 const WEAR: Record<Outfit, Wear> = {
   now: { skin: '#C68E6A', top: '#141416', legs: '#26334A', shoes: '#1A1A1C', sleeves: 'short', hoodie: true, glasses: true },
-  trip: { skin: '#C68E6A', top: '#141416', legs: '#1E2A44', shoes: '#EDEDEA', sleeves: 'short', hoodie: true, glasses: true },
+  trip: { skin: '#C68E6A', top: '#141416', legs: '#1E2A44', shoes: '#EDEDEA', sleeves: 'short', hoodie: true, glasses: true, lanyard: true },
   school: { skin: '#C68E6A', top: '#F4F4F2', legs: '#4A4E56', shoes: '#1A1A1C', sleeves: 'long', tie: true },
   kid: { skin: '#C68E6A', top: '#C8362E', legs: '#3B4A6B', shoes: '#EDEDEA', sleeves: 'short', shorts: true },
 };
@@ -219,6 +219,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       for (const [side, s] of [['L', 1], ['R', -1]] as const) {
         aim(`DEF-upper_arm.${side}`, `DEF-forearm.${side}`, new Vector3(0, -1, 0).addScaledVector(right, s * 0.16).addScaledVector(forward, 0.04));
         aim(`DEF-forearm.${side}`, `DEF-hand.${side}`, new Vector3(0, -1, 0).addScaledVector(right, s * 0.1).addScaledVector(forward, 0.18));
+        // the rest pose stands with the feet apart: bring the legs under him
+        aim(`DEF-thigh.${side}`, `DEF-shin.${side}`, new Vector3(0, -1, 0).addScaledVector(right, s * 0.03));
+        aim(`DEF-shin.${side}`, `DEF-foot.${side}`, new Vector3(0, -1, 0).addScaledVector(forward, -0.02));
       }
     }
     const head = bone('DEF-head');
@@ -266,13 +269,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         const hood = placeBuilt('hood', { build: 'hood', at: [0, 0, 0] });
         hand(hood, neck, collar.clone(), faceQuat, new Vector3(1, 1, 1));
       }
+      if (wear.lanyard) {
+        const lanyard = placeBuilt('lanyard', { build: 'lanyard', at: [0, 0, 0] });
+        hand(lanyard, chest, collar.clone().addScaledVector(forward, halfD * 0.98).addScaledVector(new Vector3(0, 1, 0), -0.02), faceQuat, new Vector3(1, 1, 1));
+      }
       if (wear.tie) {
         // the tie hangs from the collar down the front of the shirt
         const tie = placeBuilt('tie', { build: 'tie', at: [0, 0, 0] });
         hand(tie, chest, collar.clone().addScaledVector(forward, halfD * 0.92).addScaledVector(new Vector3(0, 1, 0), -0.03), faceQuat, new Vector3(1, 1, 1));
       }
       const up = new Vector3(0, 1, 0);
-      const segments = [[`upper_arm`, `forearm`, 0.075], ...(wear.hoodie || wear.sleeves === 'long' ? [[`forearm`, `hand`, 0.062]] : [])] as const;
+      const segments: Array<[string, string, number]> = [['upper_arm', 'forearm', 0.075]];
+      if (wear.hoodie || wear.sleeves === 'long') segments.push(['forearm', 'hand', 0.062]);
       for (const side of ['L', 'R'] as const) {
         for (const [a0, b0, r] of segments) {
           const a = `DEF-${a0}.${side}`, b = `DEF-${b0}.${side}`;

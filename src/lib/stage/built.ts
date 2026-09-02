@@ -53,6 +53,19 @@ const lcd = (paint: string) => (): BuiltPart => {
   return [piece(offsetGeo(face(0.38, 0.3, 0.001), 0, 0.36, 0), { paint }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
 };
 
+/** A car of 2019: body, glass cabin, roof, four wheels; 4.4 m long along x, its nose towards +x. */
+const car = (mat: string) => (): BuiltPart => {
+  const body = new Sink().box(0, 0.5, 0, 4.4, 0.55, 1.8).box(0.1, 1.24, 0, 2.2, 0.04, 1.5);
+  const glass = new Sink().box(0.1, 0.98, 0, 2.4, 0.5, 1.6);
+  const wheels = new Sink();
+  for (const [x, z] of [[-1.4, 0.85], [1.4, 0.85], [-1.4, -0.85], [1.4, -0.85]] as const) {
+    const start = wheels.count;
+    wheels.cylinder(x, 0.33, z, 0.33, 0.24, 12);
+    wheels.rotateX(0.33, z, Math.PI / 2, start);
+  }
+  return [piece(body.out(), M(mat)), piece(glass.out(), M('carGlass')), piece(wheels.out(), M('tyre'))];
+};
+
 export const BUILT: Record<string, () => BuiltPart> = {
   // ---- now, Toronto
   /** The desk: a black slab 1.8 × 0.75 on two steel frames; the top is at 0.74. */
@@ -279,6 +292,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** The view out of the window: a painted quad 2.6 × 2.0 facing +z, big enough to fill the window from anywhere on the dolly. */
   skyline: () => [piece(face(2.6, 2.0), { paint: 'window' })],
+  /** A door frame in a 0.9 × 2.05 opening: two jambs and a head, 0.3 deep so the wall reads thick on the way through; the opening runs along z. */
+  doorFrame: () => [piece(new Sink().box(-0.5, 1.025, 0, 0.1, 2.05, 0.3).box(0.5, 1.025, 0, 0.1, 2.05, 0.3).box(0, 2.1, 0, 1.1, 0.1, 0.3).out(), M('frameWood'))],
   /** The passage: 3 m long, 1.2 wide, 2.4 high, open at both ends, a bulb halfway. Built with its floor at the origin corner. */
   passage: () => {
     const sh = buildShell({
@@ -328,13 +343,82 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const base = new Sink().cylinder(0, 0.01, 0, 0.07, 0.02, 16);
     return [piece(cup.out(), M('gold'), { smooth: true }), piece(base.out(), M('gold'))];
   },
+  /** A lanyard: two green cords from the collar to a white badge on the chest; facing +z. */
+  lanyard: () => {
+    const cord = new Sink().bone([-0.05, 0, 0], [-0.022, -0.28, 0.012], 0.006, 0.006).bone([0.05, 0, 0], [0.022, -0.28, 0.012], 0.006, 0.006);
+    const badge = new Sink().box(0, -0.335, 0.008, 0.075, 0.1, 0.006);
+    return [piece(cord.out(), M('lanyardGreen')), piece(badge.out(), M('badgeCard'))];
+  },
+  // ---- 2018, the Embarcadero in front of Google San Francisco
+  /** The kerb between the sidewalk and the road, 40 m along x. */
+  kerb: () => [piece(new Sink().box(0, 0.06, 0, 40, 0.12, 0.28).out(), M('kerb'))],
+  /** The road: 40 × 14 m of asphalt, a dashed centre line. */
+  road: () => {
+    const line = new Sink();
+    for (let x = -19; x < 20; x += 3) line.box(x, 0.012, 7, 1.6, 0.01, 0.12);
+    return [piece(new Sink().quad([-20, 0, 14], [20, 0, 14], [20, 0, 0], [-20, 0, 0]).out(), M('asphalt'), { metres: 'xz' }), piece(line.out(), M('kerb'))];
+  },
+  /** The planter the sign stands in: a concrete wall 0.9 high and 7 long, a hedge on top, the brown rail along its front edge. Along x, the face towards +z. */
+  planter: () => {
+    const wall = new Sink().box(0, 0.45, 0, 7, 0.9, 1.6);
+    // a trimmed hedge: a block with a bumpy top
+    const hedge = new Sink().box(0, 1.2, -0.1, 6.8, 0.6, 1.25);
+    let seed = 7;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    for (let x = -3.3; x <= 3.3; x += 0.3) for (let z = -0.6; z <= 0.4; z += 0.33) hedge.sphere(x + (rnd() - 0.5) * 0.15, 1.44 + rnd() * 0.08, z + (rnd() - 0.5) * 0.1, 0.2, 0.14, 0.2, 7, 5);
+    const rail = new Sink().bone([-3.6, 1.05, 0.9], [3.6, 1.05, 0.9], 0.03, 0.03);
+    for (const x of [-3.2, -1.1, 1.1, 3.2]) rail.box(x, 0.98, 0.9, 0.04, 0.16, 0.04);
+    return [piece(wall.out(), M('concrete'), { metres: 'xy' }), piece(hedge.out(), M('hedge'), { smooth: true }), piece(rail.out(), M('rail'))];
+  },
+  /** A palm: a tapering trunk 7 m tall, a crown of twelve fronds. */
+  palm: () => {
+    const trunk = new Sink().lathe([[0.22, 0], [0.17, 2.5], [0.14, 5], [0.12, 7.1]], 0, 0, 0, 1, 1, 0.08, 10);
+    const crown = new Sink();
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * Math.PI * 2 + (i % 2) * 0.15, r = 2.4 + (i % 3) * 0.5, drop = 0.7 + (i % 3) * 0.7;
+      crown.bone([0, 7.1, 0], [r * Math.cos(a), 7.7 - drop, r * Math.sin(a)], 0.2, 0.04);
+    }
+    crown.sphere(0, 7, 0, 0.35, 0.3, 0.35, 8, 6);
+    return [piece(trunk.out(), M('palmTrunk'), { smooth: true }), piece(crown.out(), M('frond'))];
+  },
+  /** An Embarcadero lamp post: a fluted blue-green column 5.5 m tall with a globe. */
+  lampPost: () => {
+    const post = new Sink().lathe([[0.22, 0], [0.16, 0.4], [0.09, 0.5], [0.08, 4.6], [0.12, 4.8], [0.06, 5.1]], 0, 0, 0, 1, 1, 0, 10);
+    const globe = new Sink().sphere(0, 5.45, 0, 0.32, 0.4, 0.32, 10, 8);
+    return [piece(post.out(), M('lampPost'), { smooth: true }), piece(globe.out(), M('lampGlobe'), { smooth: true })];
+  },
+  carSilver: car('carSilver'),
+  carRed: car('carRed'),
+  carWhite: car('carWhite'),
+  /** The piers across the Embarcadero: two long two-storey sheds, cream walls, dark windows on the -z face, a red roof. Along x. */
+  piers: () => {
+    const walls = new Sink(), roof = new Sink(), glass = new Sink();
+    for (const [x0, len] of [[-30, 26], [4, 30]] as const) {
+      walls.box(x0 + len / 2, 4, 0, len, 8, 14);
+      roof.box(x0 + len / 2, 8.4, 0, len + 0.6, 0.8, 14.6);
+      for (let x = x0 + 1.5; x < x0 + len - 1; x += 2.2) { glass.box(x, 2.2, -7.05, 1.2, 1.8, 0.05); glass.box(x, 5.8, -7.05, 1.2, 1.6, 0.05); }
+    }
+    return [piece(walls.out(), M('pier')), piece(roof.out(), M('pierRoof')), piece(glass.out(), M('pierGlass'))];
+  },
+  /** Clouds: a few flattened white puffs, far up and far off, unlit. */
+  clouds: () => {
+    const s = new Sink();
+    let seed = 3;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    for (let i = 0; i < 9; i++) {
+      const cx = (rnd() - 0.5) * 900, cz = -250 - rnd() * 400, cy = 140 + rnd() * 90, w = 40 + rnd() * 60;
+      for (let k = 0; k < 4; k++) s.sphere(cx + (rnd() - 0.5) * w, cy + (rnd() - 0.5) * 8, cz + (rnd() - 0.5) * 20, w * (0.3 + rnd() * 0.3), 7 + rnd() * 6, w * 0.25, 8, 5);
+    }
+    return [piece(s.out(), M('cloud'), { smooth: true })];
+  },
   /** The bay: 200 × 120 m of water, uv in metres for the ripple. */
   water: () => [piece(slab(200, 120), M('water'), { metres: 'xz' })],
-  /** The Golden Gate: deck, two towers with braces, main cables, suspenders. Spans x, 300 m. */
+  /** The Bay Bridge: two decks, two towers with braces, main cables, suspenders. Spans x, 300 m; placed at scale 3. */
   bridge: () => {
     const s = new Sink();
     const L = 150, TX = 48, TH = 44, DY = 12;
-    s.box(0, DY, 0, 2 * L, 1.3, 6);
+    s.box(0, DY, 0, 2 * L, 1.3, 6).box(0, DY - 3.2, 0, 2 * L, 1.0, 6);
+    for (let x = -L + 2; x < L; x += 6) { s.box(x, DY - 1.6, 2.7, 0.3, 2.2, 0.3); s.box(x, DY - 1.6, -2.7, 0.3, 2.2, 0.3); }
     for (const tx of [-TX, TX]) {
       for (const leg of [-1, 1]) s.box(tx, TH / 2, leg * 2.4, 2.4, TH, 1.6);
       for (const h of [DY + 6, DY + 16, DY + 26, TH - 3]) s.box(tx, h, 0, 2.4, 2.6, 6.2);

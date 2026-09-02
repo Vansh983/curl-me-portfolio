@@ -166,24 +166,45 @@ export const SETS: StageSet[] = [
       { build: 'banner', at: [6.4, 2.35, -1.47], cap: 'Converge Clan.' },
       { build: 'teamPhoto', at: [6.4, 1.55, -1.47] },
       { build: 'tube', at: [8.7, 2.95, 1.5], live: 'tube' },
+      { build: 'doorFrame', at: [12.2, 0, 3.4], rot: [0, 90, 0] },
     ],
   },
   {
     id: 'plaza', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.25 }, exposure: 0.8, envPower: 0.7,
     sun: { dir: [0.35, 0.55, -0.75], color: '#FFF1D6', power: 2.6, shadow: 1 },
     fog: { color: '#C6D8E6', near: 200, far: 900 },
+    // the Embarcadero outside Google San Francisco, June 2019: the white sign in its planter, the
+    // hedge and the brown rail, him at the rail; palms behind, the Bay Bridge over the water to
+    // the left, the road and the piers across it. From his photo.
+    // Laid out as the photo: the camera on the sidewalk looking along it (+x); the planter and the
+    // sign ahead facing the camera, him at the rail left of the sign; the road, the lamp posts, the
+    // cars and the piers behind him on the left (-z); the Bay Bridge ahead and left over the bay.
     props: [
       { build: 'plazaFloor', at: [12.2, 0, 0] },
-      { build: 'counter', at: [22, 0, -10] },
-      { build: 'sign', at: [22, 1.55, -10.6], cap: 'Google Code-in 2018, grand prize.', href: 'https://codein.withgoogle.com/archive/2018/' },
-      { build: 'trophy', at: [21.2, 0.92, -9.8], cap: 'The trophy.' },
-      { model: 'street_lamp_01', at: [15.5, 0, -3] },
-      { model: 'modular_street_seating', at: [18, 0, 2], rot: [0, 90, 0] },
-      { model: 'island_tree_01', at: [28, 0, -6], scale: 1.1 },
-      { model: 'island_tree_01', at: [14, 0, -14], rot: [0, 130, 0], scale: 0.9 },
-      { build: 'water', at: [30, -0.2, -95], live: 'water', cap: 'The bay.' },
-      { build: 'bridge', at: [30, -0.2, -150] },
+      { build: 'kerb', at: [32, 0, -6.1] },
+      { build: 'road', at: [32, 0.02, -20.25] },
+      { build: 'piers', at: [40, 0, -47], rot: [0, 180, 0] },
+      { build: 'planter', at: [22, 0, 0.5], rot: [0, -90, 0] },
+      { build: 'sign', at: [22.4, 2.4, 1.6], rot: [0, -90, 0], cap: 'Google San Francisco, the Embarcadero. June 2019, the Code-in trip.', href: 'https://codein.withgoogle.com/archive/2018/' },
+      { build: 'trophy', at: [21.3, 0.92, -2.4], cap: 'Grand prize. One of 52 winners, out of thousands.' },
+      { model: 'base_character', at: [20.55, 0, -0.8], rot: [0, 90, 0], scale: 0.96, live: 'him', outfit: 'trip', pose: 'stand', cap: 'Me at seventeen. First flight out of India, with my dad.' },
+      { build: 'palm', at: [25, 0, 3.6] },
+      { build: 'palm', at: [26.5, 0, -1.5], scale: 0.9 },
+      { build: 'palm', at: [24.8, 0, -4.4], scale: 1.1 },
+      { model: 'island_tree_01', at: [30, 0, 7], scale: 1.0 },
+      { build: 'lampPost', at: [15.6, 0, -5.3] },
+      { build: 'lampPost', at: [25, 0, -5.3] },
+      { build: 'lampPost', at: [34.4, 0, -5.3] },
+      { build: 'carSilver', at: [21, 0, -9.2], rot: [0, 180, 0] },
+      { build: 'carRed', at: [31, 0, -9.6] },
+      { build: 'carWhite', at: [41, 0, -16.6] },
+      { build: 'water', at: [40, -0.2, -110], live: 'water', cap: 'The bay.' },
+      { build: 'water', at: [-120, -0.2, -110], live: 'water' },
+      { build: 'water', at: [40, -0.2, -230], live: 'water' },
+      { build: 'water', at: [-120, -0.2, -230], live: 'water' },
+      { build: 'bridge', at: [330, -0.2, -240], rot: [0, 35, 0], scale: 4 }, // its near tower 170 m off, left of the sign, rising out of frame
       { build: 'boats', at: [10, -0.2, -60] },
+      { build: 'clouds', at: [0, 0, 0], shadow: false },
     ],
   },
 ];
