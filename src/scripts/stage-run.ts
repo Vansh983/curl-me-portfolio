@@ -519,9 +519,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     obj.position.set(...p.at);
     if (p.rot) obj.rotation.set(p.rot[0] * D, p.rot[1] * D, p.rot[2] * D);
     if (p.scale !== undefined) typeof p.scale === 'number' ? obj.scale.setScalar(p.scale) : obj.scale.set(...p.scale);
-    if (p.live === 'city') {
-      obj.visible = set === curSet;
-      live.backdrops.push({ root: obj, sets: [set] });
+    if (p.live === 'city' || p.live === 'sky') {
+      const sets = p.live === 'sky' ? [Math.max(0, set - 1), set] : [set];
+      obj.visible = sets.includes(curSet);
+      live.backdrops.push({ root: obj, sets });
     }
     groups[set].add(obj);
     if (p.cap) hot.push({ root: obj, p, set });
@@ -550,6 +551,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       groups[i].add(sky);
     }
     await Promise.all(S.props.map((p) => place(p, i)));
+    groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
     scene.add(groups[i]);
     kick();
   };
@@ -617,6 +619,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const enter = (i: number) => {
     curSet = i;
     showSetBackdrops(live.backdrops, i);
+    // the sets share one scene along x; only a neighbour can be seen through a door, so the rest
+    // are hidden (the San Francisco piers once stood in the line from the Toronto window to the CN Tower)
+    groups.forEach((g, k) => { g.visible = Math.abs(k - i) <= 1; });
     const S = SETS[i];
     scene.environment = S.env === 'sky' ? skyEnv : studioEnv;
     renderer.toneMappingExposure = S.exposure;

@@ -1,7 +1,7 @@
 // The world as data: four sets along +x, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
-//   Set 0 NOW      x -8.4..-4.2  z -2.2..2.2   h 2.5   Toronto, high up; window on z-, door on +x wall at z 1.6
+//   Set 0 NOW      x -8.4..-4.2  z -2.2..2.2   h 2.8   Toronto, high up; window on z-, door on +x wall at z 1.6
 //   Passage        x -4.2..-2.4  z  1.0..2.2   h 2.4
 //   Set 1 ROOM     x -2.4..1.2   z -2.1..2.1   h 2.7   compact; doors on x- and x+ walls at z 1.6
 //   Passage        x  1.2..3.0   z  1.0..2.2   h 2.4   plain, one bulb
@@ -23,7 +23,8 @@ export interface Shell {
   openings: Opening[];
 }
 
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'him' | 'lamp' | 'screen' | 'city';
+/** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'him' | 'lamp' | 'screen' | 'city' | 'sky';
 /** What he wears in a set: now (hoodie), the 2018 trip (hoodie, Google tee), school in 2013 (white shirt, tie), a kid in 2010. */
 export type Outfit = 'now' | 'trip' | 'school' | 'kid';
 
@@ -74,15 +75,15 @@ export const SETS: StageSet[] = [
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
     shell: {
-      x: [-8.4, -4.2], z: [-2.2, 2.2], h: 2.5,
+      x: [-8.4, -4.2], z: [-2.2, 2.2], h: 2.8,
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
         { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
-        { wall: 'z-', at: -6.3, w: 4.0, h: 2.5, sill: 0 }, // floor to ceiling glass
+        { wall: 'z-', at: -6.3, w: 4.0, h: 2.8, sill: 0 }, // floor to ceiling glass, a 2.8 m ceiling
       ],
     },
     props: [
-      { build: 'mullions', at: [-6.3, 0, -2.2], scale: [0.8, 1.25, 1] },
+      { build: 'mullions', at: [-6.3, 0, -2.2], scale: [0.8, 1.4, 1] },
       { build: 'city', at: [-6.3, -100, -2.2], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.', shadow: false },
       { build: 'nightSky', at: [-6.3, 0, -2.2], live: 'city', shadow: false },
       { build: 'rugGrey', at: [-5.1, 0, -0.4] },
@@ -198,7 +199,7 @@ export const SETS: StageSet[] = [
       { build: 'water', at: [-124, -0.2, -230], live: 'water' },
       { build: 'bridge', at: [326, -0.2, -240], rot: [0, 35, 0], scale: 4 }, // its near tower 170 m off, left of the sign, rising out of frame
       { build: 'boats', at: [6, -0.2, -60] },
-      { build: 'clouds', at: [0, 0, 0], shadow: false },
+      { build: 'clouds', at: [0, 0, 0], live: 'sky', shadow: false }, // 400 m up and out: scoped, or they drift into the Toronto window
     ],
   },
 ];
