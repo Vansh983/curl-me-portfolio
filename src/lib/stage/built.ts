@@ -145,7 +145,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
       into.box(cx, h / 2, cz, w, h, d, { pz: fx(w), nz: fx(w), px: fx(d), nx: fx(d) });
       tops.box(cx, h + 0.4, cz, w, 0.8, d);
     };
-    // across the street and the next blocks: 60 to 320 m out, most below the 30th floor, some past it
+    // across the street and the next blocks: 60 to 320 m out. He is 100 m up: the tops of nearly all
+    // of these sit below the eye, a few reach past it, so the window is city below and sky above
     const taken: Array<[number, number, number]> = [];
     const fits = (x: number, z: number, r: number) => taken.every(([tx, tz, tr]) => Math.hypot(tx - x, tz - z) > r + tr + 12);
     let tries = 0;
@@ -155,17 +156,18 @@ export const BUILT: Record<string, () => BuiltPart> = {
       if (Math.abs(cx) < 40 && cz > -90) continue; // the street below the window stays open
       if (!fits(cx, cz, Math.max(w, d) / 2)) continue;
       taken.push([cx, cz, Math.max(w, d) / 2]);
-      const h = 40 + rnd() * rnd() * 150 + (rnd() < 0.2 ? 60 : 0);
+      const h = 30 + rnd() * rnd() * 70 + (rnd() < 0.15 ? 45 : 0);
       tower(cx, cz, w, d, h, near);
     }
     // the rest of downtown, 320 to 900 m out, dimmer
     for (let i = 0; i < 44; i++) {
       const cx = (rnd() - 0.5) * 1400, cz = -320 - rnd() * 580;
-      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = 35 + rnd() * rnd() * 200;
+      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = 30 + rnd() * rnd() * 120;
       tower(cx, cz, w, d, h, far);
     }
-    // the CN Tower, half a kilometre off: shaft to 330 m, the main pod, on to the SkyPod at 447, the antenna to 553
-    const TX = 90, TZ = -520;
+    // the CN Tower, 1.8 km off and 26 degrees right of the window (right of the hero text): a slim spire, shaft to 330 m, the main pod (7
+    // degrees above the eye from here), on to the SkyPod at 447, the antenna to 553
+    const TX = 800, TZ = -1650;
     const cn = new Sink().lathe([[15, 0], [11, 120], [8.5, 300], [7.5, 330], [7.5, 350], [6, 440], [4, 447], [3.5, 455], [2.2, 456], [1.6, 553]], TX, 0, TZ, 1, 1, 0, 14);
     const pod = new Sink().lathe([[8, 328], [30, 331], [33, 338], [32, 346], [24, 352], [8, 354]], TX, 0, TZ, 1, 1, 0, 18)
       .lathe([[4, 446], [11, 447], [12, 452], [9, 456], [4, 457]], TX, 0, TZ, 1, 1, 0, 14);

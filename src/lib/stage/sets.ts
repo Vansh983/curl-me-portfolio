@@ -66,8 +66,8 @@ export const SETS: StageSet[] = [
   {
     // now: a small condo room high above Toronto at night. The desk lamp and the screens light
     // him; the city through the window lights the rest, cool and faint. Everything is close.
-    id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.14 }, exposure: 0.85, envPower: 0.08,
-    sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.35, shadow: 0.7 },
+    id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035,
+    sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
     shell: {
       x: [-8.4, -4.2], z: [-2.2, 2.2], h: 2.5,
@@ -92,7 +92,7 @@ export const SETS: StageSet[] = [
       { build: 'laptop', at: [-4.73, 0.74, 0.25], rot: [0, -120, 0], live: 'screen' },
       { build: 'pcTower', at: [-4.33, 0, 0.1], rot: [0, -90, 0] },
       { model: 'desk_lamp_arm_01', at: [-4.3, 0.74, -1.15], rot: [0, -150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
-      { build: 'officeChair', at: [-5.3, 0, -0.4], rot: [0, -90, 0], scale: [1.1, 1.12, 1.1] },
+      { build: 'officeChair', at: [-5.3, 0, -0.4], rot: [0, 90, 0], scale: [1.1, 1.12, 1.1] }, // its back away from the desk, behind him
       { model: 'base_character', at: [-5.3, 0, -0.4], rot: [0, -90, 0], scale: 0.92, live: 'him', cap: 'Me. Hoodie, glasses, two screens and a laptop.' },
       { model: 'steel_frame_shelves_01', at: [-8.12, 0, 0.3], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
       { model: 'book_encyclopedia_set_01', at: [-8.12, 0.98, 0.3], rot: [0, 90, 0], scale: 0.9 },

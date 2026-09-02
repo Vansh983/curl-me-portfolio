@@ -418,7 +418,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       }
       if (p.live === 'screen' && 'paint' in piece.surface && name === 'monitor') {
         // the screens light his face and the desk: one cool light for the pair
-        const light = new PointLight('#9FB8FF', 1.6, 2.5, 1.8);
+        const light = new PointLight('#9FB8FF', 0.9, 2.2, 1.8);
         light.position.set(0, 0.7, 0.35);
         g.add(light);
       }
@@ -442,7 +442,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       obj = (await loadModel(p.model)).scene.clone();
       if (p.live === 'fan') live.fans.push(obj);
       if (p.live === 'lamp') {
-        const light = new PointLight('#FFC98A', 5, 4, 1.8);
+        const light = new PointLight('#FFC98A', 1.5, 2.1, 1.8); // the desk, not the wall
         light.position.set(0.05, 0.78, 0.2);
         obj.add(light);
       }

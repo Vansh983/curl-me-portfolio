@@ -21,7 +21,7 @@ export interface Mat {
 
 export const MATS: Record<string, Mat> = {
   // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
-  condoWall: { color: '#ECE9E3', rough: 0.92, grain: 'plaster', amp: 0.08, tile: 2.5 },
+  condoWall: { color: '#C9C3B9', rough: 0.92, grain: 'plaster', amp: 0.08, tile: 2.5 },
   condoCeiling: { color: '#F6F5F2', rough: 0.95, tile: 1 },
   condoFloor: { color: '#FFFFFF', rough: 0.45, paint: 'planksPale', grain: 'plank', amp: 0.15, tile: 2.4 },
   deskTop: { color: '#1F1F22', rough: 0.45, tile: 1 },
@@ -51,8 +51,8 @@ export const MATS: Record<string, Mat> = {
   towerReflect: { color: '#3A4666', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
   towerTop: { color: '#0A0D18', rough: 1, unlit: true, tile: 1, fog: false },
   lake: { color: '#070A16', rough: 1, unlit: true, tile: 1, fog: false },
-  cnShaft: { color: '#3E4370', rough: 0.7, emissive: '#5B5FC8', emissivePower: 0.45, tile: 1, fog: false },
-  cnPod: { color: '#3A3F60', rough: 0.6, emissive: '#FFE7B0', emissivePower: 1.1, tile: 1, fog: false },
+  cnShaft: { color: '#2A2D4A', rough: 0.7, emissive: '#5A5FC8', emissivePower: 0.3, tile: 1, fog: false },
+  cnPod: { color: '#2E3350', rough: 0.6, emissive: '#FFE7B0', emissivePower: 0.9, tile: 1, fog: false },
   cnLight: { color: '#FF4A4A', rough: 0.5, emissive: '#FF3030', emissivePower: 4, tile: 1, fog: false },
   dome: { color: '#C9CED8', rough: 0.9, emissive: '#3A4260', emissivePower: 0.5, tile: 1, fog: false },
   nightSky: { color: '#FFFFFF', rough: 1, paint: 'nightSky', tile: 1, unlit: true, fog: false, inside: true },
