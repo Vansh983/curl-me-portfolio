@@ -57,7 +57,7 @@ test('the dolly is inside the doorway when it says it is', () => {
   const e = dolly(0.21);
   assert.ok(Math.abs(e.cam[0] + 4.1) < 0.05 && Math.abs(e.cam[2] - 1.6) < 0.1, `${e.cam}`);
   const f = dolly(0.513);
-  assert.ok(Math.abs(f.cam[0] - 2.6) < 0.05 && Math.abs(f.cam[2] - 1.6) < 0.1, `${f.cam}`);
+  assert.ok(Math.abs(f.cam[0] - 1.1) < 0.05 && Math.abs(f.cam[2] - 1.6) < 0.1, `${f.cam}`);
   const g = dolly(0.85);
-  assert.ok(Math.abs(g.cam[0] - 12.1) < 0.05 && Math.abs(g.cam[2] - 3.4) < 0.1, `${g.cam}`);
+  assert.ok(Math.abs(g.cam[0] - 8.1) < 0.05 && Math.abs(g.cam[2] - 2.6) < 0.1, `${g.cam}`);
 });

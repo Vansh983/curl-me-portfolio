@@ -12,29 +12,27 @@ export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: numb
 export interface Frame { q: number; set: number; from: number; into: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
 
 export const DOLLY: DollyKey[] = [
-  // now: him at the desk from the side, the window on the right; then the camera pulls back and turns to the door
-  // now: the whole room from the door corner, him at the desk on the left, the window and the bed on the right
-  // now: the whole room from the far corner by the shelves; him at the desk on the right, the bed under the window on the left
+  // now: the whole room from the far corner by the shelves; the desk on the right, the bed under the window on the left
   { q: 0.0, cam: [-7.85, 1.65, 2.0], look: [-6.0, 1.5, -0.9], fov: 60, set: 0 },
   { q: 0.05, cam: [-8.0, 1.6, 1.85], look: [-6.3, 1.55, -1.4], fov: 56, set: 0 },
-  { q: 0.11, cam: [-6.9, 1.45, 1.9], look: [-5.6, 1.35, -0.4], fov: 52, set: 0 }, // him at the desk from the corner
+  { q: 0.11, cam: [-6.9, 1.45, 1.9], look: [-5.6, 1.35, -0.4], fov: 52, set: 0 }, // the desk from the corner
   { q: 0.15, cam: [-6.2, 1.4, 1.95], look: [-4.3, 1.25, 1.45], fov: 50, set: 0 }, // turning to the door, clear of the hutch
   { q: 0.19, cam: [-5.0, 1.25, 1.75], look: [-3.6, 1.2, 1.6], fov: 50, set: 0 },
-  { q: 0.21, cam: [-4.1, 1.2, 1.6], look: [-2.4, 1.2, 1.6], fov: 54, set: 0, blend: 0 }, // door jamb
-  { q: 0.25, cam: [-3.1, 1.2, 1.6], look: [-1.0, 1.2, 1.4], fov: 54, set: 1, blend: 1 }, // mid passage
-  { q: 0.29, cam: [-1.0, 1.2, 2.15], look: [0.3, 1.0, -0.8], fov: 50, set: 1 }, // into the 2010 room
-  { q: 0.333, cam: [0.9, 1.5, 3.0], look: [0, 0.6, -2.2], fov: 46, set: 1 }, // the room: him on the pouf, the TV
-  { q: 0.40, cam: [1.2, 1.35, 2.5], look: [2.2, 1.0, 0.2], fov: 48, set: 1 }, // past the shelf, toward the door corner
-  { q: 0.467, cam: [1.4, 1.2, 1.7], look: [2.6, 1.2, 1.6], fov: 50, set: 1 }, // turning to the door
-  { q: 0.513, cam: [2.6, 1.2, 1.6], look: [4.5, 1.2, 1.6], fov: 54, set: 1, blend: 0 }, // door jamb
-  { q: 0.547, cam: [3.7, 1.2, 1.6], look: [5.6, 1.2, 1.6], fov: 54, set: 2, blend: 1 }, // mid passage
-  { q: 0.587, cam: [5.3, 1.4, 2.4], look: [7.4, 1.05, 0.5], fov: 50, set: 2 }, // into the lab, behind him
-  { q: 0.667, cam: [5.6, 1.55, 2.9], look: [6.9, 0.95, 0.4], fov: 46, set: 2 }, // over his shoulder: the desk, Notepad
-  { q: 0.8, cam: [9.5, 1.3, 2.8], look: [12.4, 1.2, 3.4], fov: 50, set: 2 }, // to the far door
-  { q: 0.85, cam: [12.1, 1.3, 3.4], look: [14, 1.3, 3.4], fov: 54, set: 2, blend: 0 }, // door jamb
-  { q: 0.885, cam: [13.4, 1.35, 3.4], look: [16, 1.4, 1.5], fov: 54, set: 3, blend: 1 }, // just outside
-  { q: 0.94, cam: [15.0, 1.45, 2.6], look: [19.5, 1.3, 0.4], fov: 50, set: 3 }, // the sign and him come round
-  { q: 1.0, cam: [15.9, 1.45, 2.4], look: [20.8, 1.2, 0.05], fov: 54, set: 3 }, // him at the rail, the sign, the road and the bridge behind
+  { q: 0.21, cam: [-4.1, 1.2, 1.6], look: [-2.6, 1.2, 1.6], fov: 54, set: 0, blend: 0 }, // door jamb
+  { q: 0.25, cam: [-3.3, 1.2, 1.6], look: [-1.6, 1.2, 1.5], fov: 54, set: 1, blend: 1 }, // mid passage
+  { q: 0.29, cam: [-1.7, 1.2, 1.65], look: [-0.6, 1.0, -0.6], fov: 50, set: 1 }, // into the 2010 room
+  { q: 0.333, cam: [0.2, 1.4, 1.6], look: [-0.6, 0.7, -1.7], fov: 48, set: 1 }, // the room from the door corner: the pouf, the TV
+  { q: 0.40, cam: [-0.9, 1.3, 1.5], look: [0.5, 1.1, -1.5], fov: 48, set: 1 }, // the shelf and the poster, before the turn to the door
+  { q: 0.467, cam: [0.0, 1.2, 1.65], look: [1.4, 1.2, 1.6], fov: 50, set: 1 }, // turning to the door
+  { q: 0.513, cam: [1.1, 1.2, 1.6], look: [3.0, 1.2, 1.6], fov: 54, set: 1, blend: 0 }, // door jamb
+  { q: 0.547, cam: [2.1, 1.2, 1.6], look: [4.0, 1.2, 1.6], fov: 54, set: 2, blend: 1 }, // mid passage
+  { q: 0.587, cam: [3.6, 1.4, 2.3], look: [5.4, 1.05, 0.4], fov: 50, set: 2 }, // into the lab
+  { q: 0.667, cam: [3.5, 1.5, 2.2], look: [4.4, 0.95, 0.2], fov: 46, set: 2 }, // over the front left desk: Notepad
+  { q: 0.8, cam: [5.9, 1.3, 2.4], look: [8.4, 1.2, 2.6], fov: 50, set: 2 }, // to the far door
+  { q: 0.85, cam: [8.1, 1.3, 2.6], look: [10, 1.3, 2.6], fov: 54, set: 2, blend: 0 }, // door jamb
+  { q: 0.885, cam: [9.4, 1.35, 2.6], look: [12, 1.4, 0.7], fov: 54, set: 3, blend: 1 }, // just outside
+  { q: 0.94, cam: [11.0, 1.45, 1.8], look: [15.5, 1.3, -0.4], fov: 50, set: 3 }, // the sign comes round
+  { q: 1.0, cam: [11.9, 1.45, 1.6], look: [16.8, 1.55, -0.3], fov: 54, set: 3 }, // the sign, the trophy, the road and the bridge behind
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
