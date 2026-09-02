@@ -37,7 +37,7 @@ Reference: his photo at the Google San Francisco sign on the Embarcadero, the Ba
 - The dolly's last keys re-aimed: out of the lab door onto the sidewalk, turn, the sign and the
   bridge, end on him.
 
-## 5. Doorways — the lab door frame is in; the five-stop check per doorway is still open
+## 5. Doorways — done: lab door frame; a 26-frame audit fixed the hutch clip (q 0.16) and the head clip (q 0.60); portrait crop keeps heads in frame
 - The lab exit shows no jamb: a door frame and a thicker wall so the frame is jamb for a moment.
 - Every doorway checked at 5 stops each side.
 
@@ -53,3 +53,8 @@ Reference: his photo at the Google San Francisco sign on the Embarcadero, the Ba
   screenshot again. A background tab pauses requestAnimationFrame, which is why frames lag or the
   page looks frozen when the window is behind.
 - Headless: `.cache/shoot.mjs out q...` for many stops fast.
+
+## Audit recipe (2026-09-01)
+- `node .cache/shoot.mjs audit $(python3 -c "print(' '.join(f'{i/25:.3f}' for i in range(26)))")` then
+  `node .cache/sheet.mjs sheet.png 3 audit/*.png` for a contact sheet (images embedded as data URIs; file:// images do not load in headless).
+- Portrait: `W=390 H=844`, sheet with `AR=2.164` and 6 columns.

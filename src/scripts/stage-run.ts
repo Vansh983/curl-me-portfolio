@@ -641,7 +641,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const v = 2 * Math.atan(Math.tan((f.fov * D) / 2) / camera.aspect);
     camera.fov = Math.min(78, Math.max(35, v / D));
     const shift = Math.max(0, 1 - camera.aspect) * 0.9;
-    if (shift > 0.01) camera.setViewOffset(w, h * (1 + shift), 0, h * shift, w, h);
+    // the window sits low in the taller frame, but not at its foot: the eye line lands 40 percent down, so heads keep clear of the top
+    if (shift > 0.01) camera.setViewOffset(w, h * (1 + shift), 0, h * shift * 0.7, w, h);
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();
 
