@@ -184,6 +184,9 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const TX = 877, TZ = -1797;
     const cnAng = Math.atan2(TX, -TZ);
     const inCorridor = (x: number, z: number) => Math.abs(Math.atan2(x, -z) - cnAng) < 0.09;
+    // nothing may look taller than the CN Tower from the window: from 100 m up its tip sits 12.8 degrees
+    // above the eye, so every other roof stays under 9 degrees (about 70 percent of it)
+    const cap = (x: number, z: number) => 100 + 0.16 * Math.hypot(x, z);
     // across the street and the next blocks: 60 to 320 m out. He is 100 m up: most tops sit below the
     // eye, a good few reach well past it, as downtown Toronto does
     const taken: Array<[number, number, number]> = [];
@@ -196,21 +199,22 @@ export const BUILT: Record<string, () => BuiltPart> = {
       if (inCorridor(cx, cz)) continue;
       if (!fits(cx, cz, Math.max(w, d) / 2)) continue;
       taken.push([cx, cz, Math.max(w, d) / 2]);
-      const h = 40 + rnd() * rnd() * 90 + (rnd() < 0.2 ? 70 : 0); // the near blocks: up to 130, a few to 200; the tall ones stand further back
+      const h = Math.min(40 + rnd() * rnd() * 90 + (rnd() < 0.2 ? 70 : 0), cap(cx, cz)); // the near blocks
       tower(cx, cz, w, d, h, near);
     }
     // the rest of downtown, 320 to 900 m out, dimmer
     for (let i = 0; i < 44; i++) {
       const cx = (rnd() - 0.5) * 1400, cz = -320 - rnd() * 580;
-      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = 40 + rnd() * rnd() * 180;
+      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = Math.min(40 + rnd() * rnd() * 180, cap(cx, cz));
       if (inCorridor(cx, cz)) continue;
       tower(cx, cz, w, d, h, far);
     }
-    // the financial district: ten towers of 220 to 330 m either side of the corridor, 450 to 850 m out
+    // the financial district: ten towers of 250 to 330 m either side of the corridor, 1.1 to 1.6 km out,
+    // so they stand at 70 to 80 percent of the CN Tower from here and never over it
     for (let i = 0; i < 10; i++) {
-      const side = i % 2 ? 1 : -1, ang = cnAng + side * (0.14 + rnd() * 0.3), dist = 450 + rnd() * 400;
+      const side = i % 2 ? 1 : -1, ang = cnAng + side * (0.12 + rnd() * 0.3), dist = 1100 + rnd() * 500;
       const cx = dist * Math.sin(ang), cz = -dist * Math.cos(ang);
-      const w = 36 + rnd() * 24, d = 36 + rnd() * 24, h = 220 + rnd() * 110;
+      const w = 36 + rnd() * 24, d = 36 + rnd() * 24, h = Math.min(250 + rnd() * 80, cap(cx, cz));
       if (inCorridor(cx, cz)) continue;
       tower(cx, cz, w, d, h, far);
     }
@@ -290,6 +294,40 @@ export const BUILT: Record<string, () => BuiltPart> = {
     return [piece(s.out(), M('tvWood'), { metres: 'xz' })];
   },
   /** A clean open shelf: two uprights, a back, five shelves, 1.2 wide, 1.9 tall, 0.32 deep, teak. */
+  /** A small shelf unit, 0.8 wide, 0.9 tall, 0.26 deep: three shelves and a top. */
+  smallShelf: () => {
+    const s = new Sink();
+    s.box(-0.39, 0.45, 0, 0.02, 0.9, 0.26).box(0.39, 0.45, 0, 0.02, 0.9, 0.26).box(0, 0.45, -0.12, 0.8, 0.9, 0.02);
+    for (const y of [0.04, 0.32, 0.6, 0.88]) s.box(0, y, 0, 0.78, 0.02, 0.24);
+    return [piece(s.out(), M('shelfWood'), { metres: 'xy' })];
+  },
+  /** Seven anime figures in a row on a shelf, 0.13 to 0.16 tall on black bases, facing +z: Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta. */
+  figures: () => {
+    const sinks = new Map<string, Sink>();
+    const at = (m: string) => { let k = sinks.get(m); if (!k) { k = new Sink(); sinks.set(m, k); } return k; };
+    const cast: Array<[string, string, string | null, number]> = [
+      ['figOrange', 'figOrange', 'hairYellow', 1.0], ['figOrange', 'figBlue', 'hairBlack', 1.05], ['figRed', 'figBlue', 'hairBlack', 0.95],
+      ['figBlack', 'figBlack', 'hairOrange', 1.0], ['figYellow', 'figYellow', null, 0.95], ['figGreen', 'figWhite', 'hairBlack', 0.9], ['figBlue', 'figBlue', 'hairBlack', 1.05],
+    ];
+    cast.forEach(([top, legs, hair, k], i) => {
+      const x = -0.3 + i * 0.1, s = 0.13 * k;
+      at('figBase').cylinder(x, 0.005, 0, 0.032, 0.01, 16);
+      at(legs).box(x - 0.011, 0.01 + s * 0.22, 0, 0.016, s * 0.44, 0.02).box(x + 0.011, 0.01 + s * 0.22, 0, 0.016, s * 0.44, 0.02);
+      at(top).box(x, 0.01 + s * 0.62, 0, 0.05, s * 0.36, 0.026);
+      at('figSkin').box(x - 0.034, 0.01 + s * 0.6, 0, 0.012, s * 0.32, 0.014).box(x + 0.034, 0.01 + s * 0.6, 0, 0.012, s * 0.32, 0.014);
+      at('figSkin').sphere(x, 0.01 + s * 0.9, 0, s * 0.11, s * 0.11, s * 0.1, 14, 10);
+      if (hair) at(hair).lathe([[s * 0.115, 0], [s * 0.12, s * 0.06], [s * 0.05, s * 0.17], [s * 0.01, s * 0.24]], x, 0.01 + s * 0.9, 0, 1, 1, 0, 12);
+    });
+    return [...sinks.entries()].map(([m, k]) => piece(k.out(), M(m), { smooth: m === 'figSkin' }));
+  },
+  /** The original white Xbox 360, standing: 8 wide, 31 tall, 26 deep; the green ring and the tray on the front (+z). */
+  xbox360: () => {
+    const body = new Sink().box(0, 0.155, 0, 0.083, 0.31, 0.26).box(0, 0.155, 0.13, 0.072, 0.3, 0.008);
+    const grey = new Sink().box(0, 0.155, 0.135, 0.06, 0.3, 0.004);
+    const chrome = new Sink().box(0, 0.24, 0.138, 0.05, 0.016, 0.003).box(0, 0.045, 0.138, 0.02, 0.012, 0.003);
+    const ring = new Sink().sphere(0, 0.12, 0.139, 0.02, 0.02, 0.003, 18, 6);
+    return [piece(body.out(), M('xboxWhite')), piece(grey.out(), M('xboxGrey')), piece(chrome.out(), M('xboxChrome')), piece(ring.out(), M('xboxGreen'), { smooth: true })];
+  },
   shelf: () => {
     const s = new Sink();
     s.box(-0.59, 0.95, 0, 0.02, 1.9, 0.32).box(0.59, 0.95, 0, 0.02, 1.9, 0.32).box(0, 0.95, -0.15, 1.2, 1.9, 0.02);

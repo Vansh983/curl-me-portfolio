@@ -21,8 +21,8 @@ export const DOLLY: DollyKey[] = [
   { q: 0.21, cam: [-4.1, 1.2, 1.6], look: [-2.6, 1.2, 1.6], fov: 54, set: 0, blend: 0 }, // door jamb
   { q: 0.25, cam: [-3.3, 1.2, 1.6], look: [-1.6, 1.2, 1.5], fov: 54, set: 1, blend: 1 }, // mid passage
   { q: 0.29, cam: [-1.7, 1.2, 1.65], look: [-0.6, 1.0, -0.6], fov: 50, set: 1 }, // into the 2010 room
-  { q: 0.333, cam: [0.2, 1.4, 1.6], look: [-0.6, 0.7, -1.7], fov: 48, set: 1 }, // the room from the door corner: the pouf, the TV
-  { q: 0.40, cam: [-0.9, 1.3, 1.5], look: [0.5, 1.1, -1.5], fov: 48, set: 1 }, // the shelf and the poster, before the turn to the door
+  { q: 0.333, cam: [0.2, 1.3, 1.6], look: [-0.5, 0.45, -1.75], fov: 48, set: 1 }, // the room from the door corner: the pouf, the TV
+  { q: 0.40, cam: [-0.7, 1.2, 1.2], look: [0.7, 0.75, -1.7], fov: 46, set: 1 }, // the shelf and the poster, before the turn to the door
   { q: 0.467, cam: [0.0, 1.2, 1.65], look: [1.4, 1.2, 1.6], fov: 50, set: 1 }, // turning to the door
   { q: 0.513, cam: [1.1, 1.2, 1.6], look: [3.0, 1.2, 1.6], fov: 54, set: 1, blend: 0 }, // door jamb
   { q: 0.547, cam: [2.1, 1.2, 1.6], look: [4.0, 1.2, 1.6], fov: 54, set: 2, blend: 1 }, // mid passage
