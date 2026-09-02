@@ -46,6 +46,13 @@ const offsetGeo = (g: Geo, dx: number, dy: number, dz: number): Geo => {
 const frame = (w: number, h: number, t: number, z: number): Sink =>
   new Sink().box(0, h / 2 + t / 2, z, w + 2 * t, t, t).box(0, -h / 2 - t / 2, z, w + 2 * t, t, t).box(-w / 2 - t / 2, 0, z, t, h, t).box(w / 2 + t / 2, 0, z, t, h, t);
 
+/** A 19 inch 5:4 LCD on a round foot, its screen a painted face towards +z. */
+const lcd = (paint: string) => (): BuiltPart => {
+  const body = new Sink().box(0, 0.36, -0.012, 0.42, 0.34, 0.024);
+  const stand = new Sink().box(0, 0.1, -0.05, 0.04, 0.2, 0.02).cylinder(0, 0.006, -0.05, 0.11, 0.012, 14);
+  return [piece(offsetGeo(face(0.38, 0.3, 0.001), 0, 0.36, 0), { paint }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
+};
+
 export const BUILT: Record<string, () => BuiltPart> = {
   // ---- now, Toronto
   /** The desk: a black slab 1.8 × 0.75 on two steel frames; the top is at 0.74. */
@@ -220,6 +227,19 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     s.bone([-0.025, 0.02, 0.098], [0.025, 0.02, 0.098], 0.003, 0.003);
     return [piece(s.out(), M('glassFrame'))];
+  },
+  /** A tie: the knot at the collar, the blade hanging 0.32 below; built facing +z. */
+  tie: () => [piece(new Sink().box(0, -0.02, 0.008, 0.05, 0.04, 0.02).box(0, -0.2, 0.004, 0.065, 0.32, 0.01).out(), M('tie'))],
+  /** A pouf on the rug: 0.36 high, 0.3 across, soft blue; a nine year old sits on it. */
+  pouf: () => [piece(new Sink().cylinder(0, 0.18, 0, 0.3, 0.36, 18).out(), M('pouf'), { smooth: true })],
+  /** A 19 inch LCD of 2013: a slim black bezel on a round steel foot, the screen towards +z. */
+  labMonitor: lcd('screen:2'),
+  labMonitorNotepad: lcd('screen:1'),
+  /** A 32 inch flat television of 2010 on its stand; the glass is the video. */
+  flatTv: () => {
+    const body = new Sink().box(0, 0.5, -0.02, 0.78, 0.48, 0.04);
+    const stand = new Sink().box(0, 0.14, -0.02, 0.05, 0.28, 0.03).box(0, 0.01, -0.02, 0.4, 0.02, 0.22);
+    return [piece(offsetGeo(face(0.72, 0.42, 0.001), 0, 0.5, 0), { paint: 'video' }), piece(body.out(), M('bezel')), piece(stand.out(), M('bezel'))];
   },
   /** The TV cabinet: a dark wood top on four legs, 1.1 × 0.62 × 0.5. */
   tvTable: () => {

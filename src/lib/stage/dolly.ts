@@ -21,13 +21,14 @@ export const DOLLY: DollyKey[] = [
   { q: 0.19, cam: [-5.0, 1.25, 1.6], look: [-3.6, 1.2, 1.6], fov: 50, set: 0 },
   { q: 0.21, cam: [-4.1, 1.2, 1.6], look: [-2.4, 1.2, 1.6], fov: 54, set: 0, blend: 0 }, // door jamb
   { q: 0.25, cam: [-3.1, 1.2, 1.6], look: [-1.0, 1.2, 1.4], fov: 54, set: 1, blend: 1 }, // mid passage
-  { q: 0.29, cam: [-1.7, 1.18, 1.75], look: [0.0, 1.0, -0.8], fov: 50, set: 1 }, // into the 2010 room
-  { q: 0.333, cam: [0.3, 1.15, 2.1], look: [0, 0.95, -2.3], fov: 46, set: 1 }, // the room, the TV
+  { q: 0.29, cam: [-1.0, 1.2, 2.15], look: [0.3, 1.0, -0.8], fov: 50, set: 1 }, // into the 2010 room
+  { q: 0.333, cam: [0.9, 1.5, 3.0], look: [0, 0.6, -2.2], fov: 46, set: 1 }, // the room: him on the pouf, the TV
+  { q: 0.40, cam: [1.2, 1.35, 2.5], look: [2.2, 1.0, 0.2], fov: 48, set: 1 }, // past the shelf, toward the door corner
   { q: 0.467, cam: [1.4, 1.2, 1.7], look: [2.6, 1.2, 1.6], fov: 50, set: 1 }, // turning to the door
   { q: 0.513, cam: [2.6, 1.2, 1.6], look: [4.5, 1.2, 1.6], fov: 54, set: 1, blend: 0 }, // door jamb
   { q: 0.547, cam: [3.7, 1.2, 1.6], look: [5.6, 1.2, 1.6], fov: 54, set: 2, blend: 1 }, // mid passage
   { q: 0.587, cam: [5.4, 1.25, 1.6], look: [7.5, 1.1, 0.4], fov: 50, set: 2 }, // into the lab
-  { q: 0.667, cam: [6.6, 1.35, 2.6], look: [8.2, 1.0, 0.6], fov: 46, set: 2 }, // over the desk, the CRT
+  { q: 0.667, cam: [5.6, 1.55, 2.9], look: [6.9, 0.95, 0.4], fov: 46, set: 2 }, // over his shoulder: the desk, Notepad
   { q: 0.8, cam: [9.5, 1.3, 2.8], look: [12.4, 1.2, 3.4], fov: 50, set: 2 }, // to the far door
   { q: 0.85, cam: [12.1, 1.3, 3.4], look: [14, 1.3, 3.4], fov: 54, set: 2, blend: 0 }, // door jamb
   { q: 0.885, cam: [13.4, 1.35, 3.4], look: [16, 1.4, 1.5], fov: 54, set: 3, blend: 1 }, // just outside

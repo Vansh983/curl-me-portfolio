@@ -24,6 +24,8 @@ export interface Shell {
 }
 
 export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'him' | 'lamp' | 'screen' | 'city';
+/** What he wears in a set: now (hoodie), the 2018 trip (hoodie, Google tee), school in 2013 (white shirt, tie), a kid in 2010. */
+export type Outfit = 'now' | 'trip' | 'school' | 'kid';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 export interface Placement {
@@ -33,6 +35,8 @@ export interface Placement {
   rot?: V3; // degrees
   scale?: number | V3;
   live?: Live;
+  outfit?: Outfit; // for `live: 'him'`; default 'now'
+  pose?: 'sit' | 'stand'; // for `live: 'him'`; default 'sit'
   cap?: string;
   href?: string;
   shadow?: boolean; // default true
@@ -117,9 +121,11 @@ export const SETS: StageSet[] = [
     },
     props: [
       { build: 'tvTable', at: [0, 0, -2.15] },
-      { model: 'television_02', at: [0, 0.62, -2.15], scale: 1.3, live: 'tv', cap: 'Call of Duty: World at War, Nazi Zombies. Every evening.', href: 'https://www.youtube.com/results?search_query=nazi+zombies+world+at+war' },
+      { build: 'flatTv', at: [0, 0.62, -2.15], live: 'tv', cap: 'Call of Duty: World at War, Nazi Zombies. Every evening.', href: 'https://www.youtube.com/results?search_query=nazi+zombies+world+at+war' },
       { model: 'gaming_console', at: [0.55, 0.005, -2.05], rot: [0, -20, 0], cap: 'The Xbox 360.' },
-      { model: 'gamepad', at: [-0.35, 0.005, 0.2], rot: [0, 35, 0] },
+      { build: 'pouf', at: [0.3, 0, 1.1] },
+      { model: 'base_character', at: [0.3, 0, 1.1], rot: [0, 0, 0], scale: 0.66, live: 'him', outfit: 'kid', cap: 'Me at nine. Zombies until the power cut.' },
+      { model: 'gamepad', at: [0.3, 0.42, 0.87], rot: [0, 0, 0] },
       { model: 'ceiling_fan', at: [0, 2.8, 0.2], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
       { build: 'shelf', at: [1.5, 0, -2.3] },
       { model: 'book_encyclopedia_set_01', at: [1.5, 1.24, -2.28], scale: 0.9 },
@@ -149,9 +155,11 @@ export const SETS: StageSet[] = [
       ...grid(3, 3, (r, c): Placement => ({ model: 'SchoolDesk_01', at: [DX(c), 0, DZ(r)], rot: [0, 180, 0] })),
       ...grid(3, 3, (r, c): Placement => ({ model: 'SchoolChair_01', at: [DX(c), 0, DZ(r) + 0.65], rot: [0, 180, 0] })),
       ...grid(3, 3, (r, c): Placement => ({
-        model: 'television_02', at: [DX(c), 0.76, DZ(r) - 0.12], scale: 0.62, live: 'monitor',
+        build: r === 0 && c === 0 ? 'labMonitorNotepad' : 'labMonitor', at: [DX(c), 0.76, DZ(r) - 0.12], live: 'screen',
         ...(r === 0 && c === 0 ? { cap: 'index.html in Notepad. The first website.' } : {}),
       })),
+      ...grid(3, 3, (r, c): Placement => ({ build: 'pcTower', at: [DX(c) + 0.62, 0, DZ(r) - 0.05] })),
+      { model: 'base_character', at: [6.6, 0, 1.12], rot: [0, 0, 0], scale: 0.82, live: 'him', outfit: 'school', cap: 'Me at thirteen. White shirt, tie, index.html.' },
       ...grid(3, 3, (r, c): Placement => ({ build: 'keyboard', at: [DX(c), 0.76, DZ(r) + 0.25] })),
       { build: 'whiteboard', at: [8.7, 1.5, -1.47], cap: 'Wireframes sketched in class.' },
       { model: 'wall_clock', at: [11.0, 2.3, -1.47] },

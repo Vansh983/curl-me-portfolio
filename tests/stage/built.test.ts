@@ -4,7 +4,7 @@ import { BUILT } from '../../src/lib/stage/built.ts';
 import { MATS } from '../../src/lib/stage/materials.ts';
 import { SETS } from '../../src/lib/stage/sets.ts';
 
-const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge'];
+const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video']; // video: the live television
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {

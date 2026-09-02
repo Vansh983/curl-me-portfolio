@@ -62,6 +62,19 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
         const lines = ['<!DOCTYPE html>', '<html>', '<head>', '  <title>My first website</title>', '</head>', '<body>', '  <h1>Hello world</h1>', '  <p>Made by Vansh, 2013</p>', '</body>', '</html>'];
         lines.forEach((l, i) => x.fillText(l, 12, 76 + i * 20));
         x.fillStyle = '#2B2B2B'; x.fillRect(12 + 7 * 9.1, 76 + 9 * 20 - 13, 2, 16); // the caret after </html>
+      }, (x, w, h) => {
+        // a Windows 7 desktop, the way the lab's machines sat between classes
+        const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#2C74C4'); g.addColorStop(1, '#0A2C58');
+        x.fillStyle = g; x.fillRect(0, 0, w, h);
+        x.fillStyle = 'rgba(255,255,255,0.10)'; x.beginPath(); x.ellipse(w * 0.58, h * 0.56, 170, 95, -0.35, 0, Math.PI * 2); x.fill();
+        const icons: Array<[string, string]> = [['#E8E8E8', 'Computer'], ['#7AC142', 'Recycle Bin'], ['#5DA9E9', 'Notepad'], ['#F2C94C', 'Chrome']];
+        icons.forEach(([c, label], i) => {
+          x.fillStyle = c; x.fillRect(16, 16 + i * 46, 24, 24);
+          x.fillStyle = '#FFFFFF'; x.font = '10px Inter, system-ui, sans-serif'; x.fillText(label, 8, 52 + i * 46);
+        });
+        x.fillStyle = 'rgba(16,34,64,0.9)'; x.fillRect(0, h - 30, w, 30);
+        x.fillStyle = '#4C9BE8'; x.beginPath(); x.arc(22, h - 15, 11, 0, Math.PI * 2); x.fill();
+        x.fillStyle = '#FFFFFF'; x.font = '11px Inter, system-ui, sans-serif'; x.textAlign = 'right'; x.fillText('11:42 AM', w - 10, h - 11); x.textAlign = 'left';
       }],
     },
     // the window: dusk over the Delhi rooftops, then daylight over the school trees

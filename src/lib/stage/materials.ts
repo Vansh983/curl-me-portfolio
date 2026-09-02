@@ -30,6 +30,8 @@ export const MATS: Record<string, Mat> = {
   aluminium: { color: '#B9BCC2', rough: 0.35, metal: 0.9, tile: 1 },
   chairFabric: { color: '#4A4E57', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.2 },
   chairBase: { color: '#17181B', rough: 0.4, metal: 0.5, tile: 1 },
+  tie: { color: '#1F2A4A', rough: 0.7, tile: 1 },
+  pouf: { color: '#5B7BB4', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.2 },
   mattress: { color: '#F2F0EA', rough: 0.9, grain: 'weave', amp: 0.15, tile: 0.4 },
   duvet: { color: '#2F4562', rough: 0.95, grain: 'weave', amp: 0.25, tile: 0.35 },
   pillow: { color: '#F6F4EE', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.3 },

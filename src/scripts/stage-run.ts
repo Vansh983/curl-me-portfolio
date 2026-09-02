@@ -19,7 +19,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
-import { SETS, type Placement, type StageSet, type Live } from '../lib/stage/sets.ts';
+import { SETS, type Placement, type StageSet, type Live, type Outfit } from '../lib/stage/sets.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
 import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
@@ -41,14 +41,23 @@ interface Placed { root: Object3D; p: Placement; set: number }
 const TV_SCREEN = { w: 0.3, h: 0.24, at: [0, 0.2, 0.178] as const };
 const GRAIN = 128; // pixels per grain tile: a faint normal, never a texture you would look at
 
-/** What each bone of the base character wears: skin, a black tee, jeans, shoes. Matched by name prefix. */
-const OUTFIT: Array<[RegExp, string]> = [
-  [/^DEF-(head|neck|hand|f_|thumb|forearm)/, 'skin'],
-  [/^DEF-(spine|shoulder|upper_arm)/, 'tee'],
-  [/^DEF-(hips|thigh|shin)/, 'jeans'],
-  [/^DEF-(foot|toe)/, 'shoes'],
-];
-const OUTFIT_COLOR: Record<string, string> = { skin: '#C68E6A', tee: '#141416', jeans: '#26334A', shoes: '#1A1A1C' };
+/** What he wears in a set, by bone: the top covers spine, shoulders and upper arms, long sleeves the forearms too, shorts leave the shins bare. */
+interface Wear { skin: string; top: string; legs: string; shoes: string; sleeves: 'long' | 'short'; shorts?: boolean; hoodie?: boolean; glasses?: boolean; tie?: boolean }
+const WEAR: Record<Outfit, Wear> = {
+  now: { skin: '#C68E6A', top: '#141416', legs: '#26334A', shoes: '#1A1A1C', sleeves: 'short', hoodie: true, glasses: true },
+  trip: { skin: '#C68E6A', top: '#141416', legs: '#1E2A44', shoes: '#EDEDEA', sleeves: 'short', hoodie: true, glasses: true },
+  school: { skin: '#C68E6A', top: '#F4F4F2', legs: '#4A4E56', shoes: '#1A1A1C', sleeves: 'long', tie: true },
+  kid: { skin: '#C68E6A', top: '#C8362E', legs: '#3B4A6B', shoes: '#EDEDEA', sleeves: 'short', shorts: true },
+};
+const wearOf = (bone: string, w: Wear): string => {
+  if (/^DEF-(head|neck|hand|f_|thumb)/.test(bone)) return w.skin;
+  if (/^DEF-forearm/.test(bone)) return w.sleeves === 'long' ? w.top : w.skin;
+  if (/^DEF-(spine|shoulder|upper_arm)/.test(bone)) return w.top;
+  if (/^DEF-shin/.test(bone)) return w.shorts ? w.skin : w.legs;
+  if (/^DEF-(hips|thigh)/.test(bone)) return w.legs;
+  if (/^DEF-(foot|toe)/.test(bone)) return w.shoes;
+  return w.top;
+};
 
 export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): () => void {
   const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -105,8 +114,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   gltf.setMeshoptDecoder(MeshoptDecoder);
   interface Loaded { scene: Group; animations: AnimationClip[] }
   const modelCache = new Map<string, Promise<Loaded>>();
-  const loadModel = (id: string): Promise<Loaded> => {
-    let p = modelCache.get(id);
+  const loadModel = (id: string, fresh = false): Promise<Loaded> => {
+    let p = fresh ? undefined : modelCache.get(id);
     if (!p) {
       p = gltf.loadAsync(assetUrl(asset(id))).then((g) => {
         g.scene.traverse((o) => {
@@ -122,7 +131,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         });
         return { scene: g.scene, animations: g.animations };
       });
-      modelCache.set(id, p);
+      if (!fresh) modelCache.set(id, p);
     }
     return p;
   };
@@ -132,20 +141,20 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
    * (skin, tee, jeans, shoes), so one untextured mesh reads as a person in a black tee. Then hair
    * and glasses ride the head bone, and the sitting idle plays.
    */
-  const dressHim = (loaded: Loaded): { root: Group; mixer: AnimationMixer } => {
+  const dressHim = (loaded: Loaded, p: Placement): { root: Group; mixer?: AnimationMixer } => {
+    const wear = WEAR[p.outfit ?? 'now'];
+    const standing = p.pose === 'stand';
     const root = loaded.scene;
     const skinned: SkinnedMesh[] = [];
     root.traverse((o) => { if (o instanceof SkinnedMesh) skinned.push(o); });
     for (const m of skinned) {
       m.frustumCulled = false;
       const bones = m.skeleton.bones;
-      const colors = bones.map((b) => {
-        const kind = OUTFIT.find(([re]) => re.test(b.name))?.[1] ?? 'tee';
-        return new Color(OUTFIT_COLOR[kind]);
-      });
-      // under the hoodie the mannequin's torso and upper arms are not drawn at all: alpha 0 in the
-      // colour array marks them, and the fragment discards
-      const hidden = bones.map((b) => (/^DEF-(spine|shoulder|upper_arm|forearm)/.test(b.name) ? 1 : 0));
+      const colors = bones.map((b) => new Color(wearOf(b.name, wear)));
+      // under the hoodie the mannequin's torso and arms are not drawn at all: a 1 in this array
+      // marks them, and the fragment discards
+      const longSleeves = wear.hoodie || wear.sleeves === 'long';
+      const hidden = bones.map((b) => (/^DEF-(spine|shoulder|upper_arm)/.test(b.name) || (longSleeves && /^DEF-forearm/.test(b.name)) ? 1 : 0));
       const mat = new MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.85, metalness: 0, envMapIntensity: 0.8 });
       mat.onBeforeCompile = (sh) => {
         sh.uniforms.uBone = { value: colors };
@@ -163,10 +172,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     // hair and glasses ride the head bone. Whatever units the rig is in, the parts are built in
     // metres, so they are scaled by the inverse of the bone's world scale and offset in bone units
-    const mixer = new AnimationMixer(root);
-    const clip = loaded.animations.find((a) => /Sitting_Idle/.test(a.name)) ?? loaded.animations[0];
-    if (clip) mixer.clipAction(clip).play();
-    mixer.update(0);
+    // sitting: the idle loop; standing: the rig's rest pose with the arms brought down
+    let mixer: AnimationMixer | undefined;
+    if (!standing) {
+      mixer = new AnimationMixer(root);
+      const clip = loaded.animations.find((a) => /Sitting_Idle/.test(a.name)) ?? loaded.animations[0];
+      if (clip) mixer.clipAction(clip).play();
+      mixer.update(0);
+    }
     // Clothes and hair are built in metres, upright, facing +z, and placed in world terms at the
     // rest pose; then each is handed to a bone (position via worldToLocal, orientation as the bone's
     // inverse times the wanted world orientation), so it follows the animation without inheriting
@@ -189,6 +202,25 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       part.scale.set(scale.x / (bs.x || 1), scale.y / (bs.y || 1), scale.z / (bs.z || 1));
       holder.add(part);
     };
+    /** Turns a bone so the segment to `child` points along `dir` in world space. */
+    const aim = (name: string, child: string, dir: Vector3) => {
+      const b = bone(name);
+      if (!b?.parent) return;
+      const cur = at(child).sub(at(name)).normalize();
+      const turn = new Quaternion().setFromUnitVectors(cur, dir.clone().normalize());
+      const pw = new Quaternion(), bw = new Quaternion();
+      b.parent.getWorldQuaternion(pw);
+      b.getWorldQuaternion(bw);
+      b.quaternion.copy(pw.invert().multiply(turn).multiply(bw));
+      root.updateWorldMatrix(true, true);
+    };
+    if (standing) {
+      const right = new Vector3(1, 0, 0).applyQuaternion(rootQuat); // he faces -z, so +x is his left; L gets +, R gets -
+      for (const [side, s] of [['L', 1], ['R', -1]] as const) {
+        aim(`DEF-upper_arm.${side}`, `DEF-forearm.${side}`, new Vector3(0, -1, 0).addScaledVector(right, s * 0.16).addScaledVector(forward, 0.04));
+        aim(`DEF-forearm.${side}`, `DEF-hand.${side}`, new Vector3(0, -1, 0).addScaledVector(right, s * 0.1).addScaledVector(forward, 0.18));
+      }
+    }
     const head = bone('DEF-head');
     if (head) {
       // the skull as skinned right now: hair and glasses are sized and placed from its box, not guessed
@@ -210,30 +242,47 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const skullH = size.y * 0.78, skullC = c.clone().addScaledVector(upV, size.y / 2 - skullH / 2);
       const hair = placeBuilt('hair', { build: 'hair', at: [0, 0, 0] });
       hand(hair, head, skullC.clone().addScaledVector(upV, skullH * 0.02).addScaledVector(forward, -0.004), faceQuat, new Vector3(size.x / 2 + 0.008, skullH / 2 + 0.008, size.z / 2 + 0.006));
-      const glasses = placeBuilt('glasses', { build: 'glasses', at: [0, 0, 0] });
-      hand(glasses, head, skullC.clone().addScaledVector(upV, skullH * 0.08).addScaledVector(forward, size.z / 2 - 0.095), faceQuat, new Vector3(size.x / 0.2, size.x / 0.2, size.x / 0.2));
+      if (wear.glasses) {
+        const glasses = placeBuilt('glasses', { build: 'glasses', at: [0, 0, 0] });
+        hand(glasses, head, skullC.clone().addScaledVector(upV, skullH * 0.08).addScaledVector(forward, size.z / 2 - 0.095), faceQuat, new Vector3(size.x / 0.2, size.x / 0.2, size.x / 0.2));
+      }
     }
-    // the hoodie: a torso from the hips to the collar, sized from the shoulders; a sleeve per arm
-    // segment, aligned to the bone; the hood down behind the neck
     const chest = bone('DEF-spine.002'), neck = bone('DEF-neck');
+    /** The same built cloth in the colour of the year. */
+    const tinted = (o: Object3D, hex: string): Object3D => {
+      o.traverse((m) => { if (m instanceof Mesh && m.material instanceof MeshStandardMaterial) { const mm = m.material.clone(); mm.color.set(hex); m.material = mm; } });
+      return o;
+    };
+    // the top: a torso from the hips to the collar, sized from the shoulders, over the mannequin's
+    // seams; a sleeve per arm segment, aligned to the bone; a hoodie hangs looser and gets its hood
     if (chest && neck) {
       // the shoulder joints are where the upper arms start; the shoulder bones themselves begin at the spine
       const hips = at('DEF-hips'), collar = at('DEF-neck'), sl = at('DEF-upper_arm.L'), sr = at('DEF-upper_arm.R');
-      const halfW = sl.distanceTo(sr) / 2 + 0.075, halfD = halfW * 0.6, height = collar.y - hips.y + 0.14;
-      const torso = placeBuilt('hoodieTorso', { build: 'hoodieTorso', at: [0, 0, 0] });
-      hand(torso, chest, new Vector3(hips.x, hips.y - 0.08, hips.z), faceQuat, new Vector3(halfW, height, halfD));
-      const hood = placeBuilt('hood', { build: 'hood', at: [0, 0, 0] });
-      hand(hood, neck, collar.clone(), faceQuat, new Vector3(1, 1, 1));
+      const loose = wear.hoodie ? 0.075 : 0.045;
+      const halfW = sl.distanceTo(sr) / 2 + loose, halfD = halfW * (wear.hoodie ? 0.6 : 0.55), height = collar.y - hips.y + (wear.hoodie ? 0.14 : 0.1);
+      const torso = tinted(placeBuilt('hoodieTorso', { build: 'hoodieTorso', at: [0, 0, 0] }), wear.top);
+      hand(torso, chest, new Vector3(hips.x, hips.y - (wear.hoodie ? 0.08 : 0.04), hips.z), faceQuat, new Vector3(halfW, height, halfD));
+      if (wear.hoodie) {
+        const hood = placeBuilt('hood', { build: 'hood', at: [0, 0, 0] });
+        hand(hood, neck, collar.clone(), faceQuat, new Vector3(1, 1, 1));
+      }
+      if (wear.tie) {
+        // the tie hangs from the collar down the front of the shirt
+        const tie = placeBuilt('tie', { build: 'tie', at: [0, 0, 0] });
+        hand(tie, chest, collar.clone().addScaledVector(forward, halfD * 0.92).addScaledVector(new Vector3(0, 1, 0), -0.03), faceQuat, new Vector3(1, 1, 1));
+      }
       const up = new Vector3(0, 1, 0);
+      const segments = [[`upper_arm`, `forearm`, 0.075], ...(wear.hoodie || wear.sleeves === 'long' ? [[`forearm`, `hand`, 0.062]] : [])] as const;
       for (const side of ['L', 'R'] as const) {
-        for (const [a, b, r] of [[`DEF-upper_arm.${side}`, `DEF-forearm.${side}`, 0.075], [`DEF-forearm.${side}`, `DEF-hand.${side}`, 0.062]] as const) {
+        for (const [a0, b0, r] of segments) {
+          const a = `DEF-${a0}.${side}`, b = `DEF-${b0}.${side}`;
           const holder = bone(a);
           if (!holder) continue;
           const from = at(a), to = at(b);
           const dir = to.clone().sub(from), len = dir.length();
           if (len < 1e-3) continue;
           const q = new Quaternion().setFromUnitVectors(up, dir.normalize());
-          const sleeve = placeBuilt('sleeve', { build: 'sleeve', at: [0, 0, 0] });
+          const sleeve = tinted(placeBuilt('sleeve', { build: 'sleeve', at: [0, 0, 0] }), wear.top);
           hand(sleeve, holder, from.clone().addScaledVector(dir, -0.03), q, new Vector3(r, len + 0.05, r));
         }
       }
@@ -352,6 +401,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if ('paint' in s) {
       const [name, frame] = s.paint.split(':');
       // screens and the city at night give off their own light: unlit, not tone mapped, no fog on the city
+      if (name === 'video') return new MeshBasicMaterial({ map: videoTex, toneMapped: false });
       if (name.startsWith('screen') || name === 'toronto') return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: name !== 'toronto' });
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
@@ -416,6 +466,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         g.add(light);
         live.tubes.push({ mat: material as MeshStandardMaterial, light });
       }
+      if (p.live === 'tv' && 'paint' in piece.surface) {
+        // the television lights the room a little
+        const light = new PointLight('#9CC4FF', 1.2, 2.4, 2);
+        light.position.set(0, 0.5, 0.15);
+        g.add(light);
+      }
       if (p.live === 'screen' && 'paint' in piece.surface && name === 'monitor') {
         // the screens light his face and the desk: one cool light for the pair
         const light = new PointLight('#9FB8FF', 0.9, 2.2, 1.8);
@@ -435,9 +491,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const place = async (p: Placement, set: number): Promise<void> => {
     let obj: Object3D;
     if (p.model && p.live === 'him') {
-      const him = dressHim(await loadModel(p.model));
+      // every him is his own rig: the file is parsed again rather than cloned, so bones and skin stay bound
+      const him = dressHim(await loadModel(p.model, true), p);
       obj = him.root;
-      live.mixers.push(him.mixer);
+      if (him.mixer) live.mixers.push(him.mixer);
     } else if (p.model) {
       obj = (await loadModel(p.model)).scene.clone();
       if (p.live === 'fan') live.fans.push(obj);
