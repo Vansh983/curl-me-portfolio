@@ -1,4 +1,4 @@
-// The world as data: three sets along +x, each with its light, its shell and what stands in it.
+// The world as data: four sets along +x, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
 //   Set 0 NOW      x -8.4..-4.2  z -2.2..2.2   h 2.5   Toronto, high up; window on z-, door on +x wall at z 1.6
@@ -80,7 +80,7 @@ export const SETS: StageSet[] = [
     props: [
       { build: 'mullions', at: [-6.3, 0, -2.2], scale: [0.8, 1.25, 1] },
       { build: 'city', at: [-6.3, -100, -2.2], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.', shadow: false },
-      { build: 'nightSky', at: [-6.3, 0, -2.2], shadow: false },
+      { build: 'nightSky', at: [-6.3, 0, -2.2], live: 'city', shadow: false },
       { build: 'rugGrey', at: [-5.1, 0, -0.4] },
       { build: 'desk', at: [-4.58, 0, -0.4], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
       { build: 'deskHutch', at: [-4.34, 0.74, -0.4] },

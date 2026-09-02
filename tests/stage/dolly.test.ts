@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
 
-test('keys are ordered in q from 0 to 1 and land on the three sets', () => {
+test('keys are ordered in q from 0 to 1 and land on the four sets', () => {
   assert.equal(DOLLY[0].q, 0);
   assert.equal(DOLLY[DOLLY.length - 1].q, 1);
   for (let k = 1; k < DOLLY.length; k++) assert.ok(DOLLY[k].q > DOLLY[k - 1].q);

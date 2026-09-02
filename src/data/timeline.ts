@@ -1,6 +1,6 @@
 // Drives the journey on the homepage. One entry per chapter, in order.
 // Words are placeholders until the LinkedIn export lands; the shape is what matters.
-// The 3D stage's stations live in src/lib/stage/world.ts and sit on the first chapters.
+// The 3D stage's sets live in src/lib/stage/sets.ts and sit on the first chapters.
 
 export type Milestone = {
   year: string; // the big number in the gutter

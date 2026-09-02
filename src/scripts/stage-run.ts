@@ -1,4 +1,4 @@
-// The journey stage, client side. Three sets along +x, lit by a soft studio environment indoors
+// The journey stage, client side. Four sets along +x, lit by a soft studio environment indoors
 // and a clear sky outdoors (both made in code, nothing downloaded), dressed with a few scanned
 // models and designed materials on code-built shells, joined by one camera dolly that changes set
 // while the frame is inside a doorway. Spec: docs/rebuild/13-journey-real-spec.md.
@@ -26,6 +26,7 @@ import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress } from '../lib/stage/shot.ts';
+import { loadAllSets, showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, type Kind } from '../lib/stage/surface.ts';
 import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, type Paint } from './stage-paint.ts';
 
@@ -97,6 +98,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   skyScene.add(sky);
   const skyEnv = pmrem.fromScene(skyScene, 0, 0.1, 3000).texture;
   skyScene.remove(sky);
+  sky.visible = false;
 
   // ---- loaders and caches
   const gltf = new GLTFLoader();
@@ -289,7 +291,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       PAINT[e.name].frames[e.frame](e.c.getContext('2d')!, e.c.width, e.c.height);
       e.tex.needsUpdate = true;
     }
-    needs = true; kick();
+    kick();
   };
   const videoTex = new VideoTexture(video);
   videoTex.colorSpace = SRGBColorSpace;
@@ -361,7 +363,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
 
   // ---- live things
-  const live = { fans: [] as Object3D[], curtains: [] as MeshStandardMaterial[], water: [] as MeshStandardMaterial[], tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[], mixers: [] as AnimationMixer[] };
+  const live = {
+    fans: [] as Object3D[],
+    curtains: [] as MeshStandardMaterial[],
+    water: [] as MeshStandardMaterial[],
+    tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[],
+    mixers: [] as AnimationMixer[],
+    backdrops: [] as SetScoped<Object3D>[],
+  };
   let fanSpeed = 0, tubeOn = 0, tubeClock = -1;
   const timeU = { value: 0 };
 
@@ -445,6 +454,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     obj.position.set(...p.at);
     if (p.rot) obj.rotation.set(p.rot[0] * D, p.rot[1] * D, p.rot[2] * D);
     if (p.scale !== undefined) typeof p.scale === 'number' ? obj.scale.setScalar(p.scale) : obj.scale.set(...p.scale);
+    if (p.live === 'city') {
+      obj.visible = set === curSet;
+      live.backdrops.push({ root: obj, sets: [set] });
+    }
     groups[set].add(obj);
     if (p.cap) hot.push({ root: obj, p, set });
     if (DEBUG) {
@@ -465,10 +478,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       walls.castShadow = true;
       groups[i].add(floor, walls, ceiling);
     }
-    if (S.env === 'sky') groups[i].add(sky);
+    if (S.env === 'sky') {
+      const sets = [Math.max(0, i - 1), i]; // visible through the preceding set's exit before the environment swaps
+      sky.visible = sets.includes(curSet);
+      live.backdrops.push({ root: sky, sets });
+      groups[i].add(sky);
+    }
     await Promise.all(S.props.map((p) => place(p, i)));
     scene.add(groups[i]);
-    needs = true; kick();
+    kick();
   };
 
   // ---- pipeline: render, tone map, anti-alias. Nothing per pixel beyond that.
@@ -484,12 +502,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const dolly = makeDolly(DOLLY);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  let needs = true, raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1;
+  let raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1;
   const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
 
   const applyTheme = () => {
     renderer.setClearColor(new Color(cssVar('--bg')));
-    needs = true; kick();
+    kick();
   };
   const themeObs = new MutationObserver(applyTheme);
   themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -501,7 +519,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     camera.aspect = w / h;
-    needs = true; kick();
+    kick();
   };
   const ro = new ResizeObserver(fit);
   ro.observe(canvas);
@@ -533,6 +551,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   /** Switches the light to a set: environment, tint, exposure, fog. Called while the frame is in a doorway. */
   const enter = (i: number) => {
     curSet = i;
+    showSetBackdrops(live.backdrops, i);
     const S = SETS[i];
     scene.environment = S.env === 'sky' ? skyEnv : studioEnv;
     renderer.toneMappingExposure = S.exposure;
@@ -608,7 +627,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     cap.textContent = text;
     cap.classList.toggle('on', !!text);
     canvas.style.cursor = text && hovered?.p.href ? 'pointer' : text ? 'help' : '';
-    needs = true; kick();
+    kick();
   };
   const pick = (x: number, y: number): Placed | undefined => {
     const r = canvas.getBoundingClientRect();
@@ -687,7 +706,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     for (const tb of live.tubes) { tb.mat.emissiveIntensity = 4 * tubeOn; tb.light.intensity = 6 * tubeOn; }
     if (hovered && pointer) setHover(pick(pointer.x, pointer.y));
     composer.render();
-    needs = false;
     // scrolling renders every frame; at rest, the live things (fan, video, curtains, water) run at
     // thirty, which is what a laptop on battery can give all day
     const running = visible && !still;
@@ -705,8 +723,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   fit();
   onScroll();
 
-  // the set in view first, the others while the reader is on the first
-  loadSet(0).then(() => { enter(0); needs = true; kick(); return loadSet(1); }).then(() => loadSet(2)).catch((err) => console.warn('[journey] a set did not load', err));
+  // the set in view first, then every remaining set in sequence while the reader is near the stage
+  loadAllSets(SETS.length, loadSet, () => {
+    if (curSet < 0) enter(0);
+    kick();
+  }).catch((err) => console.warn('[journey] a set did not load', err));
 
   return () => {
     if (raf > 0) cancelAnimationFrame(raf);

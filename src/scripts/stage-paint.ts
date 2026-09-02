@@ -412,7 +412,7 @@ export const SCREEN_PAINT: Record<string, Paint> = {
     frames: [(x, w, h) => {
       x.fillStyle = '#0F1117'; x.fillRect(0, 0, w, h);
       x.font = '13px ui-monospace, Menlo, monospace';
-      const lines = ['$ npm test', '', '✔ three sets and a dolly', '✔ every placement sits somewhere finite', '✔ the camera never jumps', '✔ the whole set stays under 4 MB', '', 'ℹ pass 58', 'ℹ fail 0', '', '$ git log --oneline -1', 'feat(stage): the desk, now', '$ '];
+      const lines = ['$ npm test', '', '✔ four sets and a dolly', '✔ every placement sits somewhere finite', '✔ the camera never jumps', '✔ the whole set stays under 4 MB', '', 'ℹ pass 57', 'ℹ fail 0', '', '$ git log --oneline -1', 'feat(stage): the desk, now', '$ '];
       lines.forEach((l, i) => { x.fillStyle = l.startsWith('✔') ? '#7BD88F' : l.startsWith('$') ? '#E6E6E6' : '#9AA0B0'; x.fillText(l, 16, 28 + i * 22); });
       x.fillStyle = '#E6E6E6'; x.fillRect(34, 28 + 12 * 22 - 12, 8, 15);
     }],
