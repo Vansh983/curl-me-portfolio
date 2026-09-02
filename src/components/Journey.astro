@@ -57,6 +57,11 @@ const n = chapters.length;
     display: block;
     width: 100%;
     height: 100%;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .gl.on {
+    opacity: 1;
   }
   /* the wall lets pointer events through to the stage everywhere except on the text itself */
   .wall {

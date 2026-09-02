@@ -421,7 +421,11 @@ export const BUILT: Record<string, () => BuiltPart> = {
     for (let x = -L + 2; x < L; x += 6) { s.box(x, DY - 1.6, 2.7, 0.3, 2.2, 0.3); s.box(x, DY - 1.6, -2.7, 0.3, 2.2, 0.3); }
     for (const tx of [-TX, TX]) {
       for (const leg of [-1, 1]) s.box(tx, TH / 2, leg * 2.4, 2.4, TH, 1.6);
-      for (const h of [DY + 6, DY + 16, DY + 26, TH - 3]) s.box(tx, h, 0, 2.4, 2.6, 6.2);
+      const hs = [DY + 6, DY + 16, DY + 26, TH - 3];
+      for (const h of hs) s.box(tx, h, 0, 2.4, 2.6, 6.2);
+      // X bracing between the legs, the steel lattice the towers read as from the street
+      for (let i = 0; i < hs.length - 1; i++) { s.bone([tx, hs[i], -2.4], [tx, hs[i + 1], 2.4], 0.5, 0.5); s.bone([tx, hs[i], 2.4], [tx, hs[i + 1], -2.4], 0.5, 0.5); }
+      s.bone([tx, 1, -2.4], [tx, DY + 6, 2.4], 0.5, 0.5); s.bone([tx, 1, 2.4], [tx, DY + 6, -2.4], 0.5, 0.5);
     }
     const N = 24, Mn = 8, r = 0.38;
     const mainY = (t: number) => TH - (TH - DY - 2) * (1 - (2 * t - 1) ** 2);

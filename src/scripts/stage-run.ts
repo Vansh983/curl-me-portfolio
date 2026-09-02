@@ -567,7 +567,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const dolly = makeDolly(DOLLY);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  let raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1;
+  let raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1, shown = false;
   const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
 
   const applyTheme = () => {
@@ -776,6 +776,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     for (const tb of live.tubes) { tb.mat.emissiveIntensity = 4 * tubeOn; tb.light.intensity = 6 * tubeOn; }
     if (hovered && pointer) setHover(pick(pointer.x, pointer.y));
     composer.render();
+    if (!shown) { shown = true; canvas.classList.add('on'); } // the first frame fades in over the page colour
     // scrolling renders every frame; at rest, the live things (fan, video, curtains, water) run at
     // thirty, which is what a laptop on battery can give all day
     const running = visible && !still;
