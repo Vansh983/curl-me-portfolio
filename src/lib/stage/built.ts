@@ -184,25 +184,33 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const TX = 877, TZ = -1797;
     const cnAng = Math.atan2(TX, -TZ);
     const inCorridor = (x: number, z: number) => Math.abs(Math.atan2(x, -z) - cnAng) < 0.09;
-    // across the street and the next blocks: 60 to 320 m out. He is 100 m up: the tops of nearly all
-    // of these sit below the eye, a few reach past it, so the window is city below and sky above
+    // across the street and the next blocks: 60 to 320 m out. He is 100 m up: most tops sit below the
+    // eye, a good few reach well past it, as downtown Toronto does
     const taken: Array<[number, number, number]> = [];
     const fits = (x: number, z: number, r: number) => taken.every(([tx, tz, tr]) => Math.hypot(tx - x, tz - z) > r + tr + 12);
     let tries = 0;
     while (taken.length < 26 && tries++ < 400) {
       const cx = (rnd() - 0.5) * 620, cz = -60 - rnd() * 260;
       const w = 24 + rnd() * 22, d = 24 + rnd() * 22;
-      if (Math.abs(cx) < 40 && cz > -90) continue; // the street below the window stays open
+      if (Math.abs(cx) < 90 && cz > -150) continue; // the street and the block below the window stay open
       if (inCorridor(cx, cz)) continue;
       if (!fits(cx, cz, Math.max(w, d) / 2)) continue;
       taken.push([cx, cz, Math.max(w, d) / 2]);
-      const h = 30 + rnd() * rnd() * 70 + (rnd() < 0.15 ? 45 : 0);
+      const h = 40 + rnd() * rnd() * 90 + (rnd() < 0.2 ? 70 : 0); // the near blocks: up to 130, a few to 200; the tall ones stand further back
       tower(cx, cz, w, d, h, near);
     }
     // the rest of downtown, 320 to 900 m out, dimmer
     for (let i = 0; i < 44; i++) {
       const cx = (rnd() - 0.5) * 1400, cz = -320 - rnd() * 580;
-      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = 30 + rnd() * rnd() * 120;
+      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = 40 + rnd() * rnd() * 180;
+      if (inCorridor(cx, cz)) continue;
+      tower(cx, cz, w, d, h, far);
+    }
+    // the financial district: ten towers of 220 to 330 m either side of the corridor, 450 to 850 m out
+    for (let i = 0; i < 10; i++) {
+      const side = i % 2 ? 1 : -1, ang = cnAng + side * (0.14 + rnd() * 0.3), dist = 450 + rnd() * 400;
+      const cx = dist * Math.sin(ang), cz = -dist * Math.cos(ang);
+      const w = 36 + rnd() * 24, d = 36 + rnd() * 24, h = 220 + rnd() * 110;
       if (inCorridor(cx, cz)) continue;
       tower(cx, cz, w, d, h, far);
     }
