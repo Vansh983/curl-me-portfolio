@@ -49,21 +49,35 @@ const frame = (w: number, h: number, t: number, z: number): Sink =>
 /** A 19 inch 5:4 LCD on a round foot, its screen a painted face towards +z. */
 const lcd = (paint: string) => (): BuiltPart => {
   const body = new Sink().box(0, 0.36, -0.012, 0.42, 0.34, 0.024);
-  const stand = new Sink().box(0, 0.1, -0.05, 0.04, 0.2, 0.02).cylinder(0, 0.006, -0.05, 0.11, 0.012, 14);
+  const stand = new Sink().box(0, 0.1, -0.05, 0.04, 0.2, 0.02).cylinder(0, 0.006, -0.05, 0.11, 0.012, 28);
   return [piece(offsetGeo(face(0.38, 0.3, 0.001), 0, 0.36, 0), { paint }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
 };
 
-/** A car of 2019: body, glass cabin, roof, four wheels; 4.4 m long along x, its nose towards +x. */
+/** A closed side profile (x, y), counter clockwise seen from +z, extruded along z and capped: a car body. */
+const extrudeZ = (profile: [number, number][], halfD: number): Sink => {
+  const s = new Sink();
+  const n = profile.length;
+  const cx = profile.reduce((a, p) => a + p[0], 0) / n, cy = profile.reduce((a, p) => a + p[1], 0) / n;
+  for (let i = 0; i < n; i++) {
+    const [x0, y0] = profile[i], [x1, y1] = profile[(i + 1) % n];
+    s.quad([x0, y0, -halfD], [x1, y1, -halfD], [x1, y1, halfD], [x0, y0, halfD]);
+    s.quad([cx, cy, halfD], [x0, y0, halfD], [x1, y1, halfD], [x1, y1, halfD]);
+    s.quad([cx, cy, -halfD], [x1, y1, -halfD], [x0, y0, -halfD], [x0, y0, -halfD]);
+  }
+  return s;
+};
+
+/** A car of 2019: a hatchback profile extruded and smooth shaded, a glass band round the cabin, four round wheels; 4.4 m long along x, its nose towards +x. */
 const car = (mat: string) => (): BuiltPart => {
-  const body = new Sink().box(0, 0.5, 0, 4.4, 0.55, 1.8).box(0.1, 1.24, 0, 2.2, 0.04, 1.5);
-  const glass = new Sink().box(0.1, 0.98, 0, 2.4, 0.5, 1.6);
+  const body = extrudeZ([[-2.2, 0.3], [-1.9, 0.24], [1.9, 0.24], [2.2, 0.32], [2.2, 0.6], [2.05, 0.72], [1.2, 0.8], [0.7, 0.86], [0.2, 1.28], [-0.6, 1.36], [-1.2, 1.32], [-1.7, 1.0], [-2.1, 0.92], [-2.2, 0.7]], 0.9);
+  const glass = extrudeZ([[0.66, 0.87], [0.22, 1.25], [-0.6, 1.33], [-1.18, 1.29], [-1.62, 0.99], [-1.5, 0.95], [-0.6, 0.93], [0.3, 0.9]], 0.905);
   const wheels = new Sink();
-  for (const [x, z] of [[-1.4, 0.85], [1.4, 0.85], [-1.4, -0.85], [1.4, -0.85]] as const) {
+  for (const [x, z] of [[-1.4, 0.8], [1.4, 0.8], [-1.4, -0.8], [1.4, -0.8]] as const) {
     const start = wheels.count;
-    wheels.cylinder(x, 0.33, z, 0.33, 0.24, 12);
+    wheels.cylinder(x, 0.33, z, 0.33, 0.22, 24);
     wheels.rotateX(0.33, z, Math.PI / 2, start);
   }
-  return [piece(body.out(), M(mat)), piece(glass.out(), M('carGlass')), piece(wheels.out(), M('tyre'))];
+  return [piece(body.out(), M(mat), { smooth: true }), piece(glass.out(), M('carGlass'), { smooth: true }), piece(wheels.out(), M('tyre'), { smooth: true })];
 };
 
 export const BUILT: Record<string, () => BuiltPart> = {
@@ -132,7 +146,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   officeChair: () => {
     const base = new Sink();
     for (let i = 0; i < 5; i++) { const start = base.count; base.box(0.16, 0.03, 0, 0.32, 0.03, 0.04).rotateY(0, 0, (i * Math.PI * 2) / 5, start); }
-    base.cylinder(0, 0.24, 0, 0.025, 0.4, 8);
+    base.cylinder(0, 0.24, 0, 0.025, 0.4, 16);
     const seat = new Sink().box(0, 0.45, 0.02, 0.48, 0.06, 0.48);
     const back = new Sink().box(0, 0.78, -0.24, 0.44, 0.56, 0.05);
     const arms = new Sink().box(-0.26, 0.62, 0, 0.04, 0.03, 0.3).box(0.26, 0.62, 0, 0.04, 0.03, 0.3).box(-0.26, 0.54, 0, 0.03, 0.14, 0.03).box(0.26, 0.54, 0, 0.03, 0.14, 0.03);
@@ -216,18 +230,18 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** Short dark hair: a cap hugging the top and back of the head, centred on the head's centre, the face toward +z. */
   hair: () => {
     // a unit cap (radius 1) over the top 46 percent of the skull; the runtime scales it to the head
-    const s = new Sink().sphere(0, 0, 0, 1, 1, 1, 18, 10, undefined, 0.46);
+    const s = new Sink().sphere(0, 0, 0, 1, 1, 1, 36, 18, undefined, 0.46);
     return [piece(s.out(), M('hair'), { smooth: true })];
   },
   /** A hoodie torso: a loose elliptic tube from the hips to the collar, built for a unit torso (height 1, half width 1, half depth 1); scaled at runtime. */
-  hoodieTorso: () => [piece(new Sink().lathe([[0.86, 0], [0.98, 0.18], [1.0, 0.55], [0.94, 0.85], [0.6, 1.0]], 0, 0, 0, 1, 1, 0, 18).out(), M('hoodie'), { smooth: true })],
+  hoodieTorso: () => [piece(new Sink().lathe([[0.86, 0], [0.98, 0.18], [1.0, 0.55], [0.94, 0.85], [0.6, 1.0]], 0, 0, 0, 1, 1, 0, 40).out(), M('hoodie'), { smooth: true })],
   /** A sleeve: a unit cylinder along +y from 0 to 1 with a slight flare, radius 1; scaled at runtime to the arm segment. */
-  sleeve: () => [piece(new Sink().lathe([[1.0, 0], [1.05, 0.5], [0.95, 1.0]], 0, 0, 0, 1, 1, 0, 12).out(), M('hoodie'), { smooth: true })],
+  sleeve: () => [piece(new Sink().lathe([[1.0, 0], [1.05, 0.5], [0.95, 1.0]], 0, 0, 0, 1, 1, 0, 24).out(), M('hoodie'), { smooth: true })],
   /** The hood, down: a soft cowl behind the neck and a collar ring, built around the base of the neck, the face toward +z. */
   hood: () => {
     const s = new Sink();
-    s.sphere(0, 0.04, -0.09, 0.13, 0.11, 0.1, 14, 8, undefined, 0.75).rotateX(0.04, -0.09, 0.9);
-    s.lathe([[0.075, 0], [0.09, 0.03], [0.085, 0.06]], 0, 0.0, -0.01, 1.15, 1, 0, 16);
+    s.sphere(0, 0.04, -0.09, 0.13, 0.11, 0.1, 28, 14, undefined, 0.75).rotateX(0.04, -0.09, 0.9);
+    s.lathe([[0.075, 0], [0.09, 0.03], [0.085, 0.06]], 0, 0.0, -0.01, 1.15, 1, 0, 28);
     return [piece(s.out(), M('hoodie'), { smooth: true })];
   },
   /** Thin glasses: two rims and a bridge, at the head's eye height, facing +z. */
@@ -244,7 +258,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** A tie: the knot at the collar, the blade hanging 0.32 below; built facing +z. */
   tie: () => [piece(new Sink().box(0, -0.02, 0.008, 0.05, 0.04, 0.02).box(0, -0.2, 0.004, 0.065, 0.32, 0.01).out(), M('tie'))],
   /** A pouf on the rug: 0.36 high, 0.3 across, soft blue; a nine year old sits on it. */
-  pouf: () => [piece(new Sink().cylinder(0, 0.18, 0, 0.3, 0.36, 18).out(), M('pouf'), { smooth: true })],
+  pouf: () => [piece(new Sink().lathe([[0.27, 0], [0.31, 0.06], [0.32, 0.22], [0.3, 0.32], [0.22, 0.36], [0.001, 0.37]], 0, 0, 0, 1, 1, 0, 36).out(), M('pouf'), { smooth: true })],
   /** A 19 inch LCD of 2013: a slim black bezel on a round steel foot, the screen towards +z. */
   labMonitor: lcd('screen:2'),
   labMonitorNotepad: lcd('screen:1'),
@@ -303,7 +317,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const wc = {
       pos: new Float32Array([...sh.walls.pos, ...sh.ceiling.pos]), nor: new Float32Array([...sh.walls.nor, ...sh.ceiling.nor]), uv: new Float32Array([...sh.walls.uv, ...sh.ceiling.uv]),
     };
-    const bulb = new Sink().sphere(1.5, 2.2, 0.6, 0.04, 0.05, 0.04, 8, 6).out();
+    const bulb = new Sink().sphere(1.5, 2.2, 0.6, 0.04, 0.05, 0.04, 14, 8).out();
     return [
       { ...sh.floor, surface: M('passageFloor') },
       { ...wc, surface: M('passageWall') },
@@ -339,8 +353,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
   sign: () => [piece(face(3.6, 1.5, 0.041), { paint: 'sign' }), piece(new Sink().box(0, 0, 0, 3.7, 1.6, 0.08).out(), M('board'))],
   /** The trophy: a lathed cup on a disc, gold, 0.26 tall. */
   trophy: () => {
-    const cup = new Sink().lathe([[0.02, 0], [0.06, 0.05], [0.05, 0.12], [0.09, 0.22], [0.1, 0.26]], 0, 0, 0, 1, 1, 0, 16);
-    const base = new Sink().cylinder(0, 0.01, 0, 0.07, 0.02, 16);
+    const cup = new Sink().lathe([[0.02, 0], [0.06, 0.05], [0.05, 0.12], [0.09, 0.22], [0.1, 0.26]], 0, 0, 0, 1, 1, 0, 32);
+    const base = new Sink().cylinder(0, 0.01, 0, 0.07, 0.02, 32);
     return [piece(cup.out(), M('gold'), { smooth: true }), piece(base.out(), M('gold'))];
   },
   /** A lanyard: two green cords from the collar to a white badge on the chest; facing +z. */
@@ -365,26 +379,29 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const hedge = new Sink().box(0, 1.2, -0.1, 6.8, 0.6, 1.25);
     let seed = 7;
     const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-    for (let x = -3.3; x <= 3.3; x += 0.3) for (let z = -0.6; z <= 0.4; z += 0.33) hedge.sphere(x + (rnd() - 0.5) * 0.15, 1.44 + rnd() * 0.08, z + (rnd() - 0.5) * 0.1, 0.2, 0.14, 0.2, 7, 5);
+    for (let x = -3.3; x <= 3.3; x += 0.3) for (let z = -0.6; z <= 0.4; z += 0.33) hedge.sphere(x + (rnd() - 0.5) * 0.15, 1.44 + rnd() * 0.08, z + (rnd() - 0.5) * 0.1, 0.2, 0.14, 0.2, 14, 8);
     const rail = new Sink().bone([-3.6, 1.05, 0.9], [3.6, 1.05, 0.9], 0.03, 0.03);
     for (const x of [-3.2, -1.1, 1.1, 3.2]) rail.box(x, 0.98, 0.9, 0.04, 0.16, 0.04);
     return [piece(wall.out(), M('concrete'), { metres: 'xy' }), piece(hedge.out(), M('hedge'), { smooth: true }), piece(rail.out(), M('rail'))];
   },
   /** A palm: a tapering trunk 7 m tall, a crown of twelve fronds. */
   palm: () => {
-    const trunk = new Sink().lathe([[0.22, 0], [0.17, 2.5], [0.14, 5], [0.12, 7.1]], 0, 0, 0, 1, 1, 0.08, 10);
+    const trunk = new Sink().lathe([[0.22, 0], [0.17, 2.5], [0.14, 5], [0.12, 7.1]], 0, 0, 0, 1, 1, 0.08, 20);
     const crown = new Sink();
+    // each frond arcs up and then droops, in three tapering segments
     for (let i = 0; i < 18; i++) {
       const a = (i / 18) * Math.PI * 2 + (i % 2) * 0.15, r = 2.4 + (i % 3) * 0.5, drop = 0.7 + (i % 3) * 0.7;
-      crown.bone([0, 7.1, 0], [r * Math.cos(a), 7.7 - drop, r * Math.sin(a)], 0.2, 0.04);
+      const c = Math.cos(a), sn = Math.sin(a);
+      const p = [[0, 7.1, 0], [0.4 * r * c, 7.45 - 0.1 * drop, 0.4 * r * sn], [0.75 * r * c, 7.3 - 0.45 * drop, 0.75 * r * sn], [r * c, 6.9 - drop, r * sn]] as const;
+      crown.bone([...p[0]], [...p[1]], 0.16, 0.05).bone([...p[1]], [...p[2]], 0.2, 0.04).bone([...p[2]], [...p[3]], 0.14, 0.02);
     }
-    crown.sphere(0, 7, 0, 0.35, 0.3, 0.35, 8, 6);
-    return [piece(trunk.out(), M('palmTrunk'), { smooth: true }), piece(crown.out(), M('frond'))];
+    crown.sphere(0, 7, 0, 0.35, 0.3, 0.35, 12, 8);
+    return [piece(trunk.out(), M('palmTrunk'), { smooth: true }), piece(crown.out(), M('frond'), { smooth: true })];
   },
   /** An Embarcadero lamp post: a fluted blue-green column 5.5 m tall with a globe. */
   lampPost: () => {
-    const post = new Sink().lathe([[0.22, 0], [0.16, 0.4], [0.09, 0.5], [0.08, 4.6], [0.12, 4.8], [0.06, 5.1]], 0, 0, 0, 1, 1, 0, 10);
-    const globe = new Sink().sphere(0, 5.45, 0, 0.32, 0.4, 0.32, 10, 8);
+    const post = new Sink().lathe([[0.22, 0], [0.16, 0.4], [0.09, 0.5], [0.08, 4.6], [0.12, 4.8], [0.06, 5.1]], 0, 0, 0, 1, 1, 0, 24);
+    const globe = new Sink().sphere(0, 5.45, 0, 0.32, 0.4, 0.32, 24, 14);
     return [piece(post.out(), M('lampPost'), { smooth: true }), piece(globe.out(), M('lampGlobe'), { smooth: true })];
   },
   carSilver: car('carSilver'),
@@ -407,7 +424,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
     for (let i = 0; i < 9; i++) {
       const cx = (rnd() - 0.5) * 900, cz = -250 - rnd() * 400, cy = 140 + rnd() * 90, w = 40 + rnd() * 60;
-      for (let k = 0; k < 4; k++) s.sphere(cx + (rnd() - 0.5) * w, cy + (rnd() - 0.5) * 8, cz + (rnd() - 0.5) * 20, w * (0.3 + rnd() * 0.3), 7 + rnd() * 6, w * 0.25, 8, 5);
+      for (let k = 0; k < 4; k++) s.sphere(cx + (rnd() - 0.5) * w, cy + (rnd() - 0.5) * 8, cz + (rnd() - 0.5) * 20, w * (0.3 + rnd() * 0.3), 7 + rnd() * 6, w * 0.25, 16, 9);
     }
     return [piece(s.out(), M('cloud'), { smooth: true })];
   },
@@ -450,7 +467,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const hull = new Sink(), mast = new Sink(), sail = new Sink();
     for (const [x, z] of [[-28, -15], [40, -45]] as const) {
       hull.box(x, 0.4, z, 6, 0.9, 2.2);
-      mast.cylinder(x, 4, z, 0.12, 7, 6);
+      mast.cylinder(x, 4, z, 0.12, 7, 12);
       sail.bone([x + 0.2, 1, z], [x + 0.2, 7.4, z], 0.05, 2.2);
     }
     return [piece(hull.out(), M('hull')), piece(mast.out(), M('mast')), piece(sail.out(), M('sail'))];
