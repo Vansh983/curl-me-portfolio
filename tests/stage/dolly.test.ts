@@ -47,7 +47,7 @@ test('the camera never jumps: 1/1000 steps move under 0.06 m and turn under 2 de
     const deg = (Math.acos(Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])) * 180) / Math.PI;
     assert.ok(d < 0.06, `cam step ${d} at ${i}`);
     assert.ok(deg < 2, `turn ${deg} degrees at ${i}`);
-    assert.ok(f.fov >= 40 && f.fov <= 60);
+    assert.ok(f.fov >= 55 && f.fov <= 80, `fov ${f.fov}`); // the horizontal field: a laptop shows the room
     prev = f;
   }
 });
