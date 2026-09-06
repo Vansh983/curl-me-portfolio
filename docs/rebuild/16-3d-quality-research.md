@@ -95,12 +95,19 @@ Skip: realism-effects (dead since 2024), VSM shadows, LightProbe, TAARenderPass,
 
 Mobile guardrails: keep dpr cap 1.25 + EMA downscaler, drop AO before dpr. Tier by `pointer: coarse` + `hardwareConcurrency <= 4` + renderer string. ≤ 3 fullscreen passes on mobile. GPU textures ≤ 20 MB, 512 px on mobile, gltf-transform UASTC/ETC1S.
 
-## Plan
+## Plan and status (2026-09-06)
 
-- Now (no input needed): rendering items 1 to 7; swap in Poly Haven CC0 props (sofa, pouf, coffee table, shelves, TV stand, lamps, plants).
-- When Sketchfab login is available: desk, chair, monitors, MacBook, keyboard, PC, bed, blinds, palms, cars, Bay Bridge, skyline, CN Tower, Xbox 360, lab PCs; whole baked condo shell for set 0; add `/credits`.
+Done on `canary`:
+- N8AO (tiered, pacer drops it before pixels), low bloom, neutral tone map, SMAA, vignette. `?tier=0|1`, `?off=ao,bloom,vignette,smaa`, `?tm=aces|agx` for review.
+- `Sink.rbox` rounded boxes on desk, monitors, laptop, hutch, PC, chair, bed, shelves, Xbox, TV, keyboard, kerb, planter, sign; cylinders 24, spheres 24x12, lathes 32 by default.
+- Nine Poly Haven texture sets (`public/assets/stage/tex`, 1.4 MB): floors and oak with colour, plaster/wool/fleece/cotton/carpet relief only; box-projected uv on built props; roughness wander; sheen on cloth, clearcoat on lacquer, cars, plastic.
+- Scanned armchair, side table, picture frame in the condo. Figure code and three unused models removed. Set 4.5 MB.
+
+Open:
+- Sketchfab CC-BY (needs login): desk, chair, monitors, MacBook, keyboard, PC, bed, blinds, palms, cars, Bay Bridge, skyline, CN Tower, Xbox 360, lab PCs; whole baked condo shell for set 0; `/credits` page.
+- Interior HDRI for the 2010 room and lab (1k .hdr is 1.5 MB; needs a gain-map jpg route first).
+- Baked lightmaps for the 2010 room and lab.
 - Parked: splat scan of a real room.
-- Later: baked lightmaps for the 2010 room and lab.
 
 ## Sources
 
