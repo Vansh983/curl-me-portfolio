@@ -36,7 +36,6 @@ export const ASSETS: Asset[] = [
   // 2010, the room
   model('television_02', 'Benny Weimer', 'the CRT television, and scaled down, the lab monitors'),
   model('ceiling_fan', 'Ulan Cabanilla', 'the ceiling fan'),
-  model('gaming_console', 'Sean Buckley', 'the Xbox 360'),
   model('gamepad', 'Josh Dean', 'the controller on the rug', 256),
   model('football', 'Amal Kumar', 'the football', 256),
   model('book_encyclopedia_set_01', 'John Malcolm', 'the books on the shelf', 256),
@@ -46,8 +45,6 @@ export const ASSETS: Asset[] = [
   model('SchoolChair_01', 'Ethan Place', 'the lab chairs'),
   model('wall_clock', 'PierreB3D', 'the clock', 256),
   // 2018, the plaza
-  model('street_lamp_01', 'Josh Dean', 'the lamp post'),
-  model('modular_street_seating', 'Stuart Attenborrow', 'the bench'),
   model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified hard)', 512, 0.003),
   // scanned surfaces: floors take the whole set, walls and cloth take only the relief and keep their designed colour
   texture('laminate_floor_02', 'Dario Barresi', 'the condo floor', 1.7, ['diff', 'nor', 'arm'], 1024),
