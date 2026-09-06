@@ -8,7 +8,7 @@
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D,
   BufferGeometry, BufferAttribute, MeshStandardMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture,
-  DataTexture, RepeatWrapping, SRGBColorSpace, ACESFilmicToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
+  DataTexture, RepeatWrapping, SRGBColorSpace, AgXToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
   RGBAFormat, UnsignedByteType, LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
   AnimationMixer, AnimationClip, SkinnedMesh, Box3, Quaternion,
 } from 'three';
@@ -18,7 +18,10 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { N8AOPass } from 'n8ao';
 import { SETS, type Placement, type StageSet, type Live, type Outfit } from '../lib/stage/sets.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
@@ -61,11 +64,15 @@ const wearOf = (bone: string, w: Wear): string => {
 
 export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): () => void {
   const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  // two tiers: a phone (coarse pointer, few cores) gets half-resolution occlusion and plain
+  // shadows; everything else gets the full pipeline. The pacer below still drops things if it stutters
+  const tierParam = new URLSearchParams(location.search).get('tier'); // review only: ?tier=0|1 forces one
+  const tier = tierParam !== null ? Number(tierParam) : matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency ?? 4) <= 4 ? 0 : 1;
   const dprCap = Math.min(devicePixelRatio, 1.25);
   let dpr = dprCap;
   renderer.setPixelRatio(dpr);
   renderer.outputColorSpace = SRGBColorSpace;
-  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMapping = AgXToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
   const maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
@@ -77,7 +84,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // one sun that casts, one hemisphere that tints; the rest of the light is the environment
   const sun = new DirectionalLight(0xffffff, 1);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.mapSize.set(tier ? 2048 : 1024, tier ? 2048 : 1024);
   Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 0.5, far: 80 });
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.03;
@@ -556,11 +563,38 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     kick();
   };
 
-  // ---- pipeline: render, tone map, anti-alias. Nothing per pixel beyond that.
+  // ---- pipeline: render with ambient occlusion (the corners, the underside of the desk, where
+  // the chair meets the rug: what makes a box read as a thing), a little bloom off the emitters,
+  // tone map, a soft vignette, anti-alias
   const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
+  // the occlusion pass draws the scene itself; the plain pass only steps in when it is switched off
+  const plain = new RenderPass(scene, camera);
+  composer.addPass(plain);
+  const ao = new N8AOPass(scene, camera, 1, 1);
+  Object.assign(ao.configuration, {
+    aoRadius: 0.55, distanceFalloff: 0.6, intensity: 2.6, aoSamples: tier ? 16 : 8, denoiseSamples: tier ? 8 : 4, denoiseRadius: 10,
+    halfRes: !tier, gammaCorrection: false, screenSpaceRadius: false,
+  });
+  composer.addPass(ao);
+  const aoOn = (on: boolean) => { ao.enabled = on; plain.enabled = !on; };
+  const bloom = tier ? new UnrealBloomPass(new Vector2(1, 1), 0.22, 0.5, 1.15) : undefined;
+  if (bloom) composer.addPass(bloom);
   composer.addPass(new OutputPass());
-  composer.addPass(new FXAAPass());
+  const vignette = new ShaderPass({
+    uniforms: { tDiffuse: { value: null }, uAmount: { value: 0.32 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform sampler2D tDiffuse; uniform float uAmount; varying vec2 vUv; void main() { vec4 c = texture2D(tDiffuse, vUv); vec2 d = (vUv - 0.5) * vec2(1.0, 0.85); float v = 1.0 - uAmount * smoothstep(0.35, 0.95, length(d)); gl_FragColor = vec4(c.rgb * v, c.a); }',
+  });
+  composer.addPass(vignette);
+  const smaa = new SMAAPass();
+  composer.addPass(smaa);
+  // review only: ?off=ao,bloom,vignette,smaa switches passes off one at a time
+  const off = new Set((new URLSearchParams(location.search).get('off') ?? '').split(','));
+  aoOn(!off.has('ao'));
+  if (bloom) bloom.enabled = !off.has('bloom');
+  vignette.enabled = !off.has('vignette');
+  smaa.enabled = !off.has('smaa');
+  if (DEBUG) (window as unknown as { __stage: unknown }).__stage = { renderer, composer, ao, bloom, scene, camera };
 
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
@@ -604,7 +638,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       tried = 0;
       return;
     }
-    if (dpr <= 1 || ema < 1 / 50) return;
+    if (ema < 1 / 50) return;
+    // the occlusion goes to half resolution first, then off, before pixels are given up
+    if (ao.enabled && !ao.configuration.halfRes) { ao.configuration.halfRes = true; paced = -60; return; }
+    if (ao.enabled) { aoOn(false); paced = -60; return; }
+    if (bloom?.enabled) { bloom.enabled = false; paced = -60; return; }
+    if (dpr <= 1) return;
     tried = ema;
     apply(Math.max(1, dpr - 0.25));
   };
