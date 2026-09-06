@@ -48,9 +48,9 @@ const frame = (w: number, h: number, t: number, z: number): Sink =>
 
 /** A 19 inch 5:4 LCD on a round foot, its screen a painted face towards +z. */
 const lcd = (paint: string) => (): BuiltPart => {
-  const body = new Sink().box(0, 0.36, -0.012, 0.42, 0.34, 0.024);
-  const stand = new Sink().box(0, 0.1, -0.05, 0.04, 0.2, 0.02).cylinder(0, 0.006, -0.05, 0.11, 0.012, 28);
-  return [piece(offsetGeo(face(0.38, 0.3, 0.001), 0, 0.36, 0), { paint }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
+  const body = new Sink().rbox(0, 0.36, -0.012, 0.42, 0.34, 0.024, 0.006, 2);
+  const stand = new Sink().rbox(0, 0.1, -0.05, 0.04, 0.2, 0.02, 0.005, 2).cylinder(0, 0.006, -0.05, 0.11, 0.012, 28);
+  return [piece(offsetGeo(face(0.38, 0.3, 0.001), 0, 0.36, 0), { paint }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
 };
 
 /** A closed side profile (x, y), counter clockwise seen from +z, extruded along z and capped: a car body. */
@@ -84,38 +84,38 @@ export const BUILT: Record<string, () => BuiltPart> = {
   // ---- now, Toronto
   /** The desk: a black slab 1.8 × 0.75 on two steel frames; the top is at 0.74. */
   desk: () => {
-    const top = new Sink().box(0, 0.725, 0, 1.8, 0.03, 0.75);
+    const top = new Sink().rbox(0, 0.725, 0, 1.8, 0.03, 0.75, 0.008, 2);
     const legs = new Sink();
-    for (const sx of [-0.8, 0.8]) legs.box(sx, 0.355, 0, 0.04, 0.71, 0.6).box(sx, 0.02, 0, 0.06, 0.04, 0.68);
-    return [piece(top.out(), M('deskTop')), piece(legs.out(), M('deskLeg'))];
+    for (const sx of [-0.8, 0.8]) legs.rbox(sx, 0.355, 0, 0.04, 0.71, 0.6, 0.006, 2).rbox(sx, 0.02, 0, 0.06, 0.04, 0.68, 0.008, 2);
+    return [piece(top.out(), M('deskTop'), { smooth: true }), piece(legs.out(), M('deskLeg'), { smooth: true })];
   },
   /** A 27 inch monitor on a stand: 0.61 × 0.36 panel, the screen a painted face towards +z. */
   monitor: () => {
-    const body = new Sink().box(0, 0.5, -0.015, 0.62, 0.37, 0.02);
-    const stand = new Sink().box(0, 0.18, -0.06, 0.05, 0.36, 0.03).box(0, 0.006, -0.06, 0.26, 0.012, 0.18);
-    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenCode' }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
+    const body = new Sink().rbox(0, 0.5, -0.015, 0.62, 0.37, 0.02, 0.005, 2);
+    const stand = new Sink().rbox(0, 0.18, -0.06, 0.05, 0.36, 0.03, 0.006, 2).rbox(0, 0.006, -0.06, 0.26, 0.012, 0.18, 0.005, 2);
+    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenCode' }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
   },
   /** The second monitor, same body, the Floqer app on it. */
   monitorApp: () => {
-    const body = new Sink().box(0, 0.5, -0.015, 0.62, 0.37, 0.02);
-    const stand = new Sink().box(0, 0.18, -0.06, 0.05, 0.36, 0.03).box(0, 0.006, -0.06, 0.26, 0.012, 0.18);
-    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenFloqer' }), piece(body.out(), M('bezel')), piece(stand.out(), M('aluminium'))];
+    const body = new Sink().rbox(0, 0.5, -0.015, 0.62, 0.37, 0.02, 0.005, 2);
+    const stand = new Sink().rbox(0, 0.18, -0.06, 0.05, 0.36, 0.03, 0.006, 2).rbox(0, 0.006, -0.06, 0.26, 0.012, 0.18, 0.005, 2);
+    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenFloqer' }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
   },
   /** A laptop, open at 105 degrees, a terminal on it; the hinge is at the origin, the base runs toward +z. */
   laptop: () => {
-    const base = new Sink().box(0, 0.008, 0.11, 0.31, 0.016, 0.22);
+    const base = new Sink().rbox(0, 0.008, 0.11, 0.31, 0.016, 0.22, 0.006, 2);
     const keys = new Sink().box(0, 0.017, 0.07, 0.27, 0.003, 0.1).box(0, 0.017, 0.17, 0.1, 0.002, 0.06);
-    const lid = new Sink().box(0, 0.105, -0.004, 0.31, 0.21, 0.008).rotateX(0, 0, -0.26);
+    const lid = new Sink().rbox(0, 0.105, -0.004, 0.31, 0.21, 0.008, 0.004, 2).rotateX(0, 0, -0.26);
     const screen = new Sink().quad([-0.145, 0.015, 0.001], [0.145, 0.015, 0.001], [0.145, 0.2, 0.001], [-0.145, 0.2, 0.001], [[0, 0], [1, 0], [1, 1], [0, 1]]).rotateX(0, 0, -0.26);
-    return [piece(screen.out(), { paint: 'screenTerminal' }), piece(base.out(), M('aluminium')), piece(keys.out(), M('bezel')), piece(lid.out(), M('aluminium'))];
+    return [piece(screen.out(), { paint: 'screenTerminal' }), piece(base.out(), M('aluminium'), { smooth: true }), piece(keys.out(), M('bezel')), piece(lid.out(), M('aluminium'), { smooth: true })];
   },
   /** A black hutch on the back of the desk: two uprights, a shelf above the monitors and one behind them, 1.8 wide, 0.28 deep, 1.05 tall from the desk top. */
   deskHutch: () => {
     const s = new Sink();
-    for (const z of [-0.9, 0.9]) s.box(0, 0.525, z, 0.28, 1.05, 0.025);
-    s.box(0, 0.95, 0, 0.28, 0.025, 1.8).box(0, 0.45, 0, 0.26, 0.02, 1.78).box(0, 1.045, 0, 0.28, 0.02, 1.8);
+    for (const z of [-0.9, 0.9]) s.rbox(0, 0.525, z, 0.28, 1.05, 0.025, 0.005, 2);
+    s.rbox(0, 0.95, 0, 0.28, 0.025, 1.8, 0.005, 2).rbox(0, 0.45, 0, 0.26, 0.02, 1.78, 0.005, 2).rbox(0, 1.045, 0, 0.28, 0.02, 1.8, 0.005, 2);
     s.box(-0.13, 0.525, 0, 0.02, 1.05, 1.8); // the back panel
-    return [piece(s.out(), M('deskTop'))];
+    return [piece(s.out(), M('deskTop'), { smooth: true })];
   },
   /** A row of books, 0.5 long along z, mixed heights, spines out toward +x. */
   books: () => {
@@ -125,8 +125,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const pieces: Built[] = [];
     while (z < 0.25) {
       const t = 0.018 + ((i * 7) % 5) * 0.006, h = 0.19 + ((i * 3) % 4) * 0.02;
-      const b = new Sink().box(0, h / 2, z + t / 2, 0.16, h, t);
-      pieces.push(piece(b.out(), { mat: `book${i % cols.length}` }));
+      const b = new Sink().rbox(0, h / 2, z + t / 2, 0.16, h, t, 0.003, 1);
+      pieces.push(piece(b.out(), { mat: `book${i % cols.length}` }, { smooth: true }));
       z += t + 0.003;
       i++;
     }
@@ -141,27 +141,27 @@ export const BUILT: Record<string, () => BuiltPart> = {
     return [piece(lanyard.out(), M('lanyard')), piece(card.out(), M('board')), piece(face.out(), { paint: 'badge' })];
   },
   /** A small PC tower under the desk, 0.2 × 0.38 × 0.36, a power light. */
-  pcTower: () => [piece(new Sink().box(0, 0.19, 0, 0.2, 0.38, 0.36).out(), M('bezel')), piece(new Sink().box(0.06, 0.34, 0.181, 0.01, 0.01, 0.002).out(), M('powerLed'))],
+  pcTower: () => [piece(new Sink().rbox(0, 0.19, 0, 0.2, 0.38, 0.36, 0.01, 2).out(), M('bezel'), { smooth: true }), piece(new Sink().box(0.06, 0.34, 0.181, 0.01, 0.01, 0.002).out(), M('powerLed'))],
   /** An office chair: a five-star base, a gas lift, a seat and a curved back; seat at 0.46. The back is toward -z. */
   officeChair: () => {
     const base = new Sink();
-    for (let i = 0; i < 5; i++) { const start = base.count; base.box(0.16, 0.03, 0, 0.32, 0.03, 0.04).rotateY(0, 0, (i * Math.PI * 2) / 5, start); }
-    base.cylinder(0, 0.24, 0, 0.025, 0.4, 16);
-    const seat = new Sink().box(0, 0.45, 0.02, 0.48, 0.06, 0.48);
-    const back = new Sink().box(0, 0.78, -0.24, 0.44, 0.56, 0.05);
-    const arms = new Sink().box(-0.26, 0.62, 0, 0.04, 0.03, 0.3).box(0.26, 0.62, 0, 0.04, 0.03, 0.3).box(-0.26, 0.54, 0, 0.03, 0.14, 0.03).box(0.26, 0.54, 0, 0.03, 0.14, 0.03);
-    return [piece(base.out(), M('chairBase')), piece(seat.out(), M('chairFabric')), piece(back.out(), M('chairFabric')), piece(arms.out(), M('chairBase'))];
+    for (let i = 0; i < 5; i++) { const start = base.count; base.rbox(0.16, 0.03, 0, 0.32, 0.03, 0.04, 0.012, 2).rotateY(0, 0, (i * Math.PI * 2) / 5, start); }
+    base.cylinder(0, 0.24, 0, 0.025, 0.4, 24);
+    const seat = new Sink().rbox(0, 0.45, 0.02, 0.48, 0.07, 0.48, 0.03, 3);
+    const back = new Sink().rbox(0, 0.78, -0.24, 0.44, 0.56, 0.06, 0.028, 3);
+    const arms = new Sink().rbox(-0.26, 0.62, 0, 0.04, 0.03, 0.3, 0.012, 2).rbox(0.26, 0.62, 0, 0.04, 0.03, 0.3, 0.012, 2).rbox(-0.26, 0.54, 0, 0.03, 0.14, 0.03, 0.01, 2).rbox(0.26, 0.54, 0, 0.03, 0.14, 0.03, 0.01, 2);
+    return [piece(base.out(), M('chairBase'), { smooth: true }), piece(seat.out(), M('chairFabric'), { smooth: true }), piece(back.out(), M('chairFabric'), { smooth: true }), piece(arms.out(), M('chairBase'), { smooth: true })];
   },
   /** A single bed along the window: a low oak frame, a mattress, a navy duvet turned back, a pillow. 2.0 along x, 0.95 along z. */
   bed: () => {
-    const frame = new Sink().box(0, 0.12, 0, 2.02, 0.24, 0.97).box(-0.99, 0.45, 0, 0.04, 0.9, 0.97);
-    const mattress = new Sink().box(0, 0.32, 0, 1.96, 0.18, 0.92);
-    const duvet = new Sink().box(0.2, 0.44, 0, 1.5, 0.08, 0.94).box(0.2, 0.47, 0.05, 1.46, 0.02, 0.6);
-    const pillow = new Sink().box(-0.72, 0.46, 0, 0.5, 0.1, 0.7);
-    return [piece(frame.out(), M('bedFrame')), piece(mattress.out(), M('mattress'), { smooth: true }), piece(duvet.out(), M('duvet'), { smooth: true }), piece(pillow.out(), M('pillow'), { smooth: true })];
+    const frame = new Sink().rbox(0, 0.12, 0, 2.02, 0.24, 0.97, 0.012, 2).rbox(-0.99, 0.45, 0, 0.04, 0.9, 0.97, 0.01, 2);
+    const mattress = new Sink().rbox(0, 0.32, 0, 1.96, 0.18, 0.92, 0.06, 3);
+    const duvet = new Sink().rbox(0.2, 0.44, 0, 1.5, 0.08, 0.94, 0.035, 3).rbox(0.2, 0.47, 0.05, 1.46, 0.03, 0.6, 0.014, 2);
+    const pillow = new Sink().rbox(-0.72, 0.46, 0, 0.5, 0.1, 0.7, 0.045, 3);
+    return [piece(frame.out(), M('bedFrame'), { smooth: true }), piece(mattress.out(), M('mattress'), { smooth: true }), piece(duvet.out(), M('duvet'), { smooth: true }), piece(pillow.out(), M('pillow'), { smooth: true })];
   },
   /** A grey rug under the desk, 2.4 × 1.8. */
-  rugGrey: () => [piece(new Sink().box(0, 0.006, 0, 2.4, 0.012, 1.8).out(), M('rugGrey'), { metres: 'xz' })],
+  rugGrey: () => [piece(new Sink().rbox(0, 0.006, 0, 2.4, 0.012, 1.8, 0.006, 1).out(), M('rugGrey'), { metres: 'xz', smooth: true })],
   /**
    * Toronto at night, in metres, built with the street at the origin and the condo looking toward -z
    * from a hundred metres up. He lives among the towers: the nearest are across the street, most
@@ -283,23 +283,23 @@ export const BUILT: Record<string, () => BuiltPart> = {
   labMonitorNotepad: lcd('screen:1'),
   /** A 32 inch flat television of 2010 on its stand; the glass is the video. */
   flatTv: () => {
-    const body = new Sink().box(0, 0.5, -0.02, 0.78, 0.48, 0.04);
-    const stand = new Sink().box(0, 0.14, -0.02, 0.05, 0.28, 0.03).box(0, 0.01, -0.02, 0.4, 0.02, 0.22);
-    return [piece(offsetGeo(face(0.72, 0.42, 0.001), 0, 0.5, 0), { paint: 'video' }), piece(body.out(), M('bezel')), piece(stand.out(), M('bezel'))];
+    const body = new Sink().rbox(0, 0.5, -0.02, 0.78, 0.48, 0.04, 0.008, 2);
+    const stand = new Sink().rbox(0, 0.14, -0.02, 0.05, 0.28, 0.03, 0.006, 2).rbox(0, 0.01, -0.02, 0.4, 0.02, 0.22, 0.006, 2);
+    return [piece(offsetGeo(face(0.72, 0.42, 0.001), 0, 0.5, 0), { paint: 'video' }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('bezel'), { smooth: true })];
   },
   /** The TV cabinet: a dark wood top on four legs, 1.1 × 0.62 × 0.5. */
   tvTable: () => {
-    const s = new Sink().box(0, 0.6, 0, 1.1, 0.04, 0.5);
-    for (const [x, z] of [[-0.5, -0.2], [0.5, -0.2], [-0.5, 0.2], [0.5, 0.2]]) s.box(x, 0.29, z, 0.05, 0.58, 0.05);
-    return [piece(s.out(), M('tvWood'), { metres: 'xz' })];
+    const s = new Sink().rbox(0, 0.6, 0, 1.1, 0.04, 0.5, 0.008, 2);
+    for (const [x, z] of [[-0.5, -0.2], [0.5, -0.2], [-0.5, 0.2], [0.5, 0.2]]) s.rbox(x, 0.29, z, 0.05, 0.58, 0.05, 0.008, 2);
+    return [piece(s.out(), M('tvWood'), { metres: 'xz', smooth: true })];
   },
   /** A clean open shelf: two uprights, a back, five shelves, 1.2 wide, 1.9 tall, 0.32 deep, teak. */
   /** A small shelf unit, 0.8 wide, 0.9 tall, 0.26 deep: three shelves and a top. */
   smallShelf: () => {
     const s = new Sink();
-    s.box(-0.39, 0.45, 0, 0.02, 0.9, 0.26).box(0.39, 0.45, 0, 0.02, 0.9, 0.26).box(0, 0.45, -0.12, 0.8, 0.9, 0.02);
-    for (const y of [0.04, 0.32, 0.6, 0.88]) s.box(0, y, 0, 0.78, 0.02, 0.24);
-    return [piece(s.out(), M('shelfWood'), { metres: 'xy' })];
+    s.rbox(-0.39, 0.45, 0, 0.02, 0.9, 0.26, 0.004, 1).rbox(0.39, 0.45, 0, 0.02, 0.9, 0.26, 0.004, 1).box(0, 0.45, -0.12, 0.8, 0.9, 0.02);
+    for (const y of [0.04, 0.32, 0.6, 0.88]) s.rbox(0, y, 0, 0.78, 0.02, 0.24, 0.004, 1);
+    return [piece(s.out(), M('shelfWood'), { metres: 'xy', smooth: true })];
   },
   /** Seven anime figures in a row on a shelf, 0.13 to 0.16 tall on black bases, facing +z: Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta. */
   figures: () => {
@@ -322,16 +322,16 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** The original white Xbox 360, standing: 8 wide, 31 tall, 26 deep; the green ring and the tray on the front (+z). */
   xbox360: () => {
-    const body = new Sink().box(0, 0.155, 0, 0.083, 0.31, 0.26).box(0, 0.155, 0.13, 0.072, 0.3, 0.008);
-    const grey = new Sink().box(0, 0.155, 0.135, 0.06, 0.3, 0.004);
+    const body = new Sink().rbox(0, 0.155, 0, 0.083, 0.31, 0.26, 0.012, 3).rbox(0, 0.155, 0.13, 0.072, 0.3, 0.008, 0.003, 1);
+    const grey = new Sink().rbox(0, 0.155, 0.135, 0.06, 0.3, 0.004, 0.002, 1);
     const chrome = new Sink().box(0, 0.24, 0.138, 0.05, 0.016, 0.003).box(0, 0.045, 0.138, 0.02, 0.012, 0.003);
-    const ring = new Sink().sphere(0, 0.12, 0.139, 0.02, 0.02, 0.003, 18, 6);
-    return [piece(body.out(), M('xboxWhite')), piece(grey.out(), M('xboxGrey')), piece(chrome.out(), M('xboxChrome')), piece(ring.out(), M('xboxGreen'), { smooth: true })];
+    const ring = new Sink().sphere(0, 0.12, 0.139, 0.02, 0.02, 0.003, 24, 8);
+    return [piece(body.out(), M('xboxWhite'), { smooth: true }), piece(grey.out(), M('xboxGrey'), { smooth: true }), piece(chrome.out(), M('xboxChrome')), piece(ring.out(), M('xboxGreen'), { smooth: true })];
   },
   shelf: () => {
     const s = new Sink();
-    s.box(-0.59, 0.95, 0, 0.02, 1.9, 0.32).box(0.59, 0.95, 0, 0.02, 1.9, 0.32).box(0, 0.95, -0.15, 1.2, 1.9, 0.02);
-    for (let i = 0; i < 5; i++) s.box(0, 0.06 + i * 0.46, 0, 1.18, 0.02, 0.3);
+    s.rbox(-0.59, 0.95, 0, 0.02, 1.9, 0.32, 0.004, 1).rbox(0.59, 0.95, 0, 0.02, 1.9, 0.32, 0.004, 1).box(0, 0.95, -0.15, 1.2, 1.9, 0.02);
+    for (let i = 0; i < 5; i++) s.rbox(0, 0.06 + i * 0.46, 0, 1.18, 0.02, 0.3, 0.004, 1);
     return [piece(s.out(), M('shelfWood'), { metres: 'xy' })];
   },
   /** The rug: a 24-sided disc, r 1.3. */
@@ -379,9 +379,9 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** A beige keyboard: a slab and 6 rows of 15 keys. */
   keyboard: () => {
-    const base = new Sink().box(0, 0.01, 0, 0.44, 0.02, 0.15);
+    const base = new Sink().rbox(0, 0.01, 0, 0.44, 0.02, 0.15, 0.005, 2);
     const keys = new Sink();
-    for (let r = 0; r < 6; r++) for (let c = 0; c < 15; c++) keys.box(-0.2 + c * 0.0285, 0.025, -0.055 + r * 0.022, 0.018, 0.01, 0.018);
+    for (let r = 0; r < 6; r++) for (let c = 0; c < 15; c++) keys.rbox(-0.2 + c * 0.0285, 0.025, -0.055 + r * 0.022, 0.018, 0.01, 0.018, 0.002, 1);
     return [piece(base.out(), M('desk')), piece(keys.out(), M('keys'))];
   },
   /** The whiteboard: a painted 2.4 × 1.2 face in an aluminium frame, facing +z. */
@@ -401,9 +401,9 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** The plaza: 70 × 80 m of pavers, x from the origin forward, z centred. */
   plazaFloor: () => [piece(new Sink().quad([0, 0, 40], [70, 0, 40], [70, 0, -40], [0, 0, -40]).out(), M('pavers'), { metres: 'xz' })],
   /** The green counter under the sign, 3.6 × 0.9 × 0.6. */
-  counter: () => [piece(new Sink().box(0, 0.45, 0, 3.6, 0.9, 0.6).out(), M('counter'))],
+  counter: () => [piece(new Sink().rbox(0, 0.45, 0, 3.6, 0.9, 0.6, 0.02, 2).out(), M('counter'), { smooth: true })],
   /** The Google sign: a painted 3.6 × 1.5 face on a white slab, facing +z. */
-  sign: () => [piece(face(3.6, 1.5, 0.041), { paint: 'sign' }), piece(new Sink().box(0, 0, 0, 3.7, 1.6, 0.08).out(), M('board'))],
+  sign: () => [piece(face(3.6, 1.5, 0.041), { paint: 'sign' }), piece(new Sink().rbox(0, 0, 0, 3.7, 1.6, 0.08, 0.02, 2).out(), M('board'), { smooth: true })],
   /** The trophy: a lathed cup on a disc, gold, 0.26 tall. */
   trophy: () => {
     const cup = new Sink().lathe([[0.02, 0], [0.06, 0.05], [0.05, 0.12], [0.09, 0.22], [0.1, 0.26]], 0, 0, 0, 1, 1, 0, 32);
@@ -418,7 +418,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   // ---- 2018, the Embarcadero in front of Google San Francisco
   /** The kerb between the sidewalk and the road, 40 m along x. */
-  kerb: () => [piece(new Sink().box(0, 0.06, 0, 40, 0.12, 0.28).out(), M('kerb'))],
+  kerb: () => [piece(new Sink().rbox(0, 0.06, 0, 40, 0.12, 0.28, 0.02, 2).out(), M('kerb'), { smooth: true })],
   /** The road: 40 × 14 m of asphalt, a dashed centre line. */
   road: () => {
     const line = new Sink();
@@ -427,7 +427,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** The planter the sign stands in: a concrete wall 0.9 high and 7 long, a hedge on top, the brown rail along its front edge. Along x, the face towards +z. */
   planter: () => {
-    const wall = new Sink().box(0, 0.45, 0, 7, 0.9, 1.6);
+    const wall = new Sink().rbox(0, 0.45, 0, 7, 0.9, 1.6, 0.03, 2);
     // a trimmed hedge: a block with a bumpy top
     const hedge = new Sink().box(0, 1.2, -0.1, 6.8, 0.6, 1.25);
     let seed = 7;
@@ -435,7 +435,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     for (let x = -3.3; x <= 3.3; x += 0.3) for (let z = -0.6; z <= 0.4; z += 0.33) hedge.sphere(x + (rnd() - 0.5) * 0.15, 1.44 + rnd() * 0.08, z + (rnd() - 0.5) * 0.1, 0.2, 0.14, 0.2, 14, 8);
     const rail = new Sink().bone([-3.6, 1.05, 0.9], [3.6, 1.05, 0.9], 0.03, 0.03);
     for (const x of [-3.2, -1.1, 1.1, 3.2]) rail.box(x, 0.98, 0.9, 0.04, 0.16, 0.04);
-    return [piece(wall.out(), M('concrete'), { metres: 'xy' }), piece(hedge.out(), M('hedge'), { smooth: true }), piece(rail.out(), M('rail'))];
+    return [piece(wall.out(), M('concrete'), { metres: 'xy', smooth: true }), piece(hedge.out(), M('hedge'), { smooth: true }), piece(rail.out(), M('rail'))];
   },
   /** A palm: a tapering trunk 7 m tall, a crown of twelve fronds. */
   palm: () => {

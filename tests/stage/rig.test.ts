@@ -29,6 +29,7 @@ test('primitive counts are fixed', () => {
   assert.equal(new Sink().cylinder(0, 0, 0, 1, 1, 12).out().pos.length, 12 * 12 * 3);
   assert.equal(new Sink().capsule([0, 0, 0], [0, 1, 0], 0.1, 8, 3).out().pos.length, (8 * 6 + 2 * 3 * 8 * 6) * 3);
   assert.equal(new Sink().lathe([[1, 0], [1, 1], [0, 1.2]], 0, 0, 0, 1, 1, 0, 12).out().pos.length, 2 * 12 * 6 * 3);
+  assert.equal(new Sink().rbox(0, 0, 0, 1, 1, 1, 0.1, 2).out().pos.length, 6 * 49 * 6 * 3);
 });
 
 test('uv and colour arrays match the vertex count', () => {
@@ -51,6 +52,7 @@ test('every closed primitive faces outward', () => {
   assert.ok(outward(new Sink().bone([0, 0, 0], [1, 2, 0.5], 0.2, 0.1).out().pos), 'bone');
   assert.ok(outward(new Sink().sphere(0, 0, 0, 1, 1.2, 0.8, 8, 6).out().pos), 'sphere');
   assert.ok(outward(new Sink().cylinder(0, 0, 0, 1, 2, 8).out().pos), 'cylinder');
+  assert.ok(outward(new Sink().rbox(0, 0, 0, 2, 1, 3, 0.2, 3).out().pos), 'rbox');
   assert.ok(outward(new Sink().capsule([0, 0, 0], [0.5, 1, 0.2], 0.2).out().pos), 'capsule');
   assert.ok(outward(new Sink().lathe([[0.001, 0], [1, 0.2], [1, 1], [0.001, 1.2]], 0, 0, 0, 1, 1, 0, 12).out().pos), 'lathe');
 });
@@ -91,4 +93,18 @@ test('a loft through tube rings faces outward, whichever way the path runs', () 
     void c;
     assert.ok(bad < g.pos.length / 9 * 0.1, `${bad} inward faces`);
   }
+});
+
+test('a rounded box stays inside its box, touches every face, and clamps the radius', () => {
+  const p = new Sink().rbox(1, 2, 3, 2, 1, 0.5, 0.2, 3).out().pos;
+  let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < p.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[i + k]); hi[k] = Math.max(hi[k], p[i + k]); }
+  assert.deepEqual(lo.map((v) => +v.toFixed(6) + 0), [0, 1.5, 2.75]);
+  assert.deepEqual(hi.map((v) => +v.toFixed(6)), [2, 2.5, 3.25]);
+  // a corner vertex sits r in from the box corner along the diagonal
+  const q = new Sink().rbox(0, 0, 0, 2, 2, 2, 0.5, 2).out().pos;
+  let corner = Infinity;
+  for (let i = 0; i < q.length; i += 3) corner = Math.min(corner, Math.hypot(q[i] - 1, q[i + 1] - 1, q[i + 2] - 1));
+  assert.ok(Math.abs(corner - 0.5 * (Math.sqrt(3) - 1)) < 1e-6, `corner ${corner}`);
+  for (let i = 0; i < q.length; i += 3) assert.ok(Number.isFinite(q[i]));
 });

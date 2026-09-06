@@ -81,6 +81,46 @@ export class Sink {
     this.quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], r('ny'));
     return this;
   }
+  /**
+   * A box with rounded edges and corners, radius r: a slab of furniture, a monitor, a mattress.
+   * Each face is a grid: a flat middle, a thin support strip, and `segs` cells in the band along
+   * each edge, spaced by equal angle so the round is even. The strip keeps the flat middle flat
+   * when normals are smoothed. 6 * (2 * segs + 3)^2 * 6 vertices. Faces meet at 45 degrees round
+   * the edge, so smoothNormals joins them.
+   */
+  rbox(cx: number, cy: number, cz: number, w: number, h: number, d: number, r: number, segs = 2): this {
+    const half: V3 = [w / 2, h / 2, d / 2];
+    const rr = Math.min(r, half[0], half[1], half[2]);
+    const inner: V3 = [half[0] - rr, half[1] - rr, half[2] - rr];
+    const c: V3 = [cx, cy, cz];
+    // grid lines along one in-plane axis, from -half to half: a band, the flat middle, a band
+    const lines = (k: number): number[] => {
+      const out: number[] = [];
+      for (let i = segs; i >= 1; i--) out.push(-inner[k] - rr * Math.tan((i / segs) * (Math.PI / 4)));
+      const e = Math.min(rr, inner[k]) * 0.3;
+      out.push(-inner[k], -inner[k] + e, inner[k] - e, inner[k]);
+      for (let i = 1; i <= segs; i++) out.push(inner[k] + rr * Math.tan((i / segs) * (Math.PI / 4)));
+      return out;
+    };
+    // a point on the plain box surface, moved onto the rounded one: the part outside the inner
+    // box is a direction, and the point sits r along it from the inner box
+    const round = (p: V3): V3 => {
+      const q: V3 = [0, 0, 0], n: V3 = [0, 0, 0];
+      for (let k = 0; k < 3; k++) { q[k] = Math.max(-inner[k], Math.min(inner[k], p[k])); n[k] = p[k] - q[k]; }
+      const l = len(n) || 1;
+      return [c[0] + q[0] + (n[0] / l) * rr, c[1] + q[1] + (n[1] / l) * rr, c[2] + q[2] + (n[2] / l) * rr];
+    };
+    // face k with sign s: in-plane axes (i, j) chosen so i x j points outward
+    const faces: Array<[number, number, number, number]> = [[2, 1, 0, 1], [2, -1, 1, 0], [0, 1, 1, 2], [0, -1, 2, 1], [1, 1, 2, 0], [1, -1, 0, 2]];
+    for (const [k, sgn, i, j] of faces) {
+      const li = lines(i), lj = lines(j);
+      const at = (a: number, b: number): V3 => { const p: V3 = [0, 0, 0]; p[k] = sgn * half[k]; p[i] = a; p[j] = b; return round(p); };
+      for (let a = 0; a < li.length - 1; a++)
+        for (let b = 0; b < lj.length - 1; b++)
+          this.quad(at(li[a], lj[b]), at(li[a + 1], lj[b]), at(li[a + 1], lj[b + 1]), at(li[a], lj[b + 1]));
+    }
+    return this;
+  }
   /** A box from a to b (a limb or a leaning slab), half-widths rw (sideways) and rd (the other way). 36 vertices. */
   bone(a: V3, b: V3, rw: number, rd: number): this {
     const d = norm(sub(b, a));
@@ -118,7 +158,7 @@ export class Sink {
    * Sphere (or a cap of one), segsW * segsH * 6 vertices. phiMax 1 is the full sphere, 0.5 the top half.
    * uv is equirectangular inside `r`: u around (seam at +x), v from the bottom.
    */
-  sphere(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, segsW = 8, segsH = 6, r?: UVRect, phiMax = 1): this {
+  sphere(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, segsW = 24, segsH = 12, r?: UVRect, phiMax = 1): this {
     const p = (i: number, j: number): V3 => {
       const phi = (i / segsH) * Math.PI * phiMax, th = (j / segsW) * Math.PI * 2;
       return [cx + rx * Math.sin(phi) * Math.cos(th), cy + ry * Math.cos(phi), cz + rz * Math.sin(phi) * Math.sin(th)];
@@ -149,7 +189,7 @@ export class Sink {
     return this;
   }
   /** Cylinder on the y axis, centre (cx, cy, cz), segs * 12 vertices. */
-  cylinder(cx: number, cy: number, cz: number, r: number, h: number, segs = 8): this {
+  cylinder(cx: number, cy: number, cz: number, r: number, h: number, segs = 24): this {
     const y0 = cy - h / 2, y1 = cy + h / 2;
     const ring = (j: number, y: number): V3 => {
       const th = (j / segs) * Math.PI * 2;
@@ -168,7 +208,7 @@ export class Sink {
    * (profile.length - 1) * segs * 6 vertices. uv: u around with the -z front at 0 and the +z back at 0.5,
    * v from bottom to top, inside `r`.
    */
-  lathe(profile: [number, number][], cx: number, cy: number, cz: number, sx: number, sz: number, shear = 0, segs = 12, r?: UVRect): this {
+  lathe(profile: [number, number][], cx: number, cy: number, cz: number, sx: number, sz: number, shear = 0, segs = 32, r?: UVRect): this {
     const n = profile.length - 1;
     const p = (i: number, j: number): V3 => {
       const th = (j / segs) * Math.PI * 2 - Math.PI / 2;
