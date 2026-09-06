@@ -383,8 +383,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       obj = (await loadModel(p.model)).scene.clone();
       obj.traverse((o) => { if (o instanceof Mesh) o.name = `m|${p.model}|${o.name}|${p.live ?? ''}`; });
       if (p.live === 'fan') live.fans.push(obj);
+      if (p.live === 'pendant' && !baked) {
+        const light = new PointLight('#FFD9A8', 7, 5.0, 1.6); // in the mouth of the shade, so the pool falls on the chair
+        light.position.set(0, 0.12, 0);
+        obj.add(light);
+      }
       if (p.live === 'lamp' && !baked) {
-        const light = new PointLight('#FFC98A', 1.5, 2.1, 1.8); // the desk, not the wall
+        const light = new PointLight('#FFC98A', 2.5, 2.4, 1.8); // the desk, not the wall
         light.position.set(0.05, 0.78, 0.2);
         obj.add(light);
       }

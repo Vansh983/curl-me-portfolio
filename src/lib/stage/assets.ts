@@ -38,8 +38,11 @@ export const ASSETS: Asset[] = [
   kit('keyboard_mouse_black', 927116, 'BlenderKit (Blender Interior)', 'the keyboard and mouse'),
   kit('bed_single', 1273846, 'BlenderKit', 'the bed along the window'),
   model('modern_arm_chair_01', 'Vibrant Nordic', 'the armchair facing the window'),
+  kit('pendant_tense', 853305, 'BlenderKit', 'the pendant over the armchair', 256),
+  kit('wall_art_circles', 919410, 'BlenderKit', 'the print by the condo door', 512),
+  kit('coffee_mug', 782558, 'BlenderKit', 'the mug on the desk', 256),
+  kit('headphones_retro', 1049005, 'BlenderKit', 'the headphones on the desk', 256, 0.004),
   model('side_table_01', 'James Ray Cock', 'the side table by the armchair', 256),
-  model('hanging_picture_frame_02', 'James Ray Cock', 'the frame by the condo door', 256),
   // 2010, the room
   model('television_02', 'Benny Weimer', 'the CRT television, and scaled down, the lab monitors'),
   model('ceiling_fan', 'Ulan Cabanilla', 'the ceiling fan'),
@@ -55,7 +58,8 @@ export const ASSETS: Asset[] = [
   model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified hard)', 512, 0.003),
   kit('palm_medium', 609465, 'BlenderKit (CC0)', 'the palms along the Embarcadero'),
   // scanned surfaces: floors take the whole set, walls and cloth take only the relief and keep their designed colour
-  texture('laminate_floor_02', 'Dario Barresi', 'the condo floor', 1.7, ['diff', 'nor', 'arm'], 1024),
+  texture('herringbone_parquet', 'Jenelle van Heerden', 'the condo floor', 3.4, ['diff', 'nor', 'arm'], 1024),
+  texture('dark_brick_wall', 'Dario Barresi', 'the wall behind the desk', 1.05, ['diff', 'nor', 'arm']),
   texture('plank_flooring_02', 'Dario Barresi', 'the 2010 room floor', 1.98, ['diff', 'nor', 'arm'], 1024),
   texture('plastered_wall_04', 'Rob Tuytel', 'the relief of every plastered wall', 3.2, ['nor', 'arm']),
   texture('wool_boucle', 'colormass', 'the office chair, the pouf', 0.35, ['nor', 'arm']),

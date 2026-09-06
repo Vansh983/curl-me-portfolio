@@ -26,9 +26,12 @@ export interface Mat {
 
 export const MATS: Record<string, Mat> = {
   // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
-  condoWall: { color: '#C9C3B9', rough: 0.92, tex: 'plastered_wall_04', amp: 0.3, tile: 3.2 },
-  condoCeiling: { color: '#F6F5F2', rough: 0.95, tile: 1 },
-  condoFloor: { color: '#FFFFFF', rough: 1, tex: 'laminate_floor_02', amp: 0.6, tile: 1.7 },
+  condoWall: { color: '#33343A', rough: 0.9, tex: 'plastered_wall_04', amp: 0.3, tile: 3.2 },
+  condoBrick: { color: '#4A4644', rough: 0.95, tex: 'dark_brick_wall', amp: 0.9, tile: 1.05 },
+  skirting: { color: '#E6E3DC', rough: 0.45, clearcoat: 0.3, clearcoatRough: 0.3, tile: 1 },
+  ledStrip: { color: '#FFE2B8', rough: 0.5, emissive: '#FFD9A0', emissivePower: 3, tile: 1 },
+  condoCeiling: { color: '#2B2C30', rough: 0.95, tile: 1 },
+  condoFloor: { color: '#C9B294', rough: 1, tex: 'herringbone_parquet', amp: 0.6, clearcoat: 0.35, clearcoatRough: 0.3, tile: 3.4 },
   deskTop: { color: '#1F1F22', rough: 0.45, clearcoat: 0.35, clearcoatRough: 0.25, tile: 1 },
   deskLeg: { color: '#2A2A2E', rough: 0.4, metal: 0.6, tile: 1 },
   bezel: { color: '#141416', rough: 0.35, clearcoat: 0.15, tile: 1 },
@@ -41,7 +44,7 @@ export const MATS: Record<string, Mat> = {
   duvet: { color: '#2F4562', rough: 0.95, tex: 'polar_fleece', amp: 0.8, sheen: 0.8, tile: 0.27 },
   pillow: { color: '#F6F4EE', rough: 0.9, tex: 'polar_fleece', amp: 0.6, sheen: 0.6, tile: 0.27 },
   bedFrame: { color: '#C9A47E', rough: 0.7, tex: 'oak_veneer_01', amp: 0.5, clearcoat: 0.15, tile: 1.83 },
-  rugGrey: { color: '#9AA0A6', rough: 0.98, tex: 'dirty_carpet', amp: 0.9, sheen: 0.3, tile: 0.6 },
+  rugGrey: { color: '#5B5F66', rough: 0.98, tex: 'dirty_carpet', amp: 0.9, sheen: 0.3, tile: 0.6 },
   skin: { color: '#C68E6A', rough: 0.7, tile: 1 },
   tee: { color: '#141416', rough: 0.9, grain: 'weave', amp: 0.15, tile: 0.15 },
   hoodie: { color: '#202127', rough: 1, grain: 'weave', amp: 0.2, tile: 0.12 },

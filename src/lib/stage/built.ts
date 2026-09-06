@@ -160,6 +160,19 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const pillow = new Sink().rbox(-0.72, 0.46, 0, 0.5, 0.1, 0.7, 0.045, 3);
     return [piece(frame.out(), M('bedFrame'), { smooth: true }), piece(mattress.out(), M('mattress'), { smooth: true }), piece(duvet.out(), M('duvet'), { smooth: true }), piece(pillow.out(), M('pillow'), { smooth: true })];
   },
+  /** The brick wall behind the desk: the condo's x+ wall faced in brick, 3 cm proud, leaving the door (z 1.15 to 2.05) open. Placed at the wall's x, z 0. */
+  condoBrick: () => [piece(new Sink().box(-0.015, 1.4, -0.525, 0.03, 2.8, 3.35).box(-0.015, 1.4, 2.125, 0.03, 2.8, 0.15).box(-0.015, 2.425, 1.6, 0.03, 0.75, 0.9).out(), M('condoBrick'))],
+  /** White skirting round the condo (x -8.4..-4.2, z -2.2..2.2), 10 cm, breaking for the door on the x+ wall at z 1.15..2.05 and the glass on z-. */
+  condoSkirting: () => {
+    const t = 0.016, h = 0.1;
+    const s = new Sink();
+    s.rbox(-8.4 + t / 2, h / 2, 0, t, h, 4.4, 0.004, 1); // x- wall
+    s.rbox(-6.3, h / 2, 2.2 - t / 2, 4.2, h, t, 0.004, 1); // z+ wall
+    s.rbox(-4.2 - 0.03 - t / 2, h / 2, -0.525, t, h, 3.35, 0.004, 1); // x+ wall, left of the door, in front of the brick
+    return [piece(s.out(), M('skirting'), { smooth: true })];
+  },
+  /** A warm LED strip under the hutch's top shelf, the length of the desk. Placed like the hutch. */
+  hutchLed: () => [piece(new Sink().box(0.03, 0.932, 0, 0.04, 0.012, 1.7).out(), M('ledStrip'))],
   /** A grey rug under the desk, 2.4 × 1.8. */
   rugGrey: () => [piece(new Sink().rbox(0, 0.006, 0, 2.4, 0.012, 1.8, 0.006, 1).out(), M('rugGrey'), { metres: 'xz', smooth: true })],
   /**

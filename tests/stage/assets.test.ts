@@ -28,7 +28,7 @@ test('urls are under /assets/stage; models end in .glb, textures are a stem for 
   }
 });
 
-test('the built files exist and the whole set stays under 7.5 MB', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
+test('the built files exist and the whole set stays under 9 MB', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
   let total = 0;
   for (const a of ASSETS) {
     const files = a.kind === 'model' ? [`public${assetUrl(a)}`] : (a.maps ?? []).map((m) => `public${assetUrl(a)}_${m}.webp`);
@@ -37,5 +37,5 @@ test('the built files exist and the whole set stays under 7.5 MB', { skip: !exis
       total += statSync(f).size;
     }
   }
-  assert.ok(total < 7.5e6, `${(total / 1e6).toFixed(2)} MB`);
+  assert.ok(total < 9e6, `${(total / 1e6).toFixed(2)} MB`);
 });

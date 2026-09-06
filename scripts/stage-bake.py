@@ -27,7 +27,7 @@ OUT_PREVIEW = f"{ROOT}/.cache/bake/set{SET}_render.png"
 DROP_LIVE = {"city", "sky", "water"}
 DROP_PROP = {"clouds", "bridge", "boats", "piers", "nightSky", "sky"}
 EMIT = {"paint:screenCode": 4.0, "paint:screenFloqer": 4.0, "paint:screenTerminal": 4.0, "paint:screen": 3.0, "paint:video": 3.0,
-        "mat:tubeGlass": 10.0, "mat:bulb": 5.0, "mat:powerLed": 4.0, "mat:xboxGreen": 2.0, "mat:lampGlobe": 6.0}
+        "mat:tubeGlass": 10.0, "mat:bulb": 5.0, "mat:ledStrip": 40.0, "mat:powerLed": 4.0, "mat:xboxGreen": 2.0, "mat:lampGlobe": 6.0}
 LIVE_SURFACE = {"mat:tubeGlass", "mat:bulb", "mat:curtain"}  # runtime keeps building these pieces
 # in the scene for shadow and bounce, not baked, not exported: the wide ground, the leafy models (bake.ts CONTEXT_*)
 CONTEXT_PROP = {"plazaFloor", "road"}
@@ -233,7 +233,7 @@ if shell:
         ld.size, ld.size_y = w, h
         ld.color = sky
         night = MANIFEST["envPower"] < 0.1
-        ld.energy = w * h * (8.0 if night else 50.0)
+        ld.energy = w * h * (10.0 if night else 50.0)
         lo = bpy.data.objects.new("Window", ld)
         lo.location = pos
         lo.rotation_euler = rot

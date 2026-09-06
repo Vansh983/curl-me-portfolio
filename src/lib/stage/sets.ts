@@ -24,7 +24,7 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'screen' | 'city' | 'sky';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'screen' | 'city' | 'sky';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 export interface Placement {
@@ -83,9 +83,14 @@ export const SETS: StageSet[] = [
       { build: 'mullions', at: [-6.3, 0, -2.2], scale: [0.8, 1.4, 1] },
       { build: 'city', at: [-6.3, -100, -2.2], live: 'city', cap: 'Toronto. The CN Tower from the 30th floor.', shadow: false },
       { build: 'nightSky', at: [-6.3, 0, -2.2], live: 'city', shadow: false },
+      { build: 'condoBrick', at: [-4.2, 0, 0] },
+      { build: 'condoSkirting', at: [0, 0, 0] },
       { build: 'rugGrey', at: [-5.1, 0, -0.4] },
       { build: 'desk', at: [-4.58, 0, -0.4], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
       { build: 'deskHutch', at: [-4.34, 0.74, -0.4] },
+      { build: 'hutchLed', at: [-4.34, 0.74, -0.4] },
+      { model: 'coffee_mug', at: [-4.7, 0.74, 0.02], rot: [0, 40, 0] },
+      { model: 'headphones_retro', at: [-4.62, 0.74, -1.05], rot: [0, -60, 0] },
       { build: 'books', at: [-4.34, 1.71, -0.55], cap: 'The shelf. Mostly systems and design.' },
       { build: 'books', at: [-4.34, 1.21, 0.0] },
       { build: 'badge', at: [-4.5, 1.69, -1.05], cap: 'Google Code-in 2018. Grand prize.' },
@@ -103,7 +108,8 @@ export const SETS: StageSet[] = [
       { model: 'potted_plant_01', at: [-8.05, 0, -1.85], scale: 0.9 },
       { model: 'modern_arm_chair_01', at: [-7.3, 0, 0.55], rot: [0, 200, 0], cap: 'The chair for reading. The city does the rest.' },
       { model: 'side_table_01', at: [-7.95, 0, 0.95] },
-      { model: 'hanging_picture_frame_02', at: [-4.21, 1.6, 0.25], rot: [0, -90, 0] },
+      { model: 'wall_art_circles', at: [-4.235, 1.3, 0.55], rot: [90, 0, 90] },
+      { model: 'pendant_tense', at: [-6.4, 1.78, 0.75], live: 'pendant', cap: 'The corner for reading.' }, // its cord reaches the ceiling at 2.8
       { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' },
     ],
   },
