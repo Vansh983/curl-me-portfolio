@@ -8,7 +8,7 @@
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D,
   BufferGeometry, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
-  DataTexture, RepeatWrapping, SRGBColorSpace, AgXToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
+  DataTexture, RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
   RGBAFormat, UnsignedByteType, LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
   AnimationMixer, AnimationClip, Box3,
 } from 'three';
@@ -55,7 +55,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   let dpr = dprCap;
   renderer.setPixelRatio(dpr);
   renderer.outputColorSpace = SRGBColorSpace;
-  renderer.toneMapping = AgXToneMapping;
+  // Khronos neutral: the designed colours come through as designed, the sky stays blue, nothing
+  // crushes. Review only: ?tm=aces|agx tries the others
+  const tm = new URLSearchParams(location.search).get('tm');
+  renderer.toneMapping = tm === 'aces' ? ACESFilmicToneMapping : tm === 'agx' ? AgXToneMapping : NeutralToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
   const maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
