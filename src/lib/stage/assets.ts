@@ -2,13 +2,14 @@
 // turns this into optimised .glb files under public/assets/stage/ and a credits file; the runtime
 // only ever asks assetUrl(). Everything is Poly Haven, CC0. Model textures are capped at 512 px
 // and scanned surfaces at 1k: the whole set has to stay light enough for a phone on a bad connection.
-export type Licence = 'CC0' | 'CC-BY-3.0';
+export type Licence = 'CC0' | 'CC-BY-3.0' | 'RF'; // RF: BlenderKit royalty free (use anywhere, no credit, the file itself is not for resale)
 export type TexMap = 'diff' | 'nor' | 'arm'; // colour, normal (gl), and ambient occlusion + roughness + metalness packed in r, g, b
 export interface Asset {
   id: string; // the Poly Haven slug, or our own name for a url asset
   kind: 'model' | 'texture';
-  source: 'polyhaven' | 'url';
+  source: 'polyhaven' | 'url' | 'blenderkit';
   url?: string; // source 'url': a direct .glb
+  bk?: number; // source 'blenderkit': the numeric download id of the gltf file (api/v1/downloads/<id>/)
   res: '1k';
   licence: Licence;
   author: string;
@@ -22,6 +23,8 @@ export interface Asset {
 
 const model = (id: string, author: string, use: string, maxTex: 256 | 512 = 512, simplify?: number): Asset =>
   ({ id, kind: 'model', source: 'polyhaven', res: '1k', licence: 'CC0', author, use, maxTex, simplify });
+const kit = (id: string, bk: number, author: string, use: string, maxTex: 256 | 512 = 512, simplify?: number): Asset =>
+  ({ id, kind: 'model', source: 'blenderkit', bk, res: '1k', licence: 'RF', author, use, maxTex, simplify });
 const texture = (id: string, author: string, use: string, size: number, maps: TexMap[], maxTex: 512 | 1024 = 512): Asset =>
   ({ id, kind: 'texture', source: 'polyhaven', res: '1k', licence: 'CC0', author, use, maxTex, maps, size });
 
@@ -30,13 +33,17 @@ export const ASSETS: Asset[] = [
   model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp', 256),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),
   model('potted_plant_01', 'Rico Cilliers', 'the plant by the window', 256, 0.004),
+  kit('office_chair_black', 1003111, 'BlenderKit (Blender Interior)', 'the office chair'),
+  kit('laptop_14_aluminium', 945638, 'BlenderKit (Blender Interior)', 'the laptop'),
+  kit('keyboard_mouse_black', 927116, 'BlenderKit (Blender Interior)', 'the keyboard and mouse'),
+  kit('bed_single', 1273846, 'BlenderKit', 'the bed along the window'),
   model('modern_arm_chair_01', 'Vibrant Nordic', 'the armchair facing the window'),
   model('side_table_01', 'James Ray Cock', 'the side table by the armchair', 256),
   model('hanging_picture_frame_02', 'James Ray Cock', 'the frame by the condo door', 256),
   // 2010, the room
   model('television_02', 'Benny Weimer', 'the CRT television, and scaled down, the lab monitors'),
   model('ceiling_fan', 'Ulan Cabanilla', 'the ceiling fan'),
-  model('gamepad', 'Josh Dean', 'the controller on the rug', 256),
+  kit('xbox_controller', 1143937, 'BlenderKit', 'the controller on the rug', 256, 0.001),
   model('football', 'Amal Kumar', 'the football', 256),
   model('book_encyclopedia_set_01', 'John Malcolm', 'the books on the shelf', 256),
   model('throw_pillows_01', 'Serhii Khromov', 'cushions on the rug', 256),
@@ -46,6 +53,7 @@ export const ASSETS: Asset[] = [
   model('wall_clock', 'PierreB3D', 'the clock', 256),
   // 2018, the plaza
   model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified hard)', 512, 0.003),
+  kit('palm_medium', 609465, 'BlenderKit (CC0)', 'the palms along the Embarcadero'),
   // scanned surfaces: floors take the whole set, walls and cloth take only the relief and keep their designed colour
   texture('laminate_floor_02', 'Dario Barresi', 'the condo floor', 1.7, ['diff', 'nor', 'arm'], 1024),
   texture('plank_flooring_02', 'Dario Barresi', 'the 2010 room floor', 1.98, ['diff', 'nor', 'arm'], 1024),

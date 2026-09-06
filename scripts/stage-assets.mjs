@@ -39,20 +39,29 @@ async function keepAnims(src, dst, names) {
 
 for (const a of ASSETS) {
   const out = `public${assetUrl(a)}`;
-  if (a.source === 'url') {
+  if (a.source === 'url' || a.source === 'blenderkit') {
     authors[a.id] = a.author;
     const dir = `${CACHE}/${a.id}`;
     let src = `${dir}/${a.id}.glb`;
-    await fetchTo(a.url, src);
+    if (a.source === 'blenderkit') {
+      // a free asset: the download endpoint answers with a signed file url, no account needed
+      if (!existsSync(src)) {
+        const r = await fetch(`https://www.blenderkit.com/api/v1/downloads/${a.bk}/?scene_uuid=${crypto.randomUUID()}`);
+        if (!r.ok) throw new Error(`${r.status} blenderkit ${a.id}`);
+        const { filePath } = await r.json();
+        await fetchTo(filePath, src);
+      }
+    } else await fetchTo(a.url, src);
     if (a.anims) { const trimmed = `${dir}/${a.id}.anims.glb`; await keepAnims(src, trimmed, a.anims); src = trimmed; }
     if (!existsSync(out)) {
       await mkdir(path.dirname(out), { recursive: true });
       execFileSync('npx', ['gltf-transform', 'optimize', src, out,
         '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', String(a.maxTex ?? 512),
-        '--simplify', 'false', '--instance', 'false', '--palette', 'false', '--join', 'false', '--flatten', 'false'], { stdio: 'inherit' });
+        ...(a.simplify ? ['--simplify', 'true', '--simplify-error', String(a.simplify)] : ['--simplify', 'false']),
+        '--instance', 'false', '--palette', 'false', '--join', 'false', '--flatten', 'false'], { stdio: 'inherit' });
     }
     total += await size(out);
-    credits.push(`- \`${a.id}\` (${a.kind}) by ${a.author}, ${a.licence}, ${a.url}. ${a.use}.`);
+    credits.push(`- \`${a.id}\` (${a.kind}) by ${a.author}, ${a.licence}, ${a.url ?? `https://www.blenderkit.com/api/v1/downloads/${a.bk}/`}. ${a.use}.`);
     console.log(a.id, '|', a.author, '|', a.use);
     continue;
   }
@@ -100,7 +109,7 @@ for (const a of ASSETS) {
   credits.push(`- \`${a.id}\` (${a.kind}) by ${author}, CC0, https://polyhaven.com/a/${a.id}. ${a.use}.`);
   console.log(a.id, '|', author, '|', a.use);
 }
-await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels and textures from [Poly Haven](https://polyhaven.com), CC0. Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n`);
+await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels and textures from [Poly Haven](https://polyhaven.com) (CC0) and free models from [BlenderKit](https://www.blenderkit.com) (royalty free). Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n`);
 const wrong = ASSETS.filter((a) => a.author !== authors[a.id]).map((a) => `${a.id}: manifest says ${a.author}, site says ${authors[a.id]}`);
 if (wrong.length) console.log('authors to fix in the manifest:\n  ' + wrong.join('\n  '));
 console.log(`total ${(total / 1e6).toFixed(1)} MB`);

@@ -8,7 +8,8 @@ test('every asset is named once, credited, licensed, and capped at 512 px (1k fo
   for (const a of ASSETS) {
     assert.ok(!ids.has(a.id), `${a.id} twice`);
     ids.add(a.id);
-    assert.ok(a.licence === 'CC0' || a.licence === 'CC-BY-3.0', `${a.id} licence`);
+    assert.ok(a.licence === 'CC0' || a.licence === 'CC-BY-3.0' || a.licence === 'RF', `${a.id} licence`);
+    if (a.source === 'blenderkit') assert.ok((a.bk ?? 0) > 0, `${a.id} bk id`);
     if (a.source === 'url') assert.match(a.url ?? '', /^https:\/\/.+\.glb$/, `${a.id} url`);
     assert.ok(a.author.length > 1, `${a.id} author`);
     assert.ok(a.use.length > 3, `${a.id} use`);
@@ -27,7 +28,7 @@ test('urls are under /assets/stage; models end in .glb, textures are a stem for 
   }
 });
 
-test('the built files exist and the whole set stays under 5.5 MB', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
+test('the built files exist and the whole set stays under 7.5 MB', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
   let total = 0;
   for (const a of ASSETS) {
     const files = a.kind === 'model' ? [`public${assetUrl(a)}`] : (a.maps ?? []).map((m) => `public${assetUrl(a)}_${m}.webp`);
@@ -36,5 +37,5 @@ test('the built files exist and the whole set stays under 5.5 MB', { skip: !exis
       total += statSync(f).size;
     }
   }
-  assert.ok(total < 5.5e6, `${(total / 1e6).toFixed(2)} MB`);
+  assert.ok(total < 7.5e6, `${(total / 1e6).toFixed(2)} MB`);
 });
