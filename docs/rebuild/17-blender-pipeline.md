@@ -13,6 +13,10 @@
 - Optional, for gaps only: a Tripo key (platform.tripo3d.ai, 300 free credits, $0.35 to $0.45 per photo-to-model) or a fal.ai key (Rodin, $0.40 per model).
 - Nothing else. BlenderKit and Poly Haven need no login.
 
+## Status (2026-09-06, evening)
+
+Done. Blender 5.2.1 installed (brew cask). `npm run stage:bake -- <set> [samples] [size]` = export from the dev server, Cycles bake on the M2 Pro GPU (about 25 s a set at 2048 px, 128 samples), compress into `public/assets/stage/baked/`. All four sets are baked (6.7 MB). Rules for what stays live are in `src/lib/stage/bake.ts` and mirrored in `scripts/stage-bake.py`. BlenderKit free models in the manifest (`kit()` in assets.ts): office chair, laptop, keyboard, bed, controller, palms. Lessons: bake one joined mesh (Cycles compiles kernels per bake; 81 objects took 2 h, one object 10 s), weld the triangle soups first, keep TEXCOORD_1 through gltf-transform (`--prune-attributes false`), keep the wide ground and leafy models out of the atlas, paint faces on boards bake black from the wrong side so they stay live.
+
 ## Pipeline
 
 1. Assets: `scripts/stage-assets.mjs` gains a `blenderkit` source: search `GET https://www.blenderkit.com/api/v1/search/?query=<q>+asset_type:model+is_free:true`, take `files[fileType=gltf].downloadUrl`, `GET {downloadUrl}?scene_uuid=<uuid>` gives a signed GLB URL. Licence Royalty Free (no credit, cannot resell the file). Sketchfab source: `GET /v3/models/{uid}/download` with `Authorization: Token`, signed `glb.url` valid 300 s. All through `gltf-transform optimize` to 512 or 1k webp, meshopt.
