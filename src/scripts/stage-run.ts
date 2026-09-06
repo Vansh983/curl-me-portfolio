@@ -8,9 +8,9 @@
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D,
   BufferGeometry, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
-  DataTexture, RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
-  RGBAFormat, UnsignedByteType, LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
-  AnimationMixer, AnimationClip, Box3,
+  RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
+  LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
+  AnimationMixer, AnimationClip, Box3, ShaderChunk,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -27,6 +27,7 @@ import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
 import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
+import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress } from '../lib/stage/shot.ts';
@@ -158,36 +159,39 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   videoTex.colorSpace = SRGBColorSpace;
 
   // ---- designed materials: a colour, a roughness, a faint grain, maybe a painted map
-  const grains = new Map<Kind, DataTexture>();
-  const grainFor = (kind: Kind): DataTexture => {
+  // pixels to a canvas texture (not a DataTexture): the bake exporter can only draw canvases and images
+  const pixelTex = (px: Uint8Array | Uint8ClampedArray, n: number): CanvasTexture => {
+    const c = canvas2d(n, n);
+    const img = c.getContext('2d')!.createImageData(n, n);
+    img.data.set(px);
+    c.getContext('2d')!.putImageData(img, 0, 0);
+    const t = new CanvasTexture(c);
+    t.wrapS = t.wrapT = RepeatWrapping;
+    t.magFilter = LinearFilter;
+    t.minFilter = LinearMipmapLinearFilter;
+    t.generateMipmaps = true;
+    t.anisotropy = maxAniso;
+    return t;
+  };
+  const grains = new Map<Kind, CanvasTexture>();
+  const grainFor = (kind: Kind): CanvasTexture => {
     let t = grains.get(kind);
     if (!t) {
-      t = new DataTexture(detailMap(kind, GRAIN), GRAIN, GRAIN, RGBAFormat, UnsignedByteType);
-      t.wrapS = t.wrapT = RepeatWrapping;
-      t.magFilter = LinearFilter;
-      t.minFilter = LinearMipmapLinearFilter;
-      t.generateMipmaps = true;
-      t.anisotropy = maxAniso;
-      t.needsUpdate = true;
+      t = pixelTex(detailMap(kind, GRAIN), GRAIN);
       grains.set(kind, t);
     }
     return t;
   };
   // roughness wanders across a plain surface: a low noise, its floor set by `vary`, so nothing reads as one flat sheet of plastic
-  const wanders = new Map<number, DataTexture>();
-  const wanderFor = (vary: number): DataTexture => {
+  const wanders = new Map<number, CanvasTexture>();
+  const wanderFor = (vary: number): CanvasTexture => {
     const key = Math.round(vary * 20);
     let t = wanders.get(key);
     if (!t) {
       const n = 128, h = fbm(n, 5, 7, 3, 0.55);
       const px = new Uint8Array(n * n * 4);
       for (let i = 0; i < n * n; i++) { const g = Math.round(255 * (1 - vary * (1 - h[i]))); px[i * 4] = 255; px[i * 4 + 1] = g; px[i * 4 + 2] = 255; px[i * 4 + 3] = 255; }
-      t = new DataTexture(px, n, n, RGBAFormat, UnsignedByteType);
-      t.wrapS = t.wrapT = RepeatWrapping;
-      t.magFilter = LinearFilter;
-      t.minFilter = LinearMipmapLinearFilter;
-      t.generateMipmaps = true;
-      t.needsUpdate = true;
+      t = pixelTex(px, n);
       wanders.set(key, t);
     }
     return t;
@@ -195,11 +199,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // scanned surfaces from assets.ts: loaded once, cloned per material for its own repeat
   const texLoader = new TextureLoader();
   const scans = new Map<string, Texture>();
+  const scanning: Promise<void>[] = []; // the bake export waits for these
   const scanFor = (id: string, map: 'diff' | 'nor' | 'arm'): Texture => {
     const key = `${id}_${map}`;
     let t = scans.get(key);
     if (!t) {
-      t = texLoader.load(`${assetUrl(asset(id))}_${map}.webp`, () => kick());
+      let done = () => {};
+      scanning.push(new Promise<void>((r) => { done = r; }));
+      t = texLoader.load(`${assetUrl(asset(id))}_${map}.webp`, () => { done(); kick(); }, undefined, () => done());
       t.wrapS = t.wrapT = RepeatWrapping;
       t.anisotropy = maxAniso;
       if (map === 'diff') t.colorSpace = SRGBColorSpace;
@@ -271,6 +278,20 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return matFor(s.mat);
   };
 
+  // ---- baked light: a mesh that came back from Blender takes its light from the lightmap alone.
+  // The shader keeps the environment's reflections and drops every direct light and the
+  // hemisphere, so the live sun that lights the curtains does not light the walls twice
+  const bakedLighting = (m: MeshStandardMaterial, lm: Texture) => {
+    m.lightMap = lm;
+    m.lightMapIntensity = LM_SCALE * Math.PI; // Blender's diffuse bake is irradiance over pi
+    m.onBeforeCompile = (sh) => {
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <lights_fragment_begin>', ShaderChunk.lights_fragment_begin.replaceAll('RE_Direct( directLight,', 'directLight.color = vec3( 0.0 ); RE_Direct( directLight,').replaceAll('irradiance += get', 'irradiance += 0.0 * get'))
+        .replace('#include <lights_fragment_maps>', ShaderChunk.lights_fragment_maps.replace('iblIrradiance += getIBLIrradiance', 'iblIrradiance += 0.0 * getIBLIrradiance'));
+    };
+    m.customProgramCacheKey = () => 'baked';
+  };
+
   // ---- live things
   const live = {
     fans: [] as Object3D[],
@@ -283,14 +304,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   let fanSpeed = 0, tubeOn = 0, tubeClock = -1;
   const timeU = { value: 0 };
 
-  const addScreen = (model: Object3D, p: Placement, map: Texture) => {
+  const addScreen = (model: Object3D, p: Placement, map: Texture, baked = false) => {
     const k = typeof p.scale === 'number' ? p.scale : 1;
     const plane = new Mesh(new PlaneGeometry(TV_SCREEN.w, TV_SCREEN.h), new MeshBasicMaterial({ map, toneMapped: false }));
     plane.position.set(TV_SCREEN.at[0], TV_SCREEN.at[1], TV_SCREEN.at[2]);
     model.add(plane);
     // the television lights the room a little; nine monitors would be nine more lights in every
-    // shader, so those keep to their emissive glass
-    if (p.live !== 'tv') return;
+    // shader, so those keep to their emissive glass. A baked set has the glow in its lightmap
+    if (p.live !== 'tv' || baked) return;
     const light = new PointLight('#9CC4FF', 1.2, 1.8 * k, 2);
     light.position.set(0, TV_SCREEN.at[1], TV_SCREEN.at[2] + 0.1);
     model.add(light);
@@ -300,12 +321,16 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const groups: Group[] = SETS.map(() => new Group());
   const hot: Placed[] = [];
 
-  const placeBuilt = (name: string, p: Placement): Object3D => {
+  const placeBuilt = (name: string, p: Placement, baked = false): Object3D => {
     const part: Built[] = BUILT[name]();
     const g = new Group();
     for (const piece of part) {
+      const key = 'mat' in piece.surface ? `mat:${piece.surface.mat}` : `paint:${piece.surface.paint}`;
+      if (baked && !DROP_PROP.has(name) && !CONTEXT_PROP.has(name) && !pieceIsLive(key, p.live ?? '')) continue; // the rest of the prop is in the baked set
       const material = builtMaterial(piece.surface, p.live);
       const mesh = new Mesh(slabGeometry(piece, material), material);
+      // the name carries what the bake pipeline needs: prop, surface, and whether it stays live at runtime
+      mesh.name = `b|${name}|${'mat' in piece.surface ? `mat:${piece.surface.mat}` : `paint:${piece.surface.paint}`}|${p.live ?? ''}`;
       mesh.castShadow = p.shadow ?? piece.pos.length < 20000;
       mesh.receiveShadow = true;
       if (p.live === 'curtain' && 'mat' in piece.surface && piece.surface.mat === 'curtain') {
@@ -322,9 +347,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (p.live === 'tube' && 'mat' in piece.surface && piece.surface.mat === 'tubeGlass') {
         const light = new PointLight('#EAF2FF', 0, 9, 1.5);
         light.position.set(0, -0.2, 0);
-        g.add(light);
+        if (!baked) g.add(light); // baked: the tubes' light is in the lightmap, only the glass flickers
         live.tubes.push({ mat: material as MeshStandardMaterial, light });
       }
+      if (baked) { g.add(mesh); continue; }
       if (p.live === 'tv' && 'paint' in piece.surface) {
         // the television lights the room a little
         const light = new PointLight('#9CC4FF', 1.2, 2.4, 2);
@@ -347,12 +373,17 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return g;
   };
 
-  const place = async (p: Placement, set: number): Promise<void> => {
+  const place = async (p: Placement, set: number, baked = false): Promise<void> => {
     let obj: Object3D;
-    if (p.model) {
+    if (p.model && baked && (p.live === 'tv' || p.live === 'monitor')) {
+      // the set is baked: only the glass is live, on an empty where the model stands
+      obj = new Group();
+      addScreen(obj, p, p.live === 'tv' ? videoTex : paintTex('screen', 1), true);
+    } else if (p.model) {
       obj = (await loadModel(p.model)).scene.clone();
+      obj.traverse((o) => { if (o instanceof Mesh) o.name = `m|${p.model}|${o.name}|${p.live ?? ''}`; });
       if (p.live === 'fan') live.fans.push(obj);
-      if (p.live === 'lamp') {
+      if (p.live === 'lamp' && !baked) {
         const light = new PointLight('#FFC98A', 1.5, 2.1, 1.8); // the desk, not the wall
         light.position.set(0.05, 0.78, 0.2);
         obj.add(light);
@@ -360,7 +391,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (p.live === 'tv') addScreen(obj, p, videoTex);
       if (p.live === 'monitor') addScreen(obj, p, paintTex('screen', 1));
     } else {
-      obj = placeBuilt(p.build!, p);
+      obj = placeBuilt(p.build!, p, baked);
     }
     obj.position.set(...p.at);
     if (p.rot) obj.rotation.set(p.rot[0] * D, p.rot[1] * D, p.rot[2] * D);
@@ -379,13 +410,55 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
   };
 
+  /** A set Blender lit: the static meshes come back in one file with a second uv set and a lightmap; only the live pieces are built here. */
+  const loadBaked = async (i: number): Promise<void> => {
+    const S = SETS[i];
+    const lm = texLoader.load(`/assets/stage/baked/set${i}_lm.webp`, () => kick());
+    lm.flipY = false;
+    lm.channel = 1;
+    lm.colorSpace = SRGBColorSpace;
+    const g = await gltf.loadAsync(`/assets/stage/baked/set${i}.glb`);
+    g.scene.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      const from = o.material as Material;
+      const info = parseBakedName(from.name);
+      let m: Material = from;
+      if (info && info.kind !== 'm') {
+        // a built piece or the shell: the designed material, as the runtime would have made it
+        const surface: BuiltSurface = info.surface.startsWith('mat:') ? { mat: info.surface.slice(4) } : { paint: info.surface.slice(6) };
+        m = builtMaterial(surface, (info.live || undefined) as Live | undefined).clone();
+      }
+      if (m instanceof MeshStandardMaterial) {
+        bakedLighting(m, lm);
+        if (info?.kind === 'm') { m.envMapIntensity = Math.min(m.envMapIntensity, 0.6); if (m.map) m.map.anisotropy = maxAniso; }
+      }
+      o.material = m;
+      o.name = from.name;
+      o.castShadow = true; // onto the live ground and cloth; its own light is in the map
+      o.receiveShadow = false;
+    });
+    groups[i].add(g.scene);
+    // every built prop is offered: its live pieces (painted faces, glass, cloth) are built, the rest was baked; models only when live
+    await Promise.all(S.props.filter((p) => p.build || placementIsLive(p)).map((p) => place(p, i, true)));
+  };
+
   const loadSet = async (i: number): Promise<void> => {
     const S = SETS[i];
+    if (S.baked && exportSet !== i) {
+      await loadBaked(i);
+      groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
+      scene.add(groups[i]);
+      kick();
+      return;
+    }
     if (S.shell) {
       const sh = buildShell(S.shell);
       const floor = new Mesh(slabGeometry(sh.floor), matFor(S.shell.floor));
       const walls = new Mesh(slabGeometry(sh.walls), matFor(S.shell.wall));
       const ceiling = new Mesh(slabGeometry(sh.ceiling), matFor(S.shell.ceiling ?? S.shell.wall));
+      floor.name = `s|floor|mat:${S.shell.floor}|`;
+      walls.name = `s|walls|mat:${S.shell.wall}|`;
+      ceiling.name = `s|ceiling|mat:${S.shell.ceiling ?? S.shell.wall}|`;
       floor.receiveShadow = walls.receiveShadow = ceiling.receiveShadow = true;
       walls.castShadow = true;
       groups[i].add(floor, walls, ceiling);
@@ -393,6 +466,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (S.env === 'sky') {
       const sets = [Math.max(0, i - 1), i]; // visible through the preceding set's exit before the environment swaps
       sky.visible = sets.includes(curSet);
+      sky.name = 'b|sky|mat:sky|sky';
       live.backdrops.push({ root: sky, sets });
       groups[i].add(sky);
     }
@@ -400,6 +474,63 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
     scene.add(groups[i]);
     kick();
+    if (exportSet === i) await exportForBake(i);
+  };
+
+  // ---- bake pipeline: ?export=<set> hands the set's geometry and lights to scripts/stage-export.mjs,
+  // which writes them for Blender (scripts/stage-bake.py) to light and bake
+  const exportSet = Number(new URLSearchParams(location.search).get('export') ?? 'NaN');
+  const exportForBake = async (i: number) => {
+    const { GLTFExporter } = await import('three/examples/jsm/exporters/GLTFExporter.js');
+    await Promise.all(scanning);
+    if (DEBUG) {
+      groups[i].traverse((o) => {
+        if (!(o instanceof Mesh)) return;
+        for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+          for (const k of ['map', 'normalMap', 'roughnessMap', 'aoMap', 'metalnessMap', 'emissiveMap'] as const) {
+            const t = (m as unknown as Record<string, Texture | null>)[k];
+            if (!t) continue;
+            const im = t.image as { constructor?: { name: string }; width?: number; complete?: boolean } | undefined;
+            if (!im || !im.width) console.warn(`[export] ${o.name} ${k}: ${im?.constructor?.name} w ${im?.width} complete ${im?.complete}`);
+          }
+        }
+      });
+    }
+    const S = SETS[i];
+    const lights: Array<{ at: number[]; color: string; intensity: number; distance: number; decay: number; of: string }> = [];
+    groups[i].updateWorldMatrix(true, true);
+    groups[i].traverse((o) => {
+      if (!(o instanceof PointLight)) return;
+      const wp = new Vector3();
+      o.getWorldPosition(wp);
+      lights.push({ at: wp.toArray(), color: `#${o.color.getHexString()}`, intensity: o.intensity, distance: o.distance, decay: o.decay, of: o.parent?.children.find((c) => c instanceof Mesh)?.name ?? '' });
+    });
+    if (DEBUG) {
+      for (const child of groups[i].children) {
+        try { await new GLTFExporter().parseAsync(child, { binary: true, onlyVisible: false }); } catch (e) {
+          const names: string[] = [];
+          child.traverse((o) => { if (o instanceof Mesh) names.push(o.name); });
+          console.warn(`[export] fails: ${names.slice(0, 3).join(', ')}: ${(e as Error).message.slice(0, 80)}`);
+        }
+      }
+    }
+    // the video is not an image the exporter can draw: the glass goes out as dark glass and comes back live anyway
+    const swapped: Array<[Mesh, Material | Material[]]> = [];
+    groups[i].traverse((o) => {
+      if (o instanceof Mesh && o.material instanceof MeshBasicMaterial && o.material.map instanceof VideoTexture) {
+        swapped.push([o, o.material]);
+        o.material = new MeshBasicMaterial({ color: '#202428' });
+      }
+    });
+    const buf = (await new GLTFExporter().parseAsync(groups[i], { binary: true, onlyVisible: false })) as ArrayBuffer;
+    for (const [o, m] of swapped) o.material = m;
+    const bytes = new Uint8Array(buf);
+    let bin = '';
+    for (let k = 0; k < bytes.length; k += 0x8000) bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(k, k + 0x8000)));
+    (window as unknown as { __export: unknown }).__export = {
+      glb: btoa(bin),
+      manifest: { set: i, id: S.id, env: S.env, envPower: S.envPower, exposure: S.exposure, tint: S.tint, sun: S.sun, fog: S.fog, shell: S.shell ?? null, lights, view: DOLLY.find((k) => k.set === i && k.blend === undefined) ?? null },
+    };
   };
 
   // ---- pipeline: render with ambient occlusion (the corners, the underside of the desk, where
@@ -501,6 +632,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // are hidden (the San Francisco piers once stood in the line from the Toronto window to the CN Tower)
     groups.forEach((g, k) => { g.visible = Math.abs(k - i) <= 1; });
     const S = SETS[i];
+    ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion
     scene.environment = S.env === 'sky' ? skyEnv : studioEnv;
     renderer.toneMappingExposure = S.exposure;
     hemi.color.set(S.tint.sky);

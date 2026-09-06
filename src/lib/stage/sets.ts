@@ -51,6 +51,7 @@ export interface StageSet {
   fog: { color: string; near: number; far: number };
   shell?: Shell;
   props: Placement[];
+  baked?: boolean; // the set was lit in Blender: public/assets/stage/baked/set<i>.glb and its lightmap (scripts/stage-bake.mjs)
 }
 
 const grid = <T>(rows: number, cols: number, f: (r: number, c: number) => T): T[] => {
@@ -67,7 +68,7 @@ export const SETS: StageSet[] = [
   {
     // now: a small condo room high above Toronto at night. The desk lamp and the screens light
     // him; the city through the window lights the rest, cool and faint. Everything is close.
-    id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035,
+    id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035, baked: true,
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
     shell: {
@@ -107,7 +108,7 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    id: 'room', env: 'studio', tint: { sky: '#FFE6C6', ground: '#9C7B5A', power: 0.3 }, exposure: 0.8, envPower: 0.3,
+    id: 'room', env: 'studio', tint: { sky: '#FFE6C6', ground: '#9C7B5A', power: 0.3 }, exposure: 0.8, envPower: 0.3, baked: true,
     sun: { dir: [-0.3, 0.5, -0.8], color: '#FFD9A8', power: 3.2, shadow: 0.9 },
     fog: { color: '#EFE3D0', near: 12, far: 60 },
     shell: {
@@ -139,7 +140,7 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    id: 'lab', env: 'studio', tint: { sky: '#E9F1FF', ground: '#A6ADB3', power: 0.35 }, exposure: 0.85, envPower: 0.6,
+    id: 'lab', env: 'studio', tint: { sky: '#E9F1FF', ground: '#A6ADB3', power: 0.35 }, exposure: 0.85, envPower: 0.6, baked: true,
     sun: { dir: [-0.2, 0.9, 0.3], color: '#EEF3FF', power: 1.6, shadow: 0.6 },
     fog: { color: '#E6ECF1', near: 14, far: 70 },
     shell: {
@@ -169,7 +170,7 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    id: 'plaza', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.25 }, exposure: 0.8, envPower: 0.7,
+    id: 'plaza', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.25 }, exposure: 0.8, envPower: 0.7, baked: true,
     sun: { dir: [0.35, 0.55, -0.75], color: '#FFF1D6', power: 2.6, shadow: 1 },
     fog: { color: '#C6D8E6', near: 200, far: 900 },
     // the Embarcadero outside Google San Francisco, June 2019, from his photo: the camera on the
