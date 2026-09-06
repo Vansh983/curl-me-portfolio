@@ -5,6 +5,9 @@ Models and textures from [Poly Haven](https://polyhaven.com), CC0. Optimised by 
 - `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp.
 - `steel_frame_shelves_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/steel_frame_shelves_01. the shelves behind the desk.
 - `potted_plant_01` (model) by Rico Cilliers, CC0, https://polyhaven.com/a/potted_plant_01. the plant by the window.
+- `modern_arm_chair_01` (model) by Vibrant Nordic, CC0, https://polyhaven.com/a/modern_arm_chair_01. the armchair facing the window.
+- `side_table_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/side_table_01. the side table by the armchair.
+- `hanging_picture_frame_02` (model) by James Ray Cock, CC0, https://polyhaven.com/a/hanging_picture_frame_02. the frame by the condo door.
 - `television_02` (model) by Benny Weimer, CC0, https://polyhaven.com/a/television_02. the CRT television, and scaled down, the lab monitors.
 - `ceiling_fan` (model) by Ulan Cabanilla, CC0, https://polyhaven.com/a/ceiling_fan. the ceiling fan.
 - `gaming_console` (model) by Sean Buckley, CC0, https://polyhaven.com/a/gaming_console. the Xbox 360.

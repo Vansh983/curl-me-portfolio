@@ -30,6 +30,9 @@ export const ASSETS: Asset[] = [
   model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp', 256),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),
   model('potted_plant_01', 'Rico Cilliers', 'the plant by the window', 256, 0.004),
+  model('modern_arm_chair_01', 'Vibrant Nordic', 'the armchair facing the window'),
+  model('side_table_01', 'James Ray Cock', 'the side table by the armchair', 256),
+  model('hanging_picture_frame_02', 'James Ray Cock', 'the frame by the condo door', 256),
   // 2010, the room
   model('television_02', 'Benny Weimer', 'the CRT television, and scaled down, the lab monitors'),
   model('ceiling_fan', 'Ulan Cabanilla', 'the ceiling fan'),
