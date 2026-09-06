@@ -383,7 +383,7 @@ export const SCREEN_PAINT: Record<string, Paint> = {
       ];
       const lines = [
         "import { type V3 } from './rig.ts';", '', 'export const SETS: StageSet[] = [', "  { id: 'now', env: 'studio',", "    tint: { sky: '#5A6E96', power: 0.3 },",
-        '    props: [', "      { build: 'desk', at: [-9.0, 0, 0.4] },", "      { model: 'base_character', live: 'him' },", '    ],', '  },', '];',
+        '    props: [', "      { build: 'desk', at: [-9.0, 0, 0.4] },", "      { build: 'officeChair', at: [-5.3, 0, -0.4] },", '    ],', '  },', '];',
         '', 'export function makeDolly(keys) {', '  const cam = new CatmullRomCurve3(', "    keys.map((k) => new Vector3(...k.cam)), false, 'centripetal');",
       ];
       x.font = '14px ui-monospace, Menlo, monospace';

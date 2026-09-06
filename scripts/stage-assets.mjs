@@ -6,6 +6,7 @@ import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { NodeIO } from '@gltf-transform/core';
+import sharp from 'sharp';
 
 const { ASSETS, assetUrl } = await import('../src/lib/stage/assets.ts');
 const CACHE = '.cache/polyhaven', OUT = 'public/assets/stage';
@@ -82,22 +83,24 @@ for (const a of ASSETS) {
     if (!existsSync(out)) await copyFile(src, out);
     total += await size(out);
   } else {
-    // three maps: colour, normal (gl), and arm (ao, roughness, metal packed in r, g, b)
+    // up to three maps: colour, normal (gl), and arm (ao, roughness, metal packed in r, g, b), resized to maxTex
     const maps = { diff: files.Diffuse, nor: files.nor_gl, arm: files.arm };
     await mkdir(path.dirname(out), { recursive: true });
-    for (const [k, m] of Object.entries(maps)) {
+    for (const k of a.maps ?? ['diff', 'nor', 'arm']) {
+      const m = maps[k];
+      if (!m) throw new Error(`${a.id}: no ${k} map`);
       const url = m[a.res].jpg.url;
       const src = `${CACHE}/${a.id}/${path.basename(url)}`;
       await fetchTo(url, src);
       const dst = `${out}_${k}.webp`;
-      if (!existsSync(dst)) await sharp(src).webp({ quality: k === 'diff' ? 82 : 90 }).toFile(dst);
+      if (!existsSync(dst)) await sharp(src).resize(a.maxTex, a.maxTex).webp({ quality: k === 'diff' ? 82 : 88 }).toFile(dst);
       total += await size(dst);
     }
   }
   credits.push(`- \`${a.id}\` (${a.kind}) by ${author}, CC0, https://polyhaven.com/a/${a.id}. ${a.use}.`);
   console.log(a.id, '|', author, '|', a.use);
 }
-await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels from [Poly Haven](https://polyhaven.com) (CC0) and one rigged character by Quaternius (CC-BY 3.0, via Poly Pizza). Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n`);
+await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels and textures from [Poly Haven](https://polyhaven.com), CC0. Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n`);
 const wrong = ASSETS.filter((a) => a.author !== authors[a.id]).map((a) => `${a.id}: manifest says ${a.author}, site says ${authors[a.id]}`);
 if (wrong.length) console.log('authors to fix in the manifest:\n  ' + wrong.join('\n  '));
 console.log(`total ${(total / 1e6).toFixed(1)} MB`);

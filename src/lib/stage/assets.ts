@@ -1,33 +1,31 @@
 // Every downloaded model on the stage, by name. The fetch script (scripts/stage-assets.mjs)
 // turns this into optimised .glb files under public/assets/stage/ and a credits file; the runtime
-// only ever asks assetUrl(). Poly Haven models are CC0; the one rigged character is Quaternius's
-// (CC-BY 3.0, credited). Textures are capped at 512 px: the whole set has to stay light enough
-// for a phone on a bad connection.
+// only ever asks assetUrl(). Everything is Poly Haven, CC0. Model textures are capped at 512 px
+// and scanned surfaces at 1k: the whole set has to stay light enough for a phone on a bad connection.
 export type Licence = 'CC0' | 'CC-BY-3.0';
+export type TexMap = 'diff' | 'nor' | 'arm'; // colour, normal (gl), and ambient occlusion + roughness + metalness packed in r, g, b
 export interface Asset {
   id: string; // the Poly Haven slug, or our own name for a url asset
-  kind: 'model';
+  kind: 'model' | 'texture';
   source: 'polyhaven' | 'url';
   url?: string; // source 'url': a direct .glb
   res: '1k';
   licence: Licence;
   author: string;
   use: string; // where it goes, for the credits file
-  maxTex: 256 | 512;
+  maxTex: 256 | 512 | 1024;
   simplify?: number; // meshopt simplification error (fraction of the mesh's size); off when absent
   anims?: string[]; // rigged models: the animation clips to keep, the rest are dropped
+  maps?: TexMap[]; // textures: which maps to ship (a wall keeps its designed colour and takes only the relief)
+  size?: number; // textures: metres per repeat, from the scan
 }
 
 const model = (id: string, author: string, use: string, maxTex: 256 | 512 = 512, simplify?: number): Asset =>
   ({ id, kind: 'model', source: 'polyhaven', res: '1k', licence: 'CC0', author, use, maxTex, simplify });
+const texture = (id: string, author: string, use: string, size: number, maps: TexMap[], maxTex: 512 | 1024 = 512): Asset =>
+  ({ id, kind: 'texture', source: 'polyhaven', res: '1k', licence: 'CC0', author, use, maxTex, maps, size });
 
 export const ASSETS: Asset[] = [
-  // him, now: a rigged base character, recoloured and dressed in code, sitting
-  {
-    id: 'base_character', kind: 'model', source: 'url', url: 'https://static.poly.pizza/0b65e14d-a349-44cc-836c-efdeb6933d48.glb',
-    res: '1k', licence: 'CC-BY-3.0', author: 'Quaternius', use: 'the figure at the desk (Animated Base Character, via Poly Pizza)', maxTex: 256,
-    anims: ['Rig|Sitting_Idle_Loop'],
-  },
   // now, Toronto
   model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp', 256),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),
@@ -48,9 +46,19 @@ export const ASSETS: Asset[] = [
   model('street_lamp_01', 'Josh Dean', 'the lamp post'),
   model('modular_street_seating', 'Stuart Attenborrow', 'the bench'),
   model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified hard)', 512, 0.003),
+  // scanned surfaces: floors take the whole set, walls and cloth take only the relief and keep their designed colour
+  texture('laminate_floor_02', 'Dario Barresi', 'the condo floor', 1.7, ['diff', 'nor', 'arm'], 1024),
+  texture('plank_flooring_02', 'Dario Barresi', 'the 2010 room floor', 1.98, ['diff', 'nor', 'arm'], 1024),
+  texture('plastered_wall_04', 'Rob Tuytel', 'the relief of every plastered wall', 3.2, ['nor', 'arm']),
+  texture('wool_boucle', 'colormass', 'the office chair, the pouf', 0.35, ['nor', 'arm']),
+  texture('polar_fleece', 'colormass', 'the duvet and the pillow', 0.27, ['nor', 'arm']),
+  texture('cotton_jersey', 'colormass', 'the curtains', 0.26, ['nor', 'arm']),
+  texture('dirty_carpet', 'Rohit Seervi', 'the rugs', 0.6, ['nor', 'arm']),
+  texture('oak_veneer_01', 'Jenelle van Heerden', 'the shelves, the bed frame', 1.83, ['diff', 'nor', 'arm']),
+  texture('asphalt_02', 'Rob Tuytel', 'the Embarcadero road', 3.0, ['diff', 'nor', 'arm']),
 ];
 
-export const assetUrl = (a: Asset): string => `/assets/stage/${a.id}.glb`;
+export const assetUrl = (a: Asset): string => (a.kind === 'texture' ? `/assets/stage/tex/${a.id}` : `/assets/stage/${a.id}.glb`);
 
 export const asset = (id: string): Asset => {
   const a = ASSETS.find((x) => x.id === id);

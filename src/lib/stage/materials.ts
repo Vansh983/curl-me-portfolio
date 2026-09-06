@@ -1,6 +1,6 @@
-// Designed surfaces, not photographs: a colour, a roughness, and at most a faint grain (a
-// procedural normal map from surface.ts) or a painted colour map (planks, tiles, pavers, drawn
-// on a canvas at runtime). Every set has its own palette: warm for 2010, cool and clean for
+// Designed surfaces: a colour, a roughness, and at most a faint grain (a procedural normal map
+// from surface.ts), a painted colour map (tiles, pavers, drawn on a canvas at runtime), or a
+// scanned surface (assets.ts: its relief and roughness, and its colour for floors and wood). Every set has its own palette: warm for 2010, cool and clean for
 // 2013, bright for 2018. uv on shells and built props is in metres; `tile` is metres per repeat.
 import type { Kind } from './surface.ts';
 
@@ -11,6 +11,11 @@ export interface Mat {
   grain?: Kind; // a faint normal map, tiled every `tile` metres
   amp?: number; // normal strength, 0..1 (default 0.25)
   paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky'; // a painted colour map, tiled every `tile` metres
+  tex?: string; // a scanned surface from assets.ts: its relief and roughness, and its colour when it ships one; tiled every `tile` metres
+  sheen?: number; // cloth: the soft rim light of fibres, 0..1
+  clearcoat?: number; // lacquer, car paint, glossy plastic: a clear layer over the colour, 0..1
+  clearcoatRough?: number; // default 0.15
+  vary?: number; // roughness wander across the surface, 0..1 (default 0.2; a scanned surface brings its own)
   tile: number;
   emissive?: string; // glows on its own
   emissivePower?: number;
@@ -21,22 +26,22 @@ export interface Mat {
 
 export const MATS: Record<string, Mat> = {
   // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
-  condoWall: { color: '#C9C3B9', rough: 0.92, grain: 'plaster', amp: 0.08, tile: 2.5 },
+  condoWall: { color: '#C9C3B9', rough: 0.92, tex: 'plastered_wall_04', amp: 0.3, tile: 3.2 },
   condoCeiling: { color: '#F6F5F2', rough: 0.95, tile: 1 },
-  condoFloor: { color: '#FFFFFF', rough: 0.45, paint: 'planksPale', grain: 'plank', amp: 0.15, tile: 2.4 },
-  deskTop: { color: '#1F1F22', rough: 0.45, tile: 1 },
+  condoFloor: { color: '#FFFFFF', rough: 1, tex: 'laminate_floor_02', amp: 0.6, tile: 1.7 },
+  deskTop: { color: '#1F1F22', rough: 0.45, clearcoat: 0.35, clearcoatRough: 0.25, tile: 1 },
   deskLeg: { color: '#2A2A2E', rough: 0.4, metal: 0.6, tile: 1 },
-  bezel: { color: '#141416', rough: 0.35, tile: 1 },
+  bezel: { color: '#141416', rough: 0.35, clearcoat: 0.15, tile: 1 },
   aluminium: { color: '#B9BCC2', rough: 0.35, metal: 0.9, tile: 1 },
-  chairFabric: { color: '#4A4E57', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.2 },
+  chairFabric: { color: '#4A4E57', rough: 0.95, tex: 'wool_boucle', amp: 0.8, sheen: 0.6, tile: 0.35 },
   chairBase: { color: '#17181B', rough: 0.4, metal: 0.5, tile: 1 },
   tie: { color: '#1F2A4A', rough: 0.7, tile: 1 },
-  pouf: { color: '#5B7BB4', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.2 },
-  mattress: { color: '#F2F0EA', rough: 0.9, grain: 'weave', amp: 0.15, tile: 0.4 },
-  duvet: { color: '#2F4562', rough: 0.95, grain: 'weave', amp: 0.25, tile: 0.35 },
-  pillow: { color: '#F6F4EE', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.3 },
-  bedFrame: { color: '#8C6B4E', rough: 0.55, grain: 'grain', amp: 0.15, tile: 0.6 },
-  rugGrey: { color: '#9AA0A6', rough: 0.98, grain: 'pile', amp: 0.35, tile: 0.4 },
+  pouf: { color: '#5B7BB4', rough: 0.95, tex: 'wool_boucle', amp: 0.8, sheen: 0.5, tile: 0.35 },
+  mattress: { color: '#F2F0EA', rough: 0.9, grain: 'weave', amp: 0.15, sheen: 0.3, tile: 0.4 },
+  duvet: { color: '#2F4562', rough: 0.95, tex: 'polar_fleece', amp: 0.8, sheen: 0.8, tile: 0.27 },
+  pillow: { color: '#F6F4EE', rough: 0.9, tex: 'polar_fleece', amp: 0.6, sheen: 0.6, tile: 0.27 },
+  bedFrame: { color: '#C9A47E', rough: 0.7, tex: 'oak_veneer_01', amp: 0.5, clearcoat: 0.15, tile: 1.83 },
+  rugGrey: { color: '#9AA0A6', rough: 0.98, tex: 'dirty_carpet', amp: 0.9, sheen: 0.3, tile: 0.6 },
   skin: { color: '#C68E6A', rough: 0.7, tile: 1 },
   tee: { color: '#141416', rough: 0.9, grain: 'weave', amp: 0.15, tile: 0.15 },
   hoodie: { color: '#202127', rough: 1, grain: 'weave', amp: 0.2, tile: 0.12 },
@@ -60,24 +65,24 @@ export const MATS: Record<string, Mat> = {
   nightSky: { color: '#FFFFFF', rough: 1, paint: 'nightSky', tile: 1, unlit: true, fog: false, inside: true },
   towerFar: { color: '#9AA6C8', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
   // 2010, the room: cream distemper, teak planks, a red rug, cotton at the window
-  roomWall: { color: '#F2E6D2', rough: 0.92, grain: 'plaster', amp: 0.12, tile: 2.5 },
+  roomWall: { color: '#F6E7CF', rough: 0.92, tex: 'plastered_wall_04', amp: 0.35, tile: 3.2 },
   roomCeiling: { color: '#FAF6EE', rough: 0.95, tile: 1 },
-  roomFloor: { color: '#FFFFFF', rough: 0.55, paint: 'planks', grain: 'plank', amp: 0.2, tile: 2.4 },
-  rug: { color: '#C2463B', rough: 0.98, grain: 'pile', amp: 0.35, tile: 0.4 },
-  curtain: { color: '#EBDFC7', rough: 0.9, grain: 'weave', amp: 0.3, tile: 0.25 },
-  tvWood: { color: '#5A3E2B', rough: 0.55, grain: 'grain', amp: 0.15, tile: 0.6 },
-  shelfWood: { color: '#C99A66', rough: 0.5, grain: 'grain', amp: 0.15, tile: 0.6 },
+  roomFloor: { color: '#FFFFFF', rough: 1, tex: 'plank_flooring_02', amp: 0.7, clearcoat: 0.1, clearcoatRough: 0.4, tile: 1.98 },
+  rug: { color: '#C2463B', rough: 0.98, tex: 'dirty_carpet', amp: 0.9, sheen: 0.3, tile: 0.6 },
+  curtain: { color: '#EBDFC7', rough: 0.9, tex: 'cotton_jersey', amp: 0.7, sheen: 0.4, tile: 0.26 },
+  tvWood: { color: '#7A5A42', rough: 0.7, tex: 'oak_veneer_01', amp: 0.5, clearcoat: 0.2, tile: 1.83 },
+  shelfWood: { color: '#F2E2C8', rough: 0.7, tex: 'oak_veneer_01', amp: 0.5, clearcoat: 0.2, tile: 1.83 },
   // the original white Xbox 360, standing
-  xboxWhite: { color: '#EDEDE8', rough: 0.3, tile: 1 },
+  xboxWhite: { color: '#EDEDE8', rough: 0.3, clearcoat: 0.5, clearcoatRough: 0.2, tile: 1 },
   xboxGrey: { color: '#C9C9C4', rough: 0.4, tile: 1 },
   xboxChrome: { color: '#D8D8D6', rough: 0.25, metal: 0.8, tile: 1 },
   xboxGreen: { color: '#7BD88F', rough: 0.4, emissive: '#5CE07A', emissivePower: 1.2, tile: 1 },
   // anime figures on the shelf: flat bright plastic
-  figOrange: { color: '#F28C28', rough: 0.45, tile: 1 },
-  figBlue: { color: '#2E4A9E', rough: 0.45, tile: 1 },
-  figRed: { color: '#C8302A', rough: 0.45, tile: 1 },
+  figOrange: { color: '#F28C28', rough: 0.45, clearcoat: 0.4, tile: 1 },
+  figBlue: { color: '#2E4A9E', rough: 0.45, clearcoat: 0.4, tile: 1 },
+  figRed: { color: '#C8302A', rough: 0.45, clearcoat: 0.4, tile: 1 },
   figBlack: { color: '#1C1C22', rough: 0.45, tile: 1 },
-  figYellow: { color: '#F2D23C', rough: 0.45, tile: 1 },
+  figYellow: { color: '#F2D23C', rough: 0.45, clearcoat: 0.4, tile: 1 },
   figGreen: { color: '#4A6B3F', rough: 0.45, tile: 1 },
   figWhite: { color: '#EDEDEA', rough: 0.45, tile: 1 },
   figSkin: { color: '#F1C9A5', rough: 0.5, tile: 1 },
@@ -86,10 +91,10 @@ export const MATS: Record<string, Mat> = {
   hairOrange: { color: '#F07A2A', rough: 0.5, tile: 1 },
   figBase: { color: '#2A2A2E', rough: 0.4, tile: 1 },
   // the passage: plainer, a little darker
-  passageWall: { color: '#E6DFD2', rough: 0.92, grain: 'plaster', amp: 0.12, tile: 2.5 },
+  passageWall: { color: '#E6DFD2', rough: 0.92, tex: 'plastered_wall_04', amp: 0.35, tile: 3.2 },
   passageFloor: { color: '#CFC7BA', rough: 0.7, grain: 'speckle', amp: 0.15, tile: 0.8 },
   // 2013, the lab: off-white walls, pale grey tiles, white ceiling
-  labWall: { color: '#EEF1F3', rough: 0.9, grain: 'plaster', amp: 0.08, tile: 2.5 },
+  labWall: { color: '#EEF1F3', rough: 0.9, tex: 'plastered_wall_04', amp: 0.25, tile: 3.2 },
   labCeiling: { color: '#F7F9FA', rough: 0.95, tile: 1 },
   labFloor: { color: '#FFFFFF', rough: 0.35, paint: 'tiles', tile: 1.2 },
   desk: { color: '#D9D3C4', rough: 0.55, tile: 1 },
@@ -109,7 +114,7 @@ export const MATS: Record<string, Mat> = {
   concrete: { color: '#B9B6AE', rough: 0.9, grain: 'plaster', amp: 0.15, tile: 1.5 },
   hedge: { color: '#3B6A36', rough: 0.95, grain: 'pebble', amp: 0.5, tile: 0.4 },
   rail: { color: '#6E4B3A', rough: 0.45, metal: 0.3, tile: 1 },
-  asphalt: { color: '#4B4D52', rough: 0.95, grain: 'pebble', amp: 0.2, tile: 2 },
+  asphalt: { color: '#FFFFFF', rough: 1, tex: 'asphalt_02', amp: 0.6, tile: 3 },
   kerb: { color: '#D6D3CB', rough: 0.85, tile: 1 },
   palmTrunk: { color: '#8C7A62', rough: 0.9, grain: 'plaster', amp: 0.4, tile: 0.5 },
   frond: { color: '#4C7F3A', rough: 0.8, tile: 1 },
@@ -119,10 +124,10 @@ export const MATS: Record<string, Mat> = {
   pierRoof: { color: '#A3492F', rough: 0.8, tile: 1 },
   pierGlass: { color: '#2E3A44', rough: 0.3, metal: 0.2, tile: 1 },
   cloud: { color: '#FFFFFF', rough: 1, unlit: true, tile: 1, fog: false },
-  carRed: { color: '#B9282A', rough: 0.35, metal: 0.3, tile: 1 },
-  carSilver: { color: '#C7CACF', rough: 0.35, metal: 0.6, tile: 1 },
-  carWhite: { color: '#E9EAE8', rough: 0.4, metal: 0.2, tile: 1 },
-  carGlass: { color: '#1E2A36', rough: 0.2, metal: 0.3, tile: 1 },
+  carRed: { color: '#B9282A', rough: 0.4, metal: 0.3, clearcoat: 1, clearcoatRough: 0.08, tile: 1 },
+  carSilver: { color: '#C7CACF', rough: 0.4, metal: 0.6, clearcoat: 1, clearcoatRough: 0.08, tile: 1 },
+  carWhite: { color: '#E9EAE8', rough: 0.45, metal: 0.2, clearcoat: 1, clearcoatRough: 0.08, tile: 1 },
+  carGlass: { color: '#1E2A36', rough: 0.1, metal: 0.3, vary: 0, tile: 1 },
   tyre: { color: '#17181A', rough: 0.9, tile: 1 },
   badgeCard: { color: '#F4F4F2', rough: 0.6, tile: 1 },
   lanyardGreen: { color: '#34A853', rough: 0.8, tile: 1 },

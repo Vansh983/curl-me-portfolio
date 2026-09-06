@@ -24,9 +24,7 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'him' | 'lamp' | 'screen' | 'city' | 'sky';
-/** What he wears in a set: now (hoodie), the 2018 trip (hoodie, Google tee), school in 2013 (white shirt, tie), a kid in 2010. */
-export type Outfit = 'now' | 'trip' | 'school' | 'kid';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'screen' | 'city' | 'sky';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 export interface Placement {
@@ -36,8 +34,6 @@ export interface Placement {
   rot?: V3; // degrees
   scale?: number | V3;
   live?: Live;
-  outfit?: Outfit; // for `live: 'him'`; default 'now'
-  pose?: 'sit' | 'stand'; // for `live: 'him'`; default 'sit'
   cap?: string;
   href?: string;
   shadow?: boolean; // default true

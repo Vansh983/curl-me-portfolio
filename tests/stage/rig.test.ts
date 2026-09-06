@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Sink, flatNormals, linear, tube, type V3 } from '../../src/lib/stage/rig.ts';
+import { Sink, boxUv, flatUv, flatNormals, linear, tube, type V3 } from '../../src/lib/stage/rig.ts';
 
 const centre = (p: Float32Array) => {
   let x = 0, y = 0, z = 0;
@@ -107,4 +107,20 @@ test('a rounded box stays inside its box, touches every face, and clamps the rad
   for (let i = 0; i < q.length; i += 3) corner = Math.min(corner, Math.hypot(q[i] - 1, q[i + 1] - 1, q[i + 2] - 1));
   assert.ok(Math.abs(corner - 0.5 * (Math.sqrt(3) - 1)) < 1e-6, `corner ${corner}`);
   for (let i = 0; i < q.length; i += 3) assert.ok(Number.isFinite(q[i]));
+});
+
+test('box uv projects each face by its normal, in metres; a plain box has flat uv until then', () => {
+  const g = new Sink().box(1, 2, 3, 2, 2, 2).out();
+  assert.ok(flatUv(g.uv));
+  const uv = boxUv(g.pos, flatNormals(g.pos));
+  assert.ok(!flatUv(uv));
+  // the +y face (vertices 24..29) maps x and z
+  assert.equal(uv[24 * 2], g.pos[24 * 3]);
+  assert.equal(uv[24 * 2 + 1], g.pos[24 * 3 + 2]);
+  // the +z face (vertices 0..5) maps x and y
+  assert.equal(uv[0], g.pos[0]);
+  assert.equal(uv[1], g.pos[1]);
+  // the +x face (vertices 12..17) maps z and y
+  assert.equal(uv[12 * 2], g.pos[12 * 3 + 2]);
+  assert.equal(uv[12 * 2 + 1], g.pos[12 * 3 + 1]);
 });

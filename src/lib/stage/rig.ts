@@ -363,3 +363,25 @@ export function flatNormals(pos: Float32Array): Float32Array {
   }
   return n;
 }
+
+/**
+ * Box-projected uv in metres: each vertex takes the two world coordinates across its normal's
+ * main axis, so a scanned surface tiles evenly over a built prop that carries no uv of its own.
+ */
+export function boxUv(pos: Float32Array, nor: Float32Array): Float32Array {
+  const uv = new Float32Array((pos.length / 3) * 2);
+  for (let i = 0; i < pos.length / 3; i++) {
+    const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
+    const ax = Math.abs(nor[i * 3]), ay = Math.abs(nor[i * 3 + 1]), az = Math.abs(nor[i * 3 + 2]);
+    if (ay >= ax && ay >= az) { uv[i * 2] = x; uv[i * 2 + 1] = z; }
+    else if (ax >= az) { uv[i * 2] = z; uv[i * 2 + 1] = y; }
+    else { uv[i * 2] = x; uv[i * 2 + 1] = y; }
+  }
+  return uv;
+}
+
+/** True when every uv is the same point: a prop built with no map in mind. */
+export function flatUv(uv: Float32Array): boolean {
+  for (let i = 2; i < uv.length; i += 2) if (uv[i] !== uv[0] || uv[i + 1] !== uv[1]) return false;
+  return true;
+}

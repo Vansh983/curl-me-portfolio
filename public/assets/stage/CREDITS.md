@@ -1,8 +1,7 @@
 # Stage assets
 
-Models from [Poly Haven](https://polyhaven.com) (CC0) and one rigged character by Quaternius (CC-BY 3.0, via Poly Pizza). Optimised by scripts/stage-assets.mjs.
+Models and textures from [Poly Haven](https://polyhaven.com), CC0. Optimised by scripts/stage-assets.mjs.
 
-- `base_character` (model) by Quaternius, CC-BY-3.0, https://static.poly.pizza/0b65e14d-a349-44cc-836c-efdeb6933d48.glb. the figure at the desk (Animated Base Character, via Poly Pizza).
 - `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp.
 - `steel_frame_shelves_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/steel_frame_shelves_01. the shelves behind the desk.
 - `potted_plant_01` (model) by Rico Cilliers, CC0, https://polyhaven.com/a/potted_plant_01. the plant by the window.
@@ -19,3 +18,12 @@ Models from [Poly Haven](https://polyhaven.com) (CC0) and one rigged character b
 - `street_lamp_01` (model) by Josh Dean, CC0, https://polyhaven.com/a/street_lamp_01. the lamp post.
 - `modular_street_seating` (model) by Stuart Attenborrow, CC0, https://polyhaven.com/a/modular_street_seating. the bench.
 - `island_tree_01` (model) by Rob Tuytel, CC0, https://polyhaven.com/a/island_tree_01. the trees by the plaza (1.6 M triangles scanned, simplified hard).
+- `laminate_floor_02` (texture) by Dario Barresi, CC0, https://polyhaven.com/a/laminate_floor_02. the condo floor.
+- `plank_flooring_02` (texture) by Dario Barresi, CC0, https://polyhaven.com/a/plank_flooring_02. the 2010 room floor.
+- `plastered_wall_04` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/plastered_wall_04. the relief of every plastered wall.
+- `wool_boucle` (texture) by colormass, CC0, https://polyhaven.com/a/wool_boucle. the office chair, the pouf.
+- `polar_fleece` (texture) by colormass, CC0, https://polyhaven.com/a/polar_fleece. the duvet and the pillow.
+- `cotton_jersey` (texture) by colormass, CC0, https://polyhaven.com/a/cotton_jersey. the curtains.
+- `dirty_carpet` (texture) by Rohit Seervi, CC0, https://polyhaven.com/a/dirty_carpet. the rugs.
+- `oak_veneer_01` (texture) by Jenelle van Heerden, CC0, https://polyhaven.com/a/oak_veneer_01. the shelves, the bed frame.
+- `asphalt_02` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/asphalt_02. the Embarcadero road.
