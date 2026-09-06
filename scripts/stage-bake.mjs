@@ -10,7 +10,7 @@ mkdirSync(out, { recursive: true });
 execFileSync('node', ['scripts/stage-export.mjs', set], { stdio: 'inherit' });
 execFileSync(blender, ['-b', '-P', 'scripts/stage-bake.py', '--', set, samples, size, '1'], { stdio: 'inherit' });
 execFileSync('npx', ['gltf-transform', 'optimize', `.cache/bake/set${set}_baked.glb`, `${out}/set${set}.glb`,
-  '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', '512', '--simplify', 'false', '--instance', 'false', '--palette', 'false', '--join', 'false', '--flatten', 'false',
+  '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', '512', '--simplify', 'true', '--simplify-error', '0.001', '--instance', 'false', '--palette', 'false', '--join', 'false', '--flatten', 'false',
   '--prune-attributes', 'false'], { stdio: 'inherit' }); // the lightmap uv (TEXCOORD_1) has no texture in the file: keep it
 await sharp(`.cache/bake/set${set}_lm.png`).webp({ quality: 88 }).toFile(`${out}/set${set}_lm.webp`);
 const kb = (f) => (statSync(f).size / 1024).toFixed(0);

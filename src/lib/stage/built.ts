@@ -381,7 +381,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   keyboard: () => {
     const base = new Sink().rbox(0, 0.01, 0, 0.44, 0.02, 0.15, 0.005, 2);
     const keys = new Sink();
-    for (let r = 0; r < 6; r++) for (let c = 0; c < 15; c++) keys.rbox(-0.2 + c * 0.0285, 0.025, -0.055 + r * 0.022, 0.018, 0.01, 0.018, 0.002, 1);
+    for (let r = 0; r < 6; r++) for (let c = 0; c < 15; c++) keys.box(-0.2 + c * 0.0285, 0.025, -0.055 + r * 0.022, 0.018, 0.01, 0.018); // ninety keys: plain boxes, a bevel this small is not seen
     return [piece(base.out(), M('desk')), piece(keys.out(), M('keys'))];
   },
   /** The whiteboard: a painted 2.4 × 1.2 face in an aluminium frame, facing +z. */
