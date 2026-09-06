@@ -2,15 +2,18 @@
 
 ## Verdict
 
-Three moves, in this order of payoff. The first needs Vansh, the other two do not.
+Update 2026-09-06: the condo is hypothetical, not his real flat. The scan route (section 1) is parked; kept for reference.
 
-1. **Scan the real apartment** (Gaussian splat). Only route that looks like *his* room. Free, 1 to 2 days of my work once he sends the scan.
-2. **Replace code-built props with real PBR models.** Poly Haven (CC0) covers half; Sketchfab CC-BY covers the rest (desk, chair, monitors, MacBook, PC, bed, blinds, palms, cars, Bay Bridge, CN Tower, Xbox 360). Needs a credits page.
-3. **Rendering upgrades** (N8AO ambient occlusion, bevels, roughness variation, real PBR textures, AgX, SMAA, interior HDRI, sheen/clearcoat, low bloom). ~25 to 40 h, zero assets needed. Fixes the "blocky/fake" read on everything that stays code-built.
+Two moves, in this order of payoff.
+
+1. **Replace code-built props with real PBR models.** Poly Haven (CC0) covers half; Sketchfab CC-BY covers the rest (desk, chair, monitors, MacBook, PC, bed, blinds, palms, cars, Bay Bridge, CN Tower, Xbox 360). Needs a credits page. A whole baked condo (Sketchfab, CC-BY) can replace the built shell of set 0.
+2. **Rendering upgrades** (N8AO ambient occlusion, bevels, roughness variation, real PBR textures, AgX, SMAA, interior HDRI, sheen/clearcoat, low bloom). ~25 to 40 h, zero assets needed. Fixes the "blocky/fake" read on everything that stays code-built.
 
 Why it looks fake today: no ambient occlusion, hard box edges, 8-segment cylinders, one flat roughness per material, grey studio environment. `src/scripts/stage-run.ts` (three's EffectComposer: RenderPass, OutputPass, FXAA), `src/lib/stage/materials.ts`, `src/lib/stage/rig.ts`.
 
 ## What Vansh does (the ask)
+
+Parked items (real-flat scan, photos of his furniture) stay below for reference. Live ask: Sketchfab login (Epic account) to download CC-BY models, by him or by me through his Chrome with a per-file OK.
 
 - **Scan the living room / desk area** with Scaniverse (free, App Store, LiDAR on, Splat mode, "Area" quality). Recipe below. Export splat as **PLY** and **SPZ**, plus a separate **Mesh scan → GLB**.
 - **10 to 20 sharp photos** of each key piece from all sides (chair, desk, monitor, lamp, anything he wants exact) on a plain background. For Meshy / TRELLIS.2 photo-to-GLB.
@@ -95,8 +98,8 @@ Mobile guardrails: keep dpr cap 1.25 + EMA downscaler, drop AO before dpr. Tier 
 ## Plan
 
 - Now (no input needed): rendering items 1 to 7; swap in Poly Haven CC0 props (sofa, pouf, coffee table, shelves, TV stand, lamps, plants).
-- When Sketchfab login is available: desk, chair, monitors, MacBook, keyboard, PC, bed, blinds, palms, cars, Bay Bridge, skyline, CN Tower, Xbox 360, lab PCs; add `/credits`.
-- When the scan arrives: SuperSplat clean → SOG → Spark in set 0, real GLBs for the desk zone, AO gated off for that set.
+- When Sketchfab login is available: desk, chair, monitors, MacBook, keyboard, PC, bed, blinds, palms, cars, Bay Bridge, skyline, CN Tower, Xbox 360, lab PCs; whole baked condo shell for set 0; add `/credits`.
+- Parked: splat scan of a real room.
 - Later: baked lightmaps for the 2010 room and lab.
 
 ## Sources
