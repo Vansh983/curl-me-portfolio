@@ -28,7 +28,9 @@ test('urls are under /assets/stage; models end in .glb, textures are a stem for 
   }
 });
 
-test('the built files exist and the whole set stays under 9 MB', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
+// Since the sets are baked, a phone downloads the baked set files (bake.test.ts caps those) and only the live models here;
+// the rest are inputs to the bake. The cap keeps the repository and the bake honest, not the page weight.
+test('the built files exist and the whole set stays under 14 MB', { skip: !existsSync('public/assets/stage/CREDITS.md') }, () => {
   let total = 0;
   for (const a of ASSETS) {
     const files = a.kind === 'model' ? [`public${assetUrl(a)}`] : (a.maps ?? []).map((m) => `public${assetUrl(a)}_${m}.webp`);
@@ -37,5 +39,5 @@ test('the built files exist and the whole set stays under 9 MB', { skip: !exists
       total += statSync(f).size;
     }
   }
-  assert.ok(total < 9e6, `${(total / 1e6).toFixed(2)} MB`);
+  assert.ok(total < 14e6, `${(total / 1e6).toFixed(2)} MB`);
 });

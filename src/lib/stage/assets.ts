@@ -17,6 +17,7 @@ export interface Asset {
   maxTex: 256 | 512 | 1024;
   simplify?: number; // meshopt simplification error (fraction of the mesh's size); off when absent
   anims?: string[]; // rigged models: the animation clips to keep, the rest are dropped
+  drop?: string[]; // node names (or `prefix*`) cut before optimising: the unseen and the too dense
   maps?: TexMap[]; // textures: which maps to ship (a wall keeps its designed colour and takes only the relief)
   size?: number; // textures: metres per repeat, from the scan
 }
@@ -30,25 +31,34 @@ const texture = (id: string, author: string, use: string, size: number, maps: Te
 
 export const ASSETS: Asset[] = [
   // now, Toronto
-  model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp', 256),
+  model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp, and the bedside lamp', 256, 0.004),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),
   model('potted_plant_01', 'Rico Cilliers', 'the plant by the window', 256, 0.004),
-  kit('office_chair_black', 1003111, 'BlenderKit (Blender Interior)', 'the office chair'),
-  kit('laptop_14_aluminium', 945638, 'BlenderKit (Blender Interior)', 'the laptop'),
-  kit('keyboard_mouse_black', 927116, 'BlenderKit (Blender Interior)', 'the keyboard and mouse'),
+  kit('office_chair_black', 1003111, 'BlenderKit (Blender Interior)', 'the office chair', 512, 0.004),
+  kit('laptop_14_aluminium', 945638, 'BlenderKit (Blender Interior)', 'the laptop', 512, 0.003),
+  kit('keyboard_mouse_black', 927116, 'BlenderKit (Blender Interior)', 'the keyboard and mouse', 512, 0.004),
   kit('bed_single', 1273846, 'BlenderKit', 'the bed along the window'),
   model('modern_arm_chair_01', 'Vibrant Nordic', 'the armchair facing the window'),
   kit('pendant_tense', 853305, 'BlenderKit', 'the pendant over the armchair', 256),
   kit('wall_art_circles', 919410, 'BlenderKit', 'the print by the condo door', 512),
   kit('coffee_mug', 782558, 'BlenderKit', 'the mug on the desk', 256),
-  kit('headphones_retro', 1049005, 'BlenderKit', 'the headphones on the desk', 256, 0.004),
   model('side_table_01', 'James Ray Cock', 'the side table by the armchair', 256),
+  kit('bed_double', 444375, 'BlenderKit', 'the bed in the bedroom', 512, 0.004),
+  kit('nightstand_modern', 590108, 'BlenderKit', 'the nightstand', 256),
+  kit('sofa_teak', 940237, 'BlenderKit', 'the sofa', 512),
+  kit('coffee_table_square', 1088749, 'BlenderKit', 'the coffee table', 256),
+  kit('tv_stand', 780861, 'BlenderKit', 'the unit under the television, and the bedroom dresser', 256),
+  { ...kit('kitchen_modern', 1019778, 'BlenderKit', 'the kitchen run with its appliances', 512, 0.002), drop: ['Fridge_compressor', 'Fridge_coils', 'Fridge_Hinges', 'Towel', 'Wine_Glass_3', 'Wine_Glass_4', 'Wine_Glass_5', 'Wine_Glass_6', 'Wine_Glass_7', 'Wine_Glass_8'] },
+  kit('bathtub_abrazo', 1197628, 'BlenderKit', 'the bathtub', 256),
+  kit('toilet_ceramic', 544975, 'BlenderKit', 'the toilet', 256, 0.004),
+  kit('basin_mirror', 892665, 'BlenderKit', 'the basin and mirror', 512, 0.004),
+  kit('shoe_rack_modern', 463109, 'BlenderKit', 'the shoe rack by the front door', 256),
   // 2010, the room
   model('television_02', 'Benny Weimer', 'the CRT television, and scaled down, the lab monitors'),
   model('ceiling_fan', 'Ulan Cabanilla', 'the ceiling fan'),
   kit('xbox_controller', 1143937, 'BlenderKit', 'the controller on the rug', 256, 0.001),
   model('football', 'Amal Kumar', 'the football', 256),
-  model('book_encyclopedia_set_01', 'John Malcolm', 'the books on the shelf', 256),
+  model('book_encyclopedia_set_01', 'John Malcolm', 'the books on the shelf', 256, 0.004),
   model('throw_pillows_01', 'Serhii Khromov', 'cushions on the rug', 256),
   // 2013, the lab
   model('SchoolDesk_01', 'Ethan Place', 'the lab desks'),

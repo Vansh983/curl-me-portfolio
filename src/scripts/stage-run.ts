@@ -397,6 +397,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       g.add(mesh);
     }
     if (name === 'city') g.add(streetLightPoints()); // the streets below, a light every 28 m
+    if (name === 'discLight' && p.live === 'pendant' && !baked) {
+      const light = new PointLight('#FFF1DA', 6, 6.0, 1.6); // a flush ceiling light: the whole small room
+      light.position.set(0, -0.12, 0);
+      g.add(light);
+    }
     return g;
   };
 

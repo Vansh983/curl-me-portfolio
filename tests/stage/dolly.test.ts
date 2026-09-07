@@ -54,7 +54,7 @@ test('the camera never jumps: 1/1000 steps move under 0.06 m and turn under 2 de
 
 test('the dolly is inside the doorway when it says it is', () => {
   const dolly = makeDolly(DOLLY);
-  const e = dolly(0.21);
+  const e = dolly(0.22);
   assert.ok(Math.abs(e.cam[0] + 4.1) < 0.05 && Math.abs(e.cam[2] - 1.6) < 0.1, `${e.cam}`);
   const f = dolly(0.513);
   assert.ok(Math.abs(f.cam[0] - 1.1) < 0.05 && Math.abs(f.cam[2] - 1.6) < 0.1, `${f.cam}`);

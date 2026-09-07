@@ -7,7 +7,7 @@ import { Sink } from './rig.ts';
 import type { V3 } from './rig.ts';
 
 export interface CityBuilding { h: number; min: number; p: number[]; dome?: 1 }
-export interface CityData { source: string; condo: [number, number]; cn: [number, number]; buildings: CityBuilding[]; roads: number[][] }
+export interface CityData { source: string; condo: [number, number]; facing: number; cn: [number, number]; buildings: CityBuilding[]; roads: number[][] }
 export const CITY = toronto as CityData;
 
 /** The window tile (stage-paint.ts windows): 24 bays by 20 floors in 96 by 70 metres. */
@@ -88,7 +88,7 @@ export function cnTower(shaft: Sink, pod: Sink, lights: Sink): void {
     rings.push({ ...rings[rings.length - 1], c: [rings[rings.length - 1].c[0], 330, rings[rings.length - 1].c[2]] as V3, ru: 0.1, rv: 0.1 });
     shaft.loft(rings, 10);
   }
-  pod.lathe([[6.5, 320], [9.5, 326], [17.5, 331], [18.5, 334], [18.5, 351], [16.5, 355], [10, 361], [6.5, 364]], tx, 0, tz, 1, 1, 0, 20);
+  pod.lathe([[6.5, 320], [10, 326], [21, 331], [22, 334], [21, 351], [19, 355], [11, 361], [6.5, 364]], tx, 0, tz, 1, 1, 0, 24);
   pod.lathe([[5.6, 442], [8.5, 445], [9, 449], [8.5, 453], [5.6, 456]], tx, 0, tz, 1, 1, 0, 14);
   shaft.lathe([[5.5, 457], [4, 490], [2.8, 510], [1.9, 535], [1.0, 553]], tx, 0, tz, 1, 1, 0, 8);
   lights.sphere(tx, 553, tz, 3.5, 3.5, 3.5, 8, 6).sphere(tx, 505, tz, 3, 3, 3, 8, 6).sphere(tx, 458, tz, 3, 3, 3, 8, 6);

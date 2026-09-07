@@ -8,7 +8,8 @@
 //   node scripts/stage-city.mjs --fetch    (asks Overpass again)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
-const CONDO = { lat: 43.6578, lon: -79.382 }; // Yonge and Gerrard: the window looks south down Yonge to the towers and the lake
+const CONDO = { lat: 43.64645, lon: -79.39157 }; // Front and Spadina: the tower 560 m off to the south-east, the dome at its foot, the lake behind
+const FACING = 125; // the bearing the window looks along, degrees from north: the CN Tower 15 degrees right of it
 const CN = { lat: 43.6426, lon: -79.3871 };
 const BOX = '43.628,-79.425,43.692,-79.338';
 const CACHE = '.cache/osm/toronto.json';
@@ -41,8 +42,12 @@ async function fetchOsm() {
 }
 
 const M_LAT = 111320, M_LON = 111320 * Math.cos((CONDO.lat * Math.PI) / 180);
-/** Metres about the condo: x west (right of a window looking south), z north (the window looks toward -z). */
-const xz = (p) => [-(p.lon - CONDO.lon) * M_LON, (p.lat - CONDO.lat) * M_LAT];
+const FR = (FACING * Math.PI) / 180, fe = Math.sin(FR), fn = Math.cos(FR); // forward in east, north
+/** Metres about the condo in the window's frame: x to the right, z toward -ahead (the window looks toward -z). */
+const xz = (p) => {
+  const e = (p.lon - CONDO.lon) * M_LON, n = (p.lat - CONDO.lat) * M_LAT;
+  return [e * fn - n * fe, -(e * fe + n * fn)];
+};
 const num = (s) => { const m = /^(-?\d+(?:\.\d+)?)\s*(m|ft|')?/.exec(String(s ?? '').trim()); return m ? +m[1] * (m[2] && m[2] !== 'm' ? 0.3048 : 1) : NaN; };
 const height = (t) => { const h = num(t.height); if (h > 0) return h; const l = num(t['building:levels']); return l > 0 ? l * 3.1 + 1.5 : 0; };
 const minHeight = (t) => { const h = num(t.min_height); if (h > 0) return h; const l = num(t['building:min_level']); return l > 0 ? l * 3.1 : 0; };
@@ -93,8 +98,9 @@ const kept = [];
 for (const r of rings) {
   const dist = Math.hypot(r.c[0], r.c[1]);
   if (r.c[1] > 60) continue; // behind the window
+  if (dist > 2600) continue;
   if (Math.hypot(r.c[0] - cn[0], r.c[1] - cn[1]) < 45) continue; // the CN Tower: the runtime builds it
-  const floor = dist < 400 ? 6 : dist < 1200 ? 18 : 36;
+  const floor = dist < 400 ? 6 : dist < 1200 ? 24 : 70; // the near blocks whole, the far city only its towers
   if (r.h < floor) continue;
   if (!r.part && parts.some((p) => p !== r && p.h > r.h * 0.5 && inside(p.c, r.ring))) continue; // an outline whose parts stand in for it
   const ring = simplify(r.ring, dist < 700 ? 0.7 : 1.6, true);
@@ -105,7 +111,7 @@ const roadsOut = roads
   .map((line) => simplify(line, 2.5, false).map((p) => [r1(p[0]), r1(p[1])]))
   .filter((line) => line.some((p) => p[1] < 120 && Math.hypot(p[0], p[1]) < 2600))
   .map((line) => line.flat());
-const out = { source: 'OpenStreetMap contributors, ODbL', condo: [CONDO.lat, CONDO.lon], cn: cn.map(r1), buildings: kept.map(({ name, ...b }) => b), roads: roadsOut };
+const out = { source: 'OpenStreetMap contributors, ODbL', condo: [CONDO.lat, CONDO.lon], facing: FACING, cn: cn.map(r1), buildings: kept.map(({ name, ...b }) => b), roads: roadsOut };
 writeFileSync(OUT, JSON.stringify(out));
 const verts = kept.reduce((s, b) => s + b.p.length / 2, 0);
 console.log(`${kept.length} buildings (${verts} corners, tallest ${kept.slice(0, 5).map((b) => `${b.name || '?'} ${b.h}`).join(', ')}), ${roadsOut.length} roads, ${(JSON.stringify(out).length / 1024).toFixed(0)} KB`);

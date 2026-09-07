@@ -57,3 +57,15 @@ test('every normal points into the room and every triangle winds toward it', () 
     }
   }
 });
+
+test('an inner wall has two faces cut round its door, two jambs and a lintel, all facing out of the wall', () => {
+  const { walls } = buildShell({ x: [0, 4], z: [0, 4], h: 2.8, floor: 'condoFloor', wall: 'condoWall', openings: [], walls: [{ from: [2, 0], to: [2, 4], t: 0.1, doors: [{ at: 1, w: 0.8, h: 2 }] }] });
+  // the four outer walls are 4 rects (24 verts); the partition adds 2 faces x 3 rects, 2 jambs, 1 lintel = 9 rects
+  assert.equal(walls.pos.length / 3, (4 + 9) * 6);
+  // every partition vertex normal points away from x = 2 on its own side, or along z / down for the reveals
+  for (let i = 24; i < walls.pos.length / 3; i++) {
+    const x = walls.pos[i * 3], nx = walls.nor[i * 3], ny = walls.nor[i * 3 + 1], nz = walls.nor[i * 3 + 2];
+    if (Math.abs(nx) > 0.5) assert.ok(Math.sign(nx) === Math.sign(x - 2), `face at x ${x} faces ${nx}`);
+    else assert.ok(Math.abs(nz) > 0.5 || ny < -0.5, `reveal normal ${[nx, ny, nz]}`);
+  }
+});

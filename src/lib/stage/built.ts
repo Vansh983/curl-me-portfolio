@@ -161,17 +161,53 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const pillow = new Sink().rbox(-0.72, 0.46, 0, 0.5, 0.1, 0.7, 0.045, 3);
     return [piece(frame.out(), M('bedFrame'), { smooth: true }), piece(mattress.out(), M('mattress'), { smooth: true }), piece(duvet.out(), M('duvet'), { smooth: true }), piece(pillow.out(), M('pillow'), { smooth: true })];
   },
-  /** The brick wall behind the desk: the condo's x+ wall faced in brick, 3 cm proud, leaving the door (z 1.15 to 2.05) open. Placed at the wall's x, z 0. */
-  condoBrick: () => [piece(new Sink().box(-0.015, 1.4, -0.525, 0.03, 2.8, 3.35).box(-0.015, 1.4, 2.125, 0.03, 2.8, 0.15).box(-0.015, 2.425, 1.6, 0.03, 0.75, 0.9).out(), M('condoBrick'))],
-  /** White skirting round the condo (x -8.4..-4.2, z -2.2..2.2), 10 cm, breaking for the door on the x+ wall at z 1.15..2.05 and the glass on z-. */
+  /** The brick wall behind the desk: the condo's x+ wall faced in brick, 3 cm proud, from the glass (z -3.4) to the front door (z 1.15 to 2.05) and past it. Placed at the wall's x, z 0. */
+  condoBrick: () => [piece(new Sink().box(-0.015, 1.4, -1.125, 0.03, 2.8, 4.55).box(-0.015, 1.4, 2.125, 0.03, 2.8, 0.15).box(-0.015, 2.425, 1.6, 0.03, 0.75, 0.9).out(), M('condoBrick'))],
+  /**
+   * White skirting round the apartment (x -13..-4.2, z -3.4..2.2), 10 cm: the outer walls and both faces
+   * of the partitions (x -9.4 with doors at z -0.6 and 1.4; z 0 in the west half), breaking for the doors,
+   * the glass and the brick's front door.
+   */
   condoSkirting: () => {
-    const t = 0.016, h = 0.1;
-    const s = new Sink();
-    s.rbox(-8.4 + t / 2, h / 2, 0, t, h, 4.4, 0.004, 1); // x- wall
-    s.rbox(-6.3, h / 2, 2.2 - t / 2, 4.2, h, t, 0.004, 1); // z+ wall
-    s.rbox(-4.2 - 0.03 - t / 2, h / 2, -0.525, t, h, 3.35, 0.004, 1); // x+ wall, left of the door, in front of the brick
+    const t = 0.016, h = 0.1, s = new Sink();
+    const alongZ = (x: number, z0: number, z1: number) => s.rbox(x, h / 2, (z0 + z1) / 2, t, h, z1 - z0, 0.004, 1);
+    const alongX = (z: number, x0: number, x1: number) => s.rbox((x0 + x1) / 2, h / 2, z, x1 - x0, h, t, 0.004, 1);
+    alongZ(-13 + t / 2, -3.4, 2.2); // x- wall: bedroom and bathroom
+    alongX(2.2 - t / 2, -13, -4.2); // z+ wall
+    alongZ(-4.2 - 0.03 - t / 2, -3.4, 1.15); // x+ wall up to the front door, in front of the brick
+    for (const [z0, z1] of [[-3.4, -1.025], [-0.175, 0], [0, 1.025], [1.775, 2.2]]) alongZ(-9.46 - t / 2, z0, z1); // partition, west face
+    for (const [z0, z1] of [[-3.4, -1.025], [-0.175, 1.025], [1.775, 2.2]]) alongZ(-9.34 + t / 2, z0, z1); // partition, living face
+    alongX(-0.06 - t / 2, -13, -9.46); // bedroom side of the bathroom wall
+    alongX(0.06 + t / 2, -13, -9.46); // bathroom side
     return [piece(s.out(), M('skirting'), { smooth: true })];
   },
+  /** The bathroom (x -13..-9.4, z 0..2.2): a tiled floor 8 mm proud, tiles to the ceiling behind the tub (x-) and to 1.2 m on the other walls, round the door at z 1.4. */
+  bathTiles: () => {
+    const s = new Sink(), d = 0.012;
+    s.box(-11.2, 0.004, 1.1, 3.48, 0.008, 2.08);
+    s.box(-13 + d / 2, 1.4, 1.1, d, 2.8, 2.08); // behind the tub, full height
+    s.box(-11.2, 0.6, 2.2 - d / 2, 3.48, 1.2, d); // z+
+    s.box(-11.2, 0.6, 0.06 + d / 2, 3.48, 1.2, d); // the bedroom wall's bathroom face
+    s.box(-9.46 - d / 2, 0.6, 0.54, d, 1.2, 0.96); // partition, up to the door
+    s.box(-9.46 - d / 2, 0.6, 1.99, d, 1.2, 0.42); // partition, past the door
+    return [piece(s.out(), M('bathTile'))]; // flat uv: the runtime projects the tiles per face in metres
+  },
+  /** A shower on the wall over the tub: the riser, the arm and the head, chrome. Placed at the wall face, facing +x. */
+  showerHead: () => {
+    const s = new Sink().cylinder(0.02, 1.4, 0, 0.012, 1.4, 12).bone([0.02, 2.05, 0], [0.32, 2.12, 0], 0.012, 0.012).cylinder(0.32, 2.1, 0, 0.1, 0.02, 24).cylinder(0.02, 1.0, 0, 0.06, 0.04, 20);
+    return [piece(s.out(), M('chrome'), { smooth: true })];
+  },
+  /** An interior door leaf, 0.85 by 2.04, hinged at the origin along +z, its face toward +x; placed at the hinge and turned open. */
+  doorLeaf: () => {
+    const s = new Sink().rbox(0, 1.02, 0.425, 0.04, 2.04, 0.85, 0.004, 1);
+    s.rbox(0.03, 1.02, 0.425, 0.006, 1.7, 0.6, 0.002, 1).rbox(-0.03, 1.02, 0.425, 0.006, 1.7, 0.6, 0.002, 1); // a raised panel each side
+    s.box(0.045, 1.0, 0.78, 0.05, 0.02, 0.1).box(-0.045, 1.0, 0.78, 0.05, 0.02, 0.1); // handles
+    return [piece(s.out(), M('doorPaint'), { smooth: true }), piece(new Sink().box(0, 1.0, 0.78, 0.13, 0.02, 0.1).out(), M('chrome'))];
+  },
+  /** A 55 inch television on the wall, off: a black glass face in a thin bezel, its back at x 0, facing -x, the middle at 1.35. */
+  wallTv: () => [piece(new Sink().rbox(-0.025, 1.35, 0, 0.05, 0.71, 1.23, 0.004, 1).out(), M('bezel'), { smooth: true }), piece(new Sink().box(-0.052, 1.35, 0, 0.004, 0.68, 1.2).out(), M('tvGlass'))],
+  /** A flush ceiling light: a shallow white disc 0.3 across that glows; placed at the ceiling. */
+  discLight: () => [piece(new Sink().lathe([[0.16, 0], [0.16, -0.03], [0.13, -0.05], [0.0, -0.06]], 0, 0, 0, 1, 1, 0, 24).out(), M('lampGlobe'), { smooth: true })],
   /** A warm LED strip under the hutch's top shelf, the length of the desk. Placed like the hutch. */
   hutchLed: () => [piece(new Sink().box(0.03, 0.932, 0, 0.04, 0.012, 1.7).out(), M('ledStrip'))],
   /** A grey rug under the desk, 2.4 × 1.8. */

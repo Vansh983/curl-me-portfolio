@@ -53,6 +53,7 @@ for (const a of ASSETS) {
       }
     } else await fetchTo(a.url, src);
     if (a.anims) { const trimmed = `${dir}/${a.id}.anims.glb`; await keepAnims(src, trimmed, a.anims); src = trimmed; }
+    if (a.drop) { const cut = `${dir}/${a.id}.cut.glb`; execFileSync('node', ['scripts/gltf-drop.mjs', src, cut, ...a.drop], { stdio: 'inherit' }); src = cut; }
     if (!existsSync(out)) {
       await mkdir(path.dirname(out), { recursive: true });
       execFileSync('npx', ['gltf-transform', 'optimize', src, out,

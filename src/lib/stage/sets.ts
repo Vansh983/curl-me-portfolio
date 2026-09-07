@@ -11,6 +11,8 @@ export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
 export interface Opening { wall: 'x+' | 'x-' | 'z+' | 'z-'; at: number; w: number; h: number; sill?: number }
+/** A partition inside the shell, `from` to `to` on the floor, `t` thick (default 0.12), doors measured along it from `from`. */
+export interface InnerWall { from: [number, number]; to: [number, number]; t?: number; doors?: Array<{ at: number; w: number; h: number }> }
 
 /** A room: floor, four walls, ceiling, each a designed material (materials.ts). uv is in metres. */
 export interface Shell {
@@ -21,6 +23,7 @@ export interface Shell {
   wall: string;
   ceiling?: string;
   openings: Opening[];
+  walls?: InnerWall[]; // partitions: an apartment is rooms, not one box
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
@@ -62,50 +65,83 @@ const STATIONS_B = [3.7, 4.65, 5.6];
 
 export const SETS: StageSet[] = [
   {
-    // now: a small condo room high above Toronto at night. The desk lamp and the screens light
-    // him; the city through the window lights the rest, cool and faint. Everything is close.
+    // now: a one bedroom condo on the 51st floor over Toronto at night. Bedroom and bathroom in the
+    // west half either side of a partition, an open living room, kitchen and hall in the east half,
+    // glass along the whole south side. The walk starts at the bedroom window, goes through the
+    // bedroom door, across the living room past the desk and the kitchen, and out of the front door.
     id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035, baked: true,
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
     shell: {
-      x: [-8.4, -4.2], z: [-2.2, 2.2], h: 2.8,
+      x: [-13.0, -4.2], z: [-3.4, 2.2], h: 2.8,
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
-        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
-        { wall: 'z-', at: -6.3, w: 4.0, h: 2.8, sill: 0 }, // floor to ceiling glass, a 2.8 m ceiling
+        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the front door, into the passage
+        { wall: 'z-', at: -11.2, w: 3.4, h: 2.8, sill: 0 }, // the bedroom's glass, the whole wall
+        { wall: 'z-', at: -6.8, w: 4.6, h: 2.8, sill: 0 }, // the living room's glass
+      ],
+      walls: [
+        { from: [-9.4, -3.4], to: [-9.4, 2.2], doors: [{ at: 2.8, w: 0.85, h: 2.05 }, { at: 4.8, w: 0.75, h: 2.05 }] }, // bedroom door at z -0.6, bathroom door at z 1.4
+        { from: [-13.0, 0], to: [-9.4, 0] }, // bedroom | bathroom
       ],
     },
     props: [
-      { build: 'mullions', at: [-6.3, 0, -2.2], scale: [0.8, 1.4, 1] },
-      { build: 'city', at: [-6.3, -155, -2.2], rot: [0, -15, 0], live: 'city', cap: 'Toronto. The CN Tower from the 51st floor.', shadow: false },
-      { build: 'nightSky', at: [-6.3, 0, -2.2], live: 'city', shadow: false },
+      { build: 'mullions', at: [-11.2, 0, -3.4], scale: [0.68, 1.4, 1] },
+      { build: 'mullions', at: [-6.8, 0, -3.4], scale: [0.92, 1.4, 1] },
+      { build: 'city', at: [-6.8, -155, -3.4], live: 'city', cap: 'Toronto. The CN Tower from the 51st floor.', shadow: false },
+      { build: 'nightSky', at: [-6.8, 0, -3.4], live: 'city', shadow: false },
       { build: 'condoBrick', at: [-4.2, 0, 0] },
       { build: 'condoSkirting', at: [0, 0, 0] },
-      { build: 'rugGrey', at: [-5.1, 0, -0.4] },
-      { build: 'desk', at: [-4.58, 0, -0.4], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
-      { build: 'deskHutch', at: [-4.34, 0.74, -0.4] },
-      { build: 'hutchLed', at: [-4.34, 0.74, -0.4] },
-      { model: 'coffee_mug', at: [-4.7, 0.74, 0.02], rot: [0, 40, 0] },
-      { model: 'headphones_retro', at: [-4.62, 0.74, -1.05], rot: [0, -60, 0] },
-      { build: 'books', at: [-4.34, 1.71, -0.55], cap: 'The shelf. Mostly systems and design.' },
-      { build: 'books', at: [-4.34, 1.21, 0.0] },
-      { build: 'badge', at: [-4.5, 1.69, -1.05], cap: 'Google Code-in 2018. Grand prize.' },
-      { build: 'monitor', at: [-4.56, 0.74, -0.75], rot: [0, -100, 0], live: 'screen' },
-      { build: 'monitorApp', at: [-4.56, 0.74, -0.08], rot: [0, -80, 0], live: 'screen' },
-      { model: 'laptop_14_aluminium', at: [-4.73, 0.74, 0.25], rot: [0, -120, 0] },
-      { model: 'keyboard_mouse_black', at: [-4.82, 0.74, -0.42], rot: [0, -90, 0] },
-      { build: 'pcTower', at: [-4.33, 0, 0.1], rot: [0, -90, 0] },
-      { model: 'desk_lamp_arm_01', at: [-4.3, 0.74, -1.15], rot: [0, -150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
-      { model: 'office_chair_black', at: [-5.3, 0, -0.4], rot: [0, 90, 0] }, // its back away from the desk
-      { model: 'steel_frame_shelves_01', at: [-8.12, 0, 0.3], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
-      { model: 'book_encyclopedia_set_01', at: [-8.12, 0.98, 0.3], rot: [0, 90, 0], scale: 0.9 },
-      { model: 'book_encyclopedia_set_01', at: [-8.12, 1.5, 0.25], rot: [0, 90, 0], scale: 0.8 },
-      { model: 'bed_single', at: [-6.6, 0, -1.72] },
-      { model: 'potted_plant_01', at: [-8.05, 0, -1.85], scale: 0.9 },
-      { model: 'modern_arm_chair_01', at: [-7.3, 0, 0.55], rot: [0, 200, 0], cap: 'The chair for reading. The city does the rest.' },
-      { model: 'side_table_01', at: [-7.95, 0, 0.95] },
-      { model: 'wall_art_circles', at: [-4.235, 1.3, 0.55], rot: [90, 0, 90] },
-      { model: 'pendant_tense', at: [-6.4, 1.78, 0.75], live: 'pendant', cap: 'The corner for reading.' }, // its cord reaches the ceiling at 2.8
+      // the bedroom: the bed's head on the bathroom wall, a nightstand by the door side, a low dresser under the door wall
+      { model: 'bed_double', at: [-11.88, 0, -1.13], rot: [0, 180, 0], cap: 'Bed. Not used enough.' },
+      { model: 'nightstand_modern', at: [-10.5, 0, -0.3] },
+      { model: 'desk_lamp_arm_01', at: [-10.55, 0.55, -0.3], rot: [0, 150, 0], scale: 0.7 },
+      { model: 'tv_stand', at: [-9.67, 0, -2.5], rot: [0, -90, 0] }, // as a dresser
+      { model: 'wall_art_circles', at: [-11.88, 1.6, -0.055], rot: [90, 0, 180] },
+      { model: 'pendant_tense', at: [-11.88, 1.78, -1.3], live: 'pendant' },
+      { build: 'doorLeaf', at: [-9.4, 0, -0.175], rot: [0, -85, 0] }, // the bedroom door, hinged on the north jamb, open flat against the bedroom wall
+      // the bathroom
+      { build: 'bathTiles', at: [0, 0, 0] },
+      { model: 'bathtub_abrazo', at: [-12.55, 0, 1.1], rot: [0, 90, 0] },
+      { build: 'showerHead', at: [-12.98, 0, 1.1] },
+      { model: 'toilet_ceramic', at: [-11.5, 0, 2.13], rot: [0, 180, 0] },
+      { model: 'basin_mirror', at: [-10.5, 0.85, 0.06], rot: [90, 180, 0] },
+      { build: 'discLight', at: [-11.2, 2.8, 1.1], live: 'pendant' },
+      { build: 'doorLeaf', at: [-9.4, 0, 1.775], rot: [0, -100, 0] }, // the bathroom door, open into the bathroom
+      // the living room: the desk on the brick, the television across from the sofa, the armchair by the glass
+      { build: 'rugGrey', at: [-5.1, 0, -2.45] },
+      { build: 'desk', at: [-4.58, 0, -2.45], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
+      { build: 'deskHutch', at: [-4.34, 0.74, -2.45] },
+      { build: 'hutchLed', at: [-4.34, 0.74, -2.45] },
+      { model: 'coffee_mug', at: [-4.7, 0.74, -2.03], rot: [0, 40, 0] },
+      { build: 'books', at: [-4.34, 1.71, -2.6], cap: 'The shelf. Mostly systems and design.' },
+      { build: 'books', at: [-4.34, 1.21, -2.05] },
+      { build: 'badge', at: [-4.5, 1.69, -3.1], cap: 'Google Code-in 2018. Grand prize.' },
+      { build: 'monitor', at: [-4.56, 0.74, -2.8], rot: [0, -100, 0], live: 'screen' },
+      { build: 'monitorApp', at: [-4.56, 0.74, -2.13], rot: [0, -80, 0], live: 'screen' },
+      { model: 'laptop_14_aluminium', at: [-4.73, 0.74, -1.8], rot: [0, -120, 0] },
+      { model: 'keyboard_mouse_black', at: [-4.82, 0.74, -2.47], rot: [0, -90, 0] },
+      { build: 'pcTower', at: [-4.33, 0, -1.95], rot: [0, -90, 0] },
+      { model: 'desk_lamp_arm_01', at: [-4.3, 0.74, -3.2], rot: [0, -150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
+      { model: 'office_chair_black', at: [-5.3, 0, -2.45], rot: [0, 90, 0] }, // its back away from the desk
+      { model: 'tv_stand', at: [-4.44, 0, -0.4], rot: [0, -90, 0] },
+      { build: 'wallTv', at: [-4.23, 0, -0.4] },
+      { model: 'sofa_teak', at: [-8.55, 0, 0.5], rot: [0, 90, 0], cap: 'The sofa. For thinking, mostly.' },
+      { model: 'coffee_table_square', at: [-7.6, 0, -0.45] },
+      { model: 'throw_pillows_01', at: [-8.9, 0.45, -1.2], rot: [0, 90, 0], scale: 0.8 },
+      { model: 'steel_frame_shelves_01', at: [-9.12, 0, -2.6], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
+      { model: 'book_encyclopedia_set_01', at: [-9.12, 0.98, -2.6], rot: [0, 90, 0], scale: 0.9 },
+      { model: 'book_encyclopedia_set_01', at: [-9.12, 1.5, -2.65], rot: [0, 90, 0], scale: 0.8 },
+      { model: 'potted_plant_01', at: [-8.95, 0, -3.1], scale: 0.9 },
+      { model: 'modern_arm_chair_01', at: [-7.3, 0, -2.6], rot: [0, 220, 0], cap: 'The chair for reading. The city does the rest.' },
+      { model: 'side_table_01', at: [-7.95, 0, -2.3] },
+      { model: 'pendant_tense', at: [-7.3, 1.78, -2.6], live: 'pendant', cap: 'The corner for reading.' }, // its cord reaches the ceiling at 2.8
+      { model: 'pendant_tense', at: [-7.6, 1.78, -0.45], live: 'pendant' },
+      // the kitchen along the north wall, the hall to the front door
+      { model: 'kitchen_modern', at: [-7.74, 0, 1.48], rot: [0, 180, 0], scale: 0.85, cap: 'The kitchen. Coffee, mostly.' }, // 3.4 m of it, from the partition to the hall
+      { build: 'discLight', at: [-7.7, 2.8, 1.2], live: 'pendant' },
+      { model: 'shoe_rack_modern', at: [-4.85, 0, 1.95] },
+      { model: 'wall_art_circles', at: [-4.235, 1.3, 0.75], rot: [90, 0, 90] },
       { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' },
     ],
   },

@@ -1,7 +1,7 @@
 // Rooms as geometry: a floor, four walls with holes for doors and windows, a ceiling. Every
 // vertex carries a normal facing into the room and a uv in metres, so a material's tile size
 // means the same wherever the wall is.
-import type { Shell, Opening } from './sets.ts';
+import type { Shell, Opening, InnerWall } from './sets.ts';
 
 export interface Slab { pos: Float32Array; nor: Float32Array; uv: Float32Array }
 
@@ -79,5 +79,26 @@ export function buildShell(s: Shell): { floor: Slab; walls: Slab; ceiling: Slab 
       walls.rect(o, [w.a[0] * (u1 - u0), 0, w.a[2] * (u1 - u0)], [0, v1 - v0, 0], w.n, [u0 / tw, v0 / tw], (u1 - u0) / tw, (v1 - v0) / tw);
     }
   }
+  for (const w of s.walls ?? []) innerWall(walls, w, h, tw);
   return { floor: floor.out(), walls: walls.out(), ceiling: ceiling.out() };
+}
+
+/** A partition: both faces cut round its doors, the door reveals (two jambs and a lintel); its ends and top sit in other walls and the ceiling. */
+function innerWall(walls: Bag, w: InnerWall, h: number, tw: number): void {
+  const t = w.t ?? 0.12;
+  const dx = w.to[0] - w.from[0], dz = w.to[1] - w.from[1], len = Math.hypot(dx, dz);
+  const a: P3 = [dx / len, 0, dz / len], n: P3 = [a[2], 0, -a[0]];
+  const holes: Rect[] = (w.doors ?? []).map((d) => [d.at - d.w / 2, 0, d.at + d.w / 2, d.h]);
+  const at = (u: number, side: number, v = 0): P3 => [w.from[0] + a[0] * u + n[0] * side, v, w.from[1] + a[2] * u + n[2] * side];
+  for (const side of [1, -1]) {
+    const nn: P3 = [n[0] * side, 0, n[2] * side];
+    for (const [u0, v0, u1, v1] of cut(0, len, h, holes))
+      walls.rect(at(u0, (side * t) / 2, v0), [a[0] * (u1 - u0), 0, a[2] * (u1 - u0)], [0, v1 - v0, 0], nn, [u0 / tw, v0 / tw], (u1 - u0) / tw, (v1 - v0) / tw);
+  }
+  for (const d of w.doors ?? []) {
+    const u0 = d.at - d.w / 2, u1 = d.at + d.w / 2, across: P3 = [n[0] * t, 0, n[2] * t];
+    walls.rect(at(u0, -t / 2), across, [0, d.h, 0], a, [0, 0], t / tw, d.h / tw); // the jamb facing into the doorway from `from`'s side
+    walls.rect(at(u1, -t / 2), across, [0, d.h, 0], [-a[0], 0, -a[2]], [0, 0], t / tw, d.h / tw);
+    walls.rect(at(u0, -t / 2, d.h), [a[0] * d.w, 0, a[2] * d.w], across, [0, -1, 0], [u0 / tw, 0], d.w / tw, t / tw); // the lintel
+  }
 }

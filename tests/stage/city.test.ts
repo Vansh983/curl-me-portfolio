@@ -20,9 +20,10 @@ describe('city', () => {
       assert.ok(nx * ((sx + tx) / 2 - 0.5) + nz * ((sz + tz) / 2 - 0.5) > 0, `side faces out for ${JSON.stringify(ring)}`);
     }
   });
-  it('is real Toronto: the CN Tower south-west and 1.7 km off, the towers under 300 m, a dome, roads', () => {
-    assert.ok(CITY.cn[0] > 380 && CITY.cn[0] < 440 && CITY.cn[1] < -1650 && CITY.cn[1] > -1750);
-    assert.ok(CITY.buildings.length > 1000 && CITY.buildings.length < 4000);
+  it('is real Toronto: the CN Tower 560 m off and 15 degrees right of the window, the towers under 300 m, a dome, roads', () => {
+    const d = Math.hypot(...CITY.cn), az = (Math.atan2(CITY.cn[0], -CITY.cn[1]) * 180) / Math.PI;
+    assert.ok(d > 520 && d < 600 && az > 12 && az < 18, `cn ${CITY.cn} d ${d} az ${az}`);
+    assert.ok(CITY.buildings.length > 300 && CITY.buildings.length < 2000);
     assert.ok(CITY.buildings.every((b) => b.h <= 310 && b.h > 0 && b.min < b.h && b.p.length >= 6));
     assert.ok(CITY.buildings.some((b) => b.dome && b.h === 86)); // the Rogers Centre
     assert.ok(CITY.roads.length > 500);

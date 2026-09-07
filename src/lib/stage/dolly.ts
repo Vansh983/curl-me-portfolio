@@ -12,17 +12,21 @@ export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: numb
 export interface Frame { q: number; set: number; from: number; into: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
 
 export const DOLLY: DollyKey[] = [
-  // now: the whole room from the far corner by the shelves; the desk on the right, the bed under the window on the left
-  // a person walks: eye at 1.6, always forward, the head turning to what is worth a look. fov is the
-  // horizontal field, wide as eyes are: a laptop screen shows the whole room, not a corner of it
-  { q: 0.0, cam: [-8.1, 1.6, 1.9], look: [-6.6, 1.65, -1.2], fov: 74, set: 0 }, // from the corner: the window, the CN Tower in it
-  { q: 0.05, cam: [-7.7, 1.6, 1.9], look: [-6.2, 1.6, -1.6], fov: 70, set: 0 },
-  { q: 0.11, cam: [-6.9, 1.58, 1.9], look: [-5.5, 1.4, -0.4], fov: 66, set: 0 }, // the desk
-  { q: 0.15, cam: [-6.1, 1.58, 1.85], look: [-4.5, 1.3, 1.0], fov: 64, set: 0 }, // turning to the door
-  { q: 0.19, cam: [-5.0, 1.58, 1.7], look: [-3.6, 1.45, 1.6], fov: 64, set: 0 },
-  { q: 0.21, cam: [-4.1, 1.58, 1.6], look: [-2.6, 1.5, 1.6], fov: 68, set: 0, blend: 0 }, // door jamb
-  { q: 0.25, cam: [-3.3, 1.58, 1.6], look: [-1.6, 1.5, 1.5], fov: 68, set: 1, blend: 1 }, // mid passage
-  { q: 0.29, cam: [-1.7, 1.58, 1.65], look: [-0.4, 1.0, -0.8], fov: 64, set: 1 }, // into the 2010 room
+  // now: from the bedroom window, out through the bedroom door, across the living room past the desk
+  // and the kitchen, to the front door. A person walks: eye at 1.6, always forward, the head turning to
+  // what is worth a look. fov is the horizontal field, wide as eyes are: a laptop screen shows the whole
+  // room, not a corner of it
+  { q: 0.0, cam: [-11.0, 1.6, -2.75], look: [-10.22, 2.45, -5.65], fov: 74, set: 0 }, // at the bedroom glass: the CN Tower 560 m off, the bed under the hero
+  { q: 0.04, cam: [-10.6, 1.6, -2.2], look: [-9.2, 1.7, -2.8], fov: 72, set: 0 }, // turning from the glass: the dresser
+  { q: 0.072, cam: [-10.0, 1.6, -1.4], look: [-8.6, 1.45, -0.85], fov: 70, set: 0 }, // the bedroom door
+  { q: 0.092, cam: [-9.4, 1.6, -0.6], look: [-7.2, 1.4, -0.3], fov: 70, set: 0 }, // through it: the living room, the glass, the sofa
+  { q: 0.117, cam: [-8.2, 1.6, -0.9], look: [-5.4, 1.2, -2.0], fov: 66, set: 0 }, // the armchair by the glass, the desk beyond
+  { q: 0.138, cam: [-7.15, 1.58, -0.8], look: [-4.5, 1.2, -0.9], fov: 64, set: 0 }, // the desk, the television on the brick
+  { q: 0.163, cam: [-6.35, 1.58, -0.05], look: [-4.4, 1.35, 1.1], fov: 64, set: 0 }, // turning to the hall: the kitchen on the left, the front door
+  { q: 0.194, cam: [-5.15, 1.58, 1.1], look: [-3.6, 1.45, 1.6], fov: 66, set: 0 },
+  { q: 0.22, cam: [-4.1, 1.58, 1.6], look: [-2.6, 1.5, 1.6], fov: 68, set: 0, blend: 0 }, // door jamb
+  { q: 0.256, cam: [-3.3, 1.58, 1.6], look: [-1.6, 1.5, 1.5], fov: 68, set: 1, blend: 1 }, // mid passage
+  { q: 0.295, cam: [-1.7, 1.58, 1.65], look: [-0.5, 1.05, -0.5], fov: 64, set: 1 }, // into the 2010 room
   { q: 0.333, cam: [-1.1, 1.58, 1.55], look: [-0.2, 0.6, -1.8], fov: 62, set: 1 }, // the TV on the floor, the Xbox
   { q: 0.40, cam: [-0.4, 1.58, 1.5], look: [1.1, 0.9, 0.2], fov: 62, set: 1 }, // the shelf of figures at the left, the poster
   { q: 0.45, cam: [0.05, 1.58, 1.55], look: [1.6, 1.4, 1.6], fov: 64, set: 1 }, // the door ahead

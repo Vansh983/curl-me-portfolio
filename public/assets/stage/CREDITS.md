@@ -2,7 +2,7 @@
 
 Models and textures from [Poly Haven](https://polyhaven.com) (CC0) and free models from [BlenderKit](https://www.blenderkit.com) (royalty free). Optimised by scripts/stage-assets.mjs.
 
-- `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp.
+- `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp, and the bedside lamp.
 - `steel_frame_shelves_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/steel_frame_shelves_01. the shelves behind the desk.
 - `potted_plant_01` (model) by Rico Cilliers, CC0, https://polyhaven.com/a/potted_plant_01. the plant by the window.
 - `office_chair_black` (model) by BlenderKit (Blender Interior), RF, https://www.blenderkit.com/api/v1/downloads/1003111/. the office chair.
@@ -13,8 +13,17 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0) and free mode
 - `pendant_tense` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/853305/. the pendant over the armchair.
 - `wall_art_circles` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/919410/. the print by the condo door.
 - `coffee_mug` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/782558/. the mug on the desk.
-- `headphones_retro` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/1049005/. the headphones on the desk.
 - `side_table_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/side_table_01. the side table by the armchair.
+- `bed_double` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/444375/. the bed in the bedroom.
+- `nightstand_modern` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/590108/. the nightstand.
+- `sofa_teak` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/940237/. the sofa.
+- `coffee_table_square` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/1088749/. the coffee table.
+- `tv_stand` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/780861/. the unit under the television, and the bedroom dresser.
+- `kitchen_modern` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/1019778/. the kitchen run with its appliances.
+- `bathtub_abrazo` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/1197628/. the bathtub.
+- `toilet_ceramic` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/544975/. the toilet.
+- `basin_mirror` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/892665/. the basin and mirror.
+- `shoe_rack_modern` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/463109/. the shoe rack by the front door.
 - `television_02` (model) by Benny Weimer, CC0, https://polyhaven.com/a/television_02. the CRT television, and scaled down, the lab monitors.
 - `ceiling_fan` (model) by Ulan Cabanilla, CC0, https://polyhaven.com/a/ceiling_fan. the ceiling fan.
 - `xbox_controller` (model) by BlenderKit, RF, https://www.blenderkit.com/api/v1/downloads/1143937/. the controller on the rug.
