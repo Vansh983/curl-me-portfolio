@@ -97,8 +97,9 @@ export const MATS: Record<string, Mat> = {
   passageWall: { color: '#E6DFD2', rough: 0.92, tex: 'plastered_wall_04', amp: 0.35, tile: 3.2 },
   passageFloor: { color: '#CFC7BA', rough: 0.7, grain: 'speckle', amp: 0.15, tile: 0.8 },
   // 2013, the lab: off-white walls, pale grey tiles, white ceiling
-  labWall: { color: '#EEF1F3', rough: 0.9, tex: 'plastered_wall_04', amp: 0.25, tile: 3.2 },
-  labCeiling: { color: '#F7F9FA', rough: 0.95, tile: 1 },
+  labWall: { color: '#E8E7E2', rough: 0.9, tex: 'plastered_wall_04', amp: 0.25, tile: 3.2 },
+  labCeiling: { color: '#EEF0F2', rough: 0.95, paint: 'tiles', tile: 0.6 }, // suspended ceiling tiles
+  partition: { color: '#8E9298', rough: 0.98, tex: 'wool_boucle', amp: 0.6, sheen: 0.3, tile: 0.35 },
   labFloor: { color: '#FFFFFF', rough: 0.35, paint: 'tiles', tile: 1.2 },
   desk: { color: '#D9D3C4', rough: 0.55, tile: 1 },
   keys: { color: '#EFEAE0', rough: 0.5, tile: 1 },

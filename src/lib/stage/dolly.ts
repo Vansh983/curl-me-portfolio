@@ -29,9 +29,10 @@ export const DOLLY: DollyKey[] = [
   { q: 0.467, cam: [0.3, 1.58, 1.6], look: [1.8, 1.45, 1.6], fov: 64, set: 1 },
   { q: 0.513, cam: [1.1, 1.58, 1.6], look: [3.0, 1.5, 1.6], fov: 68, set: 1, blend: 0 }, // door jamb
   { q: 0.547, cam: [2.1, 1.58, 1.6], look: [4.0, 1.5, 1.6], fov: 68, set: 2, blend: 1 }, // mid passage
-  { q: 0.587, cam: [3.5, 1.58, 2.3], look: [5.4, 1.1, 0.4], fov: 64, set: 2 }, // into the lab
-  { q: 0.667, cam: [4.3, 1.58, 2.4], look: [5.0, 0.95, 0.3], fov: 60, set: 2 }, // over the front desk: Notepad
-  { q: 0.8, cam: [6.0, 1.58, 2.5], look: [8.4, 1.4, 2.6], fov: 64, set: 2 }, // to the far door
+  { q: 0.587, cam: [3.5, 1.58, 1.3], look: [5.6, 1.0, -1.0], fov: 64, set: 2 }, // into the lab: the long bench, the stations
+  { q: 0.667, cam: [4.3, 1.58, 1.0], look: [4.75, 0.95, -1.2], fov: 60, set: 2 }, // over the second station: Notepad
+  { q: 0.73, cam: [5.3, 1.58, 1.15], look: [7.4, 1.2, 0.3], fov: 62, set: 2 }, // along the bench
+  { q: 0.8, cam: [6.3, 1.58, 1.3], look: [8.4, 1.4, 2.6], fov: 64, set: 2 }, // to the far door
   { q: 0.85, cam: [8.1, 1.58, 2.6], look: [10, 1.5, 2.6], fov: 68, set: 2, blend: 0 }, // door jamb
   { q: 0.885, cam: [9.4, 1.6, 2.6], look: [12, 1.5, 0.7], fov: 68, set: 3, blend: 1 }, // just outside
   { q: 0.94, cam: [11.0, 1.62, 1.8], look: [15.5, 1.4, -0.4], fov: 64, set: 3 }, // the sign comes round

@@ -54,15 +54,11 @@ export interface StageSet {
   baked?: boolean; // the set was lit in Blender: public/assets/stage/baked/set<i>.glb and its lightmap (scripts/stage-bake.mjs)
 }
 
-const grid = <T>(rows: number, cols: number, f: (r: number, c: number) => T): T[] => {
-  const out: T[] = [];
-  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) out.push(f(r, c));
-  return out;
-};
 
 // the lab: two rows of three desks, the first website on the front left one; desk pitch 1.5 across, 1.6 back
-const DX = (c: number) => 4.2 + c * 1.5;
-const DZ = (r: number) => 0.5 - r * 1.6;
+/** Lab stations along x: five on the long bench (far wall), three on the short one (near wall). */
+const STATIONS_A = [3.7, 4.65, 5.6, 6.55, 7.5];
+const STATIONS_B = [3.7, 4.65, 5.6];
 
 export const SETS: StageSet[] = [
   {
@@ -146,7 +142,7 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    id: 'lab', env: 'studio', tint: { sky: '#E9F1FF', ground: '#A6ADB3', power: 0.35 }, exposure: 0.85, envPower: 0.6, baked: true,
+    id: 'lab', env: 'studio', tint: { sky: '#F1F0EA', ground: '#A6ADB3', power: 0.3 }, exposure: 0.72, envPower: 0.5, baked: true,
     sun: { dir: [-0.2, 0.9, 0.3], color: '#EEF3FF', power: 1.6, shadow: 0.6 },
     fog: { color: '#E6ECF1', near: 14, far: 70 },
     shell: {
@@ -159,19 +155,30 @@ export const SETS: StageSet[] = [
       ],
     },
     props: [
-      ...grid(2, 3, (r, c): Placement => ({ model: 'SchoolDesk_01', at: [DX(c), 0, DZ(r)], rot: [0, 180, 0] })),
-      ...grid(2, 3, (r, c): Placement => ({ model: 'SchoolChair_01', at: [DX(c), 0, DZ(r) + 0.65], rot: [0, 180, 0] })),
-      ...grid(2, 3, (r, c): Placement => ({
-        build: r === 0 && c === 0 ? 'labMonitorNotepad' : 'labMonitor', at: [DX(c), 0.76, DZ(r) - 0.12], live: 'screen',
-        ...(r === 0 && c === 0 ? { cap: 'index.html in Notepad. The first website.' } : {}),
+      // a computer lab of 2013: one long bench along the far wall and a short one along the near, identical stations
+      // (LCD, keyboard, mouse, a tower under the bench), grey partitions between them, office chairs, tiles overhead
+      { build: 'labBench', at: [5.6, 0, -1.15] },
+      { build: 'labBenchShort', at: [4.65, 0, 3.15], rot: [0, 180, 0] },
+      ...STATIONS_A.map((x, i): Placement => ({
+        build: i === 1 ? 'labMonitorNotepad' : 'labMonitor', at: [x, 0.74, -1.3], live: 'screen',
+        ...(i === 1 ? { cap: 'index.html in Notepad. The first website.' } : {}),
       })),
-      ...grid(2, 3, (r, c): Placement => ({ build: 'pcTower', at: [DX(c) + 0.62, 0, DZ(r) - 0.05] })),
-      ...grid(2, 3, (r, c): Placement => ({ build: 'keyboard', at: [DX(c), 0.76, DZ(r) + 0.25] })),
-      { build: 'whiteboard', at: [5.6, 1.5, -1.47], cap: 'Wireframes sketched in class.' },
-      { model: 'wall_clock', at: [7.8, 2.3, -1.47] },
-      { build: 'banner', at: [4.0, 2.35, -1.47], cap: 'Converge Clan.' },
-      { build: 'teamPhoto', at: [4.0, 1.55, -1.47] },
-      { build: 'tube', at: [5.6, 2.95, 1.2], live: 'tube' },
+      ...STATIONS_A.map((x): Placement => ({ build: 'keyboard', at: [x, 0.74, -0.98] })),
+      ...STATIONS_A.map((x): Placement => ({ build: 'mouse', at: [x + 0.3, 0.74, -0.98] })),
+      ...STATIONS_A.map((x): Placement => ({ build: 'pcTower', at: [x + 0.3, 0, -1.2] })),
+      ...STATIONS_A.map((x): Placement => ({ model: 'office_chair_black', at: [x, 0, -0.42], rot: [0, 180, 0] })),
+      ...[4.175, 5.125, 6.075, 7.025].map((x): Placement => ({ build: 'partition', at: [x, 0.74, -1.15] })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'labMonitor', at: [x, 0.74, 3.3], rot: [0, 180, 0], live: 'screen' })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'keyboard', at: [x, 0.74, 2.98], rot: [0, 180, 0] })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'mouse', at: [x - 0.3, 0.74, 2.98], rot: [0, 180, 0] })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'pcTower', at: [x - 0.3, 0, 3.2] })),
+      ...STATIONS_B.map((x): Placement => ({ model: 'office_chair_black', at: [x, 0, 2.42] })),
+      ...[4.175, 5.125].map((x): Placement => ({ build: 'partition', at: [x, 0.74, 3.15] })),
+      { build: 'whiteboard', at: [3.03, 1.5, -0.3], rot: [0, 90, 0], cap: 'Wireframes sketched in class.' },
+      { build: 'banner', at: [3.03, 2.55, 0.3], rot: [0, 90, 0], cap: 'Converge Clan.' },
+      { build: 'teamPhoto', at: [8.17, 1.55, 0.6], rot: [0, -90, 0] },
+      { model: 'wall_clock', at: [8.17, 2.4, -0.7], rot: [0, -90, 0] },
+      ...[[4.3, 0.1], [6.9, 0.1], [4.3, 2.2], [6.9, 2.2]].map(([x, z]): Placement => ({ build: 'tube', at: [x, 2.95, z], live: 'tube' })),
       { build: 'doorFrame', at: [8.2, 0, 2.6], rot: [0, 90, 0] },
     ],
   },

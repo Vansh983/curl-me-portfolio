@@ -291,6 +291,30 @@ export const BUILT: Record<string, () => BuiltPart> = {
   tie: () => [piece(new Sink().box(0, -0.02, 0.008, 0.05, 0.04, 0.02).box(0, -0.2, 0.004, 0.065, 0.32, 0.01).out(), M('tie'))],
   /** A pouf on the rug: 0.36 high, 0.3 across, soft blue; a nine year old sits on it. */
   pouf: () => [piece(new Sink().lathe([[0.27, 0], [0.31, 0.06], [0.32, 0.22], [0.3, 0.32], [0.22, 0.36], [0.001, 0.37]], 0, 0, 0, 1, 1, 0, 36).out(), M('pouf'), { smooth: true })],
+  /** A lab bench: a laminate top on a steel frame, 4.8 m along x, 0.7 deep, top at 0.74; a modesty panel at the back (-z). */
+  labBench: () => {
+    const top = new Sink().rbox(0, 0.725, 0, 4.8, 0.03, 0.7, 0.006, 2);
+    const frame = new Sink();
+    for (const x of [-2.3, -1.2, 0, 1.2, 2.3]) frame.rbox(x, 0.355, -0.08, 0.04, 0.71, 0.5, 0.006, 1);
+    frame.box(0, 0.4, -0.33, 4.8, 0.62, 0.02);
+    return [piece(top.out(), M('desk'), { smooth: true }), piece(frame.out(), M('deskLeg'), { smooth: true })];
+  },
+  /** The same bench, 2.9 m: three stations. */
+  labBenchShort: () => {
+    const top = new Sink().rbox(0, 0.725, 0, 2.9, 0.03, 0.7, 0.006, 2);
+    const frame = new Sink();
+    for (const x of [-1.35, 0, 1.35]) frame.rbox(x, 0.355, -0.08, 0.04, 0.71, 0.5, 0.006, 1);
+    frame.box(0, 0.4, -0.33, 2.9, 0.62, 0.02);
+    return [piece(top.out(), M('desk'), { smooth: true }), piece(frame.out(), M('deskLeg'), { smooth: true })];
+  },
+  /** A grey fabric partition between two stations, standing on the bench: 0.65 deep along z, 0.55 tall, an aluminium frame. */
+  partition: () => {
+    const panel = new Sink().rbox(0, 0.275, 0, 0.03, 0.55, 0.65, 0.008, 1);
+    const frame = new Sink().box(0, 0.555, 0, 0.036, 0.012, 0.66).box(0, 0.275, 0.33, 0.036, 0.55, 0.012).box(0, 0.275, -0.33, 0.036, 0.55, 0.012);
+    return [piece(panel.out(), M('partition'), { smooth: true }), piece(frame.out(), M('alu'))];
+  },
+  /** A mouse, 0.11 long along z. */
+  mouse: () => [piece(new Sink().rbox(0, 0.018, 0, 0.06, 0.036, 0.11, 0.016, 2).out(), M('keys'), { smooth: true })],
   /** A 19 inch LCD of 2013: a slim black bezel on a round steel foot, the screen towards +z. */
   labMonitor: lcd('screen:2'),
   labMonitorNotepad: lcd('screen:1'),
