@@ -109,7 +109,7 @@ for (const a of ASSETS) {
   credits.push(`- \`${a.id}\` (${a.kind}) by ${author}, CC0, https://polyhaven.com/a/${a.id}. ${a.use}.`);
   console.log(a.id, '|', author, '|', a.use);
 }
-await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels and textures from [Poly Haven](https://polyhaven.com) (CC0) and free models from [BlenderKit](https://www.blenderkit.com) (royalty free). Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n`);
+await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels and textures from [Poly Haven](https://polyhaven.com) (CC0) and free models from [BlenderKit](https://www.blenderkit.com) (royalty free). Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n\nThe Toronto skyline out of the condo window is built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs).\n`);
 const wrong = ASSETS.filter((a) => a.author !== authors[a.id]).map((a) => `${a.id}: manifest says ${a.author}, site says ${authors[a.id]}`);
 if (wrong.length) console.log('authors to fix in the manifest:\n  ' + wrong.join('\n  '));
 console.log(`total ${(total / 1e6).toFixed(1)} MB`);

@@ -316,28 +316,39 @@ export const CITY_PAINT: Record<string, Paint> = {
   },
 };
 
-/** One tile of a tower at night: 12 bays by 10 floors (48 m by 35 m), most windows dark, some warm, a few cool. */
+/**
+ * One tile of a tower at night: 24 bays by 20 floors (96 m by 70 m; city.ts WINDOW_TILE says which
+ * quarter a building takes). Floors come in kinds, as an evening does: a few lit end to end (an
+ * office working late), a quarter dark, the rest a scatter of warm homes and a few cool screens.
+ */
 export const WINDOW_PAINT: Record<string, Paint> = {
   windows: {
-    w: 512, h: 448,
+    w: 1024, h: 896,
     frames: [(x, w, h) => {
-      x.fillStyle = '#0B0F1C'; x.fillRect(0, 0, w, h);
-      const cols = 12, rows = 10, bw = w / cols, bh = h / rows;
+      x.fillStyle = '#0F1424'; x.fillRect(0, 0, w, h);
+      const cols = 24, rows = 20, bw = w / cols, bh = h / rows;
       let seed = 7;
       const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-        const u = rnd();
-        if (u < 0.5) continue; // dark
-        const warm = u < 0.9;
-        const l = 62 + rnd() * 25;
-        x.fillStyle = warm ? `hsl(38 ${60 + rnd() * 20}% ${l}%)` : `hsl(210 40% ${l + 5}%)`;
-        x.globalAlpha = 0.6 + rnd() * 0.4;
-        x.fillRect(c * bw + bw * 0.22, r * bh + bh * 0.2, bw * 0.56, bh * 0.5);
+      for (let r = 0; r < rows; r++) {
+        const kind = rnd();
+        const floorLit = kind < 0.1 ? 0.92 : kind < 0.36 ? 0.08 : 0.42; // an office floor, a dark floor, a floor of homes
+        const office = kind < 0.1;
+        for (let c = 0; c < cols; c++) {
+          const u = rnd();
+          if (u > floorLit) continue;
+          const warm = office ? rnd() < 0.25 : rnd() < 0.82;
+          const l = 60 + rnd() * 28;
+          x.fillStyle = warm ? `hsl(${34 + rnd() * 10} ${62 + rnd() * 22}% ${l}%)` : `hsl(${205 + rnd() * 20} 45% ${l + 4}%)`;
+          x.globalAlpha = office ? 0.75 + rnd() * 0.25 : 0.5 + rnd() * 0.5;
+          x.fillRect(c * bw + bw * 0.2, r * bh + bh * 0.2, bw * 0.6, bh * 0.52);
+        }
       }
       x.globalAlpha = 1;
-      // the floor slabs, a faint line between rows
-      x.fillStyle = 'rgba(255,255,255,0.04)';
+      // the floor slabs, a faint line between rows; the mullions, fainter
+      x.fillStyle = 'rgba(255,255,255,0.045)';
       for (let r = 0; r <= rows; r++) x.fillRect(0, r * bh - 1, w, 2);
+      x.fillStyle = 'rgba(255,255,255,0.02)';
+      for (let c = 0; c <= cols; c++) x.fillRect(c * bw - 1, 0, 2, h);
     }],
   },
   nightSky: {

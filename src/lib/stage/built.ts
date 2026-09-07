@@ -3,17 +3,18 @@
 // the fog softens anyway. Every part is a list of pieces, one per material, built at the origin
 // (a Placement moves it). Materials come from materials.ts; uv is in metres, painted faces 0..1.
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
+import { cityBlocks, cnTower } from './city.ts';
 import { buildShell } from './shell.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
   | { paint: string }; // a canvas painted at runtime, 'name' or 'name:frame' (window, whiteboard, banner, poster:0, poster:1, sign)
 
-export interface Built { pos: Float32Array; nor: Float32Array; uv: Float32Array; surface: BuiltSurface }
+export interface Built { pos: Float32Array; nor: Float32Array; uv: Float32Array; surface: BuiltSurface; col?: Float32Array }
 export type BuiltPart = Built[];
 
 /** Sink geometry to a piece. `smooth` welds and averages normals under 62 degrees; `metres` sets uv from world metres (xz for floors, xy for hanging things). */
-function piece(g: Geo, surface: BuiltSurface, o: { smooth?: boolean; metres?: 'xz' | 'xy' } = {}): Built {
+function piece(g: Geo, surface: BuiltSurface, o: { smooth?: boolean; metres?: 'xz' | 'xy'; tint?: boolean } = {}): Built {
   const nor = o.smooth ? smoothNormals(g.pos, 62) : flatNormals(g.pos);
   let uv = g.uv;
   if (o.metres) {
@@ -23,7 +24,7 @@ function piece(g: Geo, surface: BuiltSurface, o: { smooth?: boolean; metres?: 'x
       uv[i * 2 + 1] = o.metres === 'xz' ? g.pos[i * 3 + 2] : g.pos[i * 3 + 1];
     }
   }
-  return { pos: g.pos, nor, uv, surface };
+  return { pos: g.pos, nor, uv, surface, ...(o.tint ? { col: g.col } : {}) };
 }
 
 const M = (mat: string): BuiltSurface => ({ mat });
@@ -176,78 +177,27 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** A grey rug under the desk, 2.4 × 1.8. */
   rugGrey: () => [piece(new Sink().rbox(0, 0.006, 0, 2.4, 0.012, 1.8, 0.006, 1).out(), M('rugGrey'), { metres: 'xz', smooth: true })],
   /**
-   * Toronto at night, in metres, built with the street at the origin and the condo looking toward -z
-   * from a hundred metres up. He lives among the towers: the nearest are across the street, most
-   * top out below him, a few rise past. Lit windows (uv in bays and floors, so the tile keeps its
-   * size), the CN Tower half a kilometre off with its pod, SkyPod and antenna, the Rogers Centre
-   * dome at its foot, a dark ground. Deterministic.
+   * Toronto at night, in metres, the condo at the origin and the window looking toward -z (south).
+   * The real downtown from OpenStreetMap (city.ts): every building with a height, pulled up from
+   * its footprint with lit windows (uv in bays and floors, so the tile keeps its size), the
+   * financial district a kilometre down Yonge, the CN Tower 1.7 km off with its legs, pod, SkyPod
+   * and antenna, the Rogers Centre dome at its foot, the lake beyond as dark ground. The street
+   * lights are points the runtime adds (stage-run.ts). Deterministic.
    */
   city: () => {
-    let seed = 91;
-    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-    const near = new Sink(), far = new Sink(), tops = new Sink();
-    const tower = (cx: number, cz: number, w: number, d: number, h: number, into: Sink) => {
-      const u0 = rnd() * 4, v0 = rnd() * 4; // a different patch of the window tile per tower
-      const fx = (len: number): [number, number, number, number] => [u0, v0, u0 + len / 48, v0 + h / 35];
-      into.box(cx, h / 2, cz, w, h, d, { pz: fx(w), nz: fx(w), px: fx(d), nx: fx(d) });
-      tops.box(cx, h + 0.4, cz, w, 0.8, d);
-    };
-    // the CN Tower stands 2 km off, 26 degrees right of the window; no tower may stand in the 10 degree
-    // corridor between the window and it, so the whole spire shows from the rooftops to the beacon
-    const TX = 877, TZ = -1797;
-    const cnAng = Math.atan2(TX, -TZ);
-    const inCorridor = (x: number, z: number) => Math.abs(Math.atan2(x, -z) - cnAng) < 0.09;
-    // nothing may look taller than the CN Tower from the window: from 100 m up its tip sits 12.8 degrees
-    // above the eye, so every other roof stays under 9 degrees (about 70 percent of it)
-    const cap = (x: number, z: number) => 100 + 0.16 * Math.hypot(x, z);
-    // across the street and the next blocks: 60 to 320 m out. He is 100 m up: most tops sit below the
-    // eye, a good few reach well past it, as downtown Toronto does
-    const taken: Array<[number, number, number]> = [];
-    const fits = (x: number, z: number, r: number) => taken.every(([tx, tz, tr]) => Math.hypot(tx - x, tz - z) > r + tr + 12);
-    let tries = 0;
-    while (taken.length < 26 && tries++ < 400) {
-      const cx = (rnd() - 0.5) * 620, cz = -60 - rnd() * 260;
-      const w = 24 + rnd() * 22, d = 24 + rnd() * 22;
-      if (Math.abs(cx) < 90 && cz > -150) continue; // the street and the block below the window stay open
-      if (inCorridor(cx, cz)) continue;
-      if (!fits(cx, cz, Math.max(w, d) / 2)) continue;
-      taken.push([cx, cz, Math.max(w, d) / 2]);
-      const h = Math.min(40 + rnd() * rnd() * 90 + (rnd() < 0.2 ? 70 : 0), cap(cx, cz)); // the near blocks
-      tower(cx, cz, w, d, h, near);
-    }
-    // the rest of downtown, 320 to 900 m out, dimmer
-    for (let i = 0; i < 44; i++) {
-      const cx = (rnd() - 0.5) * 1400, cz = -320 - rnd() * 580;
-      const w = 24 + rnd() * 30, d = 24 + rnd() * 30, h = Math.min(40 + rnd() * rnd() * 180, cap(cx, cz));
-      if (inCorridor(cx, cz)) continue;
-      tower(cx, cz, w, d, h, far);
-    }
-    // the financial district: ten towers of 250 to 330 m either side of the corridor, 1.1 to 1.6 km out,
-    // so they stand at 70 to 80 percent of the CN Tower from here and never over it
-    for (let i = 0; i < 10; i++) {
-      const side = i % 2 ? 1 : -1, ang = cnAng + side * (0.12 + rnd() * 0.3), dist = 1100 + rnd() * 500;
-      const cx = dist * Math.sin(ang), cz = -dist * Math.cos(ang);
-      const w = 36 + rnd() * 24, d = 36 + rnd() * 24, h = Math.min(250 + rnd() * 80, cap(cx, cz));
-      if (inCorridor(cx, cz)) continue;
-      tower(cx, cz, w, d, h, far);
-    }
-    // the CN Tower, 2 km off and 26 degrees right of the window (right of the hero text): a slim spire whose
-    // antenna tip sits 12.7 degrees above the eye, under the 2.8 m window head; shaft to 330 m, the main pod (7
-    // degrees above the eye from here), on to the SkyPod at 447, the antenna to 553
-    const cn = new Sink().lathe([[15, 0], [11, 120], [8.5, 300], [7.5, 330], [7.5, 350], [6, 440], [4, 447], [3.5, 455], [2.2, 456], [1.6, 553]], TX, 0, TZ, 1, 1, 0, 14);
-    const pod = new Sink().lathe([[8, 328], [30, 331], [33, 338], [32, 346], [24, 352], [8, 354]], TX, 0, TZ, 1, 1, 0, 18)
-      .lathe([[4, 446], [11, 447], [12, 452], [9, 456], [4, 457]], TX, 0, TZ, 1, 1, 0, 14);
-    const light = new Sink().sphere(TX, 553, TZ, 4, 4, 4, 8, 6).sphere(TX, 456, TZ, 3, 3, 3, 8, 6);
-    const dome = new Sink().sphere(TX - 80, -6, TZ + 40, 105, 46, 105, 20, 8, undefined, 0.5);
-    const ground = new Sink().quad([-1200, -0.2, 200], [1200, -0.2, 200], [1200, -0.2, -1400], [-1200, -0.2, -1400]);
+    const near = new Sink(), far = new Sink(), tops = new Sink(), domes = new Sink();
+    cityBlocks(near, far, tops, domes);
+    const cn = new Sink(), pod = new Sink(), light = new Sink();
+    cnTower(cn, pod, light);
+    const ground = new Sink().quad([-2500, -0.2, 2500], [2500, -0.2, 2500], [2500, -0.2, -2500], [-2500, -0.2, -2500]);
     return [
-      piece(near.out(), M('tower')),
-      piece(far.out(), M('towerFar')),
+      piece(near.out(), M('tower'), { tint: true }),
+      piece(far.out(), M('towerFar'), { tint: true }),
       piece(tops.out(), M('towerTop')),
-      piece(cn.out(), M('cnShaft'), { smooth: true }),
-      piece(pod.out(), M('cnPod'), { smooth: true }),
+      piece(cn.out(), M('cnShaft'), { tint: true }),
+      piece(pod.out(), M('cnPod'), { tint: true }),
       piece(light.out(), M('cnLight'), { smooth: true }),
-      piece(dome.out(), M('dome'), { smooth: true }),
+      piece(domes.out(), M('dome'), { smooth: true }),
       piece(ground.out(), M('lake')),
     ];
   },

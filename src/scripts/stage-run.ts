@@ -7,7 +7,10 @@
 // the shells (shell.ts), the props (built.ts) and the materials (materials.ts) are pure and tested.
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D,
-  BufferGeometry, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
+  BufferGeometry,
+  Points,
+  PointsMaterial,
+  AdditiveBlending, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
   RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
   LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
   AnimationMixer, AnimationClip, Box3, ShaderChunk,
@@ -26,6 +29,7 @@ import { SETS, type Placement, type StageSet, type Live } from '../lib/stage/set
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
 import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
+import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
@@ -222,7 +226,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const s: Mat = matSpec(name);
     const physical = s.sheen !== undefined || s.clearcoat !== undefined;
     m = s.unlit
-      ? (new MeshBasicMaterial({ color: s.color, fog: s.fog !== false }) as unknown as MeshStandardMaterial)
+      ? (new MeshBasicMaterial({ color: s.color, fog: s.fog !== false, vertexColors: s.tint === true }) as unknown as MeshStandardMaterial)
       : physical
         ? new MeshPhysicalMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: 1, fog: s.fog !== false })
         : new MeshStandardMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: 1, fog: s.fog !== false });
@@ -261,6 +265,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // a prop built with no map in mind takes a box projection in metres once its material carries one
     const mapped = material instanceof MeshStandardMaterial && (material.map || material.normalMap || material.roughnessMap);
     g.setAttribute('uv', new BufferAttribute(mapped && flatUv(s.uv) ? boxUv(s.pos, s.nor) : s.uv, 2));
+    const col = (s as Built).col;
+    if (material?.vertexColors && col) g.setAttribute('color', new BufferAttribute(col, 3));
     return g;
   };
   const builtMaterial = (s: BuiltSurface, live?: Live): Material => {
@@ -321,6 +327,26 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const groups: Group[] = SETS.map(() => new Group());
   const hot: Placed[] = [];
 
+  /** The street lights of downtown: a soft warm point every 28 m along every road, additive, no fog (the city is outside it). */
+  const streetLightPoints = (): Points => {
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new Float32BufferAttribute(streetLights(), 3));
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const x = c.getContext('2d')!;
+    const grad = x.createRadialGradient(16, 16, 0, 16, 16, 16);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.3, 'rgba(255,255,255,0.7)');
+    grad.addColorStop(0.6, 'rgba(255,255,255,0.18)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = grad;
+    x.fillRect(0, 0, 32, 32);
+    const map = new CanvasTexture(c);
+    const mat = new PointsMaterial({ color: '#FFC27A', size: 9, sizeAttenuation: true, map, transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false, opacity: 1, toneMapped: false });
+    const pts = new Points(geo, mat);
+    pts.name = 'b|city|mat:streetLight|city';
+    return pts;
+  };
   const placeBuilt = (name: string, p: Placement, baked = false): Object3D => {
     const part: Built[] = BUILT[name]();
     const g = new Group();
@@ -370,6 +396,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       }
       g.add(mesh);
     }
+    if (name === 'city') g.add(streetLightPoints()); // the streets below, a light every 28 m
     return g;
   };
 

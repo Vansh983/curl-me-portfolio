@@ -42,6 +42,35 @@ function frame(d: V3): { side: V3; up: V3 } {
   return { side, up: cross(d, side) };
 }
 
+/**
+ * Ear clipping of a simple polygon given clockwise in (x, z) (negative signed area, the order
+ * `extrude` uses): triangles as index triples, wound so that they face +y. A polygon that is not
+ * simple degrades to a fan of whatever is left rather than failing.
+ */
+export function earcut(pts: Array<[number, number]>): Array<[number, number, number]> {
+  const idx = pts.map((_, i) => i);
+  const out: Array<[number, number, number]> = [];
+  const cross = (a: [number, number], b: [number, number], c: [number, number]) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const inTri = (p: [number, number], a: [number, number], b: [number, number], c: [number, number]) => cross(a, b, p) <= 0 && cross(b, c, p) <= 0 && cross(c, a, p) <= 0;
+  let guard = 0;
+  while (idx.length > 3 && guard++ < 4000) {
+    let clipped = false;
+    for (let n = 0; n < idx.length; n++) {
+      const i0 = idx[(n + idx.length - 1) % idx.length], i1 = idx[n], i2 = idx[(n + 1) % idx.length];
+      const a = pts[i0], b = pts[i1], c = pts[i2];
+      if (cross(a, b, c) >= 0) continue; // a reflex corner in a clockwise ring
+      if (idx.some((k) => k !== i0 && k !== i1 && k !== i2 && inTri(pts[k], a, b, c))) continue;
+      out.push([i0, i1, i2]);
+      idx.splice(n, 1);
+      clipped = true;
+      break;
+    }
+    if (!clipped) break;
+  }
+  for (let n = 1; n + 1 < idx.length; n++) out.push([idx[0], idx[n], idx[n + 1]]);
+  return out;
+}
+
 export class Sink {
   pos: number[] = [];
   uv: number[] = [];
@@ -220,6 +249,26 @@ export class Sink {
     for (let i = 0; i < n; i++)
       for (let j = 0; j < segs; j++)
         this.quad(p(i, j), p(i + 1, j), p(i + 1, j + 1), p(i, j + 1), [uv(i, j), uv(i + 1, j), uv(i + 1, j + 1), uv(i, j + 1)]);
+    return this;
+  }
+  /**
+   * A footprint pulled up from y0 to y1: one quad per edge facing out, and a flat roof if `cap` is
+   * given (into `cap`, which may be this). The ring may run either way. uv on the sides: u along the
+   * perimeter and v up, in units of `per` metres, from (u0, v0), so a window tile keeps its size.
+   */
+  extrude(ring: Array<[number, number]>, y0: number, y1: number, uvs?: { u0: number; v0: number; perU: number; perV: number }, cap?: Sink): this {
+    let area = 0;
+    for (let i = 0; i < ring.length; i++) { const a = ring[i], b = ring[(i + 1) % ring.length]; area += a[0] * b[1] - b[0] * a[1]; }
+    const pts = area > 0 ? [...ring].reverse() : ring; // sides face out and the roof faces up in this order
+    let along = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length];
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const uv = uvs ? rect([uvs.u0 + along / uvs.perU, uvs.v0 + y0 / uvs.perV, uvs.u0 + (along + l) / uvs.perU, uvs.v0 + y1 / uvs.perV]) : undefined;
+      this.quad([a[0], y0, a[1]], [b[0], y0, b[1]], [b[0], y1, b[1]], [a[0], y1, a[1]], uv);
+      along += l;
+    }
+    if (cap) for (const [i, j, k] of earcut(pts)) cap.tri([pts[i][0], y1, pts[i][1]], [pts[j][0], y1, pts[j][1]], [pts[k][0], y1, pts[k][1]]);
     return this;
   }
   /** Rotate every vertex from index `start` (in vertices) around the vertical line through (cx, cz). */
