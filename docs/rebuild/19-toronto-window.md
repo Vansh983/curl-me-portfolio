@@ -9,6 +9,16 @@ The condo (set 0) looks out over the real downtown, built from OpenStreetMap.
 - Chosen by a line-of-sight check over the OSM data (the first spot, CityPlace, had Concord Canada House, 232 m, dead on the tower). He asked for the tower very close, unmistakable, and not purple: it is floodlit concrete white now.
 - The set is hypothetical, not his real flat.
 
+## The ring (since 2026-09-07, evening)
+
+He asked for a plan, not a row: "I just entered a room, the next room is to the right of it", and for the journey to come back to Toronto, "a full circle", with rooms added in the middle later.
+
+- Top view, x east, z north. Apartment x -13..-4.2, z -3.4..2.2. Front door in its north wall at x -5.45; a passage north to the 2010 room (x -9.15..-4.95, z 4.3..7.9, entered from the south at x -5.45, left by its east wall at z 6.6); a passage east to the lab (x -3.15..2.05, z 4.7..9.7, entered from the west at z 6.6, left by its south wall at x 1.4); a passage south to the Embarcadero (heading south from (1.4, 2.6), the bay to the east); a right turn west to the brick door at (-4.2, 1.6) and the passage back into the living room. The dolly ends at q 1 inside the apartment looking at the desk and the glass; the later chapters hold there.
+- Sets 1 and 2 were reflected, not rotated (`sets.ts` comments say how; rotations are `90 - y`, `180 - y`, `270 - y`); the plaza reflected so its walk heads south. Ground and road of the plaza are only where they cannot be seen from the apartment's glass; the plaza is `outdoor`, shown only from the lab and itself (`enter()` in stage-run.ts: ring neighbours, outdoor sets only from the set before).
+- `facade` (built.ts): the outside of the apartment (brick, with the two doorways) and the lab block (dark render), a prop of the plaza.
+- Review flags: `?live` builds every set at runtime (no baked files); `?set=i` with `?cam=` lights the pinned camera as set i.
+- Adding a room later: split a passage, give the new room its doors, insert its dolly keys, re-bake it and its neighbours.
+
 ## The apartment (set 0, since 2026-09-07)
 
 - One bedroom, 8.8 by 5.6 m: bedroom (x -13..-9.4, z -3.4..0) and bathroom (z 0..2.2) west of a partition at x -9.4 (bedroom door at z -0.6, bathroom door at z 1.4); open living room, kitchen and hall east of it; floor to ceiling glass along the whole south side.

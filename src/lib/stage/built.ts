@@ -173,7 +173,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const alongZ = (x: number, z0: number, z1: number) => s.rbox(x, h / 2, (z0 + z1) / 2, t, h, z1 - z0, 0.004, 1);
     const alongX = (z: number, x0: number, x1: number) => s.rbox((x0 + x1) / 2, h / 2, z, x1 - x0, h, t, 0.004, 1);
     alongZ(-13 + t / 2, -3.4, 2.2); // x- wall: bedroom and bathroom
-    alongX(2.2 - t / 2, -13, -4.2); // z+ wall
+    alongX(2.2 - t / 2, -13, -5.9); // z+ wall up to the front door
+    alongX(2.2 - t / 2, -5.0, -4.2); // and past it
     alongZ(-4.2 - 0.03 - t / 2, -3.4, 1.15); // x+ wall up to the front door, in front of the brick
     for (const [z0, z1] of [[-3.4, -1.025], [-0.175, 0], [0, 1.025], [1.775, 2.2]]) alongZ(-9.46 - t / 2, z0, z1); // partition, west face
     for (const [z0, z1] of [[-3.4, -1.025], [-0.175, 1.025], [1.775, 2.2]]) alongZ(-9.34 + t / 2, z0, z1); // partition, living face
@@ -422,7 +423,29 @@ export const BUILT: Record<string, () => BuiltPart> = {
     return [piece(tray.out(), M('tray')), piece(tube.out(), M('tubeGlass'), { smooth: true })];
   },
   /** The plaza: 70 × 80 m of pavers, x from the origin forward, z centred. */
-  plazaFloor: () => [piece(new Sink().quad([0, 0, 40], [70, 0, 40], [70, 0, -40], [0, 0, -40]).out(), M('pavers'), { metres: 'xz' })],
+  /** The Embarcadero pavement for a walk heading -z from the origin: the sidewalk strip to the kerb at x 6.2, and the wider pavement west of it from 6.5 m on (the apartment's glass is 4 m north of that). */
+  plazaFloor: () => [piece(new Sink().quad([-2.4, 0, 0], [6.2, 0, 0], [6.2, 0, -40], [-2.4, 0, -40]).quad([-12, 0, -6.5], [-2.4, 0, -6.5], [-2.4, 0, -40], [-12, 0, -40]).out(), M('pavers'), { metres: 'xz' })],
+  /**
+   * The outside of the rooms, as the plaza sees them: the apartment's east side in brick with the door back in
+   * and the passage to the lab, the lab's block in dark render with the passage out. Faces outward; from inside
+   * the rooms they sit behind the walls. World coordinates, placed at the origin.
+   */
+  facade: () => {
+    const brick = new Sink(), dark = new Sink(), t = 0.06, H = 14;
+    // the apartment's east face at x -4.14, z -3.5..8.0, round the brick door (z 1.15..2.05) and the passage east (z 6.0..7.2)
+    for (const [z0, z1, y0] of [[-3.5, 1.15, 0], [2.05, 6.0, 0], [7.2, 8.0, 0], [1.15, 2.05, 2.05], [6.0, 7.2, 2.4]] as Array<[number, number, number]>)
+      brick.box(-4.14 + t / 2, (y0 + H) / 2, (z0 + z1) / 2, t, H - y0, z1 - z0);
+    dark.box(-8.72, H / 2, 8.0 + t / 2, 9.16, H, t); // the apartment block's north face, x -13.3..-4.14
+    dark.box(-13.3 - t / 2, H / 2, 2.25, t, H, 11.5); // its west face, z -3.5..8.0
+    // the lab's block: x -4.14..2.25, z 4.6..9.9; its south face round the passage south (x 0.8..2.0)
+    for (const [x0, x1, y0] of [[-4.14, 0.8, 0], [2.0, 2.25, 0], [0.8, 2.0, 2.4]] as Array<[number, number, number]>)
+      dark.box((x0 + x1) / 2, (y0 + H) / 2, 4.6 - t / 2, x1 - x0, H - y0, t);
+    dark.box(2.25 + t / 2, H / 2, 7.25, t, H, 5.3); // east
+    dark.box(-0.945, H / 2, 9.9 + t / 2, 6.39, H, t); // north
+    dark.box(-4.14 - t / 2, H / 2, 8.95, t, H, 1.9); // the west sliver north of the apartment block
+    dark.box(-5.5, H + t / 2, 3.2, 15.7, t, 13.4); // one roof over both
+    return [piece(brick.out(), M('condoBrick')), piece(dark.out(), M('facadeDark'))];
+  },
   /** The green counter under the sign, 3.6 × 0.9 × 0.6. */
   counter: () => [piece(new Sink().rbox(0, 0.45, 0, 3.6, 0.9, 0.6, 0.02, 2).out(), M('counter'), { smooth: true })],
   /** The Google sign: a painted 3.6 × 1.5 face on a white slab, facing +z. */

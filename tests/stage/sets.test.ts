@@ -36,7 +36,9 @@ test('shells use designed materials and open where the dolly passes', () => {
     assert.ok(MATS[s.shell!.floor] && MATS[s.shell!.wall] && MATS[s.shell!.ceiling ?? s.shell!.wall], `${s.id} materials`);
     assert.ok(s.shell!.openings.some((o) => o.h > 1.9 && (o.sill ?? 0) === 0), `${s.id} has a door`);
   }
-  assert.ok(now.shell!.openings.some((o) => o.wall === 'x+'));
-  assert.ok(room.shell!.openings.some((o) => o.wall === 'x-') && room.shell!.openings.some((o) => o.wall === 'x+'));
-  assert.ok(lab.shell!.openings.some((o) => o.wall === 'x-') && lab.shell!.openings.some((o) => o.wall === 'x+'));
+  // the ring: out of the apartment north, out of the 2010 room east, out of the lab south, back into the apartment from the east
+  const door = (s: typeof now, wall: string) => s.shell!.openings.some((o) => o.wall === wall && o.h > 1.9 && (o.sill ?? 0) === 0);
+  assert.ok(door(now, 'z+') && door(now, 'x+'));
+  assert.ok(door(room, 'z-') && door(room, 'x+'));
+  assert.ok(door(lab, 'x-') && door(lab, 'z-'));
 });

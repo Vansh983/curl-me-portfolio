@@ -9,7 +9,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const CONDO = { lat: 43.64645, lon: -79.39157 }; // Front and Spadina: the tower 560 m off to the south-east, the dome at its foot, the lake behind
-const FACING = 125; // the bearing the window looks along, degrees from north: the CN Tower 15 degrees right of it
+const FACING = 135; // the bearing the window looks along, degrees from north: the CN Tower 5 degrees right of it
 const CN = { lat: 43.6426, lon: -79.3871 };
 const BOX = '43.628,-79.425,43.692,-79.338';
 const CACHE = '.cache/osm/toronto.json';

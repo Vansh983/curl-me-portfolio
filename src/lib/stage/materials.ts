@@ -35,6 +35,7 @@ export const MATS: Record<string, Mat> = {
   chrome: { color: '#DADCE0', rough: 0.12, metal: 1, tile: 1 },
   doorPaint: { color: '#EDEAE3', rough: 0.4, clearcoat: 0.25, clearcoatRough: 0.3, tile: 1 },
   tvGlass: { color: '#06070A', rough: 0.08, clearcoat: 1, clearcoatRough: 0.05, tile: 1 },
+  facadeDark: { color: '#2B2D31', rough: 0.85, tex: 'plastered_wall_04', amp: 0.4, tile: 3.2 },
   condoCeiling: { color: '#2B2C30', rough: 0.95, tile: 1 },
   condoFloor: { color: '#C9B294', rough: 1, tex: 'herringbone_parquet', amp: 0.6, clearcoat: 0.35, clearcoatRough: 0.3, tile: 3.4 },
   deskTop: { color: '#1F1F22', rough: 0.45, clearcoat: 0.35, clearcoatRough: 0.25, tile: 1 },

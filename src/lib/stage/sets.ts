@@ -55,13 +55,14 @@ export interface StageSet {
   shell?: Shell;
   props: Placement[];
   baked?: boolean; // the set was lit in Blender: public/assets/stage/baked/set<i>.glb and its lightmap (scripts/stage-bake.mjs)
+  outdoor?: true; // no walls of its own: shown only from the set before it and itself, or its ground and road would stand outside the windows of the rooms
 }
 
 
 // the lab: two rows of three desks, the first website on the front left one; desk pitch 1.5 across, 1.6 back
 /** Lab stations along x: five on the long bench (far wall), three on the short one (near wall). */
-const STATIONS_A = [3.7, 4.65, 5.6, 6.55, 7.5];
-const STATIONS_B = [3.7, 4.65, 5.6];
+const STATIONS_A = [-2.45, -1.5, -0.55, 0.4, 1.35];
+const STATIONS_B = [-2.45, -1.5, -0.55];
 
 export const SETS: StageSet[] = [
   {
@@ -76,7 +77,8 @@ export const SETS: StageSet[] = [
       x: [-13.0, -4.2], z: [-3.4, 2.2], h: 2.8,
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
-        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the front door, into the passage
+        { wall: 'z+', at: -5.45, w: 0.9, h: 2.05 }, // the front door, from the hall north into the passage
+        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the door in the brick: the journey comes back in through it at the end
         { wall: 'z-', at: -11.2, w: 3.4, h: 2.8, sill: 0 }, // the bedroom's glass, the whole wall
         { wall: 'z-', at: -6.8, w: 4.6, h: 2.8, sill: 0 }, // the living room's glass
       ],
@@ -92,13 +94,13 @@ export const SETS: StageSet[] = [
       { build: 'nightSky', at: [-6.8, 0, -3.4], live: 'city', shadow: false },
       { build: 'condoBrick', at: [-4.2, 0, 0] },
       { build: 'condoSkirting', at: [0, 0, 0] },
-      // the bedroom: the bed's head on the bathroom wall, a nightstand by the door side, a low dresser under the door wall
-      { model: 'bed_double', at: [-11.88, 0, -1.13], rot: [0, 180, 0], cap: 'Bed. Not used enough.' },
-      { model: 'nightstand_modern', at: [-10.5, 0, -0.3] },
-      { model: 'desk_lamp_arm_01', at: [-10.55, 0.55, -0.3], rot: [0, 150, 0], scale: 0.7 },
+      // the bedroom: the bed's head on the west wall, a walkway along the bathroom wall to the door, a low dresser under the door wall
+      { model: 'bed_double', at: [-11.75, 0, -1.95], rot: [0, 90, 0], cap: 'Bed. Not used enough.' },
+      { model: 'nightstand_modern', at: [-12.65, 0, -0.5] },
+      { model: 'desk_lamp_arm_01', at: [-12.7, 0.55, -0.5], rot: [0, 120, 0], scale: 0.7 },
       { model: 'tv_stand', at: [-9.67, 0, -2.5], rot: [0, -90, 0] }, // as a dresser
-      { model: 'wall_art_circles', at: [-11.88, 1.6, -0.055], rot: [90, 0, 180] },
-      { model: 'pendant_tense', at: [-11.88, 1.78, -1.3], live: 'pendant' },
+      { model: 'wall_art_circles', at: [-12.965, 1.55, -1.95], rot: [90, 0, -90] },
+      { model: 'pendant_tense', at: [-11.4, 1.78, -1.95], live: 'pendant' },
       { build: 'doorLeaf', at: [-9.4, 0, -0.175], rot: [0, -85, 0] }, // the bedroom door, hinged on the north jamb, open flat against the bedroom wall
       // the bathroom
       { build: 'bathTiles', at: [0, 0, 0] },
@@ -140,9 +142,10 @@ export const SETS: StageSet[] = [
       // the kitchen along the north wall, the hall to the front door
       { model: 'kitchen_modern', at: [-7.74, 0, 1.48], rot: [0, 180, 0], scale: 0.85, cap: 'The kitchen. Coffee, mostly.' }, // 3.4 m of it, from the partition to the hall
       { build: 'discLight', at: [-7.7, 2.8, 1.2], live: 'pendant' },
-      { model: 'shoe_rack_modern', at: [-4.85, 0, 1.95] },
+      { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
       { model: 'wall_art_circles', at: [-4.235, 1.3, 0.75], rot: [90, 0, 90] },
-      { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' },
+      { build: 'passage', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room
+      { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the way back in from the plaza
     ],
   },
   {
@@ -150,31 +153,31 @@ export const SETS: StageSet[] = [
     sun: { dir: [-0.3, 0.5, -0.8], color: '#FFD9A8', power: 3.2, shadow: 0.9 },
     fog: { color: '#EFE3D0', near: 12, far: 60 },
     shell: {
-      x: [-2.4, 1.2], z: [-2.1, 2.1], h: 2.7,
+      x: [-9.15, -4.95], z: [4.3, 7.9], h: 2.7,
       floor: 'roomFloor', wall: 'roomWall', ceiling: 'roomCeiling',
       openings: [
-        { wall: 'x-', at: 1.6, w: 0.9, h: 2.05 },
-        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 },
-        { wall: 'z-', at: -1.7, w: 1.2, h: 1.3, sill: 0.95 },
+        { wall: 'z-', at: -5.45, w: 0.9, h: 2.05 }, // in from the passage, heading north
+        { wall: 'x+', at: 6.6, w: 0.9, h: 2.05 }, // out to the right, east, to the lab
+        { wall: 'x-', at: 5.0, w: 1.2, h: 1.3, sill: 0.95 }, // the window, Delhi outside
       ],
     },
     props: [
-      { model: 'television_02', at: [-0.5, 0, -1.8], scale: 1.5, live: 'tv', cap: 'Call of Duty: World at War, Nazi Zombies. Every evening.', href: 'https://www.youtube.com/results?search_query=nazi+zombies+world+at+war' }, // an old television on the floor
-      { build: 'xbox360', at: [0.0, 0, -1.72], rot: [0, -25, 0], cap: 'The Xbox 360. White, standing, always on.' },
-      { build: 'pouf', at: [-0.4, 0, 0.8] },
-      { model: 'xbox_controller', at: [-0.4, 0.375, 0.8], rot: [0, 15, 0], cap: 'The pad. Zombies until the power cut.' },
-      { model: 'ceiling_fan', at: [-0.6, 2.7, 0.2], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
-      { build: 'smallShelf', at: [0.8, 0, -1.95] },
-      { model: 'book_encyclopedia_set_01', at: [0.8, 0.05, -1.93], scale: 0.55 },
-      { build: 'figures', at: [0.8, 0.33, -1.93], cap: 'The shelf. Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta.' },
-      { build: 'figures', at: [0.8, 0.61, -1.93], rot: [0, 8, 0] },
-      { build: 'jobsPoster', at: [0.05, 1.85, -2.085], cap: "Here's to the crazy ones." },
-      { build: 'rug', at: [-0.6, 0.002, 0.3] },
-      { model: 'throw_pillows_01', at: [-1.6, 0, 0.8], rot: [0, 60, 0] },
-      { model: 'football', at: [-1.9, 0.11, 0.0], rot: [0, 40, 0], cap: 'Barcelona. Messi.' },
-      { build: 'curtains', at: [-1.7, 2.45, -2.02], live: 'curtain' },
-      { build: 'skyline', at: [-1.7, 1.6, -2.45] },
-      { build: 'passage', at: [1.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' },
+      { model: 'television_02', at: [-8.85, 0.0, 6.2], rot: [0, 90, 0], scale: 1.5, live: 'tv', cap: 'Call of Duty: World at War, Nazi Zombies. Every evening.', href: 'https://www.youtube.com/results?search_query=nazi+zombies+world+at+war' }, // an old television on the floor
+      { build: 'xbox360', at: [-8.77, 0.0, 6.7], rot: [0, 115, 0], cap: 'The Xbox 360. White, standing, always on.' },
+      { build: 'pouf', at: [-6.25, 0.0, 6.3], rot: [0, 90, 0] },
+      { model: 'xbox_controller', at: [-6.25, 0.375, 6.3], rot: [0, 75, 0], cap: 'The pad. Zombies until the power cut.' },
+      { model: 'ceiling_fan', at: [-6.85, 2.7, 6.1], rot: [0, 90, 0], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
+      { build: 'smallShelf', at: [-9.0, 0.0, 7.5], rot: [0, 90, 0] },
+      { model: 'book_encyclopedia_set_01', at: [-8.98, 0.05, 7.5], rot: [0, 90, 0], scale: 0.55 },
+      { build: 'figures', at: [-8.98, 0.33, 7.5], rot: [0, 90, 0], cap: 'The shelf. Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta.' },
+      { build: 'figures', at: [-8.98, 0.61, 7.5], rot: [0, 82, 0] },
+      { build: 'jobsPoster', at: [-9.135, 1.85, 6.75], rot: [0, 90, 0], cap: "Here's to the crazy ones." },
+      { build: 'rug', at: [-6.75, 0.002, 6.1], rot: [0, 90, 0] },
+      { model: 'throw_pillows_01', at: [-6.25, 0.0, 5.1], rot: [0, 30, 0] },
+      { model: 'football', at: [-7.05, 0.11, 4.8], rot: [0, 50, 0], cap: 'Barcelona. Messi.' },
+      { build: 'curtains', at: [-9.07, 2.45, 5.0], rot: [0, 90, 0], live: 'curtain' },
+      { build: 'skyline', at: [-9.5, 1.6, 5.0], rot: [0, 90, 0] },
+      { build: 'passage', at: [-4.95, 0, 6.0], scale: [0.6, 1, 1], live: 'bulb' }, // east, 1.8 m, to the lab
     ],
   },
   {
@@ -182,75 +185,78 @@ export const SETS: StageSet[] = [
     sun: { dir: [-0.2, 0.9, 0.3], color: '#EEF3FF', power: 1.6, shadow: 0.6 },
     fog: { color: '#E6ECF1', near: 14, far: 70 },
     shell: {
-      x: [3.0, 8.2], z: [-1.5, 3.5], h: 3.0,
+      x: [-3.15, 2.05], z: [4.7, 9.7], h: 3.0,
       floor: 'labFloor', wall: 'labWall', ceiling: 'labCeiling',
       openings: [
-        { wall: 'x-', at: 1.6, w: 0.9, h: 2.05 },
-        { wall: 'x+', at: 2.6, w: 0.9, h: 2.05 },
-        { wall: 'z-', at: 5.6, w: 4.0, h: 0.7, sill: 2.1 },
+        { wall: 'x-', at: 6.6, w: 0.9, h: 2.05 }, // in from the 2010 room, heading east down the aisle
+        { wall: 'z-', at: 1.4, w: 0.9, h: 2.05 }, // out to the right, south, to the plaza
+        { wall: 'z+', at: -0.55, w: 4.0, h: 0.7, sill: 2.1 }, // the high window strip over the long bench
       ],
     },
     props: [
-      // a computer lab of 2013: one long bench along the far wall and a short one along the near, identical stations
+      // a computer lab of 2013: one long bench along the north wall and a short one along the south, identical stations
       // (LCD, keyboard, mouse, a tower under the bench), grey partitions between them, office chairs, tiles overhead
-      { build: 'labBench', at: [5.6, 0, -1.15] },
-      { build: 'labBenchShort', at: [4.65, 0, 3.15], rot: [0, 180, 0] },
+      { build: 'labBench', at: [-0.55, 0, 9.35], rot: [0, 180, 0] },
+      { build: 'labBenchShort', at: [-1.5, 0, 5.05], rot: [0, 0, 0] },
       ...STATIONS_A.map((x, i): Placement => ({
-        build: i === 1 ? 'labMonitorNotepad' : 'labMonitor', at: [x, 0.74, -1.3], live: 'screen',
+        build: i === 1 ? 'labMonitorNotepad' : 'labMonitor', at: [x, 0.74, 9.5], rot: [0, 180, 0], live: 'screen',
         ...(i === 1 ? { cap: 'index.html in Notepad. The first website.' } : {}),
       })),
-      ...STATIONS_A.map((x): Placement => ({ build: 'keyboard', at: [x, 0.74, -0.98] })),
-      ...STATIONS_A.map((x): Placement => ({ build: 'mouse', at: [x + 0.3, 0.74, -0.98] })),
-      ...STATIONS_A.map((x): Placement => ({ build: 'pcTower', at: [x + 0.3, 0, -1.2] })),
-      ...STATIONS_A.map((x): Placement => ({ model: 'office_chair_black', at: [x, 0, -0.42], rot: [0, 180, 0] })),
-      ...[4.175, 5.125, 6.075, 7.025].map((x): Placement => ({ build: 'partition', at: [x, 0.74, -1.15] })),
-      ...STATIONS_B.map((x): Placement => ({ build: 'labMonitor', at: [x, 0.74, 3.3], rot: [0, 180, 0], live: 'screen' })),
-      ...STATIONS_B.map((x): Placement => ({ build: 'keyboard', at: [x, 0.74, 2.98], rot: [0, 180, 0] })),
-      ...STATIONS_B.map((x): Placement => ({ build: 'mouse', at: [x - 0.3, 0.74, 2.98], rot: [0, 180, 0] })),
-      ...STATIONS_B.map((x): Placement => ({ build: 'pcTower', at: [x - 0.3, 0, 3.2] })),
-      ...STATIONS_B.map((x): Placement => ({ model: 'office_chair_black', at: [x, 0, 2.42] })),
-      ...[4.175, 5.125].map((x): Placement => ({ build: 'partition', at: [x, 0.74, 3.15] })),
-      { build: 'whiteboard', at: [3.03, 1.5, -0.3], rot: [0, 90, 0], cap: 'Wireframes sketched in class.' },
-      { build: 'banner', at: [3.03, 2.55, 0.3], rot: [0, 90, 0], cap: 'Converge Clan.' },
-      { build: 'teamPhoto', at: [8.17, 1.55, 0.6], rot: [0, -90, 0] },
-      { model: 'wall_clock', at: [8.17, 2.4, -0.7], rot: [0, -90, 0] },
-      ...[[4.3, 0.1], [6.9, 0.1], [4.3, 2.2], [6.9, 2.2]].map(([x, z]): Placement => ({ build: 'tube', at: [x, 2.95, z], live: 'tube' })),
-      { build: 'doorFrame', at: [8.2, 0, 2.6], rot: [0, 90, 0] },
+      ...STATIONS_A.map((x): Placement => ({ build: 'keyboard', at: [x, 0.74, 9.18], rot: [0, 180, 0] })),
+      ...STATIONS_A.map((x): Placement => ({ build: 'mouse', at: [x - 0.3, 0.74, 9.18], rot: [0, 180, 0] })),
+      ...STATIONS_A.map((x): Placement => ({ build: 'pcTower', at: [x - 0.3, 0, 9.4], rot: [0, 180, 0] })),
+      ...STATIONS_A.map((x): Placement => ({ model: 'office_chair_black', at: [x, 0, 8.62] })),
+      ...[-1.975, -1.025, -0.075, 0.875].map((x): Placement => ({ build: 'partition', at: [x, 0.74, 9.35], rot: [0, 180, 0] })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'labMonitor', at: [x, 0.74, 4.9], live: 'screen' })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'keyboard', at: [x, 0.74, 5.22] })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'mouse', at: [x + 0.3, 0.74, 5.22] })),
+      ...STATIONS_B.map((x): Placement => ({ build: 'pcTower', at: [x + 0.3, 0, 5.0] })),
+      ...STATIONS_B.map((x): Placement => ({ model: 'office_chair_black', at: [x, 0, 5.78], rot: [0, 180, 0] })),
+      ...[-1.975, -1.025].map((x): Placement => ({ build: 'partition', at: [x, 0.74, 5.05] })),
+      { build: 'whiteboard', at: [-3.12, 1.5, 8.5], rot: [0, 90, 0], cap: 'Wireframes sketched in class.' },
+      { build: 'banner', at: [-3.12, 2.55, 7.9], rot: [0, 90, 0], cap: 'Converge Clan.' },
+      { build: 'teamPhoto', at: [2.02, 1.55, 7.6], rot: [0, 270, 0] },
+      { model: 'wall_clock', at: [2.02, 2.4, 8.9], rot: [0, 270, 0] },
+      ...[[-1.85, 8.1], [0.75, 8.1], [-1.85, 6.0], [0.75, 6.0]].map(([x, z]): Placement => ({ build: 'tube', at: [x, 2.95, z], live: 'tube' })),
+      { build: 'doorFrame', at: [1.4, 0, 4.7] },
+      { build: 'passage', at: [0.8, 0, 4.7], rot: [0, 90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // south, 2.1 m, to the plaza
     ],
   },
   {
-    id: 'plaza', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.25 }, exposure: 0.8, envPower: 0.7, baked: true,
+    id: 'plaza', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.25 }, exposure: 0.8, envPower: 0.7, baked: true, outdoor: true,
     sun: { dir: [0.35, 0.55, -0.75], color: '#FFF1D6', power: 2.6, shadow: 1 },
     fog: { color: '#C6D8E6', near: 200, far: 900 },
-    // the Embarcadero outside Google San Francisco, June 2019, from his photo: the camera on the
-    // sidewalk looking along it (+x); the planter and the white sign ahead facing the camera, the
-    // hedge and the brown rail, the trophy on the wall; palms behind; the road, the lamp posts, the
-    // cars and the piers on the left (-z); the Bay Bridge ahead and left over the bay.
+    // the Embarcadero outside Google San Francisco, June 2019, from his photo. Entered from the lab's
+    // south door at (1.4, 2.6) heading south: the planter and the white sign ahead facing the camera,
+    // the hedge and the brown rail, the trophy on the wall; palms behind; the road, the lamp posts,
+    // the cars and the piers on the left, east; the Bay Bridge ahead and left over the bay. Then a
+    // right turn, west, to the brick door back into the apartment. Outdoors: shown only from the lab on.
     props: [
-      { build: 'plazaFloor', at: [8.2, 0, 0] },
-      { build: 'kerb', at: [28, 0, -6.1] },
-      { build: 'road', at: [28, 0.02, -20.25] },
-      { build: 'piers', at: [36, 0, -47], rot: [0, 180, 0] },
-      { build: 'planter', at: [18, 0, 0.5], rot: [0, -90, 0] },
-      { build: 'sign', at: [18.4, 2.4, 1.6], rot: [0, -90, 0], cap: 'Google San Francisco, the Embarcadero. June 2019, the Code-in trip.', href: 'https://codein.withgoogle.com/archive/2018/' },
-      { build: 'trophy', at: [17.3, 0.92, -1.3], cap: 'Grand prize. One of 52 winners, out of thousands.' },
-      { model: 'palm_medium', at: [21, 0, 3.6], scale: 0.55 },
-      { model: 'palm_medium', at: [22.5, 0, -1.5], scale: 0.5, rot: [0, 120, 0] },
-      { model: 'palm_medium', at: [20.8, 0, -4.4], scale: 0.6, rot: [0, 240, 0] },
-      { model: 'island_tree_01', at: [26, 0, 7], scale: 1.0 },
-      { build: 'lampPost', at: [11.6, 0, -5.3] },
-      { build: 'lampPost', at: [21, 0, -5.3] },
-      { build: 'lampPost', at: [30.4, 0, -5.3] },
-      { build: 'carSilver', at: [17, 0, -9.2], rot: [0, 180, 0] },
-      { build: 'carRed', at: [27, 0, -9.6] },
-      { build: 'carWhite', at: [37, 0, -16.6] },
-      { build: 'water', at: [36, -0.2, -110], live: 'water', cap: 'The bay.' },
-      { build: 'water', at: [-124, -0.2, -110], live: 'water' },
-      { build: 'water', at: [36, -0.2, -230], live: 'water' },
-      { build: 'water', at: [-124, -0.2, -230], live: 'water' },
-      { build: 'bridge', at: [326, -0.2, -240], rot: [0, 35, 0], scale: 4 }, // its near tower 170 m off, left of the sign, rising out of frame
-      { build: 'boats', at: [6, -0.2, -60] },
-      { build: 'clouds', at: [0, 0, 0], live: 'sky', shadow: false }, // 400 m up and out: scoped, or they drift into the Toronto window
+      { build: 'plazaFloor', at: [4, 0, 2.6] },
+      { build: 'facade', at: [0, 0, 0] }, // the outside of the rooms we came through, seen only from here
+      { build: 'kerb', at: [10.1, 0, -17.2], rot: [0, 270, 0] },
+      { build: 'road', at: [24.25, 0.02, -17.2], rot: [0, 270, 0] },
+      { build: 'piers', at: [51, 0, -25.2], rot: [0, 90, 0] },
+      { build: 'planter', at: [3.5, 0, -7.2], rot: [0, 0, 0] },
+      { build: 'sign', at: [2.4, 2.4, -7.6], rot: [0, 0, 0], cap: 'Google San Francisco, the Embarcadero. June 2019, the Code-in trip.', href: 'https://codein.withgoogle.com/archive/2018/' },
+      { build: 'trophy', at: [5.3, 0.92, -6.5], rot: [0, 270, 0], cap: 'Grand prize. One of 52 winners, out of thousands.' },
+      { model: 'palm_medium', at: [0.4, 0, -10.2], rot: [0, 270, 0], scale: 0.55 },
+      { model: 'palm_medium', at: [5.5, 0, -11.7], scale: 0.5, rot: [0, 150, 0] },
+      { model: 'palm_medium', at: [8.4, 0, -10], scale: 0.6, rot: [0, 30, 0] },
+      { model: 'island_tree_01', at: [-3, 0, -15.2], rot: [0, 270, 0], scale: 1.0 },
+      { build: 'lampPost', at: [9.3, 0, -0.8], rot: [0, 270, 0] },
+      { build: 'lampPost', at: [9.3, 0, -10.2], rot: [0, 270, 0] },
+      { build: 'lampPost', at: [9.3, 0, -19.6], rot: [0, 270, 0] },
+      { build: 'carSilver', at: [13.2, 0, -6.2], rot: [0, 90, 0] },
+      { build: 'carRed', at: [13.6, 0, -16.2], rot: [0, 270, 0] },
+      { build: 'carWhite', at: [20.6, 0, -26.2], rot: [0, 270, 0] },
+      { build: 'water', at: [114, -0.2, -25.2], rot: [0, 270, 0], live: 'water', cap: 'The bay.' },
+      { build: 'water', at: [114, -0.2, 134.8], rot: [0, 270, 0], live: 'water' },
+      { build: 'water', at: [234, -0.2, -25.2], rot: [0, 270, 0], live: 'water' },
+      { build: 'water', at: [234, -0.2, 134.8], rot: [0, 270, 0], live: 'water' },
+      { build: 'bridge', at: [244, -0.2, -315.2], rot: [0, 235, 0], scale: 4 }, // its near tower 170 m off, left of the sign, rising out of frame
+      { build: 'boats', at: [64, -0.2, 4.8], rot: [0, 270, 0] },
+      { build: 'clouds', at: [4, 0, 10.8], rot: [0, 270, 0], live: 'sky', shadow: false }, // 400 m up and out: scoped, or they drift into the Toronto window
     ],
   },
 ];

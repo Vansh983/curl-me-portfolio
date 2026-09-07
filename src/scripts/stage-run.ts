@@ -41,6 +41,7 @@ import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT,
 
 const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
+const LIVE_ALL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('live'); // review: every set built and lit at runtime, no baked files
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#000';
 
 /** A placed thing: its root in the scene and the placement it came from. */
@@ -481,7 +482,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const loadSet = async (i: number): Promise<void> => {
     const S = SETS[i];
-    if (S.baked && exportSet !== i) {
+    if (S.baked && exportSet !== i && !LIVE_ALL) {
       await loadBaked(i);
       groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
       scene.add(groups[i]);
@@ -665,9 +666,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const enter = (i: number) => {
     curSet = i;
     showSetBackdrops(live.backdrops, i);
-    // the sets share one scene along x; only a neighbour can be seen through a door, so the rest
-    // are hidden (the San Francisco piers once stood in the line from the Toronto window to the CN Tower)
-    groups.forEach((g, k) => { g.visible = Math.abs(k - i) <= 1; });
+    // the sets share one scene in a ring; only a neighbour can be seen through a door, so the rest are
+    // hidden, and an outdoor set only from the set before it and itself (the San Francisco piers once
+    // stood in the line from the Toronto window to the CN Tower)
+    groups.forEach((g, k) => {
+      const d = Math.min(Math.abs(k - i), groups.length - Math.abs(k - i));
+      g.visible = d <= 1 && (!SETS[k].outdoor || k === i || k === i - 1);
+    });
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion
     scene.environment = S.env === 'sky' ? skyEnv : studioEnv;
@@ -682,10 +687,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (i === 1 && tubeClock < 0) tubeClock = 0;
   };
 
-  // review only: ?cam=x,y,z,lx,ly,lz pins the camera anywhere, so a set can be looked at from outside the dolly
+  // review only: ?cam=x,y,z,lx,ly,lz pins the camera anywhere, so a set can be looked at from outside the dolly; ?set=i lights it as that set
   const pinned = new URLSearchParams(location.search).get('cam')?.split(',').map(Number);
+  const pinnedSet = Number(new URLSearchParams(location.search).get('set') ?? 'NaN');
   const frame = (fIn: Frame) => {
-    const f: Frame = pinned && pinned.length === 6 && pinned.every(Number.isFinite) ? { ...fIn, cam: [pinned[0], pinned[1], pinned[2]], look: [pinned[3], pinned[4], pinned[5]] } : fIn;
+    let f: Frame = pinned && pinned.length === 6 && pinned.every(Number.isFinite) ? { ...fIn, cam: [pinned[0], pinned[1], pinned[2]], look: [pinned[3], pinned[4], pinned[5]] } : fIn;
+    if (pinned && Number.isInteger(pinnedSet) && SETS[pinnedSet]) f = { ...f, set: pinnedSet, from: pinnedSet, into: pinnedSet, blend: 0, envDip: 1 };
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     // portrait: the text owns the lower half, so the frustum is cropped from a taller one
     camera.position.set(...f.cam);

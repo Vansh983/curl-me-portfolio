@@ -25,7 +25,7 @@ test('a shell is finite, closed above and below, and its uv is in metres', () =>
   }
   const us = Array.from({ length: floor.uv.length / 2 }, (_, i) => floor.uv[i * 2]);
   assert.ok(Math.abs(Math.max(...us) - Math.min(...us) - (room.x[1] - room.x[0])) < 1e-6);
-  assert.ok(Math.abs(area(floor) - (room.x[1] - room.x[0]) * (room.z[1] - room.z[0])) < 1e-6);
+  assert.ok(Math.abs(area(floor) - (room.x[1] - room.x[0]) * (room.z[1] - room.z[0])) < 1e-4); // float32 positions
 });
 
 test('an opening removes wall area: a door leaves a hole you can walk through', () => {
