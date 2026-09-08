@@ -8,7 +8,7 @@
 //   Set 3 PLAZA    x -4.14..     z < 4.6               2018, the Embarcadero, outdoors; south, then round west and north to the 2020 room's door
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
-//   Set 6 HALIFAX  x -1.6..4.8   z -10.2..-2.0        classroom, then north/west back to Toronto's brick door
+//   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row
 export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
@@ -67,11 +67,16 @@ export interface StageSet {
 /** Lab stations along x: five on the long bench (far wall), three on the short one (near wall). */
 const STATIONS_A = [-2.45, -1.5, -0.55, 0.4, 1.35];
 const STATIONS_B = [-2.45, -1.5, -0.55];
-export const LECTURE_ROWS = [
-  { front: -8.8, back: -6.95, desk: -7.95, height: 0.36 },
-  { front: -6.95, back: -5.1, desk: -6.1, height: 0.72 },
-  { front: -5.1, back: -3.25, desk: -4.25, height: 1.08 },
-] as const;
+export const AUDITORIUM = {
+  banks: [[0, 4.2], [5.6, 9.8]], aisles: [[-1.4, 0], [4.2, 5.6], [9.8, 11.2]],
+  seatXs: [0.35, 1.05, 1.75, 2.45, 3.15, 3.85, 5.95, 6.65, 7.35, 8.05, 8.75, 9.45],
+  studyX: 3.85, tabletHeight: 0.74, rear: -2,
+} as const;
+export const LECTURE_ROWS = Array.from({ length: 8 }, (_, i) => ({
+  front: -14.6 + i * 1.35, back: -13.25 + i * 1.35,
+  seat: -13.63 + i * 1.35, height: (i + 1) * 0.36,
+}));
+export const TOP_ROW = LECTURE_ROWS[LECTURE_ROWS.length - 1];
 
 export const SETS: StageSet[] = [
   {
@@ -322,31 +327,25 @@ export const SETS: StageSet[] = [
     tint: { sky: '#E2EAF0', ground: '#B5AC94', power: 0.35 }, exposure: 0.8, envPower: 0.5,
     sun: { dir: [0.65, 0.5, -0.3], color: '#FFF0CF', power: 2.4, shadow: 0.8 },
     fog: { color: '#DEE7EC', near: 30, far: 200 },
-    shell: { x: [-1.6, 4.8], z: [-10.2, -2], h: 4.2, floor: 'lectureFloor', wall: 'lectureWall', ceiling: 'labCeiling', openings: [
-      { wall: 'x-', at: -9.45, w: 1.1, h: 2.1 },
-      { wall: 'z+', at: -0.8, w: 1.1, h: 2.1, sill: 1.08 },
-      ...[-8.3, -5.8, -3.3].map((z): Opening => ({ wall: 'x+', at: z, w: 1.8, h: 1.6, sill: 1.05 })),
+    shell: { x: [-1.4, 11.2], z: [-17.4, -2], h: 6.6, floor: 'lectureFloor', wall: 'lectureWall', ceiling: 'labCeiling', openings: [
+      { wall: 'x-', at: -15.8, w: 1.2, h: 2.2 },
+      { wall: 'z+', at: 4.9, w: 1.4, h: 2.2, sill: TOP_ROW.height },
     ] },
     props: [
-      { build: 'lectureBoard', at: [1.55, 1.77, -10.15], live: 'screen', cap: 'Computer science at Dalhousie University. Halifax, Nova Scotia.' },
-      { build: 'dalhousieSign', at: [1.55, 2.98, -10.13], live: 'screen' },
+      { build: 'lectureBoard', at: [4.9, 2.45, -17.22], scale: 1.55, live: 'screen', cap: 'Computer science at Dalhousie University. Halifax, Nova Scotia.' },
+      { build: 'dalhousieSign', at: [4.9, 4.34, -17.2], scale: 1.3, live: 'screen' },
       { build: 'lectureTiers', at: [0, 0, 0] },
-      { build: 'doorLeaf', at: [-1.58, 0, -10], scale: [1, 2.1 / 2.04, 1.1 / 0.85], live: 'door' },
-      ...LECTURE_ROWS.flatMap((row) => [0.85, 3.3].flatMap((x): Placement[] => [
-        { build: 'lectureBench', at: [x, row.height, row.desk] },
-        ...[-0.48, 0.48].map((dx): Placement => ({ model: 'SchoolChair_01', at: [x + dx, row.height, row.desk + 0.63], rot: [0, 180, 0] })),
-      ])),
-      { model: 'laptop_14_aluminium', at: [1.25, 1.82, -4.25], live: 'monitor', screen: 'studyScreen', cap: 'Sitting in the top row of the Dalhousie computer science lecture theatre.' },
-      { build: 'studyNotes', at: [0.58, 1.83, -4.13], live: 'screen', rot: [0, 6, 0] },
-      { model: 'coffee_mug', at: [1.56, 1.82, -4.18], scale: 0.8 },
-      { build: 'books', at: [3.75, 1.82, -4.25], rot: [0, 90, 0], scale: 0.7 },
-      { model: 'wall_clock', at: [4.77, 2.78, -9.55], rot: [0, -90, 0] },
-      ...[-8.3, -5.8, -3.3].map((z): Placement => ({ build: 'mullions', at: [4.79, 1.05, z], rot: [0, -90, 0], scale: [0.36, 0.8, 1] })),
-      ...[-8.1, -5.1].flatMap((z) => [0, 3.3].map((x): Placement => ({ build: 'tube', at: [x, 4.12, z], live: 'tube' }))),
-      { build: 'halifaxSign', at: [-1.57, 2.48, -9.45], rot: [0, 90, 0], live: 'screen' },
-      { build: 'halifaxReturn', at: [0, 0, 0] },
-      { model: 'potted_plant_01', at: [4.32, 1.08, -2.48], scale: 1.5 },
-      { build: 'campusView', at: [0, 0, 0], live: 'city', shadow: false },
+      { build: 'auditoriumInterior', at: [0, 0, 0] },
+      { build: 'doorLeaf', at: [-1.38, 0, -16.4], scale: [1, 2.2 / 2.04, 1.2 / 0.85], live: 'door' },
+      ...LECTURE_ROWS.flatMap((row) => AUDITORIUM.seatXs.map((x): Placement => ({
+        build: row === TOP_ROW && x === AUDITORIUM.studyX ? 'auditoriumStudySeat' : 'auditoriumSeat',
+        at: [x, row.height, row.seat],
+      }))),
+      { model: 'laptop_14_aluminium', at: [AUDITORIUM.studyX, TOP_ROW.height + AUDITORIUM.tabletHeight, TOP_ROW.seat - 0.47], live: 'monitor', screen: 'studyScreen', cap: 'Seated at the very back of a 96-seat Dalhousie computer science auditorium.' },
+      { build: 'studyNotes', at: [AUDITORIUM.studyX + 0.16, TOP_ROW.height + AUDITORIUM.tabletHeight + 0.015, TOP_ROW.seat - 0.32], scale: 0.35, live: 'screen', rot: [0, 6, 0] },
+      { model: 'wall_clock', at: [10.85, 3.35, -17.22] },
+      ...[-15.3, -11.6, -7.9, -4.2].flatMap((z) => [1.4, 4.9, 8.4].map((x): Placement => ({ build: 'tube', at: [x, 6.48, z], scale: 1.5, live: 'tube' }))),
+      { build: 'halifaxSign', at: [-1.37, 2.68, -15.8], rot: [0, 90, 0], live: 'screen' },
     ],
   },
 ];

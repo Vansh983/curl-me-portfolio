@@ -21,6 +21,8 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [20-delhi-webcube.md](./20-delhi-webcube.md) | Current session handoff: the approved 2020 Webcube room, five-set ring, retained preferences and verification workflow |
 | [21-halifax-flight.md](./21-halifax-flight.md) | Flight, window-seat photograph and phone portal into Dalhousie; model research, licensing, Blender pipeline and verification |
 | [22-airborne-back-row.md](./22-airborne-back-row.md) | Current flight revision: stay airborne, dimensional campus, classroom-only phone, and a fixed top-row seat |
+| [23-lecture-auditorium.md](./23-lecture-auditorium.md) | 96 fixed seats across eight tiers, auditorium architecture, shared back-row view and Blender verification |
+| [24-bean-journey-continuation.md](./24-bean-journey-continuation.md) | Pending requested teaching, Sydney Bean workspace, Vancouver fundraising, graduation and Toronto return; model access and integration notes |
 
 ## The one-paragraph verdict
 

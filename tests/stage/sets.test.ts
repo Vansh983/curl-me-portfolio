@@ -1,22 +1,29 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LECTURE_ROWS, SETS } from '../../src/lib/stage/sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, SETS } from '../../src/lib/stage/sets.ts';
 import { ASSETS } from '../../src/lib/stage/assets.ts';
 import { MATS } from '../../src/lib/stage/materials.ts';
 
 const ids = new Set(ASSETS.map((a) => a.id));
 const finite = (v: number[]) => v.every((n) => Number.isFinite(n));
 
-test('lecture furniture follows the stepped floor and the rear door meets its landing', () => {
+test('96 fixed auditorium seats follow eight tiers with clear central and side aisles', () => {
   const theatre = SETS[6];
+  assert.equal(LECTURE_ROWS.length, 8);
+  assert.ok(!theatre.props.some(p => p.model === 'SchoolChair_01' || p.build === 'lectureBench'));
   for (const row of LECTURE_ROWS) {
-    assert.equal(theatre.props.filter((p) => p.build === 'lectureBench' && p.at[1] === row.height && p.at[2] === row.desk).length, 2);
-    const chairs = theatre.props.filter((p) => p.model === 'SchoolChair_01' && p.at[1] === row.height);
-    assert.equal(chairs.length, 4);
-    assert.ok(chairs.every((p) => p.rot?.[1] === 180 && p.at[2] > row.desk && p.at[2] < row.back));
+    const seats = theatre.props.filter((p) => p.build?.startsWith('auditorium') && p.at[1] === row.height);
+    assert.equal(seats.length, 12);
+    assert.deepEqual(seats.map(p => p.at[0]), AUDITORIUM.seatXs);
+    assert.ok(seats.every(p => p.at[2] === row.seat && p.at[2] + .38 <= row.back + 1e-9 && p.at[2] - .65 > row.front));
+    for (const seat of seats) for (const [left, right] of AUDITORIUM.aisles)
+      assert.ok(seat.at[0] + .35 <= left + 1e-9 || seat.at[0] - .35 >= right - 1e-9);
   }
-  assert.equal(theatre.shell!.openings.find((o) => o.wall === 'z+')!.sill, 1.08);
-  assert.ok(theatre.shell!.h - 1.08 > 3);
+  assert.equal(theatre.props.filter(p => p.build === 'auditoriumStudySeat').length, 1);
+  assert.equal(theatre.shell!.openings.find((o) => o.wall === 'z+')!.sill, TOP_ROW.height);
+  assert.ok(theatre.shell!.h - TOP_ROW.height > 3);
+  assert.ok(theatre.shell!.x[1] - theatre.shell!.x[0] > 12);
+  assert.ok(theatre.shell!.z[1] - theatre.shell!.z[0] > 15);
 });
 
 test('seven sets, each lit and finite', () => {

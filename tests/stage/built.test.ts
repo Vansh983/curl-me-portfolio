@@ -27,15 +27,15 @@ test('the aircraft wing has an upward-facing surface underneath its seams', () =
   mesh.geometry.dispose(); mesh.material.dispose();
 });
 
-test('the lecture theatre has three raised rows, six aisle steps and a raised rear landing', () => {
+test('the auditorium has eight raised rows, sixteen steps per aisle and a rear landing', () => {
   const meshes = BUILT.lectureTiers().slice(0, 2).map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
   const height = (x: number, z: number) => new Raycaster(new Vector3(x, 5, z), new Vector3(0, -1, 0)).intersectObjects(meshes)[0]?.point.y;
   const near = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 0.001, `${actual} / ${expected}`);
   for (const row of LECTURE_ROWS) {
-    near(height(2, row.desk), row.height);
-    for (let half = 0; half < 2; half++) near(height(-0.8, row.front + (half + 0.5) * (row.back - row.front) / 2), row.height - (1 - half) * 0.18);
+    for (const x of [2, 7]) near(height(x, row.seat), row.height);
+    for (const x of [-0.7, 4.9, 10.5]) for (let half = 0; half < 2; half++) near(height(x, row.front + (half + 0.5) * (row.back - row.front) / 2), row.height - (1 - half) * 0.18);
   }
-  near(height(-0.8, -2.6), 1.08);
+  near(height(4.9, -2.6), LECTURE_ROWS.at(-1)!.height);
   meshes.forEach((m) => { m.geometry.dispose(); m.material.dispose(); });
 });
 

@@ -5,7 +5,7 @@
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
 import { cityBlocks, cnTower } from './city.ts';
 import { buildShell } from './shell.ts';
-import { LECTURE_ROWS } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -30,6 +30,31 @@ function piece(g: Geo, surface: BuiltSurface, o: { smooth?: boolean; metres?: 'x
 
 const M = (mat: string): BuiltSurface => ({ mat });
 const UNIT: [number, number, number, number] = [0, 0, 1, 1];
+
+/** Fixed theatre seating, facing -z: upholstered back, tip-up pan, shared-row floor mounting.
+ * Empty seats stow their pan/tablet; the viewer's seat has both deployed. Authored, not a scan. */
+function auditoriumSeat(study = false): BuiltPart {
+  const back = new Sink().rbox(0, 0.81, 0.22, 0.54, 0.68, 0.14, 0.065, 4).rotateX(0.5, 0.2, 0.075);
+  const pan = new Sink().rbox(0, 0.47, -0.035, 0.53, 0.12, 0.48, 0.055, 4);
+  if (!study) pan.rotateX(0.47, 0.18, 1.12);
+  const oak = new Sink().rbox(0, 0.8, 0.315, 0.55, 0.66, 0.04, 0.019, 3).rotateX(0.5, 0.2, 0.075);
+  const steel = new Sink().rbox(0, 0.025, 0.12, 0.3, 0.05, 0.34, 0.015, 2)
+    .box(0, 0.24, 0.16, 0.085, 0.43, 0.1).box(0, 0.37, 0.16, 0.69, 0.055, 0.065);
+  for (const x of [-0.315, 0.315]) {
+    steel.box(x, 0.52, 0.17, 0.035, 0.34, 0.07);
+    oak.rbox(x, 0.7, -0.01, 0.065, 0.055, 0.45, 0.025, 3);
+    for (const z of [0.005, 0.235]) steel.cylinder(x * 0.3, 0.052, z, 0.013, 0.008, 8);
+  }
+  const tablet = new Sink();
+  if (study) {
+    tablet.rbox(0, AUDITORIUM.tabletHeight - 0.015, -0.43, 0.55, 0.03, 0.42, 0.014, 3);
+    steel.bone([0.315, 0.64, -0.16], [0.23, 0.71, -0.43], 0.018, 0.018);
+  } else tablet.rbox(0.347, 0.51, -0.035, 0.025, 0.34, 0.3, 0.011, 3);
+  return [piece(back.out(), M('auditoriumFabric'), { smooth: true, metres: 'xy' }),
+    piece(pan.out(), M('auditoriumFabric'), { smooth: true, metres: 'xy' }),
+    piece(oak.out(), M('auditoriumOak'), { smooth: true, metres: 'xy' }),
+    piece(steel.out(), M('chairBase'), { smooth: true }), piece(tablet.out(), M('deskTop'), { smooth: true })];
+}
 
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
 const face = (w: number, h: number, z = 0): Geo => new Sink().quad([-w / 2, -h / 2, z], [w / 2, -h / 2, z], [w / 2, h / 2, z], [-w / 2, h / 2, z], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
@@ -184,18 +209,49 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const platforms = new Sink(), aisle = new Sink(), edges = new Sink(), rail = new Sink();
     for (const row of LECTURE_ROWS) {
       const depth = row.back - row.front;
-      platforms.box(2.325, row.height / 2, (row.front + row.back) / 2, 4.95, row.height, depth);
-      edges.box(2.325, row.height + 0.006, row.front + 0.035, 4.95, 0.012, 0.07);
-      for (let half = 0; half < 2; half++) {
+      for (const [left, right] of AUDITORIUM.banks) {
+        platforms.box((left + right) / 2, row.height / 2, (row.front + row.back) / 2, right - left, row.height, depth);
+        edges.box((left + right) / 2, row.height + 0.006, row.front + 0.025, right - left, 0.012, 0.05);
+      }
+      for (const [left, right] of AUDITORIUM.aisles) for (let half = 0; half < 2; half++) {
         const h = row.height - (1 - half) * 0.18, z = row.front + (half + 0.5) * depth / 2;
-        aisle.box(-0.875, h / 2, z, 1.45, h, depth / 2);
-        edges.box(-0.875, h + 0.006, row.front + half * depth / 2 + 0.025, 1.45, 0.012, 0.05);
+        aisle.box((left + right) / 2, h / 2, z, right - left, h, depth / 2);
+        edges.box((left + right) / 2, h + 0.006, row.front + half * depth / 2 + 0.025, right - left, 0.012, 0.05);
       }
     }
-    platforms.box(1.6, 0.54, -2.625, 6.4, 1.08, 1.25);
-    rail.bone([-1.5, 1.15, -8.7], [-1.5, 2.05, -3.25], 0.028, 0.028);
-    for (const z of [-8.7, -6.9, -5.05, -3.25]) rail.bone([-1.5, 0.25, z], [-1.5, 1.15 + (z + 8.7) * 0.9 / 5.45, z], 0.018, 0.018);
-    return [piece(platforms.out(), M('lectureFloor'), { metres: 'xz' }), piece(aisle.out(), M('cabinFloor'), { metres: 'xz' }), piece(edges.out(), M('aluminium')), piece(rail.out(), M('chairBase'), { smooth: true })];
+    platforms.box(4.9, TOP_ROW.height / 2, (TOP_ROW.back + AUDITORIUM.rear) / 2, 12.6, TOP_ROW.height, AUDITORIUM.rear - TOP_ROW.back);
+    for (const x of [-1.27, 11.07]) {
+      rail.bone([x, 1.25, LECTURE_ROWS[0].seat], [x, TOP_ROW.height + 0.89, TOP_ROW.seat], 0.027, 0.027);
+      for (const row of LECTURE_ROWS) rail.bone([x, row.height, row.seat], [x, row.height + 0.89, row.seat], 0.018, 0.018);
+    }
+    return [piece(platforms.out(), M('auditoriumCarpet'), { metres: 'xz' }), piece(aisle.out(), M('auditoriumCarpet'), { metres: 'xz' }), piece(edges.out(), M('aluminium')), piece(rail.out(), M('chairBase'), { smooth: true })];
+  },
+  auditoriumSeat: () => auditoriumSeat(),
+  auditoriumStudySeat: () => auditoriumSeat(true),
+  auditoriumInterior: () => {
+    const timber = new Sink(), dark = new Sink(), trim = new Sink(), lights = new Sink();
+    // Low lecturer's dais and lectern; projection wall framed by acoustic timber fins.
+    timber.box(4.9, 0.12, -16.1, 9.7, 0.24, 2.25);
+    timber.rbox(1.65, 0.78, -15.85, 0.65, 1.08, 0.53, 0.018, 2)
+      .rbox(1.65, 1.34, -15.85, 0.78, 0.05, 0.62, 0.02, 3);
+    for (const x of [0.75, 9.05]) {
+      dark.box(x, 2.85, -17.27, 1.4, 5.15, 0.08);
+      for (let i = 0; i < 10; i++) timber.box(x - 0.65 + i * 0.145, 2.85, -17.16, 0.065, 5.15, 0.12);
+      dark.rbox(x, 4.15, -16.99, 0.33, 0.95, 0.24, 0.025, 3); // suspended speakers
+    }
+    // Alternating absorptive panels and timber on both side walls follow the rake.
+    for (const x of [-1.33, 11.13]) for (const row of LECTURE_ROWS) {
+      timber.box(x, row.height + 0.55, row.seat, 0.1, 1.1, 1.28);
+      dark.rbox(x, row.height + 1.85, row.seat, 0.13, 1.35, 0.91, 0.035, 3);
+      lights.box(x + (x < 0 ? 0.07 : -0.07), row.height + 0.19, row.seat, 0.015, 0.06, 0.23);
+    }
+    for (const z of [-15.3, -11.6, -7.9, -4.2]) {
+      dark.box(4.9, 6.5, z, 11.8, 0.16, 0.8);
+      trim.box(4.9, 6.39, z - 0.48, 11.8, 0.05, 0.045);
+    }
+    return [piece(timber.out(), M('auditoriumOak'), { metres: 'xy', smooth: true }),
+      piece(dark.out(), M('acousticPanel'), { metres: 'xy', smooth: true }), piece(trim.out(), M('aluminium')),
+      piece(lights.out(), M('ledStrip'))];
   },
   lectureBench: () => {
     const top = new Sink().rbox(0, 0.72, 0, 1.9, 0.04, 0.54, 0.015, 3), legs = new Sink();

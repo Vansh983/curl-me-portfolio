@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FLIGHT, flightAt, PHONE, phoneAt, phoneLayout, CLASSROOM_VIEW } from '../../src/lib/stage/flight.ts';
-import { SETS } from '../../src/lib/stage/sets.ts';
+import { AUDITORIUM, TOP_ROW, SETS } from '../../src/lib/stage/sets.ts';
 import { makeDolly, DOLLY } from '../../src/lib/stage/dolly.ts';
 import { pieceIsLive, placementIsLive } from '../../src/lib/stage/bake.ts';
 
@@ -29,13 +29,13 @@ test('flight motion is finite, reversible, continuous and still under reduced mo
   assert.deepEqual(flightAt(2), flightAt(1));
 });
 
-test('moving scenery stays live; classroom reuses credited furniture and contains study material', () => {
+test('moving scenery stays live; auditorium contains fixed seating and study material', () => {
   for (const p of SETS[5].props.filter((p) => p.live === 'flight')) {
     assert.ok(placementIsLive(p));
     assert.ok(pieceIsLive('mat:flightGround', 'flight'));
   }
   const props = SETS[6].props;
-  assert.equal(props.filter((p) => p.model === 'SchoolChair_01').length, 12);
+  assert.equal(props.filter((p) => p.build === 'auditoriumSeat' || p.build === 'auditoriumStudySeat').length, 96);
   for (const name of ['lectureBoard', 'dalhousieSign', 'studyNotes', 'halifaxSign']) assert.ok(props.some((p) => p.build === name));
   assert.ok(props.some((p) => p.model === 'laptop_14_aluminium'));
 });
@@ -68,9 +68,10 @@ test('the phone has viewport coverage and a pixel-aligned destination crop on de
 test('arrival stays seated in the highest row, and the campus is a model, not a picture', () => {
   const dolly=makeDolly(DOLLY);
   for(let q=PHONE.transfer;q<=1;q+=.001) assert.deepEqual(dolly(q).cam,CLASSROOM_VIEW.cam);
-  assert.ok(Math.abs(CLASSROOM_VIEW.cam[1]-1.08-1.28)<1e-9);
-  assert.ok(CLASSROOM_VIEW.cam[2]>-4.25 && CLASSROOM_VIEW.cam[2]<-3.25);
-  assert.equal(SETS[6].props.find(p=>p.model==='laptop_14_aluminium')!.at[1],1.82);
+  assert.ok(Math.abs(CLASSROOM_VIEW.cam[1]-TOP_ROW.height-1.28)<1e-9);
+  assert.equal(CLASSROOM_VIEW.cam[0], AUDITORIUM.studyX);
+  assert.ok(CLASSROOM_VIEW.cam[2]>TOP_ROW.front && CLASSROOM_VIEW.cam[2]<TOP_ROW.back);
+  assert.equal(SETS[6].props.find(p=>p.model==='laptop_14_aluminium')!.at[1],TOP_ROW.height+AUDITORIUM.tabletHeight);
   assert.ok(SETS[5].props.some(p=>p.model==='dalhousie_campus' && p.live==='flight'));
   assert.ok(!SETS[5].props.some(p=>['flightClouds','flightCampus','flightTerrain'].includes(p.build??'')));
 });
