@@ -140,7 +140,7 @@ export const SETS: StageSet[] = [
       { model: 'pendant_tense', at: [-7.3, 1.78, -2.6], live: 'pendant', cap: 'The corner for reading.' }, // its cord reaches the ceiling at 2.8
       { model: 'pendant_tense', at: [-7.6, 1.78, -0.45], live: 'pendant' },
       // the kitchen along the north wall, the hall to the front door
-      { model: 'kitchen_modern', at: [-7.74, 0, 1.48], rot: [0, 180, 0], scale: 0.85, cap: 'The kitchen. Coffee, mostly.' }, // 3.4 m of it, from the partition to the hall
+      { model: 'kitchen_modern', at: [-7.42, 0, 1.48], rot: [0, 180, 0], scale: [0.68, 0.85, 0.85], cap: 'The kitchen. Coffee, mostly.' }, // 2.7 m of it: room for the bathroom door at its west end, the front door at its east
       { build: 'discLight', at: [-7.7, 2.8, 1.2], live: 'pendant' },
       { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
       { model: 'wall_art_circles', at: [-4.235, 1.3, 0.75], rot: [90, 0, 90] },

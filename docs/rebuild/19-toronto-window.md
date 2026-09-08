@@ -24,7 +24,7 @@ He asked for a plan, not a row: "I just entered a room, the next room is to the 
 - One bedroom, 8.8 by 5.6 m: bedroom (x -13..-9.4, z -3.4..0) and bathroom (z 0..2.2) west of a partition at x -9.4 (bedroom door at z -0.6, bathroom door at z 1.4); open living room, kitchen and hall east of it; floor to ceiling glass along the whole south side.
 - `Shell.walls` (`InnerWall`, `shell.ts: innerWall`) builds partitions with door reveals; props: `condoBrick`, `condoSkirting`, `bathTiles`, `showerHead`, `doorLeaf`, `wallTv`, `discLight` (live 'pendant' adds a ceiling point light for the bake).
 - BlenderKit free models: bed_double, nightstand_modern, sofa_teak, coffee_table_square, tv_stand (also the bedroom dresser), kitchen_modern (scale 0.85, ten unseen or dense nodes cut by `Asset.drop` through `scripts/gltf-drop.mjs`), bathtub_abrazo, toilet_wall_hung, basin_mirror (`rot [90,180,0]`: the file lies flat), shoe_rack_modern.
-- The walk (dolly q 0 to 0.22): at the bedroom glass with the tower, diagonally to the bedroom door, into the living room past the armchair, the desk and the television, round the kitchen's end, out of the front door.
+- The walk (dolly q 0 to 0.22): starts in the living room 4 m from the glass so the whole room shows round the window (he found a start at the glass "only the view"); to the armchair, a look west into the bedroom through its open door, north-west to the bathroom door, along the kitchen, out of the front door in the north wall.
 
 ## Data flow
 
