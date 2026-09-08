@@ -27,10 +27,11 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'screen' | 'city' | 'sky';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'screen' | 'city' | 'sky' | 'door';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 export interface Placement {
+  door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
   model?: string;
   build?: string;
   at: V3;
@@ -66,51 +67,40 @@ const STATIONS_B = [-2.45, -1.5, -0.55];
 
 export const SETS: StageSet[] = [
   {
-    // now: a one bedroom condo on the 51st floor over Toronto at night. Bedroom and bathroom in the
-    // west half either side of a partition, an open living room, kitchen and hall in the east half,
-    // glass along the whole south side. The walk starts at the bedroom window, goes through the
-    // bedroom door, across the living room past the desk and the kitchen, and out of the front door.
+    // now: a studio high over Toronto at night, 5.2 by 5.6 m: the bed along the west wall, the desk
+    // on the brick east wall, glass along the whole south side with the CN Tower in it. The walk
+    // starts in the north-west corner looking across the room to the glass, turns on the spot to the
+    // front door in the north wall and goes straight out. The journey comes back in through the
+    // door in the brick at the end.
     id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035, baked: true,
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
     shell: {
-      x: [-13.0, -4.2], z: [-3.4, 2.2], h: 2.8,
+      x: [-9.4, -4.2], z: [-3.4, 2.2], h: 2.8,
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
-        { wall: 'z+', at: -5.45, w: 0.9, h: 2.05 }, // the front door, from the hall north into the passage
+        { wall: 'z+', at: -5.45, w: 0.9, h: 2.05 }, // the front door, north into the passage
         { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the door in the brick: the journey comes back in through it at the end
-        { wall: 'z-', at: -11.2, w: 3.4, h: 2.8, sill: 0 }, // the bedroom's glass, the whole wall
-        { wall: 'z-', at: -6.8, w: 4.6, h: 2.8, sill: 0 }, // the living room's glass
-      ],
-      walls: [
-        { from: [-9.4, -3.4], to: [-9.4, 2.2], doors: [{ at: 2.8, w: 0.85, h: 2.05 }, { at: 4.8, w: 0.75, h: 2.05 }] }, // bedroom door at z -0.6, bathroom door at z 1.4
-        { from: [-13.0, 0], to: [-9.4, 0] }, // bedroom | bathroom
+        { wall: 'z-', at: -6.8, w: 4.6, h: 2.8, sill: 0 }, // the glass, floor to ceiling
       ],
     },
     props: [
-      { build: 'mullions', at: [-11.2, 0, -3.4], scale: [0.68, 1.4, 1] },
       { build: 'mullions', at: [-6.8, 0, -3.4], scale: [0.92, 1.4, 1] },
-      { build: 'city', at: [-6.8, -155, -3.4], live: 'city', cap: 'Toronto. The CN Tower from the 51st floor.', shadow: false },
+      { build: 'city', at: [-6.8, -185, -3.4], live: 'city', cap: 'Toronto. The CN Tower from the 51st floor.', shadow: false },
       { build: 'nightSky', at: [-6.8, 0, -3.4], live: 'city', shadow: false },
       { build: 'condoBrick', at: [-4.2, 0, 0] },
       { build: 'condoSkirting', at: [0, 0, 0] },
-      // the bedroom: the bed's head on the west wall, a walkway along the bathroom wall to the door, a low dresser under the door wall
-      { model: 'bed_double', at: [-11.75, 0, -1.95], rot: [0, 90, 0], cap: 'Bed. Not used enough.' },
-      { model: 'nightstand_modern', at: [-12.65, 0, -0.5] },
-      { model: 'desk_lamp_arm_01', at: [-12.7, 0.55, -0.5], rot: [0, 120, 0], scale: 0.7 },
-      { model: 'tv_stand', at: [-9.67, 0, -2.5], rot: [0, -90, 0] }, // as a dresser
-      { model: 'wall_art_circles', at: [-12.965, 1.55, -1.95], rot: [90, 0, -90] },
-      { model: 'pendant_tense', at: [-11.4, 1.78, -1.95], live: 'pendant' },
-      { build: 'doorLeaf', at: [-9.4, 0, -0.175], rot: [0, -85, 0] }, // the bedroom door, hinged on the north jamb, open flat against the bedroom wall
-      // the bathroom
-      { build: 'bathTiles', at: [0, 0, 0] },
-      { model: 'bathtub_abrazo', at: [-12.55, 0, 1.1], rot: [0, 90, 0] },
-      { build: 'showerHead', at: [-12.98, 0, 1.1] },
-      { model: 'toilet_ceramic', at: [-11.5, 0, 2.13], rot: [0, 180, 0] },
-      { model: 'basin_mirror', at: [-10.5, 0.85, 0.06], rot: [90, 180, 0] },
-      { build: 'discLight', at: [-11.2, 2.8, 1.1], live: 'pendant' },
-      { build: 'doorLeaf', at: [-9.4, 0, 1.775], rot: [0, -100, 0] }, // the bathroom door, open into the bathroom
-      // the living room: the desk on the brick, the television across from the sofa, the armchair by the glass
+      // the bed along the west wall, its head on the wall
+      { model: 'bed_double', at: [-8.2, 0, -1.6], rot: [0, 90, 0], cap: 'Bed. Not used enough.' },
+      { model: 'nightstand_modern', at: [-9.05, 0, -0.2] },
+      { model: 'desk_lamp_arm_01', at: [-9.1, 0.55, -0.2], rot: [0, 120, 0], scale: 0.7 },
+      { model: 'wall_art_circles', at: [-9.365, 1.55, -1.6], rot: [90, 0, -90] },
+      { model: 'pendant_tense', at: [-7.6, 1.78, -1.6], live: 'pendant' },
+      { model: 'steel_frame_shelves_01', at: [-9.12, 0, 1.2], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
+      { model: 'book_encyclopedia_set_01', at: [-9.12, 0.98, 1.2], rot: [0, 90, 0], scale: 0.9 },
+      { model: 'book_encyclopedia_set_01', at: [-9.12, 1.5, 1.15], rot: [0, 90, 0], scale: 0.8 },
+      { model: 'potted_plant_01', at: [-8.95, 0, -3.1], scale: 0.9 },
+      // the desk on the brick, by the glass
       { build: 'rugGrey', at: [-5.1, 0, -2.45] },
       { build: 'desk', at: [-4.58, 0, -2.45], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
       { build: 'deskHutch', at: [-4.34, 0.74, -2.45] },
@@ -126,26 +116,12 @@ export const SETS: StageSet[] = [
       { build: 'pcTower', at: [-4.33, 0, -1.95], rot: [0, -90, 0] },
       { model: 'desk_lamp_arm_01', at: [-4.3, 0.74, -3.2], rot: [0, -150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
       { model: 'office_chair_black', at: [-5.3, 0, -2.45], rot: [0, 90, 0] }, // its back away from the desk
-      { model: 'tv_stand', at: [-4.44, 0, -0.4], rot: [0, -90, 0] },
-      { build: 'wallTv', at: [-4.23, 0, -0.4] },
-      { model: 'sofa_teak', at: [-8.55, 0, 0.5], rot: [0, 90, 0], cap: 'The sofa. For thinking, mostly.' },
-      { model: 'coffee_table_square', at: [-7.6, 0, -0.45] },
-      { model: 'throw_pillows_01', at: [-8.9, 0.45, -1.2], rot: [0, 90, 0], scale: 0.8 },
-      { model: 'steel_frame_shelves_01', at: [-9.12, 0, -2.6], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
-      { model: 'book_encyclopedia_set_01', at: [-9.12, 0.98, -2.6], rot: [0, 90, 0], scale: 0.9 },
-      { model: 'book_encyclopedia_set_01', at: [-9.12, 1.5, -2.65], rot: [0, 90, 0], scale: 0.8 },
-      { model: 'potted_plant_01', at: [-8.95, 0, -3.1], scale: 0.9 },
-      { model: 'modern_arm_chair_01', at: [-7.3, 0, -2.6], rot: [0, 220, 0], cap: 'The chair for reading. The city does the rest.' },
-      { model: 'side_table_01', at: [-7.95, 0, -2.3] },
-      { model: 'pendant_tense', at: [-7.3, 1.78, -2.6], live: 'pendant', cap: 'The corner for reading.' }, // its cord reaches the ceiling at 2.8
-      { model: 'pendant_tense', at: [-7.6, 1.78, -0.45], live: 'pendant' },
-      // the kitchen along the north wall, the hall to the front door
-      { model: 'kitchen_modern', at: [-7.42, 0, 1.48], rot: [0, 180, 0], scale: [0.68, 0.85, 0.85], cap: 'The kitchen. Coffee, mostly.' }, // 2.7 m of it: room for the bathroom door at its west end, the front door at its east
-      { build: 'discLight', at: [-7.7, 2.8, 1.2], live: 'pendant' },
+      { model: 'wall_art_circles', at: [-4.235, 1.3, 0.2], rot: [90, 0, 90] },
+      { build: 'discLight', at: [-6.8, 2.8, 0.2], live: 'pendant' },
       { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
-      { model: 'wall_art_circles', at: [-4.235, 1.3, 0.75], rot: [90, 0, 90] },
       { build: 'passage', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room
       { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the way back in from the plaza
+      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.945, 0.975] }, // hinged on the north jamb, closed in the brick doorway until the journey comes back to it, then swung open into the room along the north wall, clear of the last look at the desk
     ],
   },
   {

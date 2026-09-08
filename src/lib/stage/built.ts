@@ -163,23 +163,15 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** The brick wall behind the desk: the condo's x+ wall faced in brick, 3 cm proud, from the glass (z -3.4) to the front door (z 1.15 to 2.05) and past it. Placed at the wall's x, z 0. */
   condoBrick: () => [piece(new Sink().box(-0.015, 1.4, -1.125, 0.03, 2.8, 4.55).box(-0.015, 1.4, 2.125, 0.03, 2.8, 0.15).box(-0.015, 2.425, 1.6, 0.03, 0.75, 0.9).out(), M('condoBrick'))],
-  /**
-   * White skirting round the apartment (x -13..-4.2, z -3.4..2.2), 10 cm: the outer walls and both faces
-   * of the partitions (x -9.4 with doors at z -0.6 and 1.4; z 0 in the west half), breaking for the doors,
-   * the glass and the brick's front door.
-   */
+  /** White skirting round the studio (x -9.4..-4.2, z -3.4..2.2), 10 cm, breaking for the front door (x -5.9..-5.0), the brick door and the glass. */
   condoSkirting: () => {
     const t = 0.016, h = 0.1, s = new Sink();
     const alongZ = (x: number, z0: number, z1: number) => s.rbox(x, h / 2, (z0 + z1) / 2, t, h, z1 - z0, 0.004, 1);
     const alongX = (z: number, x0: number, x1: number) => s.rbox((x0 + x1) / 2, h / 2, z, x1 - x0, h, t, 0.004, 1);
-    alongZ(-13 + t / 2, -3.4, 2.2); // x- wall: bedroom and bathroom
-    alongX(2.2 - t / 2, -13, -5.9); // z+ wall up to the front door
+    alongZ(-9.4 + t / 2, -3.4, 2.2); // x- wall
+    alongX(2.2 - t / 2, -9.4, -5.9); // z+ wall up to the front door
     alongX(2.2 - t / 2, -5.0, -4.2); // and past it
-    alongZ(-4.2 - 0.03 - t / 2, -3.4, 1.15); // x+ wall up to the front door, in front of the brick
-    for (const [z0, z1] of [[-3.4, -1.025], [-0.175, 0], [0, 1.025], [1.775, 2.2]]) alongZ(-9.46 - t / 2, z0, z1); // partition, west face
-    for (const [z0, z1] of [[-3.4, -1.025], [-0.175, 1.025], [1.775, 2.2]]) alongZ(-9.34 + t / 2, z0, z1); // partition, living face
-    alongX(-0.06 - t / 2, -13, -9.46); // bedroom side of the bathroom wall
-    alongX(0.06 + t / 2, -13, -9.46); // bathroom side
+    alongZ(-4.2 - 0.03 - t / 2, -3.4, 1.15); // x+ wall up to the brick door, in front of the brick
     return [piece(s.out(), M('skirting'), { smooth: true })];
   },
   /** The bathroom (x -13..-9.4, z 0..2.2): a tiled floor 8 mm proud, tiles to the ceiling behind the tub (x-) and to 1.2 m on the other walls, round the door at z 1.4. */
@@ -435,15 +427,15 @@ export const BUILT: Record<string, () => BuiltPart> = {
     // the apartment's east face at x -4.14, z -3.5..8.0, round the brick door (z 1.15..2.05) and the passage east (z 6.0..7.2)
     for (const [z0, z1, y0] of [[-3.5, 1.15, 0], [2.05, 6.0, 0], [7.2, 8.0, 0], [1.15, 2.05, 2.05], [6.0, 7.2, 2.4]] as Array<[number, number, number]>)
       brick.box(-4.14 + t / 2, (y0 + H) / 2, (z0 + z1) / 2, t, H - y0, z1 - z0);
-    dark.box(-8.72, H / 2, 8.0 + t / 2, 9.16, H, t); // the apartment block's north face, x -13.3..-4.14
-    dark.box(-13.3 - t / 2, H / 2, 2.25, t, H, 11.5); // its west face, z -3.5..8.0
+    dark.box(-6.82, H / 2, 8.0 + t / 2, 5.36, H, t); // the studio block's north face, x -9.5..-4.14
+    dark.box(-9.5 - t / 2, H / 2, 2.25, t, H, 11.5); // its west face, z -3.5..8.0
     // the lab's block: x -4.14..2.25, z 4.6..9.9; its south face round the passage south (x 0.8..2.0)
     for (const [x0, x1, y0] of [[-4.14, 0.8, 0], [2.0, 2.25, 0], [0.8, 2.0, 2.4]] as Array<[number, number, number]>)
       dark.box((x0 + x1) / 2, (y0 + H) / 2, 4.6 - t / 2, x1 - x0, H - y0, t);
     dark.box(2.25 + t / 2, H / 2, 7.25, t, H, 5.3); // east
     dark.box(-0.945, H / 2, 9.9 + t / 2, 6.39, H, t); // north
     dark.box(-4.14 - t / 2, H / 2, 8.95, t, H, 1.9); // the west sliver north of the apartment block
-    dark.box(-5.5, H + t / 2, 3.2, 15.7, t, 13.4); // one roof over both
+    dark.box(-3.6, H + t / 2, 3.2, 11.9, t, 13.4); // one roof over both
     return [piece(brick.out(), M('condoBrick')), piece(dark.out(), M('facadeDark'))];
   },
   /** The green counter under the sign, 3.6 × 0.9 × 0.6. */

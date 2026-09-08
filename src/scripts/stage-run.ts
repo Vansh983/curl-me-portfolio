@@ -302,6 +302,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // ---- live things
   const live = {
     fans: [] as Object3D[],
+    doors: [] as Array<{ obj: Object3D; from: number; to: number; base: number }>, // leaves that swing open with the stage progress
     curtains: [] as MeshStandardMaterial[],
     water: [] as MeshStandardMaterial[],
     tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[],
@@ -398,6 +399,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       g.add(mesh);
     }
     if (name === 'city') g.add(streetLightPoints()); // the streets below, a light every 28 m
+    if (p.live === 'door' && p.door) live.doors.push({ obj: g, from: p.door[0], to: p.door[1], base: (p.rot?.[1] ?? 0) * D });
     if (name === 'discLight' && p.live === 'pendant' && !baked) {
       const light = new PointLight('#FFF1DA', 6, 6.0, 1.6); // a flush ceiling light: the whole small room
       light.position.set(0, -0.12, 0);
@@ -816,6 +818,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     let q = stageProgress(cur, chapters, SETS.length);
     if (reduce.matches) q = Math.round(q * (SETS.length - 1)) / Math.max(1, SETS.length - 1);
     frame(dolly(q));
+    for (const d of live.doors) { const k = Math.min(1, Math.max(0, (q - d.from) / (d.to - d.from))); d.obj.rotation.y = d.base + (Math.PI / 2) * k * k * (3 - 2 * k); }
 
     // things on their own clock
     const t = now / 1000;

@@ -18,14 +18,14 @@ export const CONTEXT_MODEL = new Set(['palm_medium', 'island_tree_01']);
 export function pieceIsLive(surface: string, live: string): boolean {
   if (surface.startsWith('paint:')) return true; // a painted face is a thin quad on a board: baking it from the wrong side blackens it
   if (LIVE_SURFACE.has(surface)) return true;
-  return live === 'fan';
+  return live === 'fan' || live === 'door';
 }
 
 /** Whether a placement has anything for the runtime to build in a baked set. */
 export function placementIsLive(p: Placement): boolean {
   if (p.build && (DROP_PROP.has(p.build) || CONTEXT_PROP.has(p.build))) return true;
   if (p.model && CONTEXT_MODEL.has(p.model)) return true;
-  if (p.live === 'city' || p.live === 'sky' || p.live === 'water' || p.live === 'fan') return true;
+  if (p.live === 'city' || p.live === 'sky' || p.live === 'water' || p.live === 'fan' || p.live === 'door') return true;
   if (p.live === 'tv' || p.live === 'monitor' || p.live === 'screen' || p.live === 'tube' || p.live === 'bulb' || p.live === 'curtain') return true;
   return false;
 }

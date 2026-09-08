@@ -16,10 +16,10 @@ export const DOLLY: DollyKey[] = [
   // and the kitchen, to the front door. A person walks: eye at 1.6, always forward, the head turning to
   // what is worth a look. fov is the horizontal field, wide as eyes are: a laptop screen shows the whole
   // room, not a corner of it
-  { q: 0.0, cam: [-7.4, 1.6, 1.0], look: [-7.03, 1.55, -3.2], fov: 78, set: 0 }, // the living room from its north side: the whole room round the glass, the CN Tower 560 m off, the desk right, the sofa left
-  { q: 0.07, cam: [-7.0, 1.6, 0.55], look: [-5.6, 1.4, -0.85], fov: 74, set: 0 }, // turning left past the desk
-  { q: 0.13, cam: [-6.3, 1.6, 0.35], look: [-4.3, 1.4, 0.35], fov: 70, set: 0 }, // the television on the brick, the door back in
-  { q: 0.18, cam: [-5.7, 1.58, 0.9], look: [-5.0, 1.45, 2.8], fov: 68, set: 0 }, // the hall, the front door ahead in the north wall
+  { q: 0.0, cam: [-8.8, 1.6, 1.5], look: [-7.1, 1.95, -2.14], fov: 78, set: 0 }, // the north-west corner of the studio: the bed under the hero, the glass with the CN Tower to its tip, the desk on the right
+  { q: 0.06, cam: [-8.8, 1.6, 1.5], look: [-5.45, 1.5, 2.1], fov: 72, set: 0 }, // turned on the spot: the front door
+  { q: 0.12, cam: [-7.2, 1.6, 1.3], look: [-5.5, 1.45, 2.0], fov: 70, set: 0 }, // straight to it
+  { q: 0.18, cam: [-5.9, 1.58, 1.4], look: [-5.45, 1.45, 3.0], fov: 68, set: 0 },
   { q: 0.22, cam: [-5.45, 1.58, 2.3], look: [-5.45, 1.5, 4.5], fov: 68, set: 0, blend: 0 }, // door jamb, heading north
   { q: 0.252, cam: [-5.45, 1.58, 3.35], look: [-5.45, 1.5, 5.5], fov: 68, set: 1, blend: 1 }, // mid passage
   // 2010: in through the south door, up the east side of the room, the television and the Xbox on the floor
