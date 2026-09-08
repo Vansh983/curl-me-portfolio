@@ -6,9 +6,13 @@ import { LECTURE_ROWS, SETS } from '../../src/lib/stage/sets.ts';
 import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
 
 test('the cabin has open oval windows, complete corner trim and an inward-facing curved roof', () => {
-  const meshes = BUILT.aircraftCabin().map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
+  const parts = BUILT.aircraftCabin();
+  const meshes = parts.map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
+  const glass = meshes[meshes.length - 1];
   const hits = (origin: number[], direction: number[]) => new Raycaster(new Vector3(...origin), new Vector3(...direction), 0, 2).intersectObjects(meshes);
-  assert.equal(hits([-4.3, 1.42, -6.4], [-1, 0, 0]).length, 0);
+  const throughWindow = hits([-4.3, 1.42, -6.4], [-1, 0, 0]);
+  assert.equal(throughWindow.length, 1, 'only the pane in the way');
+  assert.equal(throughWindow[0].object, glass);
   assert.ok(hits([-4.3, 1.83, -6.11], [-1, 0, 0]).length > 0, 'no triangular crack outside the oval');
   assert.ok(hits([-3.4, 1.6, -7], [0, 1, 0]).length > 0, 'ceiling must face the passenger');
   meshes.forEach((m) => { m.geometry.dispose(); m.material.dispose(); });
@@ -19,11 +23,16 @@ test('study notes use the full image instead of a single blank texture pixel', (
   assert.equal(Math.min(...uv), 0); assert.equal(Math.max(...uv), 1);
 });
 
-test('the aircraft wing has an upward-facing surface underneath its seams', () => {
-  const part=BUILT.aircraftWing()[0];
-  const mesh=new Mesh(new BufferGeometry().setAttribute('position',new Float32BufferAttribute(part.pos,3)),new MeshBasicMaterial());
-  const hit=new Raycaster(new Vector3(-7,3,-6.5),new Vector3(0,-1,0)).intersectObject(mesh)[0];
-  assert.ok(hit && Math.abs(hit.point.y-.8)<.001);
+test('the aircraft wing has an upward-facing top skin that rises outboard, and an engine hung under it', () => {
+  const [skin,, nacelle]=BUILT.aircraftWing();
+  const mesh=new Mesh(new BufferGeometry().setAttribute('position',new Float32BufferAttribute(skin.pos,3)),new MeshBasicMaterial());
+  const top=(x:number,z:number)=>new Raycaster(new Vector3(x,3,z),new Vector3(0,-1,0)).intersectObject(mesh)[0]?.point.y;
+  const root=top(-7,-4.0), out=top(-14,-1.0);
+  assert.ok(root!==undefined && root<0.5 && root>-0.3, `the wing sits under the window sill: ${root}`);
+  assert.ok(out!==undefined && out>root+0.4, `dihedral: ${out} over ${root}`);
+  assert.equal(top(-7,-8.5),undefined,'nothing ahead of the leading edge');
+  let lo=Infinity; for(let i=1;i<nacelle.pos.length;i+=3) lo=Math.min(lo,nacelle.pos[i]);
+  assert.ok(lo<-2,'the engine hangs below the wing');
   mesh.geometry.dispose(); mesh.material.dispose();
 });
 
@@ -73,7 +82,7 @@ test('the exterior facade sits beyond Delhi interior walls without coplanar face
   parts.forEach((part) => { part.geometry.dispose(); part.material.dispose(); });
 });
 
-const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto']; // video: the live television
+const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudDeck', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto']; // video: the live television
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {

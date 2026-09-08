@@ -1,5 +1,5 @@
 """Dimensional Goldberg interpretation, not a surveyed replica. Metres, front faces +X.
-Blender builds recessed glazing, panel joints, roof equipment and street-scale context.
+Blender builds recessed glazing, panel joints, roof equipment, the entrance and its forecourt; the city round it is OpenStreetMap.
 Reference: dal.ca/campus-maps/building-directory/studley-campus/goldberg-computer-science.html
 """
 import bpy
@@ -80,34 +80,11 @@ def sign(body,y,size):
 sign('Goldberg Computer Science Building',4.4,.66)
 sign('DALHOUSIE UNIVERSITY',19.45,.95)
 
-box('District ground',(0,-.45,0),(2200,.8,2200),grass)
-box('University Avenue',(29,.005,0),(12,.06,420),road)
-box('Henry Street',(0,.007,37),(380,.06,11),road)
-for x in [21.5,36.5]: box('Sidewalk',(x,.12,0),(2.8,.22,420),stone)
-for z in [29.8,44.2]: box('Sidewalk',(0,.12,z),(380,.22,2.8),stone)
+# The ground, the streets and the neighbours come from OpenStreetMap at runtime (stage-halifax.mjs); only the building and its forecourt are modelled here.
 box('Forecourt',(18,.12,0),(8,.24,55),stone)
-for z in range(-200,210,10): box('Avenue dash',(29,.045,z),(.14,.02,4.5),line)
-for z in [-2.8,-1.7,-.6,.5,1.6,2.7]: box('Crosswalk',(29,.047,29+z),(10,.02,.5),line)
-for x,z,w,d,h in [(-53,-8,30,40,16),(-52,62,34,26,19),(64,-28,32,34,17),(66,65,36,29,20),(-105,-68,38,30,12),(-102,66,42,30,15),(113,-80,30,38,14)]:
-    box('Neighbour building',(x,h/2,z),(w,h,d),brick)
-    box('Neighbour roof',(x,h+.12,z),(w+.2,.3,d+.2),roof)
-    for dz in range(-int(d/2)+3,int(d/2)-2,4):
-        for y in range(3,h-1,3): box('Neighbour window',(x+w/2+.015,y,z+dz),(.04,1.6,1.7),glass[1])
 for z in [-21,-9,11,23]:
     box('Campus bench',(19.5,.48,z),(.6,.14,2.2),panel[0],.025)
     for dz in [-.8,.8]: box('Bench foot',(19.5,.22,z+dz),(.5,.44,.1),dark)
-
-# Distant city blocks carry the ground into the atmospheric haze; no floating rectangular island.
-for x in range(-750,750,65):
-    for z in range(-750,750,65):
-        if abs(x)<165 and abs(z)<165: continue
-        w=random.uniform(18,39); d=random.uniform(22,44); h=random.uniform(7,21)
-        box('Distant block',(x,h/2,z),(w,h,d),brick)
-        box('Distant roof',(x,h+.1,z),(w+.2,.22,d+.2),roof)
-for x in range(-750,750,65):
-    box('Distant street',(x+27,.015,0),(8,.04,1600),road)
-for z in range(-750,750,65):
-    box('Distant street',(0,.016,z+29),(1600,.04,7),road)
 
 out=Path('.cache/flight'); out.mkdir(parents=True,exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=str((out/'campus.blend').resolve()))

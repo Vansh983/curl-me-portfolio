@@ -9,6 +9,8 @@ test('live pieces: painted faces, glass, cloth and fans stay with the runtime; t
   assert.ok(pieceIsLive('paint:sign', ''));
   assert.ok(pieceIsLive('mat:tubeGlass', 'tube'));
   assert.ok(pieceIsLive('mat:curtain', 'curtain'));
+  assert.ok(pieceIsLive('mat:cabinGlass', ''));
+  assert.ok(pieceIsLive('mat:board', 'drop'));
   assert.ok(pieceIsLive('mat:anything', 'fan'));
   assert.ok(!pieceIsLive('mat:deskTop', ''));
   assert.ok(!pieceIsLive('mat:bezel', 'screen'));

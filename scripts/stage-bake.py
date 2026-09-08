@@ -28,7 +28,7 @@ DROP_LIVE = {"city", "sky", "water", "flight"}
 DROP_PROP = {"clouds", "bridge", "boats", "piers", "nightSky", "sky", "flightSky", "campusView"}
 EMIT = {"paint:screenCode": 4.0, "paint:screenFloqer": 4.0, "paint:screenBoard": 4.0, "paint:screenTerminal": 4.0, "paint:screen": 3.0, "paint:video": 3.0,
         "mat:tubeGlass": 6.0, "mat:bulb": 5.0, "mat:ledStrip": 40.0, "mat:powerLed": 4.0, "mat:xboxGreen": 2.0, "mat:lampGlobe": 6.0}
-LIVE_SURFACE = {"mat:tubeGlass", "mat:bulb", "mat:curtain"}  # runtime keeps building these pieces
+LIVE_SURFACE = {"mat:tubeGlass", "mat:bulb", "mat:curtain", "mat:cabinGlass"}  # runtime keeps building these pieces
 # in the scene for shadow and bounce, not baked, not exported: the wide ground, the leafy models (bake.ts CONTEXT_*)
 CONTEXT_PROP = {"plazaFloor", "road"}
 CONTEXT_MODEL = {"palm_medium", "island_tree_01"}
@@ -55,8 +55,8 @@ def is_live(info):
         return True  # a painted face is a thin quad on a board: the runtime draws it, lit live
     if info["surface"] in LIVE_SURFACE:
         return True
-    if info["live"] in ("fan", "door"):
-        return True  # things the runtime moves: the fan turns, a door swings open
+    if info["live"] in ("fan", "door", "drop"):
+        return True  # things the runtime moves: the fan turns, a door swings open, the projection screen comes down
     return False
 
 

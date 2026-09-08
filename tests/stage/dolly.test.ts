@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
+import { DOLLY, makeDolly, APPROACH_SCALE } from '../../src/lib/stage/dolly.ts';
+import { STAGE_SPAN } from '../../src/lib/stage/shot.ts';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { SETS } from '../../src/lib/stage/sets.ts';
 import { BUILT } from '../../src/lib/stage/built.ts';
@@ -18,7 +19,7 @@ const cameraAt = (q: number) => {
 test('the Delhi entrance stays in view on the final plaza approach', () => {
   const shell = SETS[4].shell!, door = shell.openings.find((o) => o.wall === 'z-')!;
   for (const q of [0.722, 0.746, 0.768]) {
-    const p = new Vector3(door.at, Math.min(1.5, door.h), shell.z[0]).project(cameraAt(q * 2 / 3));
+    const p = new Vector3(door.at, Math.min(1.5, door.h), shell.z[0]).project(cameraAt(q * APPROACH_SCALE));
     assert.ok(Math.abs(p.x) < 0.85 && Math.abs(p.y) < 0.85 && p.z < 1, `door out of frame at ${q}: ${p.toArray()}`);
   }
 });
@@ -26,7 +27,7 @@ test('the Delhi entrance stays in view on the final plaza approach', () => {
 test('the Delhi desk views keep the full awards shelf in frame on a laptop', () => {
   const awards = SETS[4].props.find((p) => p.build === 'awards')!;
   for (const q of [0.838, 0.866]) {
-    const camera = cameraAt(q * 2 / 3);
+    const camera = cameraAt(q * APPROACH_SCALE);
     for (const part of BUILT.awards()) for (let i = 0; i < part.pos.length; i += 3) {
       const p = new Vector3(part.pos[i], part.pos[i + 1], part.pos[i + 2]);
       p.applyAxisAngle(new Vector3(0, 1, 0), (awards.rot?.[1] ?? 0) * Math.PI / 180).add(new Vector3(...awards.at)).project(camera);
@@ -66,7 +67,7 @@ test('blend windows come in pairs, 0 then 1, and the set flips inside them', () 
 });
 
 test('equal scroll increments keep bounded walking and head turns; only the covered phone portal cuts', () => {
-  // 1500 samples across six chapter lengths equals the old 1000 across four: same pixels of scroll.
+  // the stage runs over STAGE_SPAN chapters of scroll, so a thousandth of q is a fixed number of pixels per chapter: the bounds scale with the span
   const dolly = makeDolly(DOLLY);
   const dir = (f: { cam: number[]; look: number[] }) => {
     const v = [f.look[0] - f.cam[0], f.look[1] - f.cam[1], f.look[2] - f.cam[2]];
@@ -74,15 +75,15 @@ test('equal scroll increments keep bounded walking and head turns; only the cove
     return v.map((x) => x / n);
   };
   let prev = dolly(0);
-  for (let i = 1; i <= 1500; i++) {
-    const f = dolly(i / 1500);
+  for (let i = 1; i <= 1000; i++) {
+    const f = dolly(i / 1000);
     const d = Math.hypot(f.cam[0] - prev.cam[0], f.cam[1] - prev.cam[1], f.cam[2] - prev.cam[2]);
     const a = dir(prev), b = dir(f);
     const deg = (Math.acos(Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])) * 180) / Math.PI;
-    const portal = (i - 1) / 1500 < PHONE.transfer && i / 1500 >= PHONE.transfer;
-    if (portal) { assert.equal(phoneAt(i / 1500).zoom, 1); prev = f; continue; }
-    assert.ok(d < (f.q < 0.634 ? 0.08 : 0.12), `cam step ${d} at ${i}`);
-    assert.ok(deg < 2.6, `turn ${deg} degrees at ${i}`);
+    const portal = (i - 1) / 1000 < PHONE.transfer && i / 1000 >= PHONE.transfer;
+    if (portal) { assert.equal(phoneAt(i / 1000).zoom, 1); prev = f; continue; }
+    assert.ok(d < 0.02 * STAGE_SPAN, `cam step ${d} at ${i}`);
+    assert.ok(deg < 0.67 * STAGE_SPAN, `turn ${deg} degrees at ${i}`);
     assert.ok(f.fov >= 55 && f.fov <= 80, `fov ${f.fov}`); // the horizontal field: a laptop shows the room
     prev = f;
   }
@@ -102,7 +103,7 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[5], WINDOW_VIEW.cam[0], WINDOW_VIEW.cam[2]), `${jambs[5].cam}`);
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
   assert.equal(dolly(1).set, 6);
-  assert.deepEqual(dolly(1).cam, CLASSROOM_VIEW.cam);
+  assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);
   // heading north through the south door, the desk on the far wall dead ahead
   const inRoom = dolly(jambs[3].q + 0.02);
   assert.equal(inRoom.set, 4);

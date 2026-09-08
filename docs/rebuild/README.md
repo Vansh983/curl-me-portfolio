@@ -23,6 +23,8 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [22-airborne-back-row.md](./22-airborne-back-row.md) | Current flight revision: stay airborne, dimensional campus, classroom-only phone, and a fixed top-row seat |
 | [23-lecture-auditorium.md](./23-lecture-auditorium.md) | 96 fixed seats across eight tiers, auditorium architecture, shared back-row view and Blender verification |
 | [24-bean-journey-continuation.md](./24-bean-journey-continuation.md) | Pending requested teaching, Sydney Bean workspace, Vancouver fundraising, graduation and Toronto return; model access and integration notes |
+| [25-flight-auditorium-review.md](./25-flight-auditorium-review.md) | Review of the flight, the phone and the auditorium as Codex left them: what was wrong, in what order to fix it |
+| [26-flight-rebuilt.md](./26-flight-rebuilt.md) | The rebuild: stage span, a real descent over OpenStreetMap Halifax, the cabin dressed, the phone, the walk down to the lectern |
 
 ## The one-paragraph verdict
 

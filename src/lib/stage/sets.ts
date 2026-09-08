@@ -9,6 +9,8 @@
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row
+import { HALIFAX } from './halifax.ts';
+
 export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
@@ -29,12 +31,13 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'screen' | 'city' | 'sky' | 'door' | 'flight';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 export interface Placement {
   screen?: string; // optional painted content for a model's fitted display
   door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
+  drop?: [number, number, number]; // live 'drop': the stage progress over which the thing lowers, and by how many metres (the projection screen)
   model?: string;
   build?: string;
   at: V3;
@@ -70,13 +73,26 @@ const STATIONS_B = [-2.45, -1.5, -0.55];
 export const AUDITORIUM = {
   banks: [[0, 4.2], [5.6, 9.8]], aisles: [[-1.4, 0], [4.2, 5.6], [9.8, 11.2]],
   seatXs: [0.35, 1.05, 1.75, 2.45, 3.15, 3.85, 5.95, 6.65, 7.35, 8.05, 8.75, 9.45],
-  studyX: 3.85, tabletHeight: 0.74, rear: -2,
+  studyX: 3.85, aisleX: 4.9, tabletHeight: 0.74, rear: -2,
 } as const;
 export const LECTURE_ROWS = Array.from({ length: 8 }, (_, i) => ({
   front: -14.6 + i * 1.35, back: -13.25 + i * 1.35,
   seat: -13.63 + i * 1.35, height: (i + 1) * 0.36,
 }));
 export const TOP_ROW = LECTURE_ROWS[LECTURE_ROWS.length - 1];
+/** Where the Goldberg building stands in the flight's ground frame (scripts/stage-halifax.mjs). */
+export const HALIFAX_CAMPUS: [number, number] = HALIFAX.campus;
+/** The cloud deck's height over Halifax, metres; flight.ts crosses it on the way down. */
+export const FLIGHT_DECK = 335;
+/** The lecturer's dais across the front, and the lectern on it, right of centre so the screen stays clear. */
+export const DAIS = { x: 4.9, z: [-17.3, -14.7] as [number, number], height: 0.3, lectern: [5.6, -15.95] as [number, number] };
+/** The floor of the central aisle at z: two 0.18 m steps per tier, the rear landing at the top, the flat floor at the front. */
+export const aisleHeight = (z: number): number => {
+  if (z >= TOP_ROW.back) return TOP_ROW.height;
+  if (z < LECTURE_ROWS[0].front) return 0;
+  const i = Math.floor((z - LECTURE_ROWS[0].front) / 1.35), rem = z - LECTURE_ROWS[0].front - i * 1.35;
+  return LECTURE_ROWS[i].height - (rem < 0.675 ? 0.18 : 0);
+};
 
 export const SETS: StageSet[] = [
   {
@@ -304,28 +320,37 @@ export const SETS: StageSet[] = [
     ],
   },
   {
+    // 2022, the crossing: the jet bridge, the cabin, the port window seat; Halifax 400 m down in afternoon sun, hazed with distance
     id: 'flight', env: 'studio', baked: true,
-    tint: { sky: '#D8E8F2', ground: '#A7A59E', power: 0.4 }, exposure: 0.85, envPower: 0.55,
-    sun: { dir: [0.6, 0.8, 0.3], color: '#FFF3DF', power: 2.2, shadow: 0.7 },
-    fog: { color: '#A8CCDE', near: 100, far: 500 },
+    tint: { sky: '#D8E8F2', ground: '#A7A59E', power: 0.4 }, exposure: 0.8, envPower: 0.5,
+    sun: { dir: [0.55, 0.7, 0.45], color: '#FFF3DF', power: 2.4, shadow: 0.7 },
+    fog: { color: '#C9D9E4', near: 700, far: 5200 },
     props: [
       { build: 'boardingPassage', at: [0, 0, 0] },
       { build: 'aircraftCabin', at: [0, 0, 0] },
       ...[-8.5, -7.45, -6.4, -5.35].flatMap((z) => [-4.7, -4.13, -2.67, -2.1].map((x): Placement => ({ build: 'aircraftSeat', at: [x, 0, z] }))),
-      { build: 'aircraftWing', at: [0, -1, 3.2] },
+      // the moving map on the back of every seat that has a row behind it, and on the front bulkhead
+      ...[-8.5, -7.45, -6.4].flatMap((z) => [-4.7, -4.13, -2.67, -2.1].map((x): Placement => ({ build: 'seatScreen', at: [x, 1.0, z + 0.34], live: 'screen' }))),
+      { build: 'bulkheadScreen', at: [-3.4, 1.55, -10.17], live: 'screen', cap: 'Delhi to Halifax, 2022. The descent over the peninsula.' },
+      { build: 'aircraftWing', at: [0, 0, 0] },
       { build: 'flightSky', at: [0, 0, 0], live: 'flight', shadow: false },
-      { model: 'dalhousie_campus', at: [-120, 0, -62], live: 'flight', cap: 'Dalhousie University, Halifax. A 3D interpretation of the Goldberg Computer Science Building.', href: '/assets/stage/FLIGHT-CREDITS.md' },
-      ...[-98, -70, -42, -14, 14].flatMap((z) => [-93, -157].map((x): Placement => ({ model: 'island_tree_01', at: [x, 0.1, z], scale: 0.3, live: 'flight', shadow: false }))),
-      { build: 'flightSign', at: [-3.35, 1.82, -4.77], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
-      { build: 'flightSign', at: [-3.4, 2.05, -10.18], live: 'screen' },
-      { build: 'halifaxSign', at: [-2.1, 2.26, -9.46], rot: [0, -90, 0], live: 'screen' },
+      // the world under the aircraft: it sinks and slides with the descent (flight.ts), rolls with the bank
+      { build: 'halifax', at: [0, 0, 0], live: 'flight', cap: 'Halifax. The peninsula, the Northwest Arm, the harbour, from OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
+      { model: 'dalhousie_campus', at: [HALIFAX_CAMPUS[0], 0, HALIFAX_CAMPUS[1]], rot: [0, 90, 0], live: 'flight', cap: 'Dalhousie University, Halifax. The Goldberg Computer Science Building.', href: '/assets/stage/FLIGHT-CREDITS.md' },
+      ...[[-12, 36], [-16, -44], [-70, 8], [-45, 60], [-96, -30], [-120, 44]].map(([dx, dz]): Placement => ({ model: 'island_tree_01', at: [HALIFAX_CAMPUS[0] + dx, 0.1, HALIFAX_CAMPUS[1] + dz], scale: 0.32, live: 'flight', shadow: false })),
+      { build: 'cloudDeck', at: [0, FLIGHT_DECK + 33, 0], live: 'flight', shadow: false },
+      { build: 'cloudDeck', at: [0, FLIGHT_DECK - 33, 0], rot: [0, 90, 0], live: 'flight', shadow: false },
+      { build: 'halifaxSign', at: [-2.735, 2.0, -3.6], rot: [0, -90, 0], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
       ...[-8.7, -6.6, -1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, z < -4.8 ? 2.6 : 2.4, z], live: 'pendant', scale: 0.65 })),
     ],
   },
   {
+    // 2022, arrived: a 96-seat stepped auditorium at Dalhousie, seen first from the very back row, then from behind the
+    // lectern with the whole hall in front. No windows: downlights over every second tier, a warm key on the front,
+    // the projection screen coming down over the board for the Generative AI lecture.
     id: 'halifax', env: 'studio', baked: true,
-    tint: { sky: '#E2EAF0', ground: '#B5AC94', power: 0.35 }, exposure: 0.8, envPower: 0.5,
-    sun: { dir: [0.65, 0.5, -0.3], color: '#FFF0CF', power: 2.4, shadow: 0.8 },
+    tint: { sky: '#E6ECF2', ground: '#B5AC94', power: 0.45 }, exposure: 0.82, envPower: 0.6,
+    sun: { dir: [0.2, 0.9, 0.35], color: '#FFF0CF', power: 1.6, shadow: 0.8 },
     fog: { color: '#DEE7EC', near: 30, far: 200 },
     shell: { x: [-1.4, 11.2], z: [-17.4, -2], h: 6.6, floor: 'lectureFloor', wall: 'lectureWall', ceiling: 'labCeiling', openings: [
       { wall: 'x-', at: -15.8, w: 1.2, h: 2.2 },
@@ -334,8 +359,13 @@ export const SETS: StageSet[] = [
     props: [
       { build: 'lectureBoard', at: [4.9, 2.45, -17.22], scale: 1.55, live: 'screen', cap: 'Computer science at Dalhousie University. Halifax, Nova Scotia.' },
       { build: 'dalhousieSign', at: [4.9, 4.34, -17.2], scale: 1.3, live: 'screen' },
+      { build: 'projectorScreen', at: [4.9, 6.3, -16.85], live: 'drop', drop: [0.8, 0.9, 2.2], cap: 'Generative AI. The lecture: transformers, attention, what a model is and is not.' },
       { build: 'lectureTiers', at: [0, 0, 0] },
       { build: 'auditoriumInterior', at: [0, 0, 0] },
+      { build: 'lectern', at: [DAIS.lectern[0], DAIS.height, DAIS.lectern[1]], cap: 'The lectern. ShiftKey Labs: curriculums, certificates in hundreds of hands.' },
+      { build: 'laptopSlide', at: [DAIS.lectern[0], DAIS.height + 1.12, DAIS.lectern[1] + 0.02], rot: [0, 180, 0], live: 'screen' },
+      ...[0, 2, 4, 6].flatMap((i) => [2.1, 4.9, 7.7].map((x): Placement => ({ build: 'downlight', at: [x, 6.6, LECTURE_ROWS[i].seat + 0.6], live: 'downlight' }))),
+      ...[2.6, 4.9, 7.2].map((x): Placement => ({ build: 'downlight', at: [x, 6.6, -16.0], live: 'downlight' })),
       { build: 'doorLeaf', at: [-1.38, 0, -16.4], scale: [1, 2.2 / 2.04, 1.2 / 0.85], live: 'door' },
       ...LECTURE_ROWS.flatMap((row) => AUDITORIUM.seatXs.map((x): Placement => ({
         build: row === TOP_ROW && x === AUDITORIUM.studyX ? 'auditoriumStudySeat' : 'auditoriumSeat',

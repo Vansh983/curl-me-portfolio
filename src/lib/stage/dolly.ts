@@ -5,8 +5,8 @@
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
 import { CatmullRomCurve3, Vector3 } from 'three';
-import type { V3 } from './sets.ts';
-import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE } from './flight.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3 } from './sets.ts';
+import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
 
 export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1; portal?: true }
 /** `from` and `into` are the sets a doorway joins; outside a doorway both equal `set`. */
@@ -63,23 +63,51 @@ const APPROACH: DollyKey[] = [
   { q: 0.951, cam: [-2.35, 1.58, 1.6], look: [-4.5, 1.5, 0.9], fov: 68, set: 4, blend: 0 }, // door jamb, beginning the turn into the boarding passage
 ];
 
+/** The first five rooms keep their choreography; the ring was cut at the brick door for the flight, so they share the first 0.59 of the stage. */
+export const APPROACH_SCALE = 0.6;
+
+/** Standing in the central aisle at z, eye 1.6 m over its steps. */
+const aisle = (z: number, dy = 0): V3 => [AUDITORIUM.aisleX, aisleHeight(z) + 1.6 + dy, z];
+
 export const DOLLY: DollyKey[] = [
-  // Seven sets instead of five. Rescaling preserves every earlier view's actual scroll position.
-  ...APPROACH.map((k) => ({ ...k, q: k.q * 2 / 3 })),
-  { q: 0.650, cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 },
-  { q: 0.668, cam: [-3.35, 1.58, -0.7], look: [-3.4, 1.5, -4.3], fov: 70, set: 5 },
-  { q: 0.688, cam: [-3.4, 1.58, -3.6], look: [-4.7, 1.5, -7.6], fov: 74, set: 5 },
-  { q: 0.703, cam: [-3.4, 1.58, -5.2], look: [-6, 1.4, -6.7], fov: 74, set: 5 },
-  { q: 0.714, cam: [-3.85, 1.4, -6.6], look: [-6.8, 1.42, -6.75], fov: 74, set: 5 },
-  { q: 0.724, ...WINDOW_VIEW, set: 5 },
-  { q: 0.741, ...WINDOW_VIEW, set: 5 },
-  { q: 0.756, ...WINDOW_VIEW, set: 5 },
-  { q: 0.777, ...WINDOW_VIEW, set: 5 },
-  { q: 0.800, ...WINDOW_VIEW, set: 5 },
-  { q: 0.806, ...WINDOW_VIEW, set: 5, blend: 0 },
+  ...APPROACH.map((k) => ({ ...k, q: k.q * APPROACH_SCALE })),
+  // 2022, leaving: west out of the Delhi room into the passage, left down the jet bridge, through the cabin door,
+  // up the aisle and into the port window seat of the third row
+  { q: 0.583, cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 }, // mid passage, the bridge opening on the left
+  { q: 0.603, cam: [-3.35, 1.58, -0.5], look: [-3.4, 1.5, -4.0], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
+  { q: 0.62, cam: [-3.4, 1.58, -2.6], look: [-3.6, 1.5, -6.2], fov: 72, set: 5 },
+  { q: 0.638, cam: [-3.4, 1.58, -4.6], look: [-4.6, 1.45, -7.4], fov: 74, set: 5 }, // in the door: the rows, the window seat
+  { q: 0.652, cam: [-3.5, 1.55, -6.0], look: [-5.6, 1.4, -6.9], fov: 74, set: 5 }, // at the row, turning right
+  { q: 0.664, cam: [-4.2, 1.45, -6.5], look: [-6.9, 1.2, -7.0], fov: 74, set: 5 }, // into the row, sitting
+  // the descent: out and forward over the wing first, then abeam and down at the Arm, the cloud deck, the campus
+  { q: FLIGHT.start, cam: WINDOW_VIEW.cam, look: [-7.1, 0.95, -8.4], fov: 74, set: 5 }, // seated: the wing, the city ahead
+  { q: 0.69, cam: WINDOW_VIEW.cam, look: WINDOW_VIEW.look, fov: 74, set: 5 }, // abeam and down: the Northwest Arm
+  { q: 0.703, cam: [-4.8, 1.4, -6.42], look: [-7.75, 0.72, -6.35], fov: 74, set: 5 }, // leaning to the glass through the deck
+  { q: 0.714, cam: [-4.78, 1.41, -6.41], look: [-7.7, 0.8, -7.0], fov: 74, set: 5 }, // clear air: the campus sliding in from ahead
+  { q: PHONE.framed, ...WINDOW_VIEW, set: 5 },
+  { q: 0.736, ...WINDOW_VIEW, set: 5, blend: 0 },
   { q: PHONE.transfer, ...CLASSROOM_VIEW, set: 6, blend: 1, portal: true },
+  // 2022, arrived: seated at the back of the auditorium. A look round the hall, then up, into the aisle, and down
+  // the steps to the dais; a turn to face the whole hall from behind the lectern
   { q: PHONE.reveal, ...CLASSROOM_VIEW, set: 6 },
-  { q: 1, ...CLASSROOM_VIEW, set: 6 },
+  { q: 0.765, ...CLASSROOM_VIEW, set: 6 },
+  { q: 0.778, cam: CLASSROOM_VIEW.cam, look: [8.4, 2.3, -13.5], fov: 74, set: 6 }, // the far bank, the fins, the clock
+  { q: 0.79, cam: CLASSROOM_VIEW.cam, look: [4.9, 2.4, -16.2], fov: 74, set: 6 }, // back to the board
+  { q: 0.80, cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.6, TOP_ROW.seat - 0.02], look: [5.2, 3.2, -9.5], fov: 74, set: 6 }, // on his feet
+  { q: 0.812, cam: aisle(AUDITORIUM.rear - 2.3), look: [4.9, 2.4, -12], fov: 74, set: 6 }, // into the aisle
+  { q: 0.83, cam: aisle(-5.7), look: [4.9, 2.0, -13.5], fov: 74, set: 6 },
+  { q: 0.85, cam: aisle(-7.05), look: [5.0, 1.8, -14.5], fov: 74, set: 6 }, // down the steps, the screen coming down over the board
+  { q: 0.87, cam: aisle(-8.4), look: [5.2, 1.7, -15.2], fov: 74, set: 6 },
+  { q: 0.89, cam: aisle(-9.75), look: [5.4, 1.5, -15.7], fov: 74, set: 6 },
+  { q: 0.905, cam: aisle(-11.1), look: [5.5, 1.4, -15.9], fov: 74, set: 6 },
+  { q: 0.92, cam: aisle(-12.45), look: [5.6, 1.35, -16.0], fov: 74, set: 6 }, // the lectern
+  { q: 0.932, cam: aisle(-13.8), look: [6.8, 1.3, -16.0], fov: 74, set: 6 },
+  { q: 0.943, cam: [5.1, 1.62, -15.0], look: [8.8, 1.4, -15.4], fov: 74, set: 6 }, // on the floor, turning right past the lectern
+  { q: 0.954, cam: [5.4, DAIS.height + 1.6, -15.8], look: [9.6, 1.8, -13.6], fov: 74, set: 6 }, // up on the dais, the right bank coming round
+  { q: 0.966, cam: [5.55, DAIS.height + 1.6, -16.2], look: [8.2, 2.6, -10.0], fov: 74, set: 6 },
+  { q: 0.978, cam: [5.6, DAIS.height + 1.6, -16.3], look: [5.8, 2.9, -7.5], fov: 74, set: 6 }, // behind the lectern: the whole hall
+  { q: 0.99, cam: [5.6, DAIS.height + 1.6, -16.3], look: [4.9, 2.8, -7.0], fov: 74, set: 6 },
+  { q: 1, cam: [5.6, DAIS.height + 1.6, -16.3], look: [4.7, 2.5, -8.0], fov: 74, set: 6 }, // teaching
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

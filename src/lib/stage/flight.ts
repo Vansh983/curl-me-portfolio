@@ -1,11 +1,22 @@
 // Scroll is the flight clock. No timers: rewinding and direct chapter jumps give the same view.
-import { AUDITORIUM, TOP_ROW } from './sets.ts';
+// The aircraft never moves: the world under it does (stage-run.ts: the flight group), sinking as the
+// altitude falls, sliding aft as the ground track runs, rolling for the bank onto the approach.
+import { AUDITORIUM, TOP_ROW, FLIGHT_DECK } from './sets.ts';
 const ease = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
-export const FLIGHT = { start: 0.703, campus: 0.778, end: 0.818, altitude: 55 } as const;
-export const PHONE = { raise: 0.778, framed: 0.793, zoom: 0.801, filled: 0.818, transfer: 0.822, reveal: 0.830 } as const;
-// Seated 1.28 m above the highest tier, behind its desk. Arrival and the entire final beat hold here.
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+/**
+ * The descent over the Halifax peninsula, seated at the port window. From `start` to `end` the ground track
+ * runs `distance` metres up the peninsula while the altitude falls from `top` to `low`; the cloud deck at
+ * `deck` metres is crossed on the way down, and the aircraft banks a few degrees to port in the middle of it.
+ */
+export const FLIGHT = { start: 0.675, end: 0.745, top: 420, low: 130, distance: 1500, deck: FLIGHT_DECK, bank: 7 } as const;
+/** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
+export const PHONE = { raise: 0.716, framed: 0.725, zoom: 0.729, filled: 0.742, transfer: 0.745, reveal: 0.752 } as const;
+/** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
-export const WINDOW_VIEW = { cam: [-4.72, 1.45, -6.4] as [number, number, number], look: [-7.72, 0.58, -6.4] as [number, number, number], fov: 74 };
+/** The window seat: eye at the oval, looking out and a little down at the city. */
+export const WINDOW_VIEW = { cam: [-4.72, 1.42, -6.4] as [number, number, number], look: [-7.72, 0.62, -6.6] as [number, number, number], fov: 74 };
 
 export function phoneAt(progress: number, reducedMotion = false) {
   const q = Number.isFinite(progress) ? progress : 0;
@@ -26,11 +37,21 @@ export function phoneLayout(aspect: number, raise: number, zoom: number) {
     crop: [initial[0] + (.7 * scale / (2 * a) - initial[0]) * zoom, initial[1] + (1.5 * scale / 2 - initial[1]) * zoom] as [number, number] };
 }
 
-export function flightAt(progress: number, reducedMotion = false) {
+export interface FlightState { altitude: number; travel: number; bank: number; veil: number }
+
+/**
+ * Where the world is under the aircraft at stage progress q: altitude in metres, the ground track run so far,
+ * the bank in degrees (positive rolls the horizon for a left turn), and the whiteout of the cloud deck, 0..1.
+ * Reduced motion holds the end of the descent: the campus abeam, low, level, clear.
+ */
+export function flightAt(progress: number, reducedMotion = false): FlightState {
   const q = Number.isFinite(progress) ? progress : 0;
-  const travel = ease((q - FLIGHT.start) / (FLIGHT.end - FLIGHT.start));
-  return {
-    altitude: FLIGHT.altitude,
-    travel: reducedMotion ? 64 : travel * 64,
-  };
+  const t = reducedMotion ? 1 : clamp01((q - FLIGHT.start) / (FLIGHT.end - FLIGHT.start));
+  const altitude = FLIGHT.top + (FLIGHT.low - FLIGHT.top) * ease(t);
+  const travel = FLIGHT.distance * (t * 0.35 + 0.65 * ease(t)); // never quite still: the ground always slides
+  const roll = Math.sin(Math.PI * clamp01((t - 0.15) / 0.55));
+  const bank = roll * roll < 1e-9 ? 0 : FLIGHT.bank * roll * roll; // rolls in, holds, rolls out through the middle of the descent
+  const off = (altitude - FLIGHT.deck) / 45;
+  const veil = Math.exp(-(off * off));
+  return { altitude, travel, bank, veil: reducedMotion ? 0 : veil };
 }

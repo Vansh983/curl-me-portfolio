@@ -11,7 +11,8 @@
     "render": "node --experimental-strip-types scripts/render.mjs",
     "stage:assets": "node --experimental-strip-types scripts/stage-assets.mjs",
     "stage:bake": "node scripts/stage-bake.mjs",
-    "stage:city": "node scripts/stage-city.mjs"
+    "stage:city": "node scripts/stage-city.mjs",
+    "stage:halifax": "node scripts/stage-halifax.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

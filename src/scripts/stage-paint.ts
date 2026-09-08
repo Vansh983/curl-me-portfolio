@@ -331,6 +331,26 @@ export const CITY_PAINT: Record<string, Paint> = {
  * quarter a building takes). Floors come in kinds, as an evening does: a few lit end to end (an
  * office working late), a quarter dark, the rest a scatter of warm homes and a few cool screens.
  */
+/** The cloud deck under the aircraft: soft cumulus on a transparent sheet, drawn once, tiled by the deck's 4 km. */
+export const CLOUD_PAINT: Record<string, Paint> = {
+  cloudDeck: { w: 1024, h: 1024, frames: [(x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    let seed = 11;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    for (let i = 0; i < 160; i++) {
+      const cx = rnd() * w, cy = rnd() * h, r = 40 + rnd() * 110, puffs = 4 + Math.floor(rnd() * 5);
+      for (let k = 0; k < puffs; k++) {
+        const px = cx + (rnd() - 0.5) * r * 1.4, py = cy + (rnd() - 0.5) * r * 0.9, pr = r * (0.35 + rnd() * 0.45);
+        const g = x.createRadialGradient(px, py, 0, px, py, pr);
+        g.addColorStop(0, 'rgba(255,255,255,0.92)'); g.addColorStop(0.55, 'rgba(250,252,255,0.6)'); g.addColorStop(1, 'rgba(240,246,252,0)');
+        x.fillStyle = g; x.beginPath(); x.arc(px, py, pr, 0, Math.PI * 2); x.fill();
+      }
+    }
+    // the shaded undersides: a faint grey pass offset down
+    x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(150,165,180,0.18)'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over';
+  }] },
+};
+
 export const WINDOW_PAINT: Record<string, Paint> = {
   windows: {
     w: 1024, h: 896,
@@ -429,6 +449,45 @@ export const SCREEN_PAINT: Record<string, Paint> = {
     for (let y = 95; y < h; y += 42) { x.beginPath(); x.moveTo(35, y); x.lineTo(w - 35, y); x.stroke(); }
     x.fillStyle = '#30434D'; x.font = '32px Georgia, serif';
     ['Computer Science', 'Binary search — sorted arrays', '', '1. Find the middle element', '2. Compare with target', '3. Keep the matching half', '', 'n → n/2 → n/4 → … → 1', 'Number of steps: log₂(n)'].forEach((s, i) => x.fillText(s, 55, 70 + i * 54));
+  }] },
+  /** The moving map on the seat backs: the route from Delhi over Europe and the Atlantic into Halifax, the aircraft on the last leg. */
+  screenMap: { w: 880, h: 540, frames: [(x, w, h) => {
+    x.fillStyle = '#0B1A2B'; x.fillRect(0, 0, w, h);
+    // an ocean, a few land masses roughed in: India, the Gulf, Europe, Greenland, the eastern seaboard
+    x.fillStyle = '#1D3A52';
+    const land = (pts: number[][]) => { x.beginPath(); pts.forEach(([px, py], i) => (i ? x.lineTo(px, py) : x.moveTo(px, py))); x.closePath(); x.fill(); };
+    land([[760, 300], [840, 330], [880, 420], [880, 540], [700, 540], [690, 420], [730, 340]]); // India
+    land([[600, 250], [700, 290], [720, 380], [640, 420], [560, 380], [540, 300]]); // the Gulf and Arabia
+    land([[430, 120], [620, 90], [700, 200], [660, 280], [520, 300], [430, 250], [400, 180]]); // Europe
+    land([[180, 30], [300, 20], [330, 120], [260, 190], [180, 150]]); // Greenland
+    land([[0, 160], [150, 200], [200, 300], [160, 420], [80, 540], [0, 540]]); // the seaboard
+    x.strokeStyle = '#F6C453'; x.lineWidth = 4; x.setLineDash([12, 10]);
+    x.beginPath(); x.moveTo(790, 400); x.quadraticCurveTo(560, 120, 172, 268); x.stroke(); x.setLineDash([]);
+    x.fillStyle = '#F6C453'; x.beginPath(); x.arc(790, 400, 9, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#FFFFFF'; x.beginPath(); x.arc(172, 268, 9, 0, Math.PI * 2); x.fill();
+    x.save(); x.translate(212, 245); x.rotate(-2.55); x.beginPath(); x.moveTo(18, 0); x.lineTo(-10, 8); x.lineTo(-6, 0); x.lineTo(-10, -8); x.closePath(); x.fill(); x.restore(); // the aircraft
+    x.font = '600 22px Inter, system-ui, sans-serif'; x.fillStyle = '#E8EEF4';
+    x.fillText('DEL  Delhi', 700, 470); x.fillText('YHZ  Halifax', 30, 320);
+    x.fillStyle = '#0F2233AA'; x.fillRect(0, h - 74, w, 74);
+    x.fillStyle = '#E8EEF4'; x.font = '600 24px Inter, system-ui, sans-serif';
+    x.fillText('Time to destination   0:14', 26, h - 44); x.fillText('Altitude   1,250 ft', 460, h - 44);
+    x.font = '20px Inter, system-ui, sans-serif'; x.fillStyle = '#A9B8C6';
+    x.fillText('Ground speed 210 kt  ·  Outside 9 °C  ·  Local time 15:42', 26, h - 14);
+  }] },
+  /** The Generative AI lecture: the slide on the projection screen and the presenter's laptop. */
+  screenSlide: { w: 1408, h: 800, frames: [(x, w, h) => {
+    x.fillStyle = '#101418'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#F2C94C'; x.fillRect(0, 0, 14, h);
+    x.fillStyle = '#F7F8FA'; x.font = '700 64px Inter, system-ui, sans-serif'; x.fillText('Generative AI', 70, 120);
+    x.fillStyle = '#A9B4C0'; x.font = '500 30px Inter, system-ui, sans-serif'; x.fillText('What a model is, what it is not  ·  ShiftKey Labs, Dalhousie', 72, 172);
+    const bullets = ['Attention: every token looks at every other token', 'A transformer is a stack of those, hundreds of times over', 'Training predicts the next token; everything else is emergent', 'Prompting, retrieval, tools: how you make it useful', 'Where it fails, and how you would know'];
+    x.font = '500 34px Inter, system-ui, sans-serif';
+    bullets.forEach((b, i) => { x.fillStyle = '#F2C94C'; x.fillRect(72, 252 + i * 74, 14, 14); x.fillStyle = '#E6EBF0'; x.fillText(b, 108, 268 + i * 74); });
+    // the attention diagram on the right: six tokens, weighted lines
+    const toks = ['the', 'model', 'reads', 'every', 'token', 'first'];
+    toks.forEach((t, i) => { const y = 250 + i * 62; x.fillStyle = '#1E262E'; x.fillRect(1010, y - 30, 130, 46); x.fillStyle = '#E6EBF0'; x.font = '500 26px ui-monospace, Menlo, monospace'; x.fillText(t, 1026, y + 2); });
+    toks.forEach((_, i) => toks.forEach((_, j) => { if (i === j) return; const wgt = ((i * 7 + j * 3) % 5) / 5; x.strokeStyle = `rgba(242,201,76,${0.08 + wgt * 0.5})`; x.lineWidth = 1 + wgt * 3; x.beginPath(); x.moveTo(1140, 250 + i * 62 - 8); x.bezierCurveTo(1260, 250 + i * 62, 1260, 250 + j * 62, 1340, 250 + j * 62 - 8); x.stroke(); }));
+    x.fillStyle = '#5B6672'; x.font = '24px Inter, system-ui, sans-serif'; x.fillText('CSCI 4xxx · Fall  ·  slide 3 / 41', 72, h - 40);
   }] },
   studyScreen: { w: 960, h: 600, frames: [(x, w, h) => {
     x.fillStyle = '#14212B'; x.fillRect(0, 0, w, h); x.fillStyle = '#263A48'; x.fillRect(0, 0, w, 57);

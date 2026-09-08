@@ -23,6 +23,7 @@ export interface Mat {
   fog?: false; // outside the room's fog, kilometres away
   inside?: true; // seen from inside (a sky dome): back faces
   tint?: true; // takes the piece's vertex colours (the city: each building its own brightness)
+  alpha?: number; // see-through: a pane of glass; kept live, never baked
 }
 
 export const MATS: Record<string, Mat> = {
@@ -35,9 +36,18 @@ export const MATS: Record<string, Mat> = {
   auditoriumCarpet: { color: '#4A4B50', rough: 1, tex: 'dirty_carpet', amp: 0.45, tile: 0.6 },
   auditoriumOak: { color: '#B99A75', rough: 0.55, tex: 'oak_veneer_01', amp: 0.35, clearcoat: 0.18, tile: 1.83 },
   acousticPanel: { color: '#484951', rough: 1, tex: 'wool_boucle', amp: 0.3, tile: 0.7 },
-  flightGround: { color: '#566E55', rough: 1, unlit: true, fog: false, tile: 1, tint: true },
-  flightOcean: { color: '#6C9BAD', rough: 1, unlit: true, fog: false, tile: 1 },
-  flightCloud: { color: '#FFFFFF', rough: 1, emissive: '#A3B7C7', emissivePower: 0.2, fog: false, tile: 1 },
+  // 2022, the crossing: the cabin, the wing, and Halifax in daylight 400 m down, lit by the sun and hazed by the set's fog
+  cabinGlass: { color: '#DCE9F2', rough: 0.05, clearcoat: 1, clearcoatRough: 0.02, alpha: 0.16, tile: 1 },
+  bridgeWall: { color: '#8E949B', rough: 0.55, clearcoat: 0.15, clearcoatRough: 0.3, tile: 1 },
+  bridgeFloor: { color: '#2E3134', rough: 0.95, grain: 'speckle', amp: 0.2, tile: 0.5 },
+  wingSkin: { color: '#C9CDD1', rough: 0.42, metal: 0.15, clearcoat: 0.25, clearcoatRough: 0.25, tile: 1 },
+  flightGround: { color: '#7F8B66', rough: 1, tile: 1 },
+  halifaxWall: { color: '#FFFFFF', rough: 0.85, tile: 1, tint: true },
+  halifaxRoof: { color: '#FFFFFF', rough: 0.9, tile: 1, tint: true },
+  seaWater: { color: '#22485F', rough: 0.12, metal: 0.05, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1 },
+  parkGreen: { color: '#5E8A45', rough: 1, tile: 1 },
+  woodGreen: { color: '#33552E', rough: 1, tile: 1 },
+  streetAsphalt: { color: '#3B3D40', rough: 0.95, tile: 1 },
   flightSky: { color: '#A8CCDE', rough: 1, unlit: true, fog: false, inside: true, tile: 1 },
   // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
   condoWall: { color: '#33343A', rough: 0.9, tex: 'plastered_wall_04', amp: 0.3, tile: 3.2 },
