@@ -1,9 +1,10 @@
 // Scroll is the flight clock. No timers: rewinding and direct chapter jumps give the same view.
 const ease = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
-export const FLIGHT = { takeoff: 0.724, cruise: 0.741, descent: 0.756, landed: 0.777 } as const;
-export const PHONE = { raise: 0.778, framed: 0.793, shutter: 0.797, zoom: 0.801, filled: 0.818, transfer: 0.822, resolved: 0.826, reveal: 0.830 } as const;
-export const CLASSROOM_VIEW = { cam: [-0.65, 2.66, -2.55] as [number, number, number], look: [1.6, 1.35, -9.7] as [number, number, number], fov: 78 };
-export const WINDOW_VIEW = { cam: [-4.3, 1.28, -6.55] as [number, number, number], look: [-7, 1.42, -6.1] as [number, number, number], fov: 74 };
+export const FLIGHT = { start: 0.703, campus: 0.778, end: 0.818, altitude: 55 } as const;
+export const PHONE = { raise: 0.778, framed: 0.793, zoom: 0.801, filled: 0.818, transfer: 0.822, reveal: 0.830 } as const;
+// Seated 1.28 m above the highest tier, behind its desk. Arrival and the entire final beat hold here.
+export const CLASSROOM_VIEW = { cam: [1.25, 2.36, -3.55] as [number, number, number], look: [1.55, 1.55, -9.9] as [number, number, number], fov: 78 };
+export const WINDOW_VIEW = { cam: [-4.72, 1.45, -6.4] as [number, number, number], look: [-7.72, 0.58, -6.4] as [number, number, number], fov: 74 };
 
 export function phoneAt(progress: number, reducedMotion = false) {
   const q = Number.isFinite(progress) ? progress : 0;
@@ -11,19 +12,24 @@ export function phoneAt(progress: number, reducedMotion = false) {
     visible: !reducedMotion && q >= PHONE.raise && q < PHONE.reveal,
     raise: ease((q - PHONE.raise) / (PHONE.framed - PHONE.raise)),
     zoom: ease((q - PHONE.zoom) / (PHONE.filled - PHONE.zoom)),
-    classroom: ease((q - PHONE.filled) / (PHONE.resolved - PHONE.filled)),
-    flash: q < PHONE.shutter ? 0 : Math.max(0, 1 - (q - PHONE.shutter) / 0.0018),
   };
+}
+
+/** Rigid handset dimensions; its camera crop resolves to the viewport at the covered cut. */
+export function phoneLayout(aspect: number, raise: number, zoom: number) {
+  const a = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
+  const start = Math.min(1, a * 1.65), end = Math.max(2 * a / .7, 2 / 1.5) * 1.08; // cover rounded corners, not just the rectangle
+  const scale = start + (end - start) * zoom;
+  const initial: [number, number] = a > .7 / 1.5 ? [(.7 / 1.5) / a, 1] : [1, a / (.7 / 1.5)];
+  return { scale, x: a * .28 * (1 - zoom), y: -2.6 * (1 - raise) * (1 - zoom),
+    crop: [initial[0] + (.7 * scale / (2 * a) - initial[0]) * zoom, initial[1] + (1.5 * scale / 2 - initial[1]) * zoom] as [number, number] };
 }
 
 export function flightAt(progress: number, reducedMotion = false) {
   const q = Number.isFinite(progress) ? progress : 0;
-  const up = ease((q - FLIGHT.takeoff) / (FLIGHT.cruise - FLIGHT.takeoff));
-  const down = ease((q - FLIGHT.descent) / (FLIGHT.landed - FLIGHT.descent));
-  const travel = ease((q - FLIGHT.takeoff) / (FLIGHT.landed - FLIGHT.takeoff));
+  const travel = ease((q - FLIGHT.start) / (FLIGHT.end - FLIGHT.start));
   return {
-    altitude: reducedMotion ? 0 : 65 * up * (1 - down),
-    travel: reducedMotion ? 90 : travel * 90,
-    arrived: reducedMotion || q >= FLIGHT.landed,
+    altitude: FLIGHT.altitude,
+    travel: reducedMotion ? 64 : travel * 64,
   };
 }

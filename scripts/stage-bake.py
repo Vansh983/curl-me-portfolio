@@ -25,7 +25,7 @@ OUT_PREVIEW = f"{ROOT}/.cache/bake/set{SET}_render.png"
 
 # what never enters the bake (far backdrops the runtime keeps drawing), what emits, what stays live
 DROP_LIVE = {"city", "sky", "water", "flight"}
-DROP_PROP = {"clouds", "bridge", "boats", "piers", "nightSky", "sky", "flightTerrain", "flightClouds", "flightSky", "campusView"}
+DROP_PROP = {"clouds", "bridge", "boats", "piers", "nightSky", "sky", "flightSky", "campusView"}
 EMIT = {"paint:screenCode": 4.0, "paint:screenFloqer": 4.0, "paint:screenBoard": 4.0, "paint:screenTerminal": 4.0, "paint:screen": 3.0, "paint:video": 3.0,
         "mat:tubeGlass": 6.0, "mat:bulb": 5.0, "mat:ledStrip": 40.0, "mat:powerLed": 4.0, "mat:xboxGreen": 2.0, "mat:lampGlobe": 6.0}
 LIVE_SURFACE = {"mat:tubeGlass", "mat:bulb", "mat:curtain"}  # runtime keeps building these pieces

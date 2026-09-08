@@ -1,5 +1,7 @@
 # Stage assets
 
+The airborne sequence also uses a [CC0 photographed sky and a project-authored Blender campus](./FLIGHT-CREDITS.md).
+
 Models and textures from [Poly Haven](https://polyhaven.com) (CC0) and free models from [BlenderKit](https://www.blenderkit.com) (royalty free). Optimised by scripts/stage-assets.mjs.
 
 - `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp, and the bedside lamp.

@@ -1,5 +1,7 @@
 # Webcube → flight → phone → Dalhousie
 
+Superseded by [22-airborne-back-row.md](./22-airborne-back-row.md): no landing or campus photo; remain seated at the top/back after the phone transfer.
+
 September 8, 2026. Continues the preferences and recovery notes in [20-delhi-webcube.md](./20-delhi-webcube.md). Local work only; no publication.
 
 ## Latest requested sequence

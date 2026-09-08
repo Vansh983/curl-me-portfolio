@@ -19,6 +19,14 @@ test('study notes use the full image instead of a single blank texture pixel', (
   assert.equal(Math.min(...uv), 0); assert.equal(Math.max(...uv), 1);
 });
 
+test('the aircraft wing has an upward-facing surface underneath its seams', () => {
+  const part=BUILT.aircraftWing()[0];
+  const mesh=new Mesh(new BufferGeometry().setAttribute('position',new Float32BufferAttribute(part.pos,3)),new MeshBasicMaterial());
+  const hit=new Raycaster(new Vector3(-7,3,-6.5),new Vector3(0,-1,0)).intersectObject(mesh)[0];
+  assert.ok(hit && Math.abs(hit.point.y-.8)<.001);
+  mesh.geometry.dispose(); mesh.material.dispose();
+});
+
 test('the lecture theatre has three raised rows, six aisle steps and a raised rear landing', () => {
   const meshes = BUILT.lectureTiers().slice(0, 2).map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
   const height = (x: number, z: number) => new Raycaster(new Vector3(x, 5, z), new Vector3(0, -1, 0)).intersectObjects(meshes)[0]?.point.y;

@@ -79,18 +79,7 @@ export const DOLLY: DollyKey[] = [
   { q: 0.806, ...WINDOW_VIEW, set: 5, blend: 0 },
   { q: PHONE.transfer, ...CLASSROOM_VIEW, set: 6, blend: 1, portal: true },
   { q: PHONE.reveal, ...CLASSROOM_VIEW, set: 6 },
-  { q: 0.844, cam: [-0.65, 2.66, -4], look: [1.55, 1.5, -9.8], fov: 78, set: 6 },
-  { q: 0.858, cam: [-0.65, 2.3, -5.43], look: [1.55, 1.55, -9.8], fov: 78, set: 6 },
-  { q: 0.874, cam: [1.25, 2.0, -5.43], look: [1.55, 1.6, -10.1], fov: 76, set: 6 },
-  { q: 0.895, cam: [1.25, 2.0, -5.43], look: [-0.5, 0.8, -7.8], fov: 72, set: 6 },
-  { q: 0.918, cam: [-0.35, 2.66, -4.4], look: [-3, 2.3, -4.2], fov: 74, set: 6 },
-  { q: 0.936, cam: [-0.8, 2.66, -2.15], look: [-2.7, 2.5, -0.9], fov: 70, set: 6 },
-  { q: 0.950, cam: [-2.6, 1.76, -1.4], look: [-4.2, 1.5, 0.9], fov: 70, set: 6 },
-  { q: 0.965, cam: [-3.35, 1.58, 0.3], look: [-5.9, 1.5, 1.5], fov: 70, set: 6 },
-  { q: 0.978, cam: [-3.35, 1.58, 1.6], look: [-5.3, 1.5, 1.6], fov: 70, set: 6 },
-  { q: 0.985, cam: [-3.93, 1.58, 1.6], look: [-6, 1.4, 1.4], fov: 70, set: 6, blend: 0 },
-  { q: 0.996, cam: [-4.5, 1.58, 1.6], look: [-6.4, 1.35, 0.5], fov: 72, set: 0, blend: 1 },
-  { q: 1, cam: [-4.7, 1.58, 1.6], look: [-6.4, 1.35, 0.1], fov: 72, set: 0 },
+  { q: 1, ...CLASSROOM_VIEW, set: 6 },
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

@@ -4,7 +4,7 @@ import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { SETS } from '../../src/lib/stage/sets.ts';
 import { BUILT } from '../../src/lib/stage/built.ts';
-import { PHONE, phoneAt } from '../../src/lib/stage/flight.ts';
+import { PHONE, phoneAt, WINDOW_VIEW, CLASSROOM_VIEW } from '../../src/lib/stage/flight.ts';
 
 const cameraAt = (q: number) => {
   const f = makeDolly(DOLLY)(q), aspect = 1440 / 900;
@@ -45,8 +45,8 @@ test('keys are ordered in q from 0 to 1 and land on the seven sets', () => {
 test('blend windows come in pairs, 0 then 1, and the set flips inside them', () => {
   const dolly = makeDolly(DOLLY);
   const zeros = DOLLY.filter((k) => k.blend === 0), ones = DOLLY.filter((k) => k.blend === 1);
-  assert.equal(zeros.length, 7);
-  assert.equal(ones.length, 7);
+  assert.equal(zeros.length, 6);
+  assert.equal(ones.length, 6);
   for (let w = 0; w < zeros.length; w++) {
     const a = zeros[w], b = ones[w];
     assert.ok(b.q > a.q);
@@ -99,10 +99,10 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[2], 1.4, 4.75), `${jambs[2].cam}`);
   assert.ok(at(jambs[3], -0.7, -0.1), `${jambs[3].cam}`); // the 2020 room's south door
   assert.ok(at(jambs[4], -2.35, 1.6), `${jambs[4].cam}`); // its west door, into the passage to the brick door
-  assert.ok(at(jambs[5], -4.3, -6.55), `${jambs[5].cam}`); // window seat: the phone is the portal
-  assert.ok(at(jambs[6], -3.93, 1.6), `${jambs[6].cam}`);
+  assert.ok(at(jambs[5], WINDOW_VIEW.cam[0], WINDOW_VIEW.cam[2]), `${jambs[5].cam}`);
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
-  assert.equal(dolly(1).set, 0);
+  assert.equal(dolly(1).set, 6);
+  assert.deepEqual(dolly(1).cam, CLASSROOM_VIEW.cam);
   // heading north through the south door, the desk on the far wall dead ahead
   const inRoom = dolly(jambs[3].q + 0.02);
   assert.equal(inRoom.set, 4);

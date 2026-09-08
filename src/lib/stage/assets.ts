@@ -1,13 +1,13 @@
 // Every downloaded model on the stage, by name. The fetch script (scripts/stage-assets.mjs)
 // turns this into optimised .glb files under public/assets/stage/ and a credits file; the runtime
-// only ever asks assetUrl(). Everything is Poly Haven, CC0. Model textures are capped at 512 px
+// only ever asks assetUrl(). Downloaded assets carry their licences; local geometry has a rebuild script. Model textures are capped at 512 px
 // and scanned surfaces at 1k: the whole set has to stay light enough for a phone on a bad connection.
-export type Licence = 'CC0' | 'CC-BY-3.0' | 'RF'; // RF: BlenderKit royalty free (use anywhere, no credit, the file itself is not for resale)
+export type Licence = 'CC0' | 'CC-BY-3.0' | 'RF' | 'Original'; // Original: project-authored geometry; RF: BlenderKit royalty free
 export type TexMap = 'diff' | 'nor' | 'arm'; // colour, normal (gl), and ambient occlusion + roughness + metalness packed in r, g, b
 export interface Asset {
   id: string; // the Poly Haven slug, or our own name for a url asset
   kind: 'model' | 'texture';
-  source: 'polyhaven' | 'url' | 'blenderkit';
+  source: 'polyhaven' | 'url' | 'blenderkit' | 'local';
   url?: string; // source 'url': a direct .glb
   bk?: number; // source 'blenderkit': the numeric download id of the gltf file (api/v1/downloads/<id>/)
   res: '1k';
@@ -30,6 +30,7 @@ const texture = (id: string, author: string, use: string, size: number, maps: Te
   ({ id, kind: 'texture', source: 'polyhaven', res: '1k', licence: 'CC0', author, use, maxTex, maps, size });
 
 export const ASSETS: Asset[] = [
+  { id: 'dalhousie_campus', kind: 'model', source: 'local', res: '1k', licence: 'Original', author: 'Project-authored in Blender', use: 'the dimensional Goldberg campus seen while airborne', maxTex: 512 },
   // now, Toronto
   model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp, and the bedside lamp', 256, 0.004),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),

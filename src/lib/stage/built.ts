@@ -148,7 +148,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
       piece(trim.out(), M('chairBase'), { smooth: true }), piece(belt.out(), M('bezel')), piece(buckle.out(), M('chrome'), { smooth: true })];
   },
   aircraftWing: () => {
-    const wing = new Sink().extrude([[-5.2, -6.1], [-5.2, -8.2], [-12.6, -4.9], [-12.9, -4.35]], 0.72, 0.8);
+    const wing = new Sink();
+    wing.extrude([[-5.2, -6.1], [-5.2, -8.2], [-12.6, -4.9], [-12.9, -4.35]], 0.72, 0.8, undefined, wing);
     const seams = new Sink();
     for (let i = 0; i < 4; i++) seams.bone([-5.8 - i * 1.55, 0.805, -6.3 + i * 0.5], [-7.1 - i * 1.55, 0.805, -5.88 + i * 0.5], 0.009, 0.009);
     return [piece(wing.out(), M('skirting')), piece(seams.out(), M('aluminium'))];
@@ -162,27 +163,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
       { ...sh.floor, surface: M('cabinFloor') }, { ...sh.walls, surface: M('cabinWall') }, { ...sh.ceiling, surface: M('cabinWall') },
     ]; });
   },
-  flightTerrain: () => {
-    const ground = new Sink(), markings = new Sink();
-    // Seen through the window only: a wooded coast and a runway moving below the wing.
-    ground.box(-60, -1.6, -45, 95, 0.6, 280);
-    const runway = new Sink().box(-12, -1.12, -45, 9, 0.05, 280);
-    for (let z = -180; z < 110; z += 10) markings.box(-12, -1.08, z, 0.2, 0.015, 4);
-    return [piece(ground.out(), M('flightGround'), { tint: true, smooth: true }), piece(runway.out(), M('asphalt')),
-      piece(markings.out(), M('skirting')), piece(offsetGeo(slab(400, 500, -2), -130, 0, -40), M('flightOcean'))];
-  },
-  flightClouds: () => {
-    const s = new Sink();
-    for (let i = 0; i < 30; i++) for (let j = 0; j < 4; j++) s.color('#FFFFFF').sphere(-30 - (i * 17 % 130) + j * 2.5, 28 + (i % 3) * 2 + Math.sin(j) * 1.5, -110 + (i * 29 % 220) + Math.cos(j) * 2, 5.5, 2.3, 4.5, 24, 12);
-    return [piece(s.out(), M('flightCloud'), { smooth: true, tint: true })];
-  },
-  flightSky: () => [piece(new Sink().sphere(-3.4, 0, -7, 600, 600, 600, 32, 16).out(), M('flightSky'), { smooth: true })],
-  flightCampus: () => {
-    // A licensed photographic background, not a claim of a surveyed 3D campus or runway view.
-    const photo = face(18, 18 * 941 / 1600), pos = new Float32Array(photo.pos);
-    for (let i = 0; i < pos.length; i += 3) { const x = pos[i]; pos[i] = 0; pos[i + 1] += 4.6; pos[i + 2] = -x; }
-    return [piece({ ...photo, pos }, { paint: 'campusPhoto' })];
-  },
+  // Lower the distant panorama's centre so the airborne lens sees cloud detail above the ground haze.
+  flightSky: () => [piece(new Sink().sphere(-3.4, -500, -7, 1500, 1500, 1500, 64, 32, UNIT).out(), M('flightSky'), { smooth: true })],
   flightSign: () => [piece(face(1.15, 0.32), { paint: 'flightSign' })],
   halifaxSign: () => [piece(face(1.5, 0.55), { paint: 'halifaxSign' })],
   lectureBoard: () => [piece(face(3.7, 1.8, 0.035), { paint: 'lectureBoard' }), piece(new Sink().rbox(0, 0, 0, 3.82, 1.92, 0.06, 0.025, 3).out(), M('aluminium'), { smooth: true })],

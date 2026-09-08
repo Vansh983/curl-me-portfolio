@@ -39,6 +39,12 @@ async function keepAnims(src, dst, names) {
 
 for (const a of ASSETS) {
   const out = `public${assetUrl(a)}`;
+  if (a.source === 'local') {
+    if (!existsSync(out)) throw new Error(`${a.id}: run node scripts/stage-flight-assets.mjs first`);
+    authors[a.id] = a.author; total += await size(out);
+    credits.push(`- \`${a.id}\` (${a.kind}), ${a.author}. ${a.use}. See [flight credits](./FLIGHT-CREDITS.md).`);
+    continue;
+  }
   if (a.source === 'url' || a.source === 'blenderkit') {
     authors[a.id] = a.author;
     const dir = `${CACHE}/${a.id}`;

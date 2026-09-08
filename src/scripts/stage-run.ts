@@ -13,7 +13,7 @@ import {
   AdditiveBlending, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
   RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
   LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, Float32BufferAttribute,
-  AnimationMixer, AnimationClip, Box3, ShaderChunk,
+  AnimationMixer, AnimationClip, Box3, ShaderChunk, type WebGLRenderTarget,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -224,6 +224,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const surfacePaint = new Map<string, CanvasTexture>();
   const mats = new Map<string, MeshStandardMaterial>();
+  let flightEnvironment: WebGLRenderTarget | undefined;
   const matFor = (name: string): MeshStandardMaterial => {
     let m = mats.get(name);
     if (m) return m;
@@ -240,6 +241,16 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     if (s.emissive && !s.unlit) { m.emissive.set(s.emissive); m.emissiveIntensity = s.emissivePower ?? 1; }
     if (s.inside) m.side = BackSide;
+    if (name === 'flightSky') {
+      const skyMaterial = m;
+      scanning.push(texLoader.loadAsync('/assets/stage/flight-sky.webp').then((texture) => {
+        texture.colorSpace = SRGBColorSpace;
+        skyMaterial.map = texture; skyMaterial.color.set('#FFFFFF'); skyMaterial.toneMapped = false; skyMaterial.needsUpdate = true;
+        flightEnvironment = pmrem.fromEquirectangular(texture);
+        if (curSet === 5) scene.environment = flightEnvironment.texture;
+        kick();
+      }));
+    }
     const tiled = <T extends Texture>(t: T): T => { const c = t.clone(); c.repeat.set(1 / s.tile, 1 / s.tile); return c; };
     if (s.paint) {
       let t = surfacePaint.get(s.paint);
@@ -311,7 +322,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[],
     mixers: [] as AnimationMixer[],
     backdrops: [] as SetScoped<Object3D>[],
-    flight: [] as Array<{ obj: Object3D; clouds: boolean; base: [number, number, number] }>,
+    flight: [] as Array<{ obj: Object3D; base: [number, number, number] }>,
   };
   let fanSpeed = 0, tubeOn = 0, tubeClock = -1;
   const timeU = { value: 0 };
@@ -442,7 +453,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       obj = placeBuilt(p.build!, p, baked);
     }
     obj.position.set(...p.at);
-    if (p.live === 'flight' && p.build !== 'flightSky') live.flight.push({ obj, clouds: p.build === 'flightClouds', base: [...p.at] });
+    if (p.live === 'flight' && p.build !== 'flightSky') live.flight.push({ obj, base: [...p.at] });
     if (p.live === 'flight') obj.name = p.build ?? 'flightTree';
     if (p.rot) obj.rotation.set(p.rot[0] * D, p.rot[1] * D, p.rot[2] * D);
     if (p.scale !== undefined) typeof p.scale === 'number' ? obj.scale.setScalar(p.scale) : obj.scale.set(...p.scale);
@@ -625,7 +636,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
-  loadImage('/assets/scenes/dalhousie-goldberg.webp').then((i) => { images.dalhousie = i; repaint(['campusPhoto']); });
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
@@ -696,12 +706,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     });
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion
-    scene.environment = S.env === 'sky' ? skyEnv : studioEnv;
+    scene.environment = i === 5 && flightEnvironment ? flightEnvironment.texture : S.env === 'sky' ? skyEnv : studioEnv;
     renderer.toneMappingExposure = S.exposure;
     hemi.color.set(S.tint.sky);
     hemi.groundColor.set(S.tint.ground);
     sun.color.set(S.sun.color);
     sun.shadow.intensity = S.sun.shadow;
+    const span = i === 5 ? 140 : 7;
+    Object.assign(sun.shadow.camera, { left: -span, right: span, top: span, bottom: -span, far: i === 5 ? 450 : 80 });
+    sun.shadow.camera.updateProjectionMatrix();
     fog.color.set(S.fog.color);
     fog.near = S.fog.near;
     fog.far = S.fog.far;
@@ -741,8 +754,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     sun.intensity = S.sun.power * dip;
     renderer.toneMappingExposure = S.exposure * (daylight ? 1 + 4.5 * (1 - f.envDip) : 1);
     // the sun follows the look, so the shadow map stays tight around what is in frame
-    const look = new Vector3(...f.look);
-    sun.position.copy(look).addScaledVector(new Vector3(...S.sun.dir).normalize(), 30);
+    const look = f.set === 5 ? new Vector3(-120, -40, -62 + flightAt(f.q, reduce.matches).travel) : new Vector3(...f.look);
+    sun.position.copy(look).addScaledVector(new Vector3(...S.sun.dir).normalize(), f.set === 5 ? 240 : 30);
     sun.target.position.copy(look);
     sun.target.updateMatrixWorld();
   };
@@ -847,7 +860,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const flight = flightAt(q, reduce.matches);
     for (const f of live.flight) {
       f.obj.position.y = f.base[1] - flight.altitude;
-      f.obj.position.z = f.base[2] + flight.travel * (f.clouds ? 0.45 : 1);
+      f.obj.position.z = f.base[2] + flight.travel;
     }
 
     // things on their own clock
@@ -868,23 +881,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     } else if (tubeClock >= 0.7) tubeOn = 1;
     for (const tb of live.tubes) { tb.mat.emissiveIntensity = 4 * tubeOn; tb.light.intensity = 6 * tubeOn; }
     if (hovered && pointer) setHover(pick(pointer.x, pointer.y));
-    phone.update(q, (canvas.clientWidth || 1) / (canvas.clientHeight || 1), reduce.matches, (kind, captureCamera, target) => {
-      // Scope the photo to what the lens sees outside, not the seat/window trim; render the
-      // destination with its own baked light. Restore all visibility and main-camera state below.
-      frame(dolly(kind === 'photo' ? 0.8 : 0.83));
-      if (kind === 'classroom') {
-        // Match the real portrait crop as well as its position: the fullscreen phone must be
-        // pixel-aligned with the destination, not an independently framed miniature classroom.
-        captureCamera.projectionMatrix.copy(camera.projectionMatrix);
-        captureCamera.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
-      }
+    phone.update(q, (canvas.clientWidth || 1) / (canvas.clientHeight || 1), reduce.matches, (captureCamera, target) => {
+      // The handset always shows the destination, with the same back-row camera and portrait crop.
+      frame(dolly(0.83));
+      captureCamera.projectionMatrix.copy(camera.projectionMatrix);
+      captureCamera.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
       const visibility = groups.map((g) => g.visible);
-      groups.forEach((g, i) => { g.visible = i === (kind === 'photo' ? 5 : 6); });
-      const children = groups[5].children.map((o) => o.visible);
-      if (kind === 'photo') groups[5].children.forEach((o) => { o.visible = o.name.startsWith('flight'); });
+      groups.forEach((g, i) => { g.visible = i === 6; });
       const previousTarget = renderer.getRenderTarget();
       renderer.setRenderTarget(target); renderer.render(scene, captureCamera); renderer.setRenderTarget(previousTarget);
-      groups[5].children.forEach((o, i) => { o.visible = children[i]; });
       groups.forEach((g, i) => { g.visible = visibility[i]; });
     });
     frame(mainFrame);
@@ -928,6 +933,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     scheme.removeEventListener('change', applyTheme);
     video.pause();
     pmrem.dispose();
+    flightEnvironment?.dispose();
+    mats.get('flightSky')?.map?.dispose();
     phone.dispose();
     composer.dispose();
     renderer.dispose();

@@ -20,6 +20,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [14-journey-real-plan.md](./14-journey-real-plan.md) | **Stage v3 plan**: 6 tasks, asset manifest and fetch, sets and dolly as data, shell builder, code-built props, the runtime, tuning |
 | [20-delhi-webcube.md](./20-delhi-webcube.md) | Current session handoff: the approved 2020 Webcube room, five-set ring, retained preferences and verification workflow |
 | [21-halifax-flight.md](./21-halifax-flight.md) | Flight, window-seat photograph and phone portal into Dalhousie; model research, licensing, Blender pipeline and verification |
+| [22-airborne-back-row.md](./22-airborne-back-row.md) | Current flight revision: stay airborne, dimensional campus, classroom-only phone, and a fixed top-row seat |
 
 ## The one-paragraph verdict
 
