@@ -10,6 +10,9 @@ export interface CityBuilding { h: number; min: number; p: number[]; dome?: 1 }
 export interface CityData { source: string; condo: [number, number]; facing: number; cn: [number, number]; buildings: CityBuilding[]; roads: number[][] }
 export const CITY = toronto as CityData;
 
+/** The CN Tower as built here: 553 m is the truth, 470 the height he asked for, so the towers round it read as tall too. */
+export const CN_HEIGHT = 470;
+
 /** The window tile (stage-paint.ts windows): 24 bays by 20 floors in 96 by 70 metres. */
 export const WINDOW_TILE = { perU: 96, perV: 70 };
 
@@ -74,24 +77,26 @@ export function cityBlocks(near: Sink, far: Sink, tops: Sink, domes: Sink, nearW
  * taper into the core under the main pod (330 to 366 m, the skirt, the seven floors and the roof),
  * the shaft on to the SkyPod at 447 and the antenna to 553. `shaft`, `pod`, `lights` take the pieces.
  */
-export function cnTower(shaft: Sink, pod: Sink, lights: Sink): void {
-  const [tx, tz] = CITY.cn;
-  shaft.lathe([[9, 0], [7.5, 120], [6.5, 330], [6.5, 368], [5.8, 440], [5.5, 457]], tx, 0, tz, 1, 1, 0, 12);
+export function cnTower(shaft: Sink, pod: Sink, lights: Sink, height = CN_HEIGHT): void {
+  const [tx, tz] = CITY.cn, k = height / 553;
+  const H = (y: number) => y * k; // he asked for it a little shorter: the towers round it should read as tall too
+  const prof = (p: Array<[number, number]>): Array<[number, number]> => p.map(([r, y]) => [r, H(y)]);
+  shaft.lathe(prof([[9, 0], [7.5, 120], [6.5, 330], [6.5, 368], [5.8, 440], [5.5, 457]]), tx, 0, tz, 1, 1, 0, 12);
   // the legs: an ellipse of half-length along the leg and half-thickness across, at each height
   for (const th of [Math.PI / 2, Math.PI / 2 + (2 * Math.PI) / 3, Math.PI / 2 + (4 * Math.PI) / 3]) {
     const dir: V3 = [Math.cos(th), 0, Math.sin(th)], side: V3 = [-Math.sin(th), 0, Math.cos(th)];
     const rings = [];
     for (const [y, r0, r1, t] of [[0, 8, 34, 5.5], [60, 7.5, 27, 4.6], [140, 7, 19, 3.6], [230, 6.5, 12.5, 2.6], [300, 6.5, 8.5, 1.8], [326, 6.3, 6.8, 1.2]] as Array<[number, number, number, number]>) {
       const mid = (r0 + r1) / 2;
-      rings.push({ c: [tx + dir[0] * mid, y, tz + dir[2] * mid] as V3, u: dir, v: side, ru: (r1 - r0) / 2, rv: t });
+      rings.push({ c: [tx + dir[0] * mid, H(y), tz + dir[2] * mid] as V3, u: dir, v: side, ru: (r1 - r0) / 2, rv: t });
     }
-    rings.push({ ...rings[rings.length - 1], c: [rings[rings.length - 1].c[0], 330, rings[rings.length - 1].c[2]] as V3, ru: 0.1, rv: 0.1 });
+    rings.push({ ...rings[rings.length - 1], c: [rings[rings.length - 1].c[0], H(330), rings[rings.length - 1].c[2]] as V3, ru: 0.1, rv: 0.1 });
     shaft.loft(rings, 10);
   }
-  pod.lathe([[6.5, 320], [10, 326], [21, 331], [22, 334], [21, 351], [19, 355], [11, 361], [6.5, 364]], tx, 0, tz, 1, 1, 0, 24);
-  pod.lathe([[5.6, 442], [8.5, 445], [9, 449], [8.5, 453], [5.6, 456]], tx, 0, tz, 1, 1, 0, 14);
-  shaft.lathe([[5.5, 457], [4, 490], [2.8, 510], [1.9, 535], [1.0, 553]], tx, 0, tz, 1, 1, 0, 8);
-  lights.sphere(tx, 553, tz, 3.5, 3.5, 3.5, 8, 6).sphere(tx, 505, tz, 3, 3, 3, 8, 6).sphere(tx, 458, tz, 3, 3, 3, 8, 6);
+  pod.lathe(prof([[6.5, 320], [10, 326], [21, 331], [22, 334], [21, 351], [19, 355], [11, 361], [6.5, 364]]), tx, 0, tz, 1, 1, 0, 24);
+  pod.lathe(prof([[5.6, 442], [8.5, 445], [9, 449], [8.5, 453], [5.6, 456]]), tx, 0, tz, 1, 1, 0, 14);
+  shaft.lathe(prof([[5.5, 457], [4, 490], [2.8, 510], [1.9, 535], [1.0, 553]]), tx, 0, tz, 1, 1, 0, 8);
+  lights.sphere(tx, H(553), tz, 3.5, 3.5, 3.5, 8, 6).sphere(tx, H(505), tz, 3, 3, 3, 8, 6).sphere(tx, H(458), tz, 3, 3, 3, 8, 6);
   // lit from below and the front, as the floodlights do it: the fins' edges catch, the faces fall off
   shade(shaft, [-0.35, -0.25, 1], 0.28, 0.85);
   shade(pod, [-0.3, -0.6, 0.9], 0.3, 0.9);

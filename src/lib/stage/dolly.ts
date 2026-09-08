@@ -16,13 +16,10 @@ export const DOLLY: DollyKey[] = [
   // and the kitchen, to the front door. A person walks: eye at 1.6, always forward, the head turning to
   // what is worth a look. fov is the horizontal field, wide as eyes are: a laptop screen shows the whole
   // room, not a corner of it
-  { q: 0.0, cam: [-6.3, 1.6, 0.85], look: [-5.93, 1.55, -3.35], fov: 78, set: 0 }, // the living room from its north side: the whole room round the glass, the CN Tower 560 m off, the desk right, the sofa left
-  { q: 0.04, cam: [-7.2, 1.6, -0.6], look: [-8.9, 1.35, -2.6], fov: 74, set: 0 }, // toward the armchair by the glass
-  { q: 0.068, cam: [-8.1, 1.6, -0.5], look: [-10.6, 1.4, -0.55], fov: 72, set: 0 }, // west: the bedroom through its open door, the bed under the glass
-  { q: 0.102, cam: [-8.05, 1.6, 0.0], look: [-9.5, 1.45, 1.4], fov: 70, set: 0 }, // north-west: the bathroom door
-  { q: 0.13, cam: [-7.6, 1.6, 0.0], look: [-7.8, 1.45, 2.0], fov: 69, set: 0 }, // north: the kitchen
-  { q: 0.16, cam: [-6.8, 1.6, 0.3], look: [-5.65, 1.4, 1.94], fov: 68, set: 0 }, // east along it, toward the hall
-  { q: 0.187, cam: [-5.7, 1.58, 1.2], look: [-5.18, 1.45, 3.14], fov: 66, set: 0 }, // the front door ahead in the north wall
+  { q: 0.0, cam: [-7.4, 1.6, 1.0], look: [-7.03, 1.55, -3.2], fov: 78, set: 0 }, // the living room from its north side: the whole room round the glass, the CN Tower 560 m off, the desk right, the sofa left
+  { q: 0.07, cam: [-7.0, 1.6, 0.55], look: [-5.6, 1.4, -0.85], fov: 74, set: 0 }, // turning left past the desk
+  { q: 0.13, cam: [-6.3, 1.6, 0.35], look: [-4.3, 1.4, 0.35], fov: 70, set: 0 }, // the television on the brick, the door back in
+  { q: 0.18, cam: [-5.7, 1.58, 0.9], look: [-5.0, 1.45, 2.8], fov: 68, set: 0 }, // the hall, the front door ahead in the north wall
   { q: 0.22, cam: [-5.45, 1.58, 2.3], look: [-5.45, 1.5, 4.5], fov: 68, set: 0, blend: 0 }, // door jamb, heading north
   { q: 0.252, cam: [-5.45, 1.58, 3.35], look: [-5.45, 1.5, 5.5], fov: 68, set: 1, blend: 1 }, // mid passage
   // 2010: in through the south door, up the east side of the room, the television and the Xbox on the floor

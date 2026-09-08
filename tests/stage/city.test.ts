@@ -41,6 +41,6 @@ describe('city', () => {
     assert.ok(cn > 500 && cn < 4000, `${cn} triangles in the CN Tower`);
     let top = 0;
     for (let i = 1; i < shaft.pos.length; i += 3) top = Math.max(top, shaft.pos[i]);
-    assert.equal(Math.round(top), 553);
+    assert.equal(Math.round(top), 470); // CN_HEIGHT: shortened on request
   });
 });
