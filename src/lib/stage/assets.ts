@@ -62,7 +62,7 @@ export const ASSETS: Asset[] = [
   model('throw_pillows_01', 'Serhii Khromov', 'cushions on the rug', 256),
   // 2013, the lab
   model('SchoolDesk_01', 'Ethan Place', 'the lab desks'),
-  model('SchoolChair_01', 'Ethan Place', 'the lab chairs'),
+  model('SchoolChair_01', 'Ethan Place', 'the Dalhousie classroom chairs'),
   model('wall_clock', 'PierreB3D', 'the clock', 256),
   // 2018, the plaza
   model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified hard)', 512, 0.003),

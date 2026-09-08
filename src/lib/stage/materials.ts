@@ -26,6 +26,15 @@ export interface Mat {
 }
 
 export const MATS: Record<string, Mat> = {
+  cabinWall: { color: '#E3E1D8', rough: 0.42, clearcoat: 0.22, tile: 1 },
+  cabinSeat: { color: '#233E59', rough: 0.88, tex: 'wool_boucle', amp: 0.4, sheen: 0.6, tile: 0.35 },
+  cabinFloor: { color: '#303D49', rough: 1, tex: 'dirty_carpet', amp: 0.6, tile: 0.6 },
+  lectureWall: { color: '#E8E2D6', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 },
+  lectureFloor: { color: '#A7A49B', rough: 0.85, grain: 'speckle', amp: 0.1, tile: 1 },
+  flightGround: { color: '#566E55', rough: 1, unlit: true, fog: false, tile: 1, tint: true },
+  flightOcean: { color: '#6C9BAD', rough: 1, unlit: true, fog: false, tile: 1 },
+  flightCloud: { color: '#FFFFFF', rough: 1, emissive: '#A3B7C7', emissivePower: 0.2, fog: false, tile: 1 },
+  flightSky: { color: '#A8CCDE', rough: 1, unlit: true, fog: false, inside: true, tile: 1 },
   // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
   condoWall: { color: '#33343A', rough: 0.9, tex: 'plastered_wall_04', amp: 0.3, tile: 3.2 },
   condoBrick: { color: '#4A4644', rough: 0.95, tex: 'dark_brick_wall', amp: 0.9, tile: 1.05 },

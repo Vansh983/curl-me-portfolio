@@ -2,8 +2,44 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { BUILT } from '../../src/lib/stage/built.ts';
 import { MATS } from '../../src/lib/stage/materials.ts';
-import { SETS } from '../../src/lib/stage/sets.ts';
+import { LECTURE_ROWS, SETS } from '../../src/lib/stage/sets.ts';
 import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
+
+test('the cabin has open oval windows, complete corner trim and an inward-facing curved roof', () => {
+  const meshes = BUILT.aircraftCabin().map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
+  const hits = (origin: number[], direction: number[]) => new Raycaster(new Vector3(...origin), new Vector3(...direction), 0, 2).intersectObjects(meshes);
+  assert.equal(hits([-4.3, 1.42, -6.4], [-1, 0, 0]).length, 0);
+  assert.ok(hits([-4.3, 1.83, -6.11], [-1, 0, 0]).length > 0, 'no triangular crack outside the oval');
+  assert.ok(hits([-3.4, 1.6, -7], [0, 1, 0]).length > 0, 'ceiling must face the passenger');
+  meshes.forEach((m) => { m.geometry.dispose(); m.material.dispose(); });
+});
+
+test('study notes use the full image instead of a single blank texture pixel', () => {
+  const uv = BUILT.studyNotes()[0].uv;
+  assert.equal(Math.min(...uv), 0); assert.equal(Math.max(...uv), 1);
+});
+
+test('the lecture theatre has three raised rows, six aisle steps and a raised rear landing', () => {
+  const meshes = BUILT.lectureTiers().slice(0, 2).map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
+  const height = (x: number, z: number) => new Raycaster(new Vector3(x, 5, z), new Vector3(0, -1, 0)).intersectObjects(meshes)[0]?.point.y;
+  const near = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 0.001, `${actual} / ${expected}`);
+  for (const row of LECTURE_ROWS) {
+    near(height(2, row.desk), row.height);
+    for (let half = 0; half < 2; half++) near(height(-0.8, row.front + (half + 0.5) * (row.back - row.front) / 2), row.height - (1 - half) * 0.18);
+  }
+  near(height(-0.8, -2.6), 1.08);
+  meshes.forEach((m) => { m.geometry.dispose(); m.material.dispose(); });
+});
+
+test('the rear exit has a level landing across the entire door before its stairs', () => {
+  const part = BUILT.halifaxReturn().at(-1)!;
+  const mesh = new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(part.pos, 3)), new MeshBasicMaterial());
+  for (const x of [-1.34, -0.8, -0.26]) {
+    const hit = new Raycaster(new Vector3(x, 4, -1.6), new Vector3(0, -1, 0)).intersectObject(mesh)[0];
+    assert.ok(Math.abs(hit.point.y - 1.08) < 0.001);
+  }
+  mesh.geometry.dispose(); mesh.material.dispose();
+});
 
 test('plaza paving stops at indoor floors while covering the route to Delhi', () => {
   const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(BUILT.plazaFloor()[0].pos, 3));
@@ -29,7 +65,7 @@ test('the exterior facade sits beyond Delhi interior walls without coplanar face
   parts.forEach((part) => { part.geometry.dispose(); part.material.dispose(); });
 });
 
-const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard']; // video: the live television
+const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto']; // video: the live television
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {

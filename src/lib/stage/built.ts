@@ -5,6 +5,7 @@
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
 import { cityBlocks, cnTower } from './city.ts';
 import { buildShell } from './shell.ts';
+import { LECTURE_ROWS } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -89,6 +90,142 @@ const car = (mat: string) => (): BuiltPart => {
 };
 
 export const BUILT: Record<string, () => BuiltPart> = {
+  // ---- 2022: the crossing. Cabin in world coordinates; seats are local reusable assemblies.
+  aircraftCabin: () => {
+    const sh = buildShell({ x: [-5.2, -1.6], z: [-10.2, -4.8], h: 1.95,
+      floor: 'cabinFloor', wall: 'cabinWall', openings: [
+        { wall: 'z+', at: -3.4, w: 1.1, h: 1.95 },
+        { wall: 'x+', at: -9.45, w: 1.1, h: 1.95 },
+        ...[-8.5, -7.45, -6.4, -5.35].flatMap((z) => (['x-', 'x+'] as const).map((wall) => ({ wall, at: z, w: 0.62, h: 0.86, sill: 0.99 }))),
+      ] });
+    const roof = new Sink(), rims = new Sink(), bins = new Sink(), details = new Sink();
+    // A continuous curved crown, not a rectangular room with airplane seats in it.
+    for (let i = 0; i < 40; i++) {
+      const a = Math.PI * i / 40, b = Math.PI * (i + 1) / 40;
+      const p = (t: number, z: number): V3 => [-3.4 + 1.8 * Math.cos(t), 1.95 + 0.69 * Math.sin(t), z];
+      roof.quad(p(a, -4.8), p(b, -4.8), p(b, -10.2), p(a, -10.2));
+      // End caps above the two bulkheads.
+      roof.tri([-3.4, 1.95, -10.2], p(a, -10.2), p(b, -10.2));
+      roof.tri([-3.4, 1.95, -4.8], p(b, -4.8), p(a, -4.8));
+    }
+    for (const side of [-1, 1]) for (const z of [-8.5, -7.45, -6.4, -5.35]) {
+      const x = -3.4 + side * 1.8;
+      // Fill the rectangular shell aperture around an oval; reveal thickness catches bounced light.
+      const corner = Math.atan2(0.43, 0.31);
+      const angles = [...Array.from({ length: 48 }, (_, i) => Math.PI * 2 * i / 48), corner, Math.PI - corner, Math.PI + corner, Math.PI * 2 - corner].sort((a, b) => a - b);
+      for (let i = 0; i < angles.length; i++) {
+        const point = (n: number, outer: boolean, depth: number): V3 => {
+          const a = angles[n % angles.length], c = Math.cos(a), s = Math.sin(a);
+          const r = outer ? Math.min(0.31 / Math.max(1e-9, Math.abs(c)), 0.43 / Math.max(1e-9, Math.abs(s))) : 1;
+          return [x - side * depth, 1.42 + s * (outer ? r : 0.36), z + c * (outer ? r : 0.245)];
+        };
+        const quad = (a: V3, b: V3, c: V3, d: V3) => side === -1 ? rims.quad(a, d, c, b) : rims.quad(a, b, c, d);
+        quad(point(i, true, 0.01), point(i + 1, true, 0.01), point(i + 1, false, 0.01), point(i, false, 0.01));
+        quad(point(i, false, 0.01), point(i + 1, false, 0.01), point(i + 1, false, -0.11), point(i, false, -0.11));
+      }
+      bins.rbox(-3.4 + side * 1.28, 2.13, z, 0.8, 0.37, 1.025, 0.12, 5);
+      details.rbox(-3.4 + side * 0.95, 1.98, z, 0.035, 0.018, 0.17, 0.007, 2);
+      for (const dz of [-0.12, 0.12]) details.cylinder(-3.4 + side * 1.12, 1.925, z + dz, 0.026, 0.01, 16);
+    }
+    return [{ ...sh.floor, surface: M('cabinFloor') }, { ...sh.walls, surface: M('cabinWall') },
+      piece(roof.out(), M('cabinWall'), { smooth: true }), piece(rims.out(), M('skirting'), { smooth: true }),
+      piece(bins.out(), M('cabinWall'), { smooth: true }), piece(details.out(), M('aluminium'), { smooth: true })];
+  },
+  aircraftSeat: () => {
+    const cloth = new Sink().rbox(0, 0.47, 0, 0.46, 0.13, 0.48, 0.065, 5)
+      .rbox(0, 0.91, 0.19, 0.46, 0.8, 0.12, 0.06, 5).rbox(0, 1.26, 0.17, 0.37, 0.25, 0.14, 0.065, 5);
+    const shell = new Sink().rbox(0, 0.86, 0.27, 0.47, 0.66, 0.065, 0.03, 3);
+    const trim = new Sink().rbox(0, 0.83, 0.309, 0.36, 0.26, 0.028, 0.025, 3)
+      .rbox(0, 0.985, 0.32, 0.09, 0.025, 0.02, 0.007, 2);
+    for (const x of [-0.26, 0.26]) {
+      trim.rbox(x, 0.67, 0.025, 0.055, 0.055, 0.45, 0.02, 3);
+      shell.box(x, 0.52, 0.16, 0.025, 0.25, 0.04);
+    }
+    for (const x of [-0.16, 0.16]) shell.box(x, 0.22, 0.1, 0.045, 0.4, 0.05);
+    const belt = new Sink().box(-0.11, 0.541, 0, 0.19, 0.008, 0.038).box(0.11, 0.541, 0, 0.19, 0.008, 0.038);
+    const buckle = new Sink().rbox(0, 0.547, 0, 0.055, 0.012, 0.044, 0.004, 2);
+    return [piece(cloth.out(), M('cabinSeat'), { smooth: true }), piece(shell.out(), M('cabinWall'), { smooth: true }),
+      piece(trim.out(), M('chairBase'), { smooth: true }), piece(belt.out(), M('bezel')), piece(buckle.out(), M('chrome'), { smooth: true })];
+  },
+  aircraftWing: () => {
+    const wing = new Sink().extrude([[-5.2, -6.1], [-5.2, -8.2], [-12.6, -4.9], [-12.9, -4.35]], 0.72, 0.8);
+    const seams = new Sink();
+    for (let i = 0; i < 4; i++) seams.bone([-5.8 - i * 1.55, 0.805, -6.3 + i * 0.5], [-7.1 - i * 1.55, 0.805, -5.88 + i * 0.5], 0.009, 0.009);
+    return [piece(wing.out(), M('skirting')), piece(seams.out(), M('aluminium'))];
+  },
+  boardingPassage: () => {
+    const sections = [
+      { x: [-4.2, -2.4] as [number, number], z: [1, 2.2] as [number, number], openings: [{ wall: 'x+' as const, at: 1.6, w: 0.9, h: 2.05 }, { wall: 'z-' as const, at: -3.35, w: 1.2, h: 2.4 }, { wall: 'x-' as const, at: 1.6, w: 1.2, h: 2.4 }] },
+      { x: [-3.95, -2.75] as [number, number], z: [-4.8, 1] as [number, number], openings: [{ wall: 'z+' as const, at: -3.35, w: 1.2, h: 2.4 }, { wall: 'z-' as const, at: -3.4, w: 1.1, h: 2.4 }, { wall: 'x+' as const, at: -1.4, w: 1.2, h: 2.4 }] },
+    ];
+    return sections.flatMap((s) => { const sh = buildShell({ ...s, h: 2.4, floor: 'cabinFloor', wall: 'cabinWall' }); return [
+      { ...sh.floor, surface: M('cabinFloor') }, { ...sh.walls, surface: M('cabinWall') }, { ...sh.ceiling, surface: M('cabinWall') },
+    ]; });
+  },
+  flightTerrain: () => {
+    const ground = new Sink(), markings = new Sink();
+    // Seen through the window only: a wooded coast and a runway moving below the wing.
+    ground.box(-60, -1.6, -45, 95, 0.6, 280);
+    const runway = new Sink().box(-12, -1.12, -45, 9, 0.05, 280);
+    for (let z = -180; z < 110; z += 10) markings.box(-12, -1.08, z, 0.2, 0.015, 4);
+    return [piece(ground.out(), M('flightGround'), { tint: true, smooth: true }), piece(runway.out(), M('asphalt')),
+      piece(markings.out(), M('skirting')), piece(offsetGeo(slab(400, 500, -2), -130, 0, -40), M('flightOcean'))];
+  },
+  flightClouds: () => {
+    const s = new Sink();
+    for (let i = 0; i < 30; i++) for (let j = 0; j < 4; j++) s.color('#FFFFFF').sphere(-30 - (i * 17 % 130) + j * 2.5, 28 + (i % 3) * 2 + Math.sin(j) * 1.5, -110 + (i * 29 % 220) + Math.cos(j) * 2, 5.5, 2.3, 4.5, 24, 12);
+    return [piece(s.out(), M('flightCloud'), { smooth: true, tint: true })];
+  },
+  flightSky: () => [piece(new Sink().sphere(-3.4, 0, -7, 600, 600, 600, 32, 16).out(), M('flightSky'), { smooth: true })],
+  flightCampus: () => {
+    // A licensed photographic background, not a claim of a surveyed 3D campus or runway view.
+    const photo = face(18, 18 * 941 / 1600), pos = new Float32Array(photo.pos);
+    for (let i = 0; i < pos.length; i += 3) { const x = pos[i]; pos[i] = 0; pos[i + 1] += 4.6; pos[i + 2] = -x; }
+    return [piece({ ...photo, pos }, { paint: 'campusPhoto' })];
+  },
+  flightSign: () => [piece(face(1.15, 0.32), { paint: 'flightSign' })],
+  halifaxSign: () => [piece(face(1.5, 0.55), { paint: 'halifaxSign' })],
+  lectureBoard: () => [piece(face(3.7, 1.8, 0.035), { paint: 'lectureBoard' }), piece(new Sink().rbox(0, 0, 0, 3.82, 1.92, 0.06, 0.025, 3).out(), M('aluminium'), { smooth: true })],
+  dalhousieSign: () => [piece(face(3.8, 0.42), { paint: 'dalhousieSign' })],
+  studyNotes: () => [piece(new Sink().quad([-0.225, 0.012, 0.155], [0.225, 0.012, 0.155], [0.225, 0.012, -0.155], [-0.225, 0.012, -0.155], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'studyNotes' })],
+  halifaxReturn: () => {
+    const sh = buildShell({ x: [-2.75, -0.2], z: [-2, -0.8], h: 3.5, floor: 'cabinFloor', wall: 'lectureWall', openings: [
+      { wall: 'z-', at: -0.8, w: 1.1, h: 2.1, sill: 1.08 }, { wall: 'x-', at: -1.4, w: 1.2, h: 2.4 },
+    ] });
+    const steps = new Sink();
+    // A level landing spans the whole doorway before the return flight descends west.
+    for (let i = 0; i < 6; i++) { const h = (i + 1) * 0.18; steps.box(-2.75 + (i + 0.5) * 0.225, h / 2, -1.4, 0.225, h, 1.2); }
+    steps.box(-0.8, 0.54, -1.4, 1.2, 1.08, 1.2);
+    return [{ ...sh.floor, surface: M('cabinFloor') }, { ...sh.walls, surface: M('lectureWall') }, { ...sh.ceiling, surface: M('lectureWall') }, piece(steps.out(), M('lectureFloor'), { metres: 'xz' })];
+  },
+  lectureTiers: () => {
+    const platforms = new Sink(), aisle = new Sink(), edges = new Sink(), rail = new Sink();
+    for (const row of LECTURE_ROWS) {
+      const depth = row.back - row.front;
+      platforms.box(2.325, row.height / 2, (row.front + row.back) / 2, 4.95, row.height, depth);
+      edges.box(2.325, row.height + 0.006, row.front + 0.035, 4.95, 0.012, 0.07);
+      for (let half = 0; half < 2; half++) {
+        const h = row.height - (1 - half) * 0.18, z = row.front + (half + 0.5) * depth / 2;
+        aisle.box(-0.875, h / 2, z, 1.45, h, depth / 2);
+        edges.box(-0.875, h + 0.006, row.front + half * depth / 2 + 0.025, 1.45, 0.012, 0.05);
+      }
+    }
+    platforms.box(1.6, 0.54, -2.625, 6.4, 1.08, 1.25);
+    rail.bone([-1.5, 1.15, -8.7], [-1.5, 2.05, -3.25], 0.028, 0.028);
+    for (const z of [-8.7, -6.9, -5.05, -3.25]) rail.bone([-1.5, 0.25, z], [-1.5, 1.15 + (z + 8.7) * 0.9 / 5.45, z], 0.018, 0.018);
+    return [piece(platforms.out(), M('lectureFloor'), { metres: 'xz' }), piece(aisle.out(), M('cabinFloor'), { metres: 'xz' }), piece(edges.out(), M('aluminium')), piece(rail.out(), M('chairBase'), { smooth: true })];
+  },
+  lectureBench: () => {
+    const top = new Sink().rbox(0, 0.72, 0, 1.9, 0.04, 0.54, 0.015, 3), legs = new Sink();
+    for (const x of [-0.72, 0.72]) legs.box(x, 0.35, 0, 0.055, 0.7, 0.055).rbox(x, 0.035, 0, 0.09, 0.07, 0.44, 0.015, 3);
+    legs.box(0, 0.5, -0.2, 1.6, 0.04, 0.035);
+    return [piece(top.out(), M('deskLaminate'), { smooth: true }), piece(legs.out(), M('chairBase'), { smooth: true })];
+  },
+  campusView: () => {
+    const brick = new Sink().box(18, 3, -6, 1, 6, 20), windows = new Sink();
+    for (let z = -14; z < 4; z += 2) for (const y of [1.7, 4.3]) windows.box(17.48, y, z, 0.015, 1.8, 1.2);
+    return [piece(brick.out(), M('condoBrick')), piece(windows.out(), M('carGlass')), piece(offsetGeo(slab(18, 30, -0.05), 14, 0, -6), M('flightGround'))];
+  },
   // ---- now, Toronto
   /** The desk: a black slab 1.8 × 0.75 on two steel frames; the top is at 0.74. */
   desk: () => {

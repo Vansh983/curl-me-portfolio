@@ -31,7 +31,7 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0) and free mode
 - `book_encyclopedia_set_01` (model) by John Malcolm, CC0, https://polyhaven.com/a/book_encyclopedia_set_01. the books on the shelf.
 - `throw_pillows_01` (model) by Serhii Khromov, CC0, https://polyhaven.com/a/throw_pillows_01. cushions on the rug.
 - `SchoolDesk_01` (model) by Ethan Place, CC0, https://polyhaven.com/a/SchoolDesk_01. the lab desks.
-- `SchoolChair_01` (model) by Ethan Place, CC0, https://polyhaven.com/a/SchoolChair_01. the lab chairs.
+- `SchoolChair_01` (model) by Ethan Place, CC0, https://polyhaven.com/a/SchoolChair_01. the Dalhousie classroom chairs.
 - `wall_clock` (model) by PierreB3D, CC0, https://polyhaven.com/a/wall_clock. the clock.
 - `island_tree_01` (model) by Rob Tuytel, CC0, https://polyhaven.com/a/island_tree_01. the trees by the plaza (1.6 M triangles scanned, simplified hard).
 - `palm_medium` (model) by BlenderKit (CC0), RF, https://www.blenderkit.com/api/v1/downloads/609465/. the palms along the Embarcadero.

@@ -4,7 +4,7 @@
 export type Ctx = CanvasRenderingContext2D;
 export type Painter = (x: Ctx, w: number, h: number) => void;
 export interface Paint { w: number; h: number; frames: Painter[] }
-export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null }
+export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
   const c = document.createElement('canvas');
@@ -42,6 +42,16 @@ function googleWord(x: Ctx, cx: number, y: number, size: number): void {
 export function painters(images: Images, video: HTMLVideoElement): Record<string, Paint> {
   const mono = '15px ui-monospace, Menlo, monospace';
   return {
+    campusPhoto: { w: 1600, h: 941, frames: [(x, w, h) => {
+      x.fillStyle = '#7F9AA9'; x.fillRect(0, 0, w, h);
+      if (images.dalhousie) x.drawImage(images.dalhousie, 0, 0, w, h);
+      x.fillStyle = '#142B3CDD'; x.fillRect(0, 0, w, 110);
+      // Keep the location inside the portrait lens crop as well as the landscape window.
+      x.textAlign = 'center';
+      x.fillStyle = '#FFFFFF'; x.font = '600 40px Georgia, serif'; x.fillText('Dalhousie University', w / 2, 51);
+      x.font = '22px Inter, sans-serif'; x.fillText('HALIFAX, NOVA SCOTIA', w / 2, 87);
+      x.textAlign = 'left';
+    }] },
     // the TV picture with the Call of Duty HUD, then Notepad with the first website
     screen: {
       w: 512, h: 320,
@@ -381,6 +391,50 @@ export const BADGE_PAINT: Record<string, Paint> = {
 
 /** What is on his screens now: an editor, the Floqer app, a terminal on the laptop. */
 export const SCREEN_PAINT: Record<string, Paint> = {
+  flightSign: { w: 920, h: 256, frames: [(x, w, h) => {
+    x.fillStyle = '#142C3C'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#AAC1CF'; x.font = '24px Inter, sans-serif'; x.fillText('2022  /  A NEW CHAPTER', 38, 53);
+    x.fillStyle = '#FFFFFF'; x.font = '600 65px Inter, sans-serif'; x.fillText('DELHI  →  HALIFAX', 38, 139);
+    x.fillStyle = '#AAC1CF'; x.font = '26px Inter, sans-serif'; x.fillText('CANADA                         WELCOME ABOARD', 38, 206);
+  }] },
+  halifaxSign: { w: 900, h: 330, frames: [(x, w, h) => {
+    x.fillStyle = '#182C35'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#DB5148'; x.fillRect(34, 37, 8, 250);
+    x.fillStyle = '#A5C0CD'; x.font = '26px Inter, sans-serif'; x.fillText('CANADA  /  NOVA SCOTIA', 68, 72);
+    x.fillStyle = '#FFFFFF'; x.font = '600 93px Inter, sans-serif'; x.fillText('HALIFAX', 65, 183);
+    x.fillStyle = '#D3DFE5'; x.font = '32px Inter, sans-serif'; x.fillText('Arrivals  →  Dalhousie University', 68, 268);
+  }] },
+  dalhousieSign: { w: 1400, h: 155, frames: [(x, w, h) => {
+    x.fillStyle = '#252722'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#EAC54C'; x.fillRect(0, 0, 10, h);
+    x.font = '600 56px Georgia, serif'; x.fillText('Dalhousie University', 40, 75);
+    x.fillStyle = '#E7E7DC'; x.font = '23px Inter, sans-serif'; x.fillText('FACULTY OF COMPUTER SCIENCE  ·  HALIFAX, NOVA SCOTIA', 44, 124);
+  }] },
+  lectureBoard: { w: 1480, h: 720, frames: [(x, w, h) => {
+    x.fillStyle = '#18352E'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#F0EEE0'; x.font = '45px Georgia, serif'; x.fillText('Data structures & algorithms', 60, 86);
+    x.strokeStyle = '#82968A'; x.lineWidth = 2; x.beginPath(); x.moveTo(60, 112); x.lineTo(w - 60, 112); x.stroke();
+    x.font = '28px ui-monospace, monospace';
+    ['Binary search', '', 'lo = 0; hi = n - 1', 'while lo <= hi:', '  mid = (lo + hi) // 2', '  if a[mid] == target: return mid', '  if a[mid] < target: lo = mid + 1', '  else: hi = mid - 1'].forEach((s, i) => x.fillText(s, 60, 176 + i * 46));
+    const nodes = [[1110, 232, '32'], [965, 345, '16'], [1255, 345, '48'], [905, 458, '8'], [1025, 458, '24'], [1195, 458, '40'], [1315, 458, '56']] as const;
+    x.strokeStyle = '#D8DCCC'; x.lineWidth = 3;
+    for (const [a, b] of [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6]]) { x.beginPath(); x.moveTo(nodes[a][0], nodes[a][1]); x.lineTo(nodes[b][0], nodes[b][1]); x.stroke(); }
+    for (const [cx, cy, label] of nodes) { x.fillStyle = '#18352E'; x.beginPath(); x.arc(cx, cy, 31, 0, 2 * Math.PI); x.fill(); x.stroke(); x.fillStyle = '#EFEBDC'; x.fillText(label, cx - 17, cy + 10); }
+    x.fillStyle = '#E9D38A'; x.font = '33px Georgia, serif'; x.fillText('O(log n) time   ·   O(1) space', 65, 644);
+    x.font = '25px Georgia, serif'; x.fillText('Halve the search space.', 920, 570);
+  }] },
+  studyNotes: { w: 900, h: 620, frames: [(x, w, h) => {
+    x.fillStyle = '#F2ECDD'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = '#C4CFCD'; x.lineWidth = 1;
+    for (let y = 95; y < h; y += 42) { x.beginPath(); x.moveTo(35, y); x.lineTo(w - 35, y); x.stroke(); }
+    x.fillStyle = '#30434D'; x.font = '32px Georgia, serif';
+    ['Computer Science', 'Binary search — sorted arrays', '', '1. Find the middle element', '2. Compare with target', '3. Keep the matching half', '', 'n → n/2 → n/4 → … → 1', 'Number of steps: log₂(n)'].forEach((s, i) => x.fillText(s, 55, 70 + i * 54));
+  }] },
+  studyScreen: { w: 960, h: 600, frames: [(x, w, h) => {
+    x.fillStyle = '#14212B'; x.fillRect(0, 0, w, h); x.fillStyle = '#263A48'; x.fillRect(0, 0, w, 57);
+    x.fillStyle = '#DBE6EA'; x.font = '24px ui-monospace, monospace'; x.fillText('binary_search.py  ·  Computer Science', 25, 38);
+    ['def binary_search(values, target):', '    lo, hi = 0, len(values) - 1', '    while lo <= hi:', '        mid = (lo + hi) // 2', '        if values[mid] == target:', '            return mid', '        if values[mid] < target:', '            lo = mid + 1', '        else:', '            hi = mid - 1', '    return -1', '', '>>> binary_search([8, 16, 24, 32], 24)', '2'].forEach((s, i) => { x.fillStyle = i > 11 ? '#A1D5A2' : '#D0DDEA'; x.fillText(s, 35, 99 + i * 35); });
+  }] },
   screenCode: {
     w: 768, h: 432,
     frames: [(x, w, h) => {

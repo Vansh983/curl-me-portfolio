@@ -1,17 +1,18 @@
 // The camera path, as data, and the function from stage progress to a frame. Pure.
 //
-// One dolly runs through the five sets. Keys carry a stage progress q; between two keys the
+// One dolly runs through seven sets, with one phone-covered portal. Keys carry a stage progress q; between two keys the
 // curve parameter is linear in q, so the spacing of keys sets the speed. A pair of keys marked
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
 import { CatmullRomCurve3, Vector3 } from 'three';
 import type { V3 } from './sets.ts';
+import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE } from './flight.ts';
 
-export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1 }
+export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1; portal?: true }
 /** `from` and `into` are the sets a doorway joins; outside a doorway both equal `set`. */
 export interface Frame { q: number; set: number; from: number; into: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
 
-export const DOLLY: DollyKey[] = [
+const APPROACH: DollyKey[] = [
   // now: from the north-west corner of the studio, a turn on the spot to the front door and straight out. A person
   // walks: eye at 1.6, always forward, the head turning to what is worth a look. fov is the horizontal field, wide
   // as eyes are: a laptop screen shows the whole room, not a corner of it
@@ -59,17 +60,50 @@ export const DOLLY: DollyKey[] = [
   { q: 0.89, cam: [-1.0, 1.58, 1.95], look: [-2.15, 1.45, 3.05], fov: 64, set: 4 }, // turning left over the desk's end, the lamp
   { q: 0.912, cam: [-1.4, 1.58, 1.85], look: [-3.0, 1.45, 2.05], fov: 66, set: 4 }, // the door west, the passage, the brick door beyond it
   { q: 0.932, cam: [-1.9, 1.58, 1.65], look: [-3.9, 1.5, 1.6], fov: 68, set: 4 },
-  { q: 0.951, cam: [-2.35, 1.58, 1.6], look: [-4.3, 1.5, 1.6], fov: 68, set: 4, blend: 0 }, // door jamb, heading west
-  { q: 0.972, cam: [-3.2, 1.58, 1.6], look: [-5.2, 1.45, 1.3], fov: 68, set: 0, blend: 1 }, // mid passage: the studio, night again
-  { q: 1.0, cam: [-3.85, 1.58, 1.58], look: [-6.1, 1.3, 0.5], fov: 72, set: 0 }, // home: the desk, the glass, the city
+  { q: 0.951, cam: [-2.35, 1.58, 1.6], look: [-4.5, 1.5, 0.9], fov: 68, set: 4, blend: 0 }, // door jamb, beginning the turn into the boarding passage
+];
+
+export const DOLLY: DollyKey[] = [
+  // Seven sets instead of five. Rescaling preserves every earlier view's actual scroll position.
+  ...APPROACH.map((k) => ({ ...k, q: k.q * 2 / 3 })),
+  { q: 0.650, cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 },
+  { q: 0.668, cam: [-3.35, 1.58, -0.7], look: [-3.4, 1.5, -4.3], fov: 70, set: 5 },
+  { q: 0.688, cam: [-3.4, 1.58, -3.6], look: [-4.7, 1.5, -7.6], fov: 74, set: 5 },
+  { q: 0.703, cam: [-3.4, 1.58, -5.2], look: [-6, 1.4, -6.7], fov: 74, set: 5 },
+  { q: 0.714, cam: [-3.85, 1.4, -6.6], look: [-6.8, 1.42, -6.75], fov: 74, set: 5 },
+  { q: 0.724, ...WINDOW_VIEW, set: 5 },
+  { q: 0.741, ...WINDOW_VIEW, set: 5 },
+  { q: 0.756, ...WINDOW_VIEW, set: 5 },
+  { q: 0.777, ...WINDOW_VIEW, set: 5 },
+  { q: 0.800, ...WINDOW_VIEW, set: 5 },
+  { q: 0.806, ...WINDOW_VIEW, set: 5, blend: 0 },
+  { q: PHONE.transfer, ...CLASSROOM_VIEW, set: 6, blend: 1, portal: true },
+  { q: PHONE.reveal, ...CLASSROOM_VIEW, set: 6 },
+  { q: 0.844, cam: [-0.65, 2.66, -4], look: [1.55, 1.5, -9.8], fov: 78, set: 6 },
+  { q: 0.858, cam: [-0.65, 2.3, -5.43], look: [1.55, 1.55, -9.8], fov: 78, set: 6 },
+  { q: 0.874, cam: [1.25, 2.0, -5.43], look: [1.55, 1.6, -10.1], fov: 76, set: 6 },
+  { q: 0.895, cam: [1.25, 2.0, -5.43], look: [-0.5, 0.8, -7.8], fov: 72, set: 6 },
+  { q: 0.918, cam: [-0.35, 2.66, -4.4], look: [-3, 2.3, -4.2], fov: 74, set: 6 },
+  { q: 0.936, cam: [-0.8, 2.66, -2.15], look: [-2.7, 2.5, -0.9], fov: 70, set: 6 },
+  { q: 0.950, cam: [-2.6, 1.76, -1.4], look: [-4.2, 1.5, 0.9], fov: 70, set: 6 },
+  { q: 0.965, cam: [-3.35, 1.58, 0.3], look: [-5.9, 1.5, 1.5], fov: 70, set: 6 },
+  { q: 0.978, cam: [-3.35, 1.58, 1.6], look: [-5.3, 1.5, 1.6], fov: 70, set: 6 },
+  { q: 0.985, cam: [-3.93, 1.58, 1.6], look: [-6, 1.4, 1.4], fov: 70, set: 6, blend: 0 },
+  { q: 0.996, cam: [-4.5, 1.58, 1.6], look: [-6.4, 1.35, 0.5], fov: 72, set: 0, blend: 1 },
+  { q: 1, cam: [-4.7, 1.58, 1.6], look: [-6.4, 1.35, 0.1], fov: 72, set: 0 },
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
 
 export function makeDolly(keys: DollyKey[]): (q: number) => Frame {
   const n = keys.length;
-  const cam = new CatmullRomCurve3(keys.map((k) => new Vector3(...k.cam)), false, 'centripetal');
-  const look = new CatmullRomCurve3(keys.map((k) => new Vector3(...k.look)), false, 'centripetal');
+  // A portal deliberately changes location only while its screen covers the viewport. Separate
+  // curves prevent neighbouring control points from pulling the camera through intervening walls.
+  const starts = [0, ...keys.flatMap((k, i) => k.portal ? [i] : [])];
+  const segments = starts.map((start, i) => {
+    const end = (starts[i + 1] ?? n) - 1, part = keys.slice(start, end + 1);
+    return { start, end, cam: new CatmullRomCurve3(part.map((k) => new Vector3(...k.cam)), false, 'centripetal'), look: new CatmullRomCurve3(part.map((k) => new Vector3(...k.look)), false, 'centripetal') };
+  });
   const windows: [number, number][] = [];
   for (let k = 0; k < n; k++) {
     if (keys[k].blend !== 0) continue;
@@ -81,19 +115,20 @@ export function makeDolly(keys: DollyKey[]): (q: number) => Frame {
     while (k < n - 2 && q >= keys[k + 1].q) k++;
     const a = keys[k], b = keys[k + 1];
     const f = clamp01((q - a.q) / (b.q - a.q));
-    const u = (k + f) / (n - 1);
+    const segment = segments.findLast((s) => q >= keys[s.start].q) ?? segments[0];
+    const u = Math.min(1, (k + f - segment.start) / (segment.end - segment.start));
     let set = a.set, from = a.set, into = a.set, blend = 0, envDip = 1;
     for (const [s, e] of windows) {
       if (q < keys[s].q || q > keys[e].q) continue;
       blend = clamp01((q - keys[s].q) / (keys[e].q - keys[s].q));
       from = keys[s].set; into = keys[e].set;
-      set = blend < 0.5 ? from : into;
+      set = keys[e].portal ? (q < keys[e].q ? from : into) : (blend < 0.5 ? from : into);
       envDip = 1 - 0.88 * Math.sin(Math.PI * blend);
     }
     return {
       q, set, from, into, blend, envDip,
-      cam: cam.getPoint(u).toArray() as V3,
-      look: look.getPoint(u).toArray() as V3,
+      cam: segment.cam.getPoint(u).toArray() as V3,
+      look: segment.look.getPoint(u).toArray() as V3,
       fov: a.fov + (b.fov - a.fov) * f,
     };
   };

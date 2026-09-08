@@ -19,6 +19,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [13-journey-real-spec.md](./13-journey-real-spec.md) | **Stage v3 spec**: real light (HDRI), scanned CC0 models and surfaces from Poly Haven, three sets joined by one dolly through doorways, nothing morphs |
 | [14-journey-real-plan.md](./14-journey-real-plan.md) | **Stage v3 plan**: 6 tasks, asset manifest and fetch, sets and dolly as data, shell builder, code-built props, the runtime, tuning |
 | [20-delhi-webcube.md](./20-delhi-webcube.md) | Current session handoff: the approved 2020 Webcube room, five-set ring, retained preferences and verification workflow |
+| [21-halifax-flight.md](./21-halifax-flight.md) | Flight, window-seat photograph and phone portal into Dalhousie; model research, licensing, Blender pipeline and verification |
 
 ## The one-paragraph verdict
 

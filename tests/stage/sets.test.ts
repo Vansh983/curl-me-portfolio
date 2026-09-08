@@ -1,14 +1,26 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SETS } from '../../src/lib/stage/sets.ts';
+import { LECTURE_ROWS, SETS } from '../../src/lib/stage/sets.ts';
 import { ASSETS } from '../../src/lib/stage/assets.ts';
 import { MATS } from '../../src/lib/stage/materials.ts';
 
 const ids = new Set(ASSETS.map((a) => a.id));
 const finite = (v: number[]) => v.every((n) => Number.isFinite(n));
 
-test('five sets, each lit and finite', () => {
-  assert.equal(SETS.length, 5);
+test('lecture furniture follows the stepped floor and the rear door meets its landing', () => {
+  const theatre = SETS[6];
+  for (const row of LECTURE_ROWS) {
+    assert.equal(theatre.props.filter((p) => p.build === 'lectureBench' && p.at[1] === row.height && p.at[2] === row.desk).length, 2);
+    const chairs = theatre.props.filter((p) => p.model === 'SchoolChair_01' && p.at[1] === row.height);
+    assert.equal(chairs.length, 4);
+    assert.ok(chairs.every((p) => p.rot?.[1] === 180 && p.at[2] > row.desk && p.at[2] < row.back));
+  }
+  assert.equal(theatre.shell!.openings.find((o) => o.wall === 'z+')!.sill, 1.08);
+  assert.ok(theatre.shell!.h - 1.08 > 3);
+});
+
+test('seven sets, each lit and finite', () => {
+  assert.equal(SETS.length, 7);
   for (const s of SETS) {
     assert.ok(s.env === 'studio' || s.env === 'sky');
     assert.ok(s.tint.power >= 0);
@@ -30,8 +42,8 @@ test('every placement names a model in the manifest or a code-built prop, and si
 });
 
 test('shells use designed materials and open where the dolly passes', () => {
-  const [now, room, lab, plaza, delhi] = SETS;
-  for (const s of [now, room, lab, delhi]) {
+  const [now, room, lab, plaza, delhi, , halifax] = SETS;
+  for (const s of [now, room, lab, delhi, halifax]) {
     assert.ok(s.shell);
     assert.ok(MATS[s.shell!.floor] && MATS[s.shell!.wall] && MATS[s.shell!.ceiling ?? s.shell!.wall], `${s.id} materials`);
     assert.ok(s.shell!.openings.some((o) => o.h > 1.9 && (o.sill ?? 0) === 0), `${s.id} has a door`);

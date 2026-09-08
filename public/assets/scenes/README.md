@@ -1,5 +1,7 @@
 # Scene media credits
 
+- `dalhousie-goldberg.webp`: Ryan Sharpe / Wikimedia Commons, CC BY-SA 4.0. [Source, modifications and license](./DALHOUSIE-CREDITS.md).
+
 - `jobs.jpg` is a phone-free portrait crop adapted to monochrome from [Steve Jobs Headshot 2010-CROP.jpg](https://commons.wikimedia.org/wiki/File:Steve_Jobs_Headshot_2010-CROP.jpg) by Matthew Yohe, licensed [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
 - `xbox-360-logo.png` is rendered from [Xbox 360 logo.svg](https://commons.wikimedia.org/wiki/File:Xbox_360_logo.svg), listed as public domain on Wikimedia Commons. Xbox and Xbox 360 are trademarks of Microsoft.
 - `football.svg` is adapted from [Football (soccer ball).svg](https://commons.wikimedia.org/wiki/File:Football_(soccer_ball).svg), released under CC0.

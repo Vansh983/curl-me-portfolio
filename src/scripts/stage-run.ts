@@ -1,4 +1,4 @@
-// The journey stage, client side. Four sets along +x, lit by a soft studio environment indoors
+// The journey stage, client side. Seven connected sets, lit by a soft studio environment indoors
 // and a clear sky outdoors (both made in code, nothing downloaded), dressed with a few scanned
 // models and designed materials on code-built shells, joined by one camera dolly that changes set
 // while the frame is inside a doorway. Spec: docs/rebuild/13-journey-real-spec.md.
@@ -32,6 +32,8 @@ import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
 import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
+import { flightAt, phoneAt } from '../lib/stage/flight.ts';
+import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress } from '../lib/stage/shot.ts';
@@ -72,6 +74,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const fog = new Fog(new Color('#EFE3D0'), 12, 60);
   scene.fog = fog;
   const camera = new PerspectiveCamera(50, 1, 0.05, 2600); // the city outside the condo is a kilometre away
+  const phone = createPhone(renderer);
 
   // one sun that casts, one hemisphere that tints; the rest of the light is the environment
   const sun = new DirectionalLight(0xffffff, 1);
@@ -139,7 +142,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const video = document.createElement('video');
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
-  const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null };
+  const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null, dalhousie: null as HTMLImageElement | null };
   const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
@@ -275,7 +278,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const [name, frame] = s.paint.split(':');
       // screens and the city at night give off their own light: unlit, not tone mapped, no fog on the city
       if (name === 'video') return new MeshBasicMaterial({ map: videoTex, toneMapped: false });
-      if (name.startsWith('screen') || name === 'toronto') return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: name !== 'toronto' });
+      if (name.startsWith('screen') || name === 'toronto' || name.startsWith('campus')) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: name !== 'toronto' && !name.startsWith('campus') });
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
     // emitters and the water get their own copy so their state does not leak into the shared one
@@ -308,14 +311,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[],
     mixers: [] as AnimationMixer[],
     backdrops: [] as SetScoped<Object3D>[],
+    flight: [] as Array<{ obj: Object3D; clouds: boolean; base: [number, number, number] }>,
   };
   let fanSpeed = 0, tubeOn = 0, tubeClock = -1;
   const timeU = { value: 0 };
 
   const addScreen = (model: Object3D, p: Placement, map: Texture, baked = false) => {
     const k = typeof p.scale === 'number' ? p.scale : 1;
-    const plane = new Mesh(new PlaneGeometry(TV_SCREEN.w, TV_SCREEN.h), new MeshBasicMaterial({ map, toneMapped: false }));
-    plane.position.set(TV_SCREEN.at[0], TV_SCREEN.at[1], TV_SCREEN.at[2]);
+    const laptop = p.model === 'laptop_14_aluminium';
+    const display = laptop ? { w: 0.288, h: 0.182, at: [0, 0.13, -0.11] } : TV_SCREEN;
+    const plane = new Mesh(new PlaneGeometry(display.w, display.h), new MeshBasicMaterial({ map, toneMapped: false }));
+    plane.position.set(display.at[0], display.at[1], display.at[2]);
+    if (laptop) plane.rotation.x = -0.08;
     model.add(plane);
     // the television lights the room a little; nine monitors would be nine more lights in every
     // shader, so those keep to their emissive glass. A baked set has the glow in its lightmap
@@ -352,6 +359,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const placeBuilt = (name: string, p: Placement, baked = false): Object3D => {
     const part: Built[] = BUILT[name]();
     const g = new Group();
+    g.name = name;
     for (const piece of part) {
       const key = 'mat' in piece.surface ? `mat:${piece.surface.mat}` : `paint:${piece.surface.paint}`;
       if (baked && !DROP_PROP.has(name) && !CONTEXT_PROP.has(name) && !pieceIsLive(key, p.live ?? '')) continue; // the rest of the prop is in the baked set
@@ -413,7 +421,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (p.model && baked && (p.live === 'tv' || p.live === 'monitor')) {
       // the set is baked: only the glass is live, on an empty where the model stands
       obj = new Group();
-      addScreen(obj, p, p.live === 'tv' ? videoTex : paintTex('screen', 1), true);
+      addScreen(obj, p, p.live === 'tv' ? videoTex : paintTex(p.screen ?? 'screen', p.screen ? 0 : 1), true);
     } else if (p.model) {
       obj = (await loadModel(p.model)).scene.clone();
       obj.traverse((o) => { if (o instanceof Mesh) o.name = `m|${p.model}|${o.name}|${p.live ?? ''}`; });
@@ -429,17 +437,24 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         obj.add(light);
       }
       if (p.live === 'tv') addScreen(obj, p, videoTex);
-      if (p.live === 'monitor') addScreen(obj, p, paintTex('screen', 1));
+      if (p.live === 'monitor') addScreen(obj, p, paintTex(p.screen ?? 'screen', p.screen ? 0 : 1));
     } else {
       obj = placeBuilt(p.build!, p, baked);
     }
     obj.position.set(...p.at);
+    if (p.live === 'flight' && p.build !== 'flightSky') live.flight.push({ obj, clouds: p.build === 'flightClouds', base: [...p.at] });
+    if (p.live === 'flight') obj.name = p.build ?? 'flightTree';
     if (p.rot) obj.rotation.set(p.rot[0] * D, p.rot[1] * D, p.rot[2] * D);
     if (p.scale !== undefined) typeof p.scale === 'number' ? obj.scale.setScalar(p.scale) : obj.scale.set(...p.scale);
-    if (p.live === 'city' || p.live === 'sky') {
+    if (p.live === 'city' || p.live === 'sky' || p.live === 'flight') {
       const sets = p.live === 'sky' ? [Math.max(0, set - 1), set] : [set];
       obj.visible = sets.includes(curSet);
       live.backdrops.push({ root: obj, sets });
+    }
+    if (set === 0 && p.build === 'passage' && p.at[0] === -4.2) {
+      // The flight's L-shaped corridor owns this floor while approaching from Halifax.
+      obj.visible = curSet === 0;
+      live.backdrops.push({ root: obj, sets: [0] });
     }
     groups[set].add(obj);
     if (p.cap) hot.push({ root: obj, p, set });
@@ -486,6 +501,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const S = SETS[i];
     if (S.baked && exportSet !== i && !LIVE_ALL) {
       await loadBaked(i);
+      await Promise.all(scanning); // cloned surface maps must have pixels before this group can render
       groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
       scene.add(groups[i]);
       kick();
@@ -511,6 +527,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       groups[i].add(sky);
     }
     await Promise.all(S.props.map((p) => place(p, i)));
+    await Promise.all(scanning);
     groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
     scene.add(groups[i]);
     kick();
@@ -608,6 +625,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
+  loadImage('/assets/scenes/dalhousie-goldberg.webp').then((i) => { images.dalhousie = i; repaint(['campusPhoto']); });
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
@@ -698,6 +716,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (pinned && Number.isInteger(pinnedSet) && SETS[pinnedSet]) f = { ...f, set: pinnedSet, from: pinnedSet, into: pinnedSet, blend: 0, envDip: 1 };
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     // portrait: the text owns the lower half, so the frustum is cropped from a taller one
+    camera.aspect = w / h; // setViewOffset changes aspect; never feed that cropped value into the next frame
     camera.position.set(...f.cam);
     camera.lookAt(new Vector3(...f.look));
     const v = 2 * Math.atan(Math.tan((f.fov * D) / 2) / camera.aspect);
@@ -709,6 +728,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     camera.updateProjectionMatrix();
 
     if (f.set !== curSet) enter(f.set);
+    // These neighbours connect by the phone, not their shared wall. Keep cabin trim out of
+    // the theatre; its boarding corridor becomes visible again beyond the rear exit.
+    if (f.set === 6) groups[5].visible = f.cam[2] > -2;
     const S: StageSet = SETS[f.set];
     // inside a doorway the light dips, except a door onto daylight: there the frame flares white
     // instead, the way eyes meet the sun, so the plaza is never seen dark under a bright sky
@@ -818,8 +840,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     let q = stageProgress(cur, chapters, SETS.length);
     if (reduce.matches) q = Math.round(q * (SETS.length - 1)) / Math.max(1, SETS.length - 1);
-    frame(dolly(q));
+    const mainFrame = dolly(q);
+    root.classList.toggle('phone-focus', phoneAt(q, reduce.matches).visible);
+    frame(mainFrame);
     for (const d of live.doors) { const k = Math.min(1, Math.max(0, (q - d.from) / (d.to - d.from))); d.obj.rotation.y = d.base + (Math.PI / 2) * k * k * (3 - 2 * k); }
+    const flight = flightAt(q, reduce.matches);
+    for (const f of live.flight) {
+      f.obj.position.y = f.base[1] - flight.altitude;
+      f.obj.position.z = f.base[2] + flight.travel * (f.clouds ? 0.45 : 1);
+    }
 
     // things on their own clock
     const t = now / 1000;
@@ -839,7 +868,28 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     } else if (tubeClock >= 0.7) tubeOn = 1;
     for (const tb of live.tubes) { tb.mat.emissiveIntensity = 4 * tubeOn; tb.light.intensity = 6 * tubeOn; }
     if (hovered && pointer) setHover(pick(pointer.x, pointer.y));
+    phone.update(q, (canvas.clientWidth || 1) / (canvas.clientHeight || 1), reduce.matches, (kind, captureCamera, target) => {
+      // Scope the photo to what the lens sees outside, not the seat/window trim; render the
+      // destination with its own baked light. Restore all visibility and main-camera state below.
+      frame(dolly(kind === 'photo' ? 0.8 : 0.83));
+      if (kind === 'classroom') {
+        // Match the real portrait crop as well as its position: the fullscreen phone must be
+        // pixel-aligned with the destination, not an independently framed miniature classroom.
+        captureCamera.projectionMatrix.copy(camera.projectionMatrix);
+        captureCamera.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
+      }
+      const visibility = groups.map((g) => g.visible);
+      groups.forEach((g, i) => { g.visible = i === (kind === 'photo' ? 5 : 6); });
+      const children = groups[5].children.map((o) => o.visible);
+      if (kind === 'photo') groups[5].children.forEach((o) => { o.visible = o.name.startsWith('flight'); });
+      const previousTarget = renderer.getRenderTarget();
+      renderer.setRenderTarget(target); renderer.render(scene, captureCamera); renderer.setRenderTarget(previousTarget);
+      groups[5].children.forEach((o, i) => { o.visible = children[i]; });
+      groups.forEach((g, i) => { g.visible = visibility[i]; });
+    });
+    frame(mainFrame);
     composer.render();
+    phone.render();
     if (!shown) { shown = true; canvas.classList.add('on'); } // the first frame fades in over the page colour
     // scrolling renders every frame; at rest, the live things (fan, video, curtains, water) run at
     // thirty, which is what a laptop on battery can give all day
@@ -859,10 +909,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   onScroll();
 
   // the set in view first, then every remaining set in sequence while the reader is near the stage
-  loadAllSets(SETS.length, loadSet, () => {
+  const loading = Number.isInteger(exportSet) && SETS[exportSet] ? loadSet(exportSet) : loadAllSets(SETS.length, loadSet, () => {
     if (curSet < 0) enter(0);
     kick();
-  }).catch((err) => console.warn('[journey] a set did not load', err));
+  });
+  loading.catch((err) => console.warn('[journey] a set did not load', err));
 
   return () => {
     if (raf > 0) cancelAnimationFrame(raf);
@@ -877,8 +928,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     scheme.removeEventListener('change', applyTheme);
     video.pause();
     pmrem.dispose();
+    phone.dispose();
     composer.dispose();
     renderer.dispose();
     cap.remove();
+    root.classList.remove('phone-focus');
   };
 }

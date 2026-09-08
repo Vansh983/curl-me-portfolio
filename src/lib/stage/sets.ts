@@ -1,4 +1,4 @@
-// The world as data: five sets in a ring, each with its light, its shell and what stands in it.
+// The world as data: seven sets in a ring, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
 //   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick door on x+ at z 1.6
@@ -7,7 +7,8 @@
 //   Set 2 LAB      x -3.15..2.05 z  4.7..9.7   h 3.0   2013; in from the west at z 6.6, out south at x 1.4
 //   Set 3 PLAZA    x -4.14..     z < 4.6               2018, the Embarcadero, outdoors; south, then round west and north to the 2020 room's door
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
-//   Passage        x -4.2..-2.4  z  1.0..2.2           west, 1.8 m, to the brick door: home again
+//   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
+//   Set 6 HALIFAX  x -1.6..4.8   z -10.2..-2.0        classroom, then north/west back to Toronto's brick door
 export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
@@ -28,10 +29,11 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'screen' | 'city' | 'sky' | 'door';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'screen' | 'city' | 'sky' | 'door' | 'flight';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 export interface Placement {
+  screen?: string; // optional painted content for a model's fitted display
   door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
   model?: string;
   build?: string;
@@ -65,6 +67,11 @@ export interface StageSet {
 /** Lab stations along x: five on the long bench (far wall), three on the short one (near wall). */
 const STATIONS_A = [-2.45, -1.5, -0.55, 0.4, 1.35];
 const STATIONS_B = [-2.45, -1.5, -0.55];
+export const LECTURE_ROWS = [
+  { front: -8.8, back: -6.95, desk: -7.95, height: 0.36 },
+  { front: -6.95, back: -5.1, desk: -6.1, height: 0.72 },
+  { front: -5.1, back: -3.25, desk: -4.25, height: 1.08 },
+] as const;
 
 export const SETS: StageSet[] = [
   {
@@ -121,8 +128,8 @@ export const SETS: StageSet[] = [
       { build: 'discLight', at: [-6.8, 2.8, 0.2], live: 'pendant' },
       { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
       { build: 'passage', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room
-      { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the way back in from Delhi
-      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.915, 0.95] }, // hinged on the north jamb, closed in the brick doorway until the journey comes back to it, then swung open into the room along the north wall, clear of the last look at the desk
+      { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the return from Halifax
+      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.961, 0.985] }, // the return from Halifax; opens into the studio
     ],
   },
   {
@@ -288,6 +295,60 @@ export const SETS: StageSet[] = [
       { model: 'coffee_mug', at: [0.1, 0, 2.55], rot: [0, 110, 0] },
       { model: 'ceiling_fan', at: [-0.85, 2.7, 1.8], live: 'fan' },
       { build: 'discLight', at: [-0.85, 2.7, 2.6], live: 'pendant' },
+      { build: 'doorLeaf', at: [-2.4, 0, 1.15], live: 'door', door: [0.608, 0.634] },
+    ],
+  },
+  {
+    id: 'flight', env: 'studio', baked: true,
+    tint: { sky: '#D8E8F2', ground: '#A7A59E', power: 0.4 }, exposure: 0.85, envPower: 0.55,
+    sun: { dir: [-0.8, 0.45, -0.2], color: '#FFF3DF', power: 2.2, shadow: 0.7 },
+    fog: { color: '#A8CCDE', near: 100, far: 500 },
+    props: [
+      { build: 'boardingPassage', at: [0, 0, 0] },
+      { build: 'aircraftCabin', at: [0, 0, 0] },
+      ...[-8.5, -7.45, -6.4, -5.35].flatMap((z) => [-4.7, -4.13, -2.67, -2.1].map((x): Placement => ({ build: 'aircraftSeat', at: [x, 0, z] }))),
+      { build: 'aircraftWing', at: [0, 0, 0] },
+      { build: 'flightTerrain', at: [0, 0, 0], live: 'flight', shadow: false },
+      { build: 'flightClouds', at: [0, 0, 0], live: 'flight', shadow: false },
+      { build: 'flightSky', at: [0, 0, 0], live: 'flight', shadow: false },
+      { build: 'flightCampus', at: [-20, -0.7, -96], live: 'flight', shadow: false, cap: 'Dalhousie University, Halifax. Photograph: Ryan Sharpe / Wikimedia Commons, CC BY-SA 4.0.', href: '/assets/scenes/DALHOUSIE-CREDITS.md' },
+      ...[-108, -83, -78].map((z): Placement => ({ model: 'island_tree_01', at: [-19, -1, z], scale: 0.24, live: 'flight', shadow: false })),
+      { build: 'flightSign', at: [-3.35, 1.82, -4.77], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
+      { build: 'flightSign', at: [-3.4, 2.05, -10.18], live: 'screen' },
+      { build: 'halifaxSign', at: [-2.1, 2.26, -9.46], rot: [0, -90, 0], live: 'screen' },
+      ...[-8.7, -6.6, -1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, z < -4.8 ? 2.6 : 2.4, z], live: 'pendant', scale: 0.65 })),
+    ],
+  },
+  {
+    id: 'halifax', env: 'studio', baked: true,
+    tint: { sky: '#E2EAF0', ground: '#B5AC94', power: 0.35 }, exposure: 0.8, envPower: 0.5,
+    sun: { dir: [0.65, 0.5, -0.3], color: '#FFF0CF', power: 2.4, shadow: 0.8 },
+    fog: { color: '#DEE7EC', near: 30, far: 200 },
+    shell: { x: [-1.6, 4.8], z: [-10.2, -2], h: 4.2, floor: 'lectureFloor', wall: 'lectureWall', ceiling: 'labCeiling', openings: [
+      { wall: 'x-', at: -9.45, w: 1.1, h: 2.1 },
+      { wall: 'z+', at: -0.8, w: 1.1, h: 2.1, sill: 1.08 },
+      ...[-8.3, -5.8, -3.3].map((z): Opening => ({ wall: 'x+', at: z, w: 1.8, h: 1.6, sill: 1.05 })),
+    ] },
+    props: [
+      { build: 'lectureBoard', at: [1.55, 1.77, -10.15], live: 'screen', cap: 'Computer science at Dalhousie University. Halifax, Nova Scotia.' },
+      { build: 'dalhousieSign', at: [1.55, 2.98, -10.13], live: 'screen' },
+      { build: 'lectureTiers', at: [0, 0, 0] },
+      { build: 'doorLeaf', at: [-1.58, 0, -10], scale: [1, 2.1 / 2.04, 1.1 / 0.85], live: 'door' },
+      ...LECTURE_ROWS.flatMap((row) => [0.85, 3.3].flatMap((x): Placement[] => [
+        { build: 'lectureBench', at: [x, row.height, row.desk] },
+        ...[-0.48, 0.48].map((dx): Placement => ({ model: 'SchoolChair_01', at: [x + dx, row.height, row.desk + 0.63], rot: [0, 180, 0] })),
+      ])),
+      { model: 'laptop_14_aluminium', at: [1.25, 1.46, -6.1], live: 'monitor', screen: 'studyScreen', cap: 'A raised row in a Dalhousie computer science lecture theatre.' },
+      { build: 'studyNotes', at: [0.58, 1.47, -5.98], live: 'screen', rot: [0, 6, 0] },
+      { model: 'coffee_mug', at: [1.56, 1.46, -6.03], scale: 0.8 },
+      { build: 'books', at: [3.75, 1.46, -6.1], rot: [0, 90, 0], scale: 0.7 },
+      { model: 'wall_clock', at: [4.77, 2.78, -9.55], rot: [0, -90, 0] },
+      ...[-8.3, -5.8, -3.3].map((z): Placement => ({ build: 'mullions', at: [4.79, 1.05, z], rot: [0, -90, 0], scale: [0.36, 0.8, 1] })),
+      ...[-8.1, -5.1].flatMap((z) => [0, 3.3].map((x): Placement => ({ build: 'tube', at: [x, 4.12, z], live: 'tube' }))),
+      { build: 'halifaxSign', at: [-1.57, 2.48, -9.45], rot: [0, 90, 0], live: 'screen' },
+      { build: 'halifaxReturn', at: [0, 0, 0] },
+      { model: 'potted_plant_01', at: [4.32, 1.08, -2.48], scale: 1.5 },
+      { build: 'campusView', at: [0, 0, 0], live: 'city', shadow: false },
     ],
   },
 ];

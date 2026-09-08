@@ -70,7 +70,9 @@ const n = chapters.length;
     margin-top: -100svh;
     padding: 0 var(--pad);
     pointer-events: none;
+    transition: opacity 0.25s ease;
   }
+  .journey:global(.phone-focus) .wall { opacity: 0; }
   .tx {
     pointer-events: auto;
   }
