@@ -1,12 +1,13 @@
-// The world as data: four sets along +x, each with its light, its shell and what stands in it.
+// The world as data: five sets in a ring, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
-//   Set 0 NOW      x -8.4..-4.2  z -2.2..2.2   h 2.8   Toronto, high up; window on z-, door on +x wall at z 1.6
-//   Passage        x -4.2..-2.4  z  1.0..2.2   h 2.4
-//   Set 1 ROOM     x -2.4..1.2   z -2.1..2.1   h 2.7   compact; doors on x- and x+ walls at z 1.6
-//   Passage        x  1.2..3.0   z  1.0..2.2   h 2.4   plain, one bulb
-//   Set 2 LAB      x  3.0..8.2   z -1.5..3.5   h 3.0   two rows of three desks; door in at z 1.6 (x-), out at z 2.6 (x+)
-//   Set 3 SF       x  8.2..      z open        the Embarcadero; the bay beyond z < -50, the bridge 170 m off
+//   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick door on x+ at z 1.6
+//   Passage        x -4.85..     z  2.2..4.3           north, 2.1 m, to the 2010 room
+//   Set 1 ROOM     x -9.15..-4.95 z 4.3..7.9   h 2.7   2010, Delhi; in from the south at x -5.45, out east at z 6.6
+//   Set 2 LAB      x -3.15..2.05 z  4.7..9.7   h 3.0   2013; in from the west at z 6.6, out south at x 1.4
+//   Set 3 PLAZA    x -4.14..     z < 4.6               2018, the Embarcadero, outdoors; south, then round west and north to the 2020 room's door
+//   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
+//   Passage        x -4.2..-2.4  z  1.0..2.2           west, 1.8 m, to the brick door: home again
 export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
@@ -120,8 +121,8 @@ export const SETS: StageSet[] = [
       { build: 'discLight', at: [-6.8, 2.8, 0.2], live: 'pendant' },
       { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
       { build: 'passage', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room
-      { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the way back in from the plaza
-      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.945, 0.975] }, // hinged on the north jamb, closed in the brick doorway until the journey comes back to it, then swung open into the room along the north wall, clear of the last look at the desk
+      { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the way back in from Delhi
+      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.915, 0.95] }, // hinged on the north jamb, closed in the brick doorway until the journey comes back to it, then swung open into the room along the north wall, clear of the last look at the desk
     ],
   },
   {
@@ -206,7 +207,7 @@ export const SETS: StageSet[] = [
     // south door at (1.4, 2.6) heading south: the planter and the white sign ahead facing the camera,
     // the hedge and the brown rail, the trophy on the wall; palms behind; the road, the lamp posts,
     // the cars and the piers on the left, east; the Bay Bridge ahead and left over the bay. Then a
-    // right turn, west, to the brick door back into the apartment. Outdoors: shown only from the lab on.
+    // right turn, west, then north through the Delhi room's entrance. Outdoors: shown only while in the plaza.
     props: [
       { build: 'plazaFloor', at: [4, 0, 2.6] },
       { build: 'facade', at: [0, 0, 0] }, // the outside of the rooms we came through, seen only from here
@@ -233,6 +234,60 @@ export const SETS: StageSet[] = [
       { build: 'bridge', at: [244, -0.2, -315.2], rot: [0, 235, 0], scale: 4 }, // its near tower 170 m off, left of the sign, rising out of frame
       { build: 'boats', at: [64, -0.2, 4.8], rot: [0, 270, 0] },
       { build: 'clouds', at: [4, 0, 10.8], rot: [0, 270, 0], live: 'sky', shadow: false }, // 400 m up and out: scoped, or they drift into the Toronto window
+    ],
+  },
+  {
+    // 2020: back in Delhi, the room at home during Covid, at night, where Webcube was run: 3.1 by 3.6 m, in from the
+    // plaza through the south door, the wide desk dead ahead on the north wall (two monitors, two laptops, the PC, a
+    // shelf of books over it and a shelf of awards over that), the single bed on the right along the east wall under
+    // a drawn curtain, the mess on the floor; then left, west, through the passage to the brick door of the studio.
+    id: 'delhi', env: 'studio', tint: { sky: '#7A6A58', ground: '#2A2119', power: 0.14 }, exposure: 0.7, envPower: 0.12, baked: true,
+    sun: { dir: [0.3, 0.6, -0.75], color: '#FFD2A0', power: 0.5, shadow: 0.8 },
+    fog: { color: '#1A1612', near: 10, far: 50 },
+    shell: {
+      x: [-2.4, 0.7], z: [0, 3.6], h: 2.7,
+      floor: 'roomFloor', wall: 'delhiWall', ceiling: 'delhiCeiling',
+      openings: [
+        { wall: 'z-', at: -0.7, w: 0.9, h: 2.05 }, // in from the plaza, heading north
+        { wall: 'x-', at: 1.6, w: 0.9, h: 2.05 }, // out to the left, west, into the passage to the brick door
+      ],
+    },
+    props: [
+      { build: 'doorFrame', at: [-0.7, 0, 0] },
+      // the desk on the north wall, its back against it
+      { build: 'deskWide', at: [-1.1, 0, 3.2], rot: [0, 180, 0], cap: 'Webcube. 45 companies, six countries, 25 people, from this desk.' },
+      { build: 'monitor', at: [-1.45, 0.74, 3.38], rot: [0, 172, 0], live: 'screen' },
+      { build: 'monitorBoard', at: [-0.8, 0.74, 3.38], rot: [0, 190, 0], live: 'screen', cap: 'Webcube. A team of 25, working across multiple countries.' },
+      { model: 'laptop_14_aluminium', at: [-2.0, 0.74, 3.08], rot: [0, 205, 0] },
+      { build: 'laptop', at: [-0.37, 0.74, 2.98], rot: [0, 160, 0], live: 'screen', cap: 'Covid Leads Delhi. 20,000 people, beds and oxygen, two months.' },
+      { model: 'keyboard_mouse_black', at: [-1.15, 0.74, 2.9], rot: [0, 180, 0] },
+      { build: 'pcTower', at: [-0.15, 0.74, 3.35], rot: [0, 180, 0] },
+      { build: 'cables', at: [-0.55, 0, 3.45] },
+      { model: 'desk_lamp_arm_01', at: [-2.05, 0.74, 3.42], rot: [0, -60, 0], live: 'lamp', cap: 'The desk lamp.' },
+      { model: 'coffee_mug', at: [-0.62, 0.74, 2.98], rot: [0, 30, 0] },
+      { model: 'coffee_mug', at: [-1.78, 0.74, 3.34], rot: [0, -70, 0] },
+      { build: 'papers', at: [-1.82, 0.74, 2.94], rot: [0, 15, 0] },
+      { model: 'office_chair_black', at: [-1.35, 0, 2.3], rot: [0, -20, 0] },
+      // the shelves above: books, then the awards
+      { build: 'wallShelf', at: [-1.1, 1.5, 3.48], rot: [0, 180, 0] },
+      { build: 'books', at: [-1.95, 1.5, 3.48], rot: [0, 90, 0] },
+      { build: 'books', at: [-1.43, 1.5, 3.48], rot: [0, 90, 0] },
+      { build: 'books', at: [-0.91, 1.5, 3.48], rot: [0, 90, 0], cap: 'Books on the shelf above the desk.' },
+      { model: 'book_encyclopedia_set_01', at: [-0.05, 1.5, 3.44], rot: [0, 180, 0], scale: 0.7 },
+      { build: 'wallShelf', at: [-1.1, 2.0, 3.48], rot: [0, 180, 0] },
+      { build: 'awards', at: [-1.1, 2.0, 3.5], rot: [0, 180, 0], cap: 'Awards of different shapes and sizes, on the top shelf.' },
+      // the bed along the east wall under the drawn curtain
+      { model: 'bed_single', at: [0.28, 0, 1.3], rot: [0, 90, 0], cap: 'The single bed beside the desk.' },
+      { build: 'curtainDrawn', at: [0.66, 2.4, 1.5], rot: [0, -90, 0], scale: [1, 0.85, 1], cap: 'The curtain, drawn. 2020.' },
+      { build: 'clothes', at: [0.2, 0.57, 0.75], rot: [0, 20, 0] },
+      // the mess
+      { build: 'clothes', at: [-1.75, 0, 1.15], rot: [0, -35, 0] },
+      { build: 'cartons', at: [-1.9, 0, 0.45], rot: [0, 100, 0], cap: 'Boxes in the corner.' },
+      { build: 'papers', at: [-0.15, 0, 2.45], rot: [0, 50, 0] },
+      { build: 'bin', at: [-2.15, 0, 2.55] },
+      { model: 'coffee_mug', at: [0.1, 0, 2.55], rot: [0, 110, 0] },
+      { model: 'ceiling_fan', at: [-0.85, 2.7, 1.8], live: 'fan' },
+      { build: 'discLight', at: [-0.85, 2.7, 2.6], live: 'pendant' },
     ],
   },
 ];

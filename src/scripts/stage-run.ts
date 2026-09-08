@@ -669,11 +669,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     curSet = i;
     showSetBackdrops(live.backdrops, i);
     // the sets share one scene in a ring; only a neighbour can be seen through a door, so the rest are
-    // hidden, and an outdoor set only from the set before it and itself (the San Francisco piers once
-    // stood in the line from the Toronto window to the CN Tower)
+    // hidden, and an outdoor set only from itself: its ground and daylight would stand outside the windows
+    // and doors of the rooms either side of it (the San Francisco piers once stood in the line from the
+    // Toronto window to the CN Tower). The doorway dip covers its arrival and its going.
     groups.forEach((g, k) => {
       const d = Math.min(Math.abs(k - i), groups.length - Math.abs(k - i));
-      g.visible = d <= 1 && (!SETS[k].outdoor || k === i || k === i - 1);
+      g.visible = d <= 1 && (!SETS[k].outdoor || k === i);
     });
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion

@@ -147,6 +147,22 @@ export const MATS: Record<string, Mat> = {
   frameBlack: { color: '#1A1A1A', rough: 0.5, tile: 1 },
   frameWood: { color: '#5C4033', rough: 0.6, tile: 1 },
   rod: { color: '#8A6E4E', rough: 0.5, metal: 0.2, tile: 1 },
+  // 2020, the Delhi room at night: a pale wall gone grey in lamp light, a cheap wide desk, cardboard, paper, cloth
+  delhiWall: { color: '#D9CDB8', rough: 0.92, tex: 'plastered_wall_04', amp: 0.35, tile: 3.2 },
+  delhiCeiling: { color: '#D8D2C6', rough: 0.95, tile: 1 },
+  deskLaminate: { color: '#B99A72', rough: 0.55, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.25, clearcoatRough: 0.3, tile: 1.83 },
+  bracket: { color: '#2A2A2E', rough: 0.5, metal: 0.6, tile: 1 },
+  cardboard: { color: '#B58B5A', rough: 0.95, grain: 'weave', amp: 0.1, tile: 0.4 },
+  paper: { color: '#F2EFE8', rough: 0.85, tile: 1 },
+  cloth0: { color: '#8A2E2E', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 }, cloth1: { color: '#3B4A6B', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 },
+  cloth2: { color: '#E8E2D2', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 }, cloth3: { color: '#4A4A4E', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 },
+  plaqueWood: { color: '#3E2A1E', rough: 0.45, clearcoat: 0.4, clearcoatRough: 0.2, tile: 1 },
+  plaquePlate: { color: '#D9C58A', rough: 0.3, metal: 0.9, tile: 1 },
+  silver: { color: '#D8DADF', rough: 0.25, metal: 1, tile: 1 },
+  acrylic: { color: '#DCE6F0', rough: 0.05, clearcoat: 1, clearcoatRough: 0.03, tile: 1 },
+  ribbon: { color: '#1F3F8F', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.1 },
+  binPlastic: { color: '#2E3138', rough: 0.55, clearcoat: 0.2, tile: 1 },
+  cable: { color: '#111214', rough: 0.6, tile: 1 },
 };
 
 export const mat = (name: string): Mat => {

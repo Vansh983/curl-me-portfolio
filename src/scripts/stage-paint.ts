@@ -431,6 +431,32 @@ export const SCREEN_PAINT: Record<string, Paint> = {
       x.fillStyle = '#FFFFFF'; x.font = '600 12px Inter, system-ui, sans-serif'; x.fillText('Run workflow', 655, 41);
     }],
   },
+  /** 2020: the Webcube board, five columns of cards for a team of 25 in six countries. */
+  screenBoard: {
+    w: 768, h: 432,
+    frames: [(x, w, h) => {
+      x.fillStyle = '#0F1419'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#161C23'; x.fillRect(0, 0, w, 44);
+      x.fillStyle = '#F2F4F7'; x.font = '700 16px Inter, system-ui, sans-serif'; x.fillText('Webcube', 16, 28);
+      x.fillStyle = '#8A93A3'; x.font = '12px Inter, system-ui, sans-serif'; x.fillText('Sprint 31 · 45 clients · 25 people · IST PST GMT', 96, 28);
+      const cols = ['Backlog', 'This week', 'In progress', 'Review', 'Shipped'], counts = [6, 5, 4, 3, 5];
+      const cw = (w - 16 * 6) / 5;
+      cols.forEach((c, i) => {
+        const cx = 16 + i * (cw + 16);
+        x.fillStyle = '#8A93A3'; x.font = '600 11px Inter, system-ui, sans-serif'; x.fillText(c.toUpperCase(), cx, 68);
+        for (let r = 0; r < counts[i]; r++) {
+          const y = 78 + r * 64;
+          x.fillStyle = '#1B222B'; x.fillRect(cx, y, cw, 54);
+          x.fillStyle = ['#4F8CF7', '#F2A33A', '#5BC27A', '#C864E0', '#E05A5A'][(i + r) % 5]; x.fillRect(cx, y, 4, 54);
+          x.fillStyle = '#D6DAE6'; x.font = '12px Inter, system-ui, sans-serif';
+          x.fillText(['Stripe webhooks', 'Onboarding flow', 'Vendor portal', 'Inventory sync', 'Landing page v3', 'Admin roles', 'Push notifications', 'Search indexing', 'Invoice PDFs', 'Chat widget'][(i * 3 + r) % 10], cx + 12, y + 20);
+          x.fillStyle = '#5E6675'; x.font = '11px Inter, system-ui, sans-serif';
+          x.fillText(['Design', 'Development', 'QA', 'Client review', 'Delivery', 'Support'][(i + r * 2) % 6], cx + 12, y + 40);
+          x.fillStyle = ['#4F8CF7', '#F2A33A', '#5BC27A'][(i + r) % 3]; x.beginPath(); x.arc(cx + cw - 16, y + 36, 7, 0, Math.PI * 2); x.fill();
+        }
+      });
+    }],
+  },
   screenTerminal: {
     w: 640, h: 400,
     frames: [(x, w, h) => {

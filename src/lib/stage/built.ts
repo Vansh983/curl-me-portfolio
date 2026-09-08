@@ -54,6 +54,13 @@ const lcd = (paint: string) => (): BuiltPart => {
   return [piece(offsetGeo(face(0.38, 0.3, 0.001), 0, 0.36, 0), { paint }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
 };
 
+/** A 27 inch monitor on a stand: 0.61 × 0.36 panel, the screen a painted face towards +z. */
+const mon = (paint: string) => (): BuiltPart => {
+  const body = new Sink().rbox(0, 0.5, -0.015, 0.62, 0.37, 0.02, 0.005, 2);
+  const stand = new Sink().rbox(0, 0.18, -0.06, 0.05, 0.36, 0.03, 0.006, 2).rbox(0, 0.006, -0.06, 0.26, 0.012, 0.18, 0.005, 2);
+  return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
+};
+
 /** A closed side profile (x, y), counter clockwise seen from +z, extruded along z and capped: a car body. */
 const extrudeZ = (profile: [number, number][], halfD: number): Sink => {
   const s = new Sink();
@@ -90,18 +97,12 @@ export const BUILT: Record<string, () => BuiltPart> = {
     for (const sx of [-0.8, 0.8]) legs.rbox(sx, 0.355, 0, 0.04, 0.71, 0.6, 0.006, 2).rbox(sx, 0.02, 0, 0.06, 0.04, 0.68, 0.008, 2);
     return [piece(top.out(), M('deskTop'), { smooth: true }), piece(legs.out(), M('deskLeg'), { smooth: true })];
   },
-  /** A 27 inch monitor on a stand: 0.61 × 0.36 panel, the screen a painted face towards +z. */
-  monitor: () => {
-    const body = new Sink().rbox(0, 0.5, -0.015, 0.62, 0.37, 0.02, 0.005, 2);
-    const stand = new Sink().rbox(0, 0.18, -0.06, 0.05, 0.36, 0.03, 0.006, 2).rbox(0, 0.006, -0.06, 0.26, 0.012, 0.18, 0.005, 2);
-    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenCode' }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
-  },
+  /** A 27 inch monitor on a stand: 0.61 × 0.36 panel, the screen a painted face towards +z: an editor. */
+  monitor: mon('screenCode'),
   /** The second monitor, same body, the Floqer app on it. */
-  monitorApp: () => {
-    const body = new Sink().rbox(0, 0.5, -0.015, 0.62, 0.37, 0.02, 0.005, 2);
-    const stand = new Sink().rbox(0, 0.18, -0.06, 0.05, 0.36, 0.03, 0.006, 2).rbox(0, 0.006, -0.06, 0.26, 0.012, 0.18, 0.005, 2);
-    return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint: 'screenFloqer' }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
-  },
+  monitorApp: mon('screenFloqer'),
+  /** The same body, the Webcube board on it: 2020. */
+  monitorBoard: mon('screenBoard'),
   /** A laptop, open at 105 degrees, a terminal on it; the hinge is at the origin, the base runs toward +z. */
   laptop: () => {
     const base = new Sink().rbox(0, 0.008, 0.11, 0.31, 0.016, 0.22, 0.006, 2);
@@ -414,13 +415,20 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const tube = new Sink().cylinder(0, -0.09, 0, 0.02, 1.2, 10).rotateZ(0, -0.09, Math.PI / 2);
     return [piece(tray.out(), M('tray')), piece(tube.out(), M('tubeGlass'), { smooth: true })];
   },
-  /** The plaza: 70 × 80 m of pavers, x from the origin forward, z centred. */
-  /** The Embarcadero pavement for a walk heading -z from the origin: the sidewalk strip to the kerb at x 6.2, and the wider pavement west of it from 6.5 m on (the apartment's glass is 4 m north of that). */
-  plazaFloor: () => [piece(new Sink().quad([-2.4, 0, 0], [6.2, 0, 0], [6.2, 0, -40], [-2.4, 0, -40]).quad([-12, 0, -6.5], [-2.4, 0, -6.5], [-2.4, 0, -40], [-12, 0, -40]).out(), M('pavers'), { metres: 'xz' })],
+  /** Paving around the Delhi room and lab passage, never beneath their coplanar indoor floors. Placed at (4, 0, 2.6). */
+  plazaFloor: () => {
+    const s = new Sink();
+    // World x0, x1, z0, z1: the open plaza, its east side, the gaps beside the lab passage, and the west pavement.
+    for (const [x0, x1, z0, z1] of [[-4.14, 10.2, -37.4, 0], [0.7, 10.2, 0, 2.6], [2, 10.2, 2.6, 4.6], [-4.14, 0.8, 3.6, 4.6], [0.7, 0.8, 2.6, 3.6], [-8, -4.14, -37.4, -3.9]])
+      s.quad([x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0]);
+    s.translate(-4, 0, -2.6);
+    return [piece(s.out(), M('pavers'), { metres: 'xz' })];
+  },
   /**
-   * The outside of the rooms, as the plaza sees them: the apartment's east side in brick with the door back in
-   * and the passage to the lab, the lab's block in dark render with the passage out. Faces outward; from inside
-   * the rooms they sit behind the walls. World coordinates, placed at the origin.
+   * The outside of the rooms, as the plaza sees them: the apartment's east side in brick with the passage to the
+   * lab, the lab's block in dark render with the passage out, and the 2020 room's block in front of the brick with
+   * its door on the plaza. Faces outward; from inside the rooms they sit behind the walls. World coordinates,
+   * placed at the origin.
    */
   facade: () => {
     const brick = new Sink(), dark = new Sink(), t = 0.06, H = 14;
@@ -435,7 +443,13 @@ export const BUILT: Record<string, () => BuiltPart> = {
     dark.box(2.25 + t / 2, H / 2, 7.25, t, H, 5.3); // east
     dark.box(-0.945, H / 2, 9.9 + t / 2, 6.39, H, t); // north
     dark.box(-4.14 - t / 2, H / 2, 8.95, t, H, 1.9); // the west sliver north of the apartment block
-    dark.box(-3.6, H + t / 2, 3.2, 11.9, t, 13.4); // one roof over both
+    // the 2020 room's block: x -4.14..0.7, z 0..3.6, over the passage from the brick door too; its south face round the door (x -1.15..-0.25)
+    for (const [x0, x1, y0] of [[-4.14, -1.15, 0], [-0.25, 0.7, 0], [-1.15, -0.25, 2.05]] as Array<[number, number, number]>)
+      dark.box((x0 + x1) / 2, (y0 + H) / 2, -0.01 - t / 2, x1 - x0, H - y0, t);
+    // A centimetre outside the interior shell: coplanar faces otherwise turn the room black from the plaza.
+    dark.box(0.71 + t / 2, H / 2, 1.8, t, H, 3.6); // east
+    dark.box(-1.72, H / 2, 3.61 + t / 2, 4.84, H, t); // north, facing the lab block across a metre
+    dark.box(-3.6, H + t / 2, 3.2, 11.9, t, 13.4); // one roof over all
     return [piece(brick.out(), M('condoBrick')), piece(dark.out(), M('facadeDark'))];
   },
   /** The green counter under the sign, 3.6 × 0.9 × 0.6. */
@@ -562,6 +576,132 @@ export const BUILT: Record<string, () => BuiltPart> = {
       sail.bone([x + 0.2, 1, z], [x + 0.2, 7.4, z], 0.05, 2.2);
     }
     return [piece(hull.out(), M('hull')), piece(mast.out(), M('mast')), piece(sail.out(), M('sail'))];
+  },
+  // ---- 2020, the Delhi room: Webcube from a desk at home
+  /** A wide laminate desk, 2.2 × 0.8, the top at 0.74: a panel leg on the left, three drawers on the right, a modesty panel behind. */
+  deskWide: () => {
+    const wood = new Sink().rbox(0, 0.725, 0, 2.2, 0.03, 0.8, 0.006, 2).rbox(-1.085, 0.355, 0, 0.03, 0.71, 0.76, 0.004, 1).rbox(0.85, 0.355, 0, 0.46, 0.71, 0.76, 0.004, 1).box(-0.12, 0.45, -0.385, 1.9, 0.5, 0.02);
+    for (const y of [0.15, 0.38, 0.6]) wood.box(0.85, y, 0.385, 0.42, 0.2, 0.01);
+    const pulls = new Sink();
+    for (const y of [0.15, 0.38, 0.6]) pulls.box(0.85, y, 0.396, 0.12, 0.012, 0.012);
+    return [piece(wood.out(), M('deskLaminate'), { smooth: true }), piece(pulls.out(), M('chrome'))];
+  },
+  /** A wall shelf: a 2.2 m plank, 0.24 deep, its top at the origin, on two steel brackets; the wall is at z -0.12. */
+  wallShelf: () => {
+    const plank = new Sink().rbox(0, -0.0125, 0, 2.2, 0.025, 0.24, 0.004, 1);
+    const brackets = new Sink();
+    for (const x of [-0.85, 0.85]) brackets.box(x, -0.04, 0.0, 0.03, 0.03, 0.22).box(x, -0.13, -0.105, 0.03, 0.2, 0.03);
+    return [piece(plank.out(), M('deskLaminate'), { smooth: true }), piece(brackets.out(), M('bracket'))];
+  },
+  /**
+   * A shelf of awards, ten of them in a row along x from -0.95 to 0.95, standing on the origin plane and facing +z:
+   * gold cups on wooden bases, a silver cup, wooden plaques with brass plates, an acrylic wedge, a crystal obelisk,
+   * a gold star on a stem, a medal on its ribbon, a framed certificate, a crystal globe. Different shapes and sizes.
+   */
+  awards: () => {
+    const gold = new Sink(), silver = new Sink(), wood = new Sink(), plate = new Sink(), acrylic = new Sink(), chrome = new Sink(), ribbon = new Sink(), frame = new Sink(), paper = new Sink();
+    const cup = (s: Sink, x: number, k: number) => {
+      s.lathe([[0.02, 0], [0.035, 0.02], [0.02, 0.05], [0.028, 0.1], [0.06, 0.2], [0.065, 0.26]].map(([r, y]) => [r * k, y * k] as [number, number]), x, 0.02, 0, 1, 1, 0, 28);
+      s.bone([x - 0.06 * k, 0.02 + 0.13 * k, 0], [x - 0.085 * k, 0.02 + 0.2 * k, 0], 0.006, 0.006).bone([x + 0.06 * k, 0.02 + 0.13 * k, 0], [x + 0.085 * k, 0.02 + 0.2 * k, 0], 0.006, 0.006);
+      wood.cylinder(x, 0.01, 0, 0.055 * k, 0.02, 24);
+    };
+    cup(gold, -1.0, 1.15); // the tall one
+    cup(silver, -0.38, 0.8);
+    cup(gold, 0.7, 0.9);
+    const plaque = (x: number, w: number, h: number) => {
+      const start = wood.count;
+      wood.box(x, h / 2, 0, w, h, 0.015).rotateX(0, 0, -0.12, start);
+      const ps = plate.count;
+      plate.box(x, h * 0.55, 0.009, w * 0.66, h * 0.36, 0.003).rotateX(0, 0, -0.12, ps);
+    };
+    plaque(-0.78, 0.2, 0.25);
+    plaque(0.16, 0.16, 0.2);
+    // an acrylic wedge on a base, a four-sided crystal obelisk, a crystal globe on a chrome ring
+    acrylic.box(-0.57, 0.1, 0.01, 0.12, 0.16, 0.02).box(-0.57, 0.01, 0, 0.14, 0.02, 0.06);
+    acrylic.lathe([[0.03, 0], [0.03, 0.02], [0.022, 0.28], [0.002, 0.32]], 0.34, 0, 0, 1, 1, 0, 4);
+    acrylic.sphere(0.5, 0.05, 0, 0.04, 0.04, 0.04, 20, 12);
+    chrome.cylinder(0.5, 0.005, 0, 0.03, 0.01, 20);
+    // a gold star on a chrome stem
+    const star: Array<[number, number]> = [];
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 0.026 : 0.06; star.push([r * Math.cos(a), r * Math.sin(a)]); }
+    const ss = gold.count;
+    gold.extrude(star, 0, 0.012, undefined, gold).rotateX(0, 0, Math.PI / 2, ss).translate(-0.2, 0.19, 0, ss); // the cap faces +z: the front
+    chrome.cylinder(-0.2, 0.075, 0, 0.005, 0.11, 10);
+    wood.cylinder(-0.2, 0.01, 0, 0.04, 0.02, 20);
+    // a medal leaning on the wall, its ribbon up behind it
+    const ms = gold.count;
+    gold.cylinder(-0.02, 0, 0, 0.035, 0.005, 24).rotateX(0, 0, Math.PI / 2 - 0.15, ms).translate(0, 0.04, -0.02, ms);
+    ribbon.box(-0.02, 0.11, -0.05, 0.03, 0.14, 0.004);
+    // a framed certificate leaning, paper in a black frame
+    const fs = frame.count, ps2 = paper.count;
+    frame.box(0.95, 0.07, -0.01, 0.17, 0.13, 0.012).rotateX(0, 0, -0.15, fs);
+    paper.box(0.95, 0.07, -0.003, 0.15, 0.11, 0.002).rotateX(0, 0, -0.15, ps2);
+    return [
+      piece(gold.out(), M('gold'), { smooth: true }), piece(silver.out(), M('silver'), { smooth: true }), piece(wood.out(), M('plaqueWood')), piece(plate.out(), M('plaquePlate')),
+      piece(acrylic.out(), M('acrylic'), { smooth: true }), piece(chrome.out(), M('chrome'), { smooth: true }), piece(ribbon.out(), M('ribbon')), piece(frame.out(), M('frameBlack')), piece(paper.out(), M('paper')),
+    ];
+  },
+  /** Three cardboard boxes: two stacked, one open beside them with its flaps out. Footprint 1.1 × 0.5. */
+  cartons: () => {
+    const s = new Sink();
+    s.rbox(-0.25, 0.2, 0, 0.5, 0.4, 0.4, 0.006, 1);
+    const st = s.count;
+    s.rbox(-0.22, 0.55, 0.02, 0.4, 0.3, 0.36, 0.006, 1).rotateY(-0.22, 0.02, 0.2, st);
+    const ox = 0.32, w = 0.42, d = 0.38, h = 0.34;
+    s.box(ox, 0.005, 0, w, 0.01, d).box(ox - w / 2, h / 2, 0, 0.01, h, d).box(ox + w / 2, h / 2, 0, 0.01, h, d).box(ox, h / 2, -d / 2, w, h, 0.01).box(ox, h / 2, d / 2, w, h, 0.01);
+    const f1 = s.count;
+    s.box(ox - w / 2 - 0.005, h + 0.1, 0, 0.01, 0.2, d).rotateAxis([ox - w / 2, h, 0], [0, 0, 1], 0.5, f1);
+    const f2 = s.count;
+    s.box(ox + w / 2 + 0.005, h + 0.1, 0, 0.01, 0.2, d).rotateAxis([ox + w / 2, h, 0], [0, 0, 1], -0.5, f2);
+    return [piece(s.out(), M('cardboard'))];
+  },
+  /** A heap of clothes on the floor: a hoodie, a tee, jeans, a towel, flattened lumps in four colours, 0.9 across. */
+  clothes: () => {
+    const lumps: Array<[string, Sink]> = [];
+    const lump = (mat: string, f: (s: Sink) => void) => { const s = new Sink(); f(s); lumps.push([mat, s]); };
+    lump('cloth3', (s) => s.sphere(0, 0.06, 0, 0.32, 0.1, 0.24, 20, 10));
+    lump('cloth0', (s) => { s.rbox(0.18, 0.11, -0.08, 0.42, 0.04, 0.34, 0.02, 2).rotateY(0.18, -0.08, 0.5); });
+    lump('cloth1', (s) => { s.rbox(-0.2, 0.05, 0.16, 0.5, 0.07, 0.24, 0.03, 2).rotateY(-0.2, 0.16, -0.35); });
+    lump('cloth2', (s) => s.sphere(-0.05, 0.15, 0.05, 0.18, 0.06, 0.14, 16, 8));
+    return lumps.map(([m, s]) => piece(s.out(), M(m), { smooth: true }));
+  },
+  /** Papers: a stack and eight loose A4 sheets fanned round it, on the origin plane. */
+  papers: () => {
+    const s = new Sink();
+    s.rbox(0, 0.012, 0, 0.21, 0.024, 0.297, 0.003, 1);
+    for (let i = 0; i < 8; i++) {
+      const a = (i * 2.4) % 6.28, r = 0.12 + (i % 3) * 0.06, x = r * Math.cos(a), z = r * Math.sin(a) * 0.7;
+      const st = s.count;
+      s.box(x, 0.003 + i * 0.0015, z, 0.21, 0.001, 0.297).rotateY(x, z, ((i * 37) % 90) * (Math.PI / 180), st);
+    }
+    return [piece(s.out(), M('paper'))];
+  },
+  /** One curtain drawn shut across a window: a 1.3 m pleated panel hanging 2.0 from a rod at the origin, the wall behind at z -0.06. */
+  curtainDrawn: () => {
+    const cloth = new Sink(), cols = 26, w = 1.3, h = 2.0;
+    for (let c = 0; c < cols; c++) {
+      const xa = -w / 2 + (w * c) / cols, xb = -w / 2 + (w * (c + 1)) / cols;
+      const za = 0.035 * Math.sin(c * 1.9), zb = 0.035 * Math.sin((c + 1) * 1.9);
+      cloth.quad([xa, -h, za], [xb, -h, zb], [xb, 0, zb], [xa, 0, za]);
+    }
+    const rod = new Sink().cylinder(0, 0.02, 0, 0.015, 1.5, 8).rotateZ(0, 0.02, Math.PI / 2);
+    return [piece(cloth.out(), M('curtain'), { metres: 'xy' }), piece(rod.out(), M('rod'), { smooth: true })];
+  },
+  /** A waste bin, full: a black plastic tub with paper balls at the rim and one on the floor. */
+  bin: () => {
+    const tub = new Sink().lathe([[0.11, 0], [0.13, 0.28], [0.135, 0.3], [0.12, 0.3]], 0, 0, 0, 1, 1, 0, 24);
+    const balls = new Sink().sphere(0.02, 0.32, 0.01, 0.04, 0.035, 0.04, 12, 8).sphere(-0.05, 0.3, -0.04, 0.035, 0.03, 0.035, 12, 8).sphere(0.04, 0.29, -0.06, 0.03, 0.03, 0.03, 12, 8).sphere(0.22, 0.03, 0.06, 0.035, 0.03, 0.035, 12, 8);
+    return [piece(tub.out(), M('binPlastic'), { smooth: true }), piece(balls.out(), M('paper'), { smooth: true })];
+  },
+  /** Cables: three black leads sagging from the back of the desk top (y 0.72) to the floor behind it, 0.5 across. */
+  cables: () => {
+    const s = new Sink();
+    for (const [x0, x1, sag] of [[-0.2, 0.1, 0.3], [0.0, 0.2, 0.42], [0.15, -0.05, 0.36]] as const) {
+      const pts: V3[] = [];
+      for (let i = 0; i <= 6; i++) { const t = i / 6; pts.push([x0 + (x1 - x0) * t, 0.72 * (1 - t) * (1 - t) + (0.72 - sag) * 2 * t * (1 - t), -0.05 - 0.12 * Math.sin(t * Math.PI)]); }
+      for (let i = 0; i < 6; i++) s.bone(pts[i], pts[i + 1], 0.005, 0.005);
+    }
+    return [piece(s.out(), M('cable'))];
   },
 };
 
