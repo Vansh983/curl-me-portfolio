@@ -9,14 +9,16 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
  * The descent over the Halifax peninsula, seated at the port window. From `start` to `end` the ground track
  * runs `distance` metres up the peninsula while the altitude falls from `top` to `low`; the cloud deck at
  * `deck` metres is crossed on the way down, and the aircraft banks a few degrees to port in the middle of it.
+ * At `end` the Studley campus is abeam, 250 to 900 m off the wing and `low` metres down; after it the aircraft holds
+ * height and the ground keeps sliding at `cruise` metres per unit of progress (the speed the descent ended at).
  */
-export const FLIGHT = { start: 0.675, end: 0.745, top: 420, low: 130, distance: 1500, deck: FLIGHT_DECK, bank: 7 } as const;
+export const FLIGHT = { start: 0.672, end: 0.721, top: 385, low: 130, distance: 1450, deck: FLIGHT_DECK, bank: 7, cruise: 10360 } as const;
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
 export const PHONE = { raise: 0.716, framed: 0.725, zoom: 0.729, filled: 0.742, transfer: 0.745, reveal: 0.752 } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
-/** The window seat: eye at the oval, looking out and a little down at the city. */
-export const WINDOW_VIEW = { cam: [-4.72, 1.42, -6.4] as [number, number, number], look: [-7.72, 0.62, -6.6] as [number, number, number], fov: 74 };
+/** The window seat, the front row, well ahead of the wing: eye at the oval, looking out and a little down at the city. */
+export const WINDOW_VIEW = { cam: [-4.72, 1.42, -8.5] as [number, number, number], look: [-7.72, 0.62, -8.7] as [number, number, number], fov: 74 };
 
 export function phoneAt(progress: number, reducedMotion = false) {
   const q = Number.isFinite(progress) ? progress : 0;
@@ -48,10 +50,18 @@ export function flightAt(progress: number, reducedMotion = false): FlightState {
   const q = Number.isFinite(progress) ? progress : 0;
   const t = reducedMotion ? 1 : clamp01((q - FLIGHT.start) / (FLIGHT.end - FLIGHT.start));
   const altitude = FLIGHT.top + (FLIGHT.low - FLIGHT.top) * ease(t);
-  const travel = FLIGHT.distance * (t * 0.35 + 0.65 * ease(t)); // never quite still: the ground always slides
+  const travel = FLIGHT.distance * (t * 0.35 + 0.65 * ease(t)) + (reducedMotion ? 0 : Math.max(0, clamp01(q) - FLIGHT.end) * FLIGHT.cruise); // never quite still: the ground always slides
   const roll = Math.sin(Math.PI * clamp01((t - 0.15) / 0.55));
   const bank = roll * roll < 1e-9 ? 0 : FLIGHT.bank * roll * roll; // rolls in, holds, rolls out through the middle of the descent
   const off = (altitude - FLIGHT.deck) / 45;
   const veil = Math.exp(-(off * off));
   return { altitude, travel, bank, veil: reducedMotion ? 0 : veil };
+}
+
+/** The ground under the aircraft (the flight frame's z) as it sinks through the cloud deck: where the cloud field puts its cluster on the track. */
+export function crossingZ(): number {
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (FLIGHT.top + (FLIGHT.low - FLIGHT.top) * ease(m) > FLIGHT.deck) lo = m; else hi = m; }
+  const t = (lo + hi) / 2;
+  return FLIGHT.distance - FLIGHT.distance * (t * 0.35 + 0.65 * ease(t));
 }

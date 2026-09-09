@@ -5,8 +5,10 @@
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
 import { cityBlocks, cnTower } from './city.ts';
 import { halifaxCity } from './halifax.ts';
+import { dalhousieCampus, rng } from './dalhousie.ts';
+import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -249,16 +251,51 @@ export const BUILT: Record<string, () => BuiltPart> = {
   seatScreen: () => [piece(offsetGeo(face(0.22, 0.135, 0.012), 0, 0, 0), { paint: 'screenMap' }), piece(new Sink().rbox(0, 0, 0, 0.26, 0.17, 0.02, 0.006, 2).out(), M('bezel'), { smooth: true })],
   /** The bulkhead screen at the front of the cabin: the same map, 0.9 wide. */
   bulkheadScreen: () => [piece(offsetGeo(face(0.86, 0.53, 0.014), 0, 0, 0), { paint: 'screenMap' }), piece(new Sink().rbox(0, 0, 0, 0.94, 0.6, 0.024, 0.008, 2).out(), M('bezel'), { smooth: true })],
-  /** The cloud deck: a 4 km sheet of painted cloud, two of them stacked at the deck's height with a gap the aircraft sinks through. */
-  cloudDeck: () => [piece(new Sink().quad([-2200, 0, 2200], [2200, 0, 2200], [2200, 0, -2200], [-2200, 0, -2200], [[0, 0], [1, 0], [1, 1], [0, 1]]).quad([-2200, 0, -2200], [2200, 0, -2200], [2200, 0, 2200], [-2200, 0, 2200], [[0, 1], [1, 1], [1, 0], [0, 0]]).out(), { paint: 'cloudDeck' })],
-  /** The Halifax peninsula from OpenStreetMap: buildings, the sea, parks, streets, on 6 km of ground. */
+  /**
+   * The cloud field: a few hundred cumulus scattered through a layer at the deck's height, in clusters, with one
+   * cluster on the track where the descent crosses the deck. Each is a quad the runtime turns to face the camera
+   * (stage-run.ts: cloudPuffs); its vertex colour carries the size, the atlas cell and the brightness.
+   */
+  cloudField: () => {
+    const s = new Sink();
+    const rnd = rng(61);
+    const gauss = () => (rnd() + rnd() + rnd() - 1.5) * 1.6;
+    const puff = (x: number, y: number, z: number, size: number) => {
+      const cell = Math.floor(rnd() * 4), bright = 0.9 + rnd() * 0.1;
+      const c: [number, number, number] = [size / 600, cell / 4 + 0.05, bright];
+      const w = size / 2, h = (size * 0.62) / 2;
+      const start = s.count;
+      s.quad([x - w, y - h, z], [x + w, y - h, z], [x + w, y + h, z], [x - w, y + h, z], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+      for (let i = start; i < s.count; i++) { s.col[i * 3] = c[0]; s.col[i * 3 + 1] = c[1]; s.col[i * 3 + 2] = c[2]; }
+    };
+    const clusters: Array<[number, number, number]> = [[-140, crossingZ(), 26]];
+    for (let i = 0; i < 16; i++) clusters.push([(rnd() - 0.5) * 5200, (rnd() - 0.5) * 5200, 12 + Math.floor(rnd() * 14)]);
+    for (const [cx, cz, n] of clusters) for (let i = 0; i < n; i++) {
+      const size = 150 + rnd() * 280;
+      puff(cx + gauss() * 260, FLIGHT_DECK - 25 + gauss() * 14 + (size - 150) * 0.06, cz + gauss() * 260, size); // the tops near the deck, the bases well under it
+    }
+    for (let i = 0; i < 90; i++) { const size = 120 + rnd() * 220; puff((rnd() - 0.5) * 5600, FLIGHT_DECK - 25 + gauss() * 16, (rnd() - 0.5) * 5600, size); }
+    return [piece(s.out(), { paint: 'cloudPuffs' }, { tint: true })];
+  },
+  /** The Halifax peninsula from OpenStreetMap: buildings, the sea, parks, streets, street trees, on 6 km of ground. */
   halifax: () => {
-    const walls = new Sink(), roofs = new Sink(), sea = new Sink(), greens = new Sink(), woods = new Sink(), roads = new Sink();
-    halifaxCity(walls, roofs, sea, greens, woods, roads);
+    const walls = new Sink(), roofs = new Sink(), sea = new Sink(), greens = new Sink(), woods = new Sink(), roads = new Sink(), canopy = new Sink(), trunk = new Sink();
+    halifaxCity(walls, roofs, sea, greens, woods, roads, canopy, trunk);
     const ground = new Sink().quad([-3000, -0.02, 3000], [3000, -0.02, 3000], [3000, -0.02, -3000], [-3000, -0.02, -3000]);
     return [
       piece(ground.out(), M('flightGround'), { metres: 'xz' }), piece(walls.out(), M('halifaxWall'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true }),
       piece(sea.out(), M('seaWater'), { metres: 'xz' }), piece(greens.out(), M('parkGreen'), { metres: 'xz' }), piece(woods.out(), M('woodGreen'), { metres: 'xz' }), piece(roads.out(), M('streetAsphalt'), { metres: 'xz' }),
+      piece(canopy.out(), M('treeCanopy'), { tint: true, smooth: true }), piece(trunk.out(), M('treeTrunk')),
+    ];
+  },
+  /** The Studley campus: Dalhousie and King's by name from OpenStreetMap, the Hicks tower, the Dalplex dome, the quad, Wickwire Field, paths, car parks, trees. */
+  dalhousie: () => {
+    const walls = new Sink(), roofs = new Sink(), copper = new Sink(), clock = new Sink(), lawn = new Sink(), paving = new Sink(), asphalt = new Sink(), turf = new Sink(), canopy = new Sink(), trunk = new Sink();
+    dalhousieCampus(walls, roofs, copper, clock, lawn, paving, asphalt, turf, canopy, trunk);
+    return [
+      piece(walls.out(), M('halifaxWall'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true }), piece(copper.out(), M('copperRoof')), piece(clock.out(), M('clockFace')),
+      piece(lawn.out(), M('campusLawn'), { metres: 'xz' }), piece(paving.out(), M('campusPaving'), { metres: 'xz' }), piece(asphalt.out(), M('streetAsphalt'), { metres: 'xz' }), piece(turf.out(), M('campusTurf')),
+      piece(canopy.out(), M('treeCanopy'), { tint: true, smooth: true }), piece(trunk.out(), M('treeTrunk')),
     ];
   },
   /** The jet bridge: the old passage from the brick door turned south, 5.8 m of grey panel and rubber floor down to the cabin door, a light strip along its ceiling. */

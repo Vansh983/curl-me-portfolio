@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FLIGHT, flightAt, PHONE, phoneAt, phoneLayout, CLASSROOM_VIEW, WINDOW_VIEW } from '../../src/lib/stage/flight.ts';
+import { FLIGHT, flightAt, crossingZ, PHONE, phoneAt, phoneLayout, CLASSROOM_VIEW, WINDOW_VIEW } from '../../src/lib/stage/flight.ts';
 import { AUDITORIUM, TOP_ROW, DAIS, SETS, aisleHeight, LECTURE_ROWS } from '../../src/lib/stage/sets.ts';
 import { makeDolly, DOLLY } from '../../src/lib/stage/dolly.ts';
 import { pieceIsLive, placementIsLive } from '../../src/lib/stage/bake.ts';
@@ -46,7 +46,8 @@ test('moving scenery stays live; the cabin has a wing, seat-back screens and no 
   for (const p of cabin.filter((p) => p.live === 'flight')) assert.ok(placementIsLive(p));
   assert.ok(pieceIsLive('mat:flightGround', 'flight'));
   assert.ok(cabin.some((p) => p.build === 'halifax' && p.live === 'flight'), 'the city under the window');
-  assert.ok(cabin.some((p) => p.build === 'cloudDeck' && p.live === 'flight'));
+  assert.ok(cabin.some((p) => p.build === 'cloudField' && p.live === 'flight'));
+  assert.ok(cabin.some((p) => p.build === 'dalhousie' && p.live === 'flight'), 'the campus is built by name');
   assert.ok(cabin.some((p) => p.build === 'aircraftWing'));
   assert.ok(cabin.filter((p) => p.build === 'seatScreen').length >= 8, 'a screen on the back of every seat but the front row');
   assert.ok(!cabin.some((p) => p.build === 'flightSign'), 'no banner in the cabin');
@@ -61,7 +62,11 @@ test('moving scenery stays live; the cabin has a wing, seat-back screens and no 
 
 test('phone covers the viewport before the sole portal cut and is gone at the classroom reveal', () => {
   assert.ok(PHONE.framed < PHONE.zoom && PHONE.filled < PHONE.transfer);
-  assert.ok(PHONE.raise > FLIGHT.start && PHONE.transfer <= FLIGHT.end, 'raised in clear air after the deck, airborne to the cut');
+  assert.ok(PHONE.raise > FLIGHT.start && PHONE.raise < FLIGHT.end && PHONE.framed > FLIGHT.end, 'raised as the campus comes abeam, framed with it there');
+  assert.ok(flightAt(PHONE.transfer).altitude === FLIGHT.low && flightAt(PHONE.transfer).travel > flightAt(PHONE.framed).travel, 'level and still moving to the cut');
+  assert.ok(flightAt(PHONE.framed).travel - FLIGHT.distance < 80, 'the campus still abeam when the phone is framed');
+  assert.ok(Math.abs((flightAt(FLIGHT.end + 0.001).travel - flightAt(FLIGHT.end).travel) - (flightAt(FLIGHT.end).travel - flightAt(FLIGHT.end - 0.001).travel)) < 4, 'no jolt in the ground speed at the end of the descent');
+  assert.ok(crossingZ() > 0 && crossingZ() < FLIGHT.distance, 'the deck is crossed over the track');
   assert.ok(flightAt(PHONE.raise).veil < 0.05);
   assert.equal(phoneAt(PHONE.transfer).zoom, 1);
   assert.equal(phoneAt(PHONE.transfer).visible, true);

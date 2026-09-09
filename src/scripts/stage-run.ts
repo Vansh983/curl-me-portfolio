@@ -6,7 +6,7 @@
 // Everything here touches the DOM or the renderer. The world (sets.ts), the camera path (dolly.ts),
 // the shells (shell.ts), the props (built.ts) and the materials (materials.ts) are pure and tested.
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D,
+  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D, ShaderMaterial, UniformsUtils, UniformsLib,
   BufferGeometry,
   Points,
   PointsMaterial,
@@ -269,6 +269,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       m.normalScale.set(s.amp ?? 0.25, s.amp ?? 0.25);
     }
     if (!s.tex && !s.unlit && (s.vary ?? 0.2) > 0) m.roughnessMap = tiled(wanderFor(s.vary ?? 0.2));
+    if (s.layer) { m.polygonOffset = true; m.polygonOffsetFactor = -s.layer; m.polygonOffsetUnits = -s.layer * 3; } // the flat layers of the city keep their order a kilometre off
     mats.set(name, m);
     return m;
   };
@@ -285,13 +286,56 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (material?.vertexColors && col) g.setAttribute('color', new BufferAttribute(col, 3));
     return g;
   };
+  /**
+   * Cumulus as billboards: each puff is a quad in the field's x-y plane whose vertex colour carries its width (r × 600 m),
+   * its cell of the 2 × 2 atlas (g) and its brightness (b). The vertex shader finds the quad's centre from the uv corner,
+   * moves it to view space and lays the corner out there, so the puff always faces the camera; a puff the camera is
+   * inside dissolves. Fogged and tone mapped like the rest of the world so the deck sits in the same air as the city.
+   */
+  const cloudMaterial = (map: CanvasTexture): Material => {
+    const m = new ShaderMaterial({
+      uniforms: UniformsUtils.merge([UniformsLib.fog, { map: { value: map }, tint: { value: new Color('#FFFFFF') } }]),
+      vertexShader: `
+        varying vec2 vUv; varying float vFade; varying float vBright;
+        #include <fog_pars_vertex>
+        void main() {
+          float size = color.r * 600.0;
+          vec2 corner = (uv - 0.5) * vec2(size, size * 0.62);
+          vec3 centre = position - vec3(corner, 0.0);
+          vec4 mvC = modelViewMatrix * vec4(centre, 1.0);
+          vec4 mvPosition = mvC + vec4(corner, 0.0, 0.0);
+          gl_Position = projectionMatrix * mvPosition;
+          float cell = floor(color.g * 4.0);
+          vUv = (uv + vec2(mod(cell, 2.0), floor(cell / 2.0))) * 0.5;
+          vFade = smoothstep(0.0, 1.0, (length(mvC.xyz) - size * 0.35) / (size * 0.5));
+          vBright = color.b;
+          #include <fog_vertex>
+        }`,
+      fragmentShader: `
+        uniform sampler2D map; uniform vec3 tint;
+        varying vec2 vUv; varying float vFade; varying float vBright;
+        #include <fog_pars_fragment>
+        void main() {
+          vec4 t = texture2D(map, vUv);
+          float a = t.a * vFade;
+          if (a < 0.01) discard;
+          gl_FragColor = vec4(t.rgb * tint * vBright, a);
+          #include <fog_fragment>
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+        }`,
+      vertexColors: true, transparent: true, depthWrite: false, side: DoubleSide, fog: true,
+    });
+    m.toneMapped = true;
+    return m;
+  };
   const builtMaterial = (s: BuiltSurface, live?: Live): Material => {
     if ('paint' in s) {
       const [name, frame] = s.paint.split(':');
       // screens and the city at night give off their own light: unlit, not tone mapped, no fog on the city
       if (name === 'video') return new MeshBasicMaterial({ map: videoTex, toneMapped: false });
       if (name.startsWith('screen') || name === 'toronto' || name.startsWith('campus')) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: name !== 'toronto' && !name.startsWith('campus') });
-      if (name === 'cloudDeck') { const t = paintTex(name, 0); t.wrapS = t.wrapT = RepeatWrapping; t.repeat.set(4, 4); return new MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, side: DoubleSide, fog: false, color: '#F4F7FA' }); } // a sheet of cloud, lit like the sky
+      if (name === 'cloudPuffs') return cloudMaterial(paintTex(name, 0)); // the cloud field: every quad turned to the camera, sized by its vertex colour
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
     // emitters and the water get their own copy so their state does not leak into the shared one
@@ -884,7 +928,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const flight = flightAt(q, reduce.matches);
     flightWorld.position.set(0, -flight.altitude - flightRoll.position.y, flight.travel - FLIGHT.distance);
     flightRoll.rotation.z = flight.bank * D;
-    veil.style.opacity = String(mainFrame.set === 5 ? 0.55 * flight.veil : 0); // the cloud sheets do most of it; the veil adds the glow
+    veil.style.opacity = String(mainFrame.set === 5 ? 0.7 * flight.veil : 0); // the puffs on the track do most of it; the veil adds the glow
 
     // things on their own clock
     const t = now / 1000;

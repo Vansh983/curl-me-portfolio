@@ -83,7 +83,7 @@ export const TOP_ROW = LECTURE_ROWS[LECTURE_ROWS.length - 1];
 /** Where the Goldberg building stands in the flight's ground frame (scripts/stage-halifax.mjs). */
 export const HALIFAX_CAMPUS: [number, number] = HALIFAX.campus;
 /** The cloud deck's height over Halifax, metres; flight.ts crosses it on the way down. */
-export const FLIGHT_DECK = 335;
+export const FLIGHT_DECK = 300;
 /** The lecturer's dais across the front, and the lectern on it, right of centre so the screen stays clear. */
 export const DAIS = { x: 4.9, z: [-17.3, -14.7] as [number, number], height: 0.3, lectern: [5.6, -15.95] as [number, number] };
 /** The floor of the central aisle at z: two 0.18 m steps per tier, the rear landing at the top, the flat floor at the front. */
@@ -336,10 +336,9 @@ export const SETS: StageSet[] = [
       { build: 'flightSky', at: [0, 0, 0], live: 'flight', shadow: false },
       // the world under the aircraft: it sinks and slides with the descent (flight.ts), rolls with the bank
       { build: 'halifax', at: [0, 0, 0], live: 'flight', cap: 'Halifax. The peninsula, the Northwest Arm, the harbour, from OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
-      { model: 'dalhousie_campus', at: [HALIFAX_CAMPUS[0], 0, HALIFAX_CAMPUS[1]], rot: [0, 90, 0], live: 'flight', cap: 'Dalhousie University, Halifax. The Goldberg Computer Science Building.', href: '/assets/stage/FLIGHT-CREDITS.md' },
-      ...[[-12, 36], [-16, -44], [-70, 8], [-45, 60], [-96, -30], [-120, 44]].map(([dx, dz]): Placement => ({ model: 'island_tree_01', at: [HALIFAX_CAMPUS[0] + dx, 0.1, HALIFAX_CAMPUS[1] + dz], scale: 0.32, live: 'flight', shadow: false })),
-      { build: 'cloudDeck', at: [0, FLIGHT_DECK + 33, 0], live: 'flight', shadow: false },
-      { build: 'cloudDeck', at: [0, FLIGHT_DECK - 33, 0], rot: [0, 90, 0], live: 'flight', shadow: false },
+      { build: 'dalhousie', at: [0, 0, 0], live: 'flight', cap: 'Dalhousie University, the Studley campus: the Henry Hicks tower, the Killam, the quad, Wickwire Field. From OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
+      { model: 'dalhousie_campus', at: [HALIFAX_CAMPUS[0], 0, HALIFAX_CAMPUS[1]], rot: [0, 90, 0], live: 'flight', cap: 'The Goldberg Computer Science Building.', href: '/assets/stage/FLIGHT-CREDITS.md' },
+      { build: 'cloudField', at: [0, 0, 0], live: 'flight', shadow: false },
       { build: 'halifaxSign', at: [-2.735, 2.0, -3.6], rot: [0, -90, 0], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
       ...[-8.7, -6.6, -1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, z < -4.8 ? 2.6 : 2.4, z], live: 'pendant', scale: 0.65 })),
       { build: 'discLight', at: [-3.3, 2.4, 1.6], live: 'pendant', scale: 0.65 }, // the first section of the bridge, by the Delhi door

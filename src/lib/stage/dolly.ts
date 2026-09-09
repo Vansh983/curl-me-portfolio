@@ -76,14 +76,16 @@ export const DOLLY: DollyKey[] = [
   { q: 0.583, cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 }, // mid passage, the bridge opening on the left
   { q: 0.603, cam: [-3.35, 1.58, -0.5], look: [-3.4, 1.5, -4.0], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
   { q: 0.62, cam: [-3.4, 1.58, -2.6], look: [-3.6, 1.5, -6.2], fov: 72, set: 5 },
-  { q: 0.638, cam: [-3.4, 1.58, -4.6], look: [-4.6, 1.45, -7.4], fov: 74, set: 5 }, // in the door: the rows, the window seat
-  { q: 0.652, cam: [-3.5, 1.55, -6.0], look: [-5.6, 1.4, -6.9], fov: 74, set: 5 }, // at the row, turning right
-  { q: 0.664, cam: [-4.2, 1.45, -6.5], look: [-6.9, 1.2, -7.0], fov: 74, set: 5 }, // into the row, sitting
-  // the descent: out and forward over the wing first, then abeam and down at the Arm, the cloud deck, the campus
-  { q: FLIGHT.start, cam: WINDOW_VIEW.cam, look: [-7.1, 0.95, -8.4], fov: 74, set: 5 }, // seated: the wing, the city ahead
-  { q: 0.69, cam: WINDOW_VIEW.cam, look: WINDOW_VIEW.look, fov: 74, set: 5 }, // abeam and down: the Northwest Arm
-  { q: 0.703, cam: [-4.8, 1.4, -6.42], look: [-7.75, 0.72, -6.35], fov: 74, set: 5 }, // leaning to the glass through the deck
-  { q: 0.714, cam: [-4.78, 1.41, -6.41], look: [-7.7, 0.8, -7.0], fov: 74, set: 5 }, // clear air: the campus sliding in from ahead
+  { q: 0.638, cam: [-3.4, 1.58, -5.0], look: [-4.6, 1.45, -7.8], fov: 74, set: 5 }, // in the door: the rows, the window seat
+  { q: 0.652, cam: [-3.45, 1.58, -6.7], look: [-4.7, 1.45, -9.2], fov: 74, set: 5 }, // down the aisle to the front
+  { q: 0.664, cam: [-3.5, 1.55, -8.1], look: [-5.6, 1.4, -9.0], fov: 74, set: 5 }, // at the front row, turning right
+  { q: 0.671, cam: [-4.2, 1.45, -8.6], look: [-6.9, 1.2, -9.1], fov: 74, set: 5 }, // into the row, sitting; the descent begins
+  // the descent: out and down over the Arm, the cloud deck, the campus abeam; the wing and the engine behind the shoulder
+  { q: 0.678, cam: WINDOW_VIEW.cam, look: [-7.1, 0.95, -9.5], fov: 74, set: 5 }, // seated: the cloud tops ahead
+  { q: 0.684, cam: WINDOW_VIEW.cam, look: [-7.5, 0.9, -9.3], fov: 74, set: 5 }, // down toward the deck
+  { q: 0.691, cam: [-4.8, 1.4, -8.52], look: [-7.75, 0.72, -8.45], fov: 74, set: 5 }, // leaning to the glass through the deck
+  { q: 0.706, cam: [-4.78, 1.41, -8.51], look: [-7.7, 0.74, -9.0], fov: 74, set: 5 }, // clear air: the Arm, the peninsula, the campus sliding in from ahead
+  { q: FLIGHT.end, cam: WINDOW_VIEW.cam, look: [-7.72, 0.66, -8.6], fov: 74, set: 5 }, // the campus abeam: the Hicks tower, the Killam, the quad
   { q: PHONE.framed, ...WINDOW_VIEW, set: 5 },
   { q: 0.736, ...WINDOW_VIEW, set: 5, blend: 0 },
   { q: PHONE.transfer, ...CLASSROOM_VIEW, set: 6, blend: 1, portal: true },

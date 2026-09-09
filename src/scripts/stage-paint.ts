@@ -195,6 +195,23 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
  * plaza pavers. Tiled in metres by the material's `tile`; the grain comes from a normal map.
  */
 export const SURFACE_PAINT: Record<string, Paint> = {
+  /** A storey of facade, 3.6 m square, white for the building's tint: a window with a sill and the slab line above. Halifax from the air. */
+  facade: { w: 256, h: 256, frames: [(x, w, h) => {
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#D9D9D6'; x.fillRect(0, 0, w, 6); // the slab line at the top of the storey
+    x.fillStyle = '#4E5E6C'; x.fillRect(78, 62, 100, 128); // the glass
+    x.fillStyle = '#7D8C98'; x.fillRect(84, 68, 40, 54); // a lit pane, the sky in it
+    x.fillStyle = '#EDEDEA'; x.fillRect(72, 190, 112, 8); // the sill
+  }] },
+  /** A football pitch for Wickwire Field, uv 0..1 across the whole field: turf in mown stripes with white lines. */
+  pitch: { w: 1024, h: 640, frames: [(x, w, h) => {
+    for (let i = 0; i < 16; i++) { x.fillStyle = i % 2 ? '#3D8A3A' : '#41933E'; x.fillRect((i * w) / 16, 0, w / 16 + 1, h); }
+    x.strokeStyle = '#F2F5F0'; x.lineWidth = 6;
+    x.strokeRect(40, 40, w - 80, h - 80); x.beginPath(); x.moveTo(w / 2, 40); x.lineTo(w / 2, h - 40); x.stroke();
+    x.beginPath(); x.arc(w / 2, h / 2, 74, 0, Math.PI * 2); x.stroke();
+    x.strokeRect(40, h / 2 - 150, 150, 300); x.strokeRect(w - 190, h / 2 - 150, 150, 300);
+    x.strokeRect(40, h / 2 - 66, 56, 132); x.strokeRect(w - 96, h / 2 - 66, 56, 132);
+  }] },
   planksPale: {
     w: 512, h: 512,
     frames: [(x, w, h) => {
@@ -333,21 +350,46 @@ export const CITY_PAINT: Record<string, Paint> = {
  */
 /** The cloud deck under the aircraft: soft cumulus on a transparent sheet, drawn once, tiled by the deck's 4 km. */
 export const CLOUD_PAINT: Record<string, Paint> = {
-  cloudDeck: { w: 1024, h: 1024, frames: [(x, w, h) => {
+  /** Four cumulus, 2 by 2: a cluster of soft lobes, the tops lit and the undersides shaded blue-grey, on clear alpha. Billboarded by the runtime. */
+  cloudPuffs: { w: 1024, h: 1024, frames: [(x, w, h) => {
     x.clearRect(0, 0, w, h);
-    let seed = 11;
+    let seed = 29;
     const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-    for (let i = 0; i < 160; i++) {
-      const cx = rnd() * w, cy = rnd() * h, r = 40 + rnd() * 110, puffs = 4 + Math.floor(rnd() * 5);
-      for (let k = 0; k < puffs; k++) {
-        const px = cx + (rnd() - 0.5) * r * 1.4, py = cy + (rnd() - 0.5) * r * 0.9, pr = r * (0.35 + rnd() * 0.45);
-        const g = x.createRadialGradient(px, py, 0, px, py, pr);
-        g.addColorStop(0, 'rgba(255,255,255,0.92)'); g.addColorStop(0.55, 'rgba(250,252,255,0.6)'); g.addColorStop(1, 'rgba(240,246,252,0)');
-        x.fillStyle = g; x.beginPath(); x.arc(px, py, pr, 0, Math.PI * 2); x.fill();
+    const cell = w / 2;
+    const lobe = (px: number, py: number, pr: number, a = 1) => {
+      const g = x.createRadialGradient(px, py, 0, px, py, pr);
+      g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(0.55, `rgba(255,255,255,${a * 0.9})`); g.addColorStop(0.82, `rgba(255,255,255,${a * 0.4})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(px, py, pr, 0, Math.PI * 2); x.fill();
+    };
+    for (let k = 0; k < 4; k++) {
+      const ox = (k % 2) * cell, oy = Math.floor(k / 2) * cell;
+      const cx = ox + cell / 2, base = oy + cell * 0.7, half = cell * 0.5 - 6; // everything stays inside the cell: a lobe cut by its edge would draw a line across the sky
+      const width = cell * (0.36 + rnd() * 0.06);
+      // the body: a wide row of big lobes along a flat base, each pulled a little up or down
+      const n = 7 + Math.floor(rnd() * 4);
+      for (let i = 0; i < n; i++) {
+        const t = (i + 0.5) / n, px = cx + (t - 0.5) * 2 * width;
+        const pr = Math.min(cell * (0.1 + rnd() * 0.05) + Math.sin(t * Math.PI) * cell * 0.04, half - Math.abs(px - cx));
+        lobe(px, base - pr * (0.65 + rnd() * 0.2), pr);
       }
+      // the crown: fewer, smaller bumps riding on the body, off centre, so the top is lumpy not domed
+      const m = 4 + Math.floor(rnd() * 4);
+      for (let i = 0; i < m; i++) {
+        const px = cx + (rnd() - 0.5) * width * 1.5, pr = Math.min(cell * (0.06 + rnd() * 0.07), half - Math.abs(px - cx));
+        const bump = Math.sin(((px - cx) / width + 1) * Math.PI * 0.5) ** 0.6;
+        lobe(px, base - cell * (0.16 + rnd() * 0.14) * bump - pr * 0.3, pr, 0.95);
+      }
+      // a few faint wisps off the ends
+      for (let i = 0; i < 3; i++) { const side = rnd() < 0.5 ? -1 : 1, px = cx + side * width * (0.9 + rnd() * 0.2); lobe(px, base - cell * (0.03 + rnd() * 0.05), Math.min(cell * 0.05, half - Math.abs(px - cx)), 0.45); }
+      // shading: the crown lit, the base blue-grey
+      x.save(); x.beginPath(); x.rect(ox, oy, cell, cell); x.clip();
+      x.globalCompositeOperation = 'source-atop';
+      const shade = x.createLinearGradient(0, oy + cell * 0.25, 0, base + cell * 0.04);
+      shade.addColorStop(0, 'rgba(255,255,255,0)'); shade.addColorStop(0.5, 'rgba(196,208,220,0.22)'); shade.addColorStop(1, 'rgba(146,164,186,0.6)');
+      x.fillStyle = shade; x.fillRect(ox, oy, cell, cell);
+      x.globalCompositeOperation = 'source-over';
+      x.restore();
     }
-    // the shaded undersides: a faint grey pass offset down
-    x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(150,165,180,0.18)'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over';
   }] },
 };
 

@@ -10,7 +10,7 @@ export interface Mat {
   metal?: number;
   grain?: Kind; // a faint normal map, tiled every `tile` metres
   amp?: number; // normal strength, 0..1 (default 0.25)
-  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky'; // a painted colour map, tiled every `tile` metres
+  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky' | 'facade' | 'pitch'; // a painted colour map, tiled every `tile` metres
   tex?: string; // a scanned surface from assets.ts: its relief and roughness, and its colour when it ships one; tiled every `tile` metres
   sheen?: number; // cloth: the soft rim light of fibres, 0..1
   clearcoat?: number; // lacquer, car paint, glossy plastic: a clear layer over the colour, 0..1
@@ -24,6 +24,7 @@ export interface Mat {
   inside?: true; // seen from inside (a sky dome): back faces
   tint?: true; // takes the piece's vertex colours (the city: each building its own brightness)
   alpha?: number; // see-through: a pane of glass; kept live, never baked
+  layer?: number; // flat ground layers on the same plane, kilometres off: drawn over what is under them (polygon offset), higher wins
 }
 
 export const MATS: Record<string, Mat> = {
@@ -41,13 +42,20 @@ export const MATS: Record<string, Mat> = {
   bridgeWall: { color: '#8E949B', rough: 0.55, clearcoat: 0.15, clearcoatRough: 0.3, tile: 1 },
   bridgeFloor: { color: '#2E3134', rough: 0.95, grain: 'speckle', amp: 0.2, tile: 0.5 },
   wingSkin: { color: '#C9CDD1', rough: 0.42, metal: 0.15, clearcoat: 0.25, clearcoatRough: 0.25, tile: 1 },
-  flightGround: { color: '#7F8B66', rough: 1, tile: 1 },
-  halifaxWall: { color: '#FFFFFF', rough: 0.85, tile: 1, tint: true },
+  flightGround: { color: '#737B5E', rough: 1, tile: 1 },
+  halifaxWall: { color: '#FFFFFF', rough: 0.85, tile: 3.6, tint: true, paint: 'facade' },
   halifaxRoof: { color: '#FFFFFF', rough: 0.9, tile: 1, tint: true },
-  seaWater: { color: '#22485F', rough: 0.12, metal: 0.05, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1 },
-  parkGreen: { color: '#5E8A45', rough: 1, tile: 1 },
-  woodGreen: { color: '#33552E', rough: 1, tile: 1 },
-  streetAsphalt: { color: '#3B3D40', rough: 0.95, tile: 1 },
+  seaWater: { color: '#22485F', rough: 0.12, metal: 0.05, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1, layer: 1 },
+  parkGreen: { color: '#5E8A45', rough: 1, tile: 1, layer: 2 },
+  woodGreen: { color: '#33552E', rough: 1, tile: 1, layer: 2 },
+  streetAsphalt: { color: '#45474A', rough: 0.95, tile: 1, layer: 3 },
+  campusLawn: { color: '#5C8C44', rough: 1, tile: 1, layer: 2 },
+  campusPaving: { color: '#B6B2A8', rough: 0.9, tile: 1, layer: 4 },
+  campusTurf: { color: '#FFFFFF', rough: 1, tile: 1, paint: 'pitch', layer: 5 },
+  copperRoof: { color: '#5E8C7A', rough: 0.6, metal: 0.2, tile: 1 },
+  clockFace: { color: '#F4F1E6', rough: 0.5, emissive: '#F4F1E6', emissivePower: 0.4, tile: 1 },
+  treeCanopy: { color: '#FFFFFF', rough: 1, tile: 1, tint: true },
+  treeTrunk: { color: '#4A3A2A', rough: 1, tile: 1 },
   flightSky: { color: '#A8CCDE', rough: 1, unlit: true, fog: false, inside: true, tile: 1 },
   // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
   condoWall: { color: '#33343A', rough: 0.9, tex: 'plastered_wall_04', amp: 0.3, tile: 3.2 },
