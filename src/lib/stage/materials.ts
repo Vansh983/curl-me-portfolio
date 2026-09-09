@@ -56,6 +56,8 @@ export const MATS: Record<string, Mat> = {
   // 2024, Sydney: the hacker house. A plywood table on trestles, white walls, timber underfoot
   plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
   trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
+  oldPlastic: { color: '#2C2D30', rough: 0.62, clearcoat: 0.08, clearcoatRough: 0.5, tile: 1 }, // the black plastic of a 2010s monitor
+  oldPlasticPale: { color: '#9A9891', rough: 0.7, tile: 1 }, // the greyed beige one
   airBed: { color: '#2A3446', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.25, tile: 1 }, // flocked PVC, a little sheen
   airBedFlock: { color: '#3B4457', rough: 0.95, sheen: 0.4, tile: 1 },
   bedding: { color: '#D9D6CF', rough: 0.95, tex: 'wool_boucle', amp: 0.3, sheen: 0.5, tile: 0.35 },

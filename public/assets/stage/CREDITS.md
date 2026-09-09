@@ -1,9 +1,9 @@
 # Stage assets
 
-The airborne sequence also uses a [CC0 photographed sky and a project-authored Blender campus](./FLIGHT-CREDITS.md).
+Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models from [BlenderKit](https://www.blenderkit.com) (royalty free), and one from [Sketchfab](https://sketchfab.com) (CC BY 4.0, downloaded with an account). Optimised by scripts/stage-assets.mjs.
 
-Models and textures from [Poly Haven](https://polyhaven.com) (CC0) and free models from [BlenderKit](https://www.blenderkit.com) (royalty free). Optimised by scripts/stage-assets.mjs.
-
+- `dalhousie_campus` (model), Project-authored in Blender. the dimensional Goldberg campus seen while airborne. See [flight credits](./FLIGHT-CREDITS.md).
+- `sydney_opera_house` (model) by Nick Reinhardt (Sketchfab), CC-BY-4.0, https://sketchfab.com/3d-models/sydney-opera-house-317b2d540f0a4f7e8d87dd3b0372712d. the Opera House across the water from the Sydney window.
 - `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp, and the bedside lamp.
 - `steel_frame_shelves_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/steel_frame_shelves_01. the shelves behind the desk.
 - `potted_plant_01` (model) by Rico Cilliers, CC0, https://polyhaven.com/a/potted_plant_01. the plant by the window.
@@ -49,3 +49,5 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0) and free mode
 - `asphalt_02` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/asphalt_02. the Embarcadero road.
 
 The Toronto skyline out of the condo window and Halifax under the aircraft are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).
+
+`bean-logo.png` is the Bean logo from [beanmeals.com](https://www.beanmeals.com), the company the site's author co-founded, used on the Sydney set's sign, whiteboard and screens.

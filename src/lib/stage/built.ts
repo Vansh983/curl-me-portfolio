@@ -93,6 +93,20 @@ const laptopFor = (paint: string): BuiltPart => {
 };
 
 /** A 27 inch monitor on a stand: 0.61 × 0.36 panel, the screen a painted face towards +z. */
+/**
+ * An older monitor, 2010s office stock: a 0.5 × 0.32 panel in a thick plastic bezel with a chin, a deep back, a stout neck
+ * and an oval base; the screen a painted face toward +z, its centre at 0.4. `pale` makes it the greyed beige one.
+ */
+const monOld = (paint: string, pale = false) => (): BuiltPart => {
+  const shell = M(pale ? 'oldPlasticPale' : 'oldPlastic');
+  const body = new Sink().rbox(0, 0.4, -0.03, 0.56, 0.4, 0.05, 0.008, 2); // the bezel block
+  body.rbox(0, 0.42, -0.075, 0.42, 0.3, 0.05, 0.01, 2); // the deep back with the electronics
+  body.box(0, 0.215, 0.0, 0.56, 0.03, 0.05); // the chin
+  const stand = new Sink().rbox(0, 0.1, -0.09, 0.07, 0.2, 0.05, 0.008, 2).rbox(0, 0.0075, -0.08, 0.3, 0.015, 0.2, 0.006, 2);
+  const button = new Sink().box(0.22, 0.215, 0.026, 0.02, 0.006, 0.004);
+  return [piece(offsetGeo(face(0.5, 0.32, 0.001), 0, 0.41, 0), { paint }), piece(body.out(), shell, { smooth: true }), piece(stand.out(), shell, { smooth: true }), piece(button.out(), M('ledStrip'))];
+};
+
 const mon = (paint: string) => (): BuiltPart => {
   const body = new Sink().rbox(0, 0.5, -0.015, 0.62, 0.37, 0.02, 0.005, 2);
   const stand = new Sink().rbox(0, 0.18, -0.06, 0.05, 0.36, 0.03, 0.006, 2).rbox(0, 0.006, -0.06, 0.26, 0.012, 0.18, 0.005, 2);
@@ -533,34 +547,54 @@ export const BUILT: Record<string, () => BuiltPart> = {
     bedding.rbox(-0.3, 0.255, 0.05, 1.1, 0.05, 0.9, 0.02, 2).rotateY(-0.3, 0.05, 0.1); // the blanket, pushed back and askew
     return [piece(bed.out(), M('airBed'), { smooth: true }), piece(top.out(), M('airBedFlock'), { smooth: true }), piece(bedding.out(), M('bedding'), { smooth: true, metres: 'xz' })];
   },
-  /** The wires: leads snaking across the table top between the monitors, a few dropping over the south edge to a power strip on the floor. Origin at the table's centre, top at y 0.74. */
+  /**
+   * The wires on the hacker house table, laid the way they are laid: each monitor's lead runs from its stand to the spine down
+   * the middle of the table between the two rows, the spine (three leads) runs east and drops over the south-east corner to
+   * a power strip on the floor; each keyboard's lead goes to its monitor, each laptop's charger to the spine. Origin at the
+   * table's centre, the top at y 0.74; the device positions match sets.ts.
+   */
   wires: () => {
-    const black = new Sink(), white = new Sink(), red = new Sink(), strip = new Sink();
+    const black = new Sink(), white = new Sink(), strip = new Sink();
     const rnd = rng(17);
-    const lead = (sink: Sink, from: V3, to: V3, wobble: number, n = 10, sagTo?: number) => {
-      const pts: V3[] = [];
-      for (let i = 0; i <= n; i++) {
-        const t = i / n;
-        const y = sagTo === undefined ? from[1] + (to[1] - from[1]) * t : from[1] * (1 - t) * (1 - t) + sagTo * 2 * t * (1 - t) + to[1] * t * t;
-        pts.push([from[0] + (to[0] - from[0]) * t + Math.sin(t * Math.PI * 2.3 + rnd() * 2) * wobble * (rnd() * 0.5 + 0.5), y, from[2] + (to[2] - from[2]) * t + Math.sin(t * Math.PI * 1.7 + rnd()) * wobble]);
+    const y = 0.748;
+    const lay = (sink: Sink, pts: V3[], wobble = 0.012, n = 6) => { // a lead through the points, a little slack between them
+      for (let i = 0; i + 1 < pts.length; i++) {
+        const a = pts[i], b = pts[i + 1];
+        let prev: V3 = a;
+        for (let k = 1; k <= n; k++) {
+          const t = k / n, w = Math.sin(t * Math.PI) * wobble;
+          const q: V3 = k === n ? b : [a[0] + (b[0] - a[0]) * t + (rnd() - 0.5) * w, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t + (rnd() - 0.5) * w];
+          sink.bone(prev, q, 0.004, 0.004); prev = q;
+        }
       }
-      for (let i = 0; i < n; i++) sink.bone(pts[i], pts[i + 1], 0.004, 0.004);
     };
-    const y = 0.745;
-    for (let i = 0; i < 9; i++) { // across the top, monitor to monitor, keyboard to laptop
-      const sink = [black, black, white, black, red, white, black, black, white][i];
-      lead(sink, [-1.3 + rnd() * 2.6, y, -0.55 + rnd() * 1.1], [-1.3 + rnd() * 2.6, y, -0.55 + rnd() * 1.1], 0.12 + rnd() * 0.1);
+    // monitors: stand at (x, z), rows at z ±0.15 from the table's centre line; the spine at z 0
+    const north = [[-0.7, 0.15], [0.65, 0.15]], south = [[0, -0.15], [-1.25, -0.15]];
+    for (const [mx, mz] of [...north, ...south]) lay(black, [[mx, y, mz - Math.sign(mz) * 0.08], [mx + 0.05, y, 0.0]], 0.01, 4);
+    for (const [mx, mz] of [...north, ...south]) lay(black, [[mx + 0.03, y, mz - Math.sign(mz) * 0.08], [mx - 0.04, y, 0.02]], 0.01, 4); // power and video
+    // keyboards to their monitors
+    lay(black, [[-0.7, y, 0.55], [-0.72, y, 0.23]], 0.015, 5);
+    lay(black, [[0.0, y, -0.5], [0.02, y, -0.23]], 0.015, 5);
+    // laptop chargers, white
+    lay(white, [[1.05, y, 0.3], [1.2, y, 0.05], [1.3, y, 0.0]], 0.02, 5);
+    lay(white, [[0.9, y, -0.4], [1.0, y, -0.1], [1.1, y, 0.0]], 0.02, 5);
+    // the spine: three leads down the middle from the west end to the corner, then over the edge to the strip
+    for (const [sink, dz] of [[black, -0.02], [black, 0.02], [white, 0.0]] as const) {
+      lay(sink, [[-1.35, y, dz], [-0.4, y, dz + 0.01], [0.5, y, dz - 0.01], [1.35, y, dz]], 0.015, 8);
+      lay(sink, [[1.35, y, dz], [1.42, y - 0.02, -0.62], [1.4, 0.4, -0.75], [1.3 + dz * 4, 0.03, -0.85]], 0.01, 6);
     }
-    for (let i = 0; i < 5; i++) lead([black, white, black, red, black][i], [-0.9 + i * 0.4 + rnd() * 0.2, y, -0.4 - rnd() * 0.2], [-0.5 + rnd() * 0.5, 0.05, -0.95], 0.06, 8, 0.25); // over the edge to the floor
-    strip.rbox(-0.25, 0.02, -1.0, 0.36, 0.04, 0.06, 0.008, 2); // the power strip
-    for (let i = 0; i < 4; i++) strip.box(-0.37 + i * 0.08, 0.041, -1.0, 0.03, 0.004, 0.03);
-    return [piece(black.out(), M('cable'), { smooth: true }), piece(white.out(), M('cableWhite'), { smooth: true }), piece(red.out(), M('cableRed'), { smooth: true }), piece(strip.out(), M('powerStrip'), { smooth: true })];
+    strip.rbox(1.15, 0.02, -0.86, 0.36, 0.04, 0.06, 0.008, 2); // the power strip on the floor by the trestle
+    for (let i = 0; i < 4; i++) strip.box(1.03 + i * 0.08, 0.041, -0.86, 0.03, 0.004, 0.03);
+    lay(black, [[1.0, 0.02, -0.86], [0.4, 0.02, -0.9], [-0.2, 0.02, -1.4]], 0.02, 6); // the strip's own lead away under the table
+    return [piece(black.out(), M('cable'), { smooth: true }), piece(white.out(), M('cableWhite'), { smooth: true }), piece(strip.out(), M('powerStrip'), { smooth: true })];
   },
   /** The Bean sign on the wall above the window: the mark and the wordmark, painted, 2.4 by 0.5, its face toward +z. */
   beanSign: () => [piece(face(2.4, 0.5, 0.004), { paint: 'beanSign' })],
-  /** The other monitors on the table: the app in its design tool, the code. */
-  monitorBeanApp: mon('screenBeanApp'),
-  monitorBeanCode: mon('screenBeanCode'),
+  /** The four older monitors on the hacker house table: the app in its design tool, the code, the Product Hunt page, the adapt endpoint. */
+  monitorOldApp: monOld('screenBeanApp'),
+  monitorOldCode: monOld('screenCode', true),
+  monitorOldPH: monOld('screenProductHunt'),
+  monitorOldBeanCode: monOld('screenBeanCode'),
   /** A phone flat on the table, the app on it: 0.075 by 0.155, the screen up. */
   phoneBean: () => [piece(new Sink().rbox(0, 0.004, 0, 0.075, 0.008, 0.155, 0.003, 2).out(), M('bezel'), { smooth: true }), piece(offsetGeo(new Sink().quad([-0.034, 0.0085, 0.072], [0.034, 0.0085, 0.072], [0.034, 0.0085, -0.072], [-0.034, 0.0085, -0.072], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), 0, 0, 0), { paint: 'screenBeanPhone' })],
   /** The design laptop and the code laptop on the hacker house table. */
@@ -579,10 +613,10 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const pane = new Sink().quad([-2.0, 0, 0.012], [2.0, 0, 0.012], [2.0, 1.55, 0.012], [-2.0, 1.55, 0.012]).quad([2.0, 0, -0.012], [-2.0, 0, -0.012], [-2.0, 1.55, -0.012], [2.0, 1.55, -0.012]);
     return [piece(s.out(), M('windowFrame')), piece(pane.out(), M('cabinGlass'))];
   },
-  /** The water outside the window: a 120 by 60 m sheet of harbour from the wall out, at the origin's height. */
-  harbourWater: () => [piece(new Sink().quad([0, 0, 30], [0, 0, -30], [-120, 0, -30], [-120, 0, 30]).out(), M('seaWater'), { metres: 'xz' })],
-  /** The harbour out of the west window: an 80 by 30 m painted view, its face toward +x, 60 m out beyond the water, unlit. */
-  sydneyHarbour: () => [piece(new Sink().quad([0, -15, 40], [0, -15, -40], [0, 15, -40], [0, 15, 40], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
+  /** The water outside the window: a 300 by 240 m sheet of harbour from the wall out, at the origin's height. */
+  harbourWater: () => [piece(new Sink().quad([0, 0, 120], [0, 0, -120], [-300, 0, -120], [-300, 0, 120]).out(), M('seaWater'), { metres: 'xz' })],
+  /** The harbour out of the west window: a 480 by 180 m painted view, its face toward +x, 150 m out behind the Opera House, filling the window from the glass; its sky runs into the set's fog colour, unlit. */
+  sydneyHarbour: () => [piece(new Sink().quad([0, -90, 240], [0, -90, -240], [0, 90, -240], [0, 90, 240], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
   /** An interior door leaf, 0.85 by 2.04, hinged at the origin along +z, its face toward +x; placed at the hinge and turned open. */
   doorLeaf: () => {
     const s = new Sink().rbox(0, 1.02, 0.425, 0.04, 2.04, 0.85, 0.004, 1);

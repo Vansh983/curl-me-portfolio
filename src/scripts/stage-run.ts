@@ -39,7 +39,7 @@ import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress, STAGE_SPAN } from '../lib/stage/shot.ts';
 import { loadAllSets, showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
-import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, BEAN_PAINT, type Paint } from './stage-paint.ts';
+import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, beanPaint, type Paint } from './stage-paint.ts';
 
 const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
@@ -119,6 +119,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const loadModel = (id: string): Promise<Loaded> => {
     let p = modelCache.get(id);
     if (!p) {
+      const skin = asset(id).skin;
       p = gltf.loadAsync(assetUrl(asset(id))).then((g) => {
         g.scene.traverse((o) => {
           if (!(o instanceof Mesh)) return;
@@ -128,6 +129,15 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
             if (m instanceof MeshStandardMaterial) {
               m.envMapIntensity = Math.min(1, m.envMapIntensity);
               if (m.map) m.map.anisotropy = maxAniso;
+              const k = skin?.[m.name];
+              if (k) { // the manifest's daylight skin for a model made for another light
+                if (k.color) m.color.set(k.color);
+                if (k.map === false) m.map = null;
+                if (k.emissive === false) { m.emissive.set('#000000'); m.emissiveMap = null; m.emissiveIntensity = 0; }
+                if (k.rough !== undefined) { m.roughness = k.rough; m.roughnessMap = null; m.metalnessMap = null; }
+                if (k.metal !== undefined) m.metalness = k.metal;
+                m.needsUpdate = true;
+              }
             }
           }
         });
@@ -142,8 +152,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const video = document.createElement('video');
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
-  const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null, dalhousie: null as HTMLImageElement | null };
-  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...BEAN_PAINT };
+  const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null, dalhousie: null as HTMLImageElement | null, bean: null as HTMLImageElement | null };
+  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...beanPaint(images) };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
     const p = PAINT[name];
@@ -700,6 +710,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
+  loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
   const dolly = makeDolly(DOLLY);

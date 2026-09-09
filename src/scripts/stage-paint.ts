@@ -4,7 +4,7 @@
 export type Ctx = CanvasRenderingContext2D;
 export type Painter = (x: Ctx, w: number, h: number) => void;
 export interface Paint { w: number; h: number; frames: Painter[] }
-export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null }
+export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
   const c = document.createElement('canvas');
@@ -435,21 +435,24 @@ export const WINDOW_PAINT: Record<string, Paint> = {
 };
 
 /** The Google Code-in 2018 grand prize winner badge. */
-/** A bean: the app's mark, a kidney shape in the brand green with a highlight and a dent in the paper's colour, `size` tall at (cx, cy). */
-export function beanMark(x: Ctx, cx: number, cy: number, size: number, fill = '#4FA85A', paper = '#FFFFFF'): void {
-  const r = size / 2;
-  x.save(); x.translate(cx, cy); x.rotate(-0.6);
-  x.fillStyle = fill; x.beginPath(); x.ellipse(0, 0, r * 0.98, r * 0.62, 0, 0, Math.PI * 2); x.fill();
-  x.fillStyle = paper; x.beginPath(); x.ellipse(-r * 0.05, -r * 0.78, r * 0.5, r * 0.3, 0, 0, Math.PI * 2); x.fill(); // the dent
-  x.fillStyle = 'rgba(255,255,255,0.3)'; x.beginPath(); x.ellipse(r * 0.3, -r * 0.15, r * 0.26, r * 0.12, -0.3, 0, Math.PI * 2); x.fill();
-  x.restore();
+export const BEAN_ORANGE = '#F26722';
+/**
+ * Bean's mark (the cloche with the bolt) from the logo image, `size` tall at (cx, cy); the wordmark too when `word` is set.
+ * The logo file is orange on clear: it goes on light paper. Before the image has loaded, an orange ring stands in.
+ */
+export function beanLogo(x: Ctx, logo: HTMLImageElement | null, cx: number, cy: number, size: number, word = false): void {
+  if (!logo) { x.strokeStyle = BEAN_ORANGE; x.lineWidth = size * 0.08; x.beginPath(); x.arc(cx, cy, size * 0.4, 0, Math.PI * 2); x.stroke(); return; }
+  // the mark fills x 68..948 of 2228, the wordmark 950..2138; the whole is 1024 tall
+  const sx = word ? 68 : 68, sw = word ? 2070 : 880, sy = 88, sh = 848;
+  const scale = size / sh;
+  x.drawImage(logo, sx, sy, sw, sh, cx - (sw * scale) / 2, cy - size / 2, sw * scale, size);
 }
 
-/** Sydney, 2024: the hacker house where Bean was built, and the harbour out of its window. */
-export const BEAN_PAINT: Record<string, Paint> = {
+/** Sydney, 2024: the hacker house where Bean was built, and the harbour out of its window. The logo is drawn from `images.bean` once it has loaded. */
+export const beanPaint = (images: Images): Record<string, Paint> => ({
   /** The harbour out of the west window: the bridge's arch, the city behind, a ferry crossing; the Opera House itself is the model in front. Unlit, daylight. */
-  sydney: { w: 2048, h: 768, frames: [(x, w, h) => {
-    const sky = x.createLinearGradient(0, 0, 0, h * 0.62); sky.addColorStop(0, '#5B9BD8'); sky.addColorStop(1, '#C9DFF0');
+  sydney: { w: 2048, h: 768, frames: [(x, w, h) => { // 8:3, laid over a 320 by 120 m quad
+    const sky = x.createLinearGradient(0, 0, 0, h * 0.62); sky.addColorStop(0, '#6BA3DA'); sky.addColorStop(0.35, '#7FB0E0'); sky.addColorStop(1, '#C9DFF0'); // the top is the set's fog colour
     x.fillStyle = sky; x.fillRect(0, 0, w, h);
     // a few high clouds
     for (const [cx, cy, cw] of [[300, 150, 220], [900, 110, 300], [1500, 170, 260], [1900, 90, 180]]) {
@@ -482,7 +485,7 @@ export const BEAN_PAINT: Record<string, Paint> = {
     x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h);
     x.fillStyle = '#B8BFC4'; x.fillRect(0, h - 26, w, 26);
     const marker = (c: string, size = 28) => { x.strokeStyle = c; x.fillStyle = c; x.lineWidth = 4; x.font = `600 ${size}px "Comic Sans MS", "Chalkboard SE", cursive`; };
-    marker('#1B4FBF', 48); x.fillText('BEAN', 44, 76); beanMark(x, 210, 58, 44, '#3E9A4C'); marker('#1B4FBF', 30); x.fillText('what is in your fridge?', 256, 74);
+    beanLogo(x, images.bean, 150, 60, 74, true); marker('#1B4FBF', 30); x.fillText('what is in your fridge?', 290, 74);
     // the flow, left to right
     const boxes: Array<[number, string, string]> = [[60, 'pantry', 'photo + list'], [290, 'recipes', '28.6k, adapt live'], [520, 'the week', 'one click'], [750, 'shopping', 'shared list']];
     for (const [bx, t, sub] of boxes) { marker('#1B4FBF', 26); x.strokeRect(bx, 130, 200, 96); x.fillText(t, bx + 18, 168); marker('#5B6670', 20); x.fillText(sub, bx + 18, 204); }
@@ -508,9 +511,9 @@ export const BEAN_PAINT: Record<string, Paint> = {
       rows.forEach((r, i) => { x.fillStyle = '#F2F4F1'; x.beginPath(); x.roundRect(px + 12, 146 + i * 44, 146, 34, 8); x.fill(); x.fillStyle = '#2B2B2B'; x.font = '12px Inter, system-ui, sans-serif'; x.fillText(r, px + 22, 168 + i * 44); });
       x.fillStyle = accent; x.beginPath(); x.roundRect(px + 12, 372, 146, 34, 17); x.fill(); x.fillStyle = '#FFFFFF'; x.font = '600 13px Inter, system-ui, sans-serif'; x.fillText('Plan my week', px + 44, 394);
     };
-    phone(180, 'Pantry', ['eggs · 6', 'spinach', 'rice · 1 kg', 'chicken thighs', 'lemons · 3'], '#3E9A4C');
+    phone(180, 'Pantry', ['eggs · 6', 'spinach', 'rice · 1 kg', 'chicken thighs', 'lemons · 3'], BEAN_ORANGE);
     phone(375, 'This week', ['Mon  lemon chicken', 'Tue  fried rice', 'Wed  shakshuka', 'Thu  leftovers', 'Fri  pizza night'], '#E07A3F');
-    phone(570, 'Shopping', ['tomatoes · 4', 'feta', 'pizza dough', 'garlic', 'yoghurt'], '#1B4FBF');
+    phone(570, 'Shopping', ['tomatoes · 4', 'feta', 'pizza dough', 'garlic', 'yoghurt'], '#2E3A4F');
   }] },
   /** The code laptop: the recipe adapt endpoint, streaming. */
   screenBeanCode: { w: 768, h: 480, frames: [(x, w, h) => {
@@ -541,42 +544,40 @@ export const BEAN_PAINT: Record<string, Paint> = {
     x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h); x.fillStyle = '#FFF4EF'; x.fillRect(0, 0, w, 64);
     x.fillStyle = '#DA552F'; x.beginPath(); x.arc(40, 32, 18, 0, Math.PI * 2); x.fill(); x.fillStyle = '#FFFFFF'; x.font = '700 22px Inter, system-ui, sans-serif'; x.fillText('P', 32, 40);
     x.fillStyle = '#21293C'; x.font = '600 18px Inter, system-ui, sans-serif'; x.fillText('Product Hunt', 70, 39);
-    beanMark(x, 74, 128, 64); x.fillStyle = '#21293C'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Bean Recipe Adapt', 130, 120);
+    beanLogo(x, images.bean, 74, 128, 64); x.fillStyle = '#21293C'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Bean Recipe Adapt', 130, 120);
     x.fillStyle = '#4B5563'; x.font = '18px Inter, system-ui, sans-serif'; x.fillText('Tell Bean what to change and it updates the recipe in realtime', 130, 150);
     x.fillStyle = '#DA552F'; x.beginPath(); x.roundRect(w - 200, 96, 150, 60, 8); x.fill(); x.fillStyle = '#FFFFFF'; x.font = '700 22px Inter, system-ui, sans-serif'; x.fillText('▲ 412', w - 165, 134);
     x.fillStyle = '#F3F4F6'; x.beginPath(); x.roundRect(130, 176, 300, 30, 15); x.fill(); x.fillStyle = '#21293C'; x.font = '600 15px Inter, system-ui, sans-serif'; x.fillText('#4 Product of the Day', 152, 197);
     x.fillStyle = '#E5E7EB'; x.fillRect(60, 230, w - 120, 2);
     const cards = ['"no dairy"', '"make it for 6"', '"20 minutes, please"'];
-    cards.forEach((t, i) => { const cx = 60 + i * 290; x.fillStyle = '#F9FAFB'; x.beginPath(); x.roundRect(cx, 254, 260, 170, 12); x.fill(); x.fillStyle = '#3E9A4C'; x.fillRect(cx + 16, 274, 6, 40); x.fillStyle = '#21293C'; x.font = '600 20px Inter, system-ui, sans-serif'; x.fillText(t, cx + 34, 302); x.fillStyle = '#6B7280'; x.font = '14px Inter, system-ui, sans-serif'; x.fillText('recipe rewritten as you type', cx + 34, 332); x.fillText('pantry checked, list updated', cx + 34, 356); });
+    cards.forEach((t, i) => { const cx = 60 + i * 290; x.fillStyle = '#F9FAFB'; x.beginPath(); x.roundRect(cx, 254, 260, 170, 12); x.fill(); x.fillStyle = BEAN_ORANGE; x.fillRect(cx + 16, 274, 6, 40); x.fillStyle = '#21293C'; x.font = '600 20px Inter, system-ui, sans-serif'; x.fillText(t, cx + 34, 302); x.fillStyle = '#6B7280'; x.font = '14px Inter, system-ui, sans-serif'; x.fillText('recipe rewritten as you type', cx + 34, 332); x.fillText('pantry checked, list updated', cx + 34, 356); });
     x.fillStyle = '#6B7280'; x.font = '15px Inter, system-ui, sans-serif'; x.fillText('Made by Vansh Sood and Pankrit Jindal  ·  Halifax and Sydney  ·  beantheapp.com', 60, 470);
     x.fillText('187 comments  ·  Cooking, Productivity, Artificial Intelligence', 60, 500);
   }] },
   /** The phone on the table: the app's home. */
   screenBeanPhone: { w: 360, h: 720, frames: [(x, w, h) => {
-    x.fillStyle = '#F7F8F5'; x.fillRect(0, 0, w, h);
-    x.fillStyle = '#3E9A4C'; x.fillRect(0, 0, w, 150); beanMark(x, 44, 74, 40, '#FFFFFF', '#3E9A4C');
-    x.fillStyle = '#FFFFFF'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Bean', 80, 84); x.font = '500 15px Inter, system-ui, sans-serif'; x.fillText('Your Kitchen Assistant', 80, 108);
+    x.fillStyle = '#FBF8F4'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, 150); beanLogo(x, images.bean, 150, 70, 60, true);
+    x.fillStyle = '#7A8290'; x.font = '500 15px Inter, system-ui, sans-serif'; x.fillText('Your Kitchen Assistant', 96, 122);
     x.fillStyle = '#21293C'; x.font = '600 20px Inter, system-ui, sans-serif'; x.fillText('Tonight, from your pantry', 24, 200);
-    ['Lemon chicken with rice  ·  25 min', 'Spinach shakshuka  ·  20 min', 'Egg fried rice  ·  15 min'].forEach((t, i) => { x.fillStyle = '#FFFFFF'; x.beginPath(); x.roundRect(20, 222 + i * 92, w - 40, 76, 14); x.fill(); x.fillStyle = '#E7F1E5'; x.beginPath(); x.roundRect(32, 234 + i * 92, 52, 52, 10); x.fill(); x.fillStyle = '#21293C'; x.font = '500 15px Inter, system-ui, sans-serif'; x.fillText(t, 98, 266 + i * 92); });
-    x.fillStyle = '#3E9A4C'; x.beginPath(); x.roundRect(24, 540, w - 48, 56, 28); x.fill(); x.fillStyle = '#FFFFFF'; x.font = '600 18px Inter, system-ui, sans-serif'; x.fillText('Plan my week', 118, 575);
+    ['Lemon chicken with rice  ·  25 min', 'Spinach shakshuka  ·  20 min', 'Egg fried rice  ·  15 min'].forEach((t, i) => { x.fillStyle = '#FFFFFF'; x.beginPath(); x.roundRect(20, 222 + i * 92, w - 40, 76, 14); x.fill(); x.fillStyle = '#FDE7DA'; x.beginPath(); x.roundRect(32, 234 + i * 92, 52, 52, 10); x.fill(); x.fillStyle = '#21293C'; x.font = '500 15px Inter, system-ui, sans-serif'; x.fillText(t, 98, 266 + i * 92); });
+    x.fillStyle = BEAN_ORANGE; x.beginPath(); x.roundRect(24, 540, w - 48, 56, 28); x.fill(); x.fillStyle = '#FFFFFF'; x.font = '600 18px Inter, system-ui, sans-serif'; x.fillText('Plan my week', 118, 575);
     x.fillStyle = '#9CA3AF'; x.font = '13px Inter, system-ui, sans-serif'; x.fillText('pantry  ·  recipes  ·  week  ·  shopping', 60, 680);
   }] },
   /** The sign above the window: the mark and the wordmark on the wall's own colour. */
   beanSign: { w: 1440, h: 300, frames: [(x, w, h) => {
     x.fillStyle = '#F1ECE3'; x.fillRect(0, 0, w, h);
-    beanMark(x, 250, 150, 200, '#4FA85A', '#F1ECE3');
-    x.fillStyle = '#21293C'; x.font = '800 190px Inter, system-ui, sans-serif'; x.fillText('Bean', 420, 218);
-    x.fillStyle = '#7A8290'; x.font = '500 40px Inter, system-ui, sans-serif'; x.fillText('Your Kitchen Assistant', 940, 205);
+    beanLogo(x, images.bean, w / 2, h / 2, 250, true);
   }] },
   /** A poster by the door: the mark and the line. */
   beanPoster: { w: 600, h: 850, frames: [(x, w, h) => {
     x.fillStyle = '#F4F1E8'; x.fillRect(0, 0, w, h);
-    beanMark(x, w / 2, 330, 300, '#4FA85A', '#F4F1E8');
-    x.fillStyle = '#21293C'; x.font = '800 96px Inter, system-ui, sans-serif'; x.textAlign = 'center'; x.fillText('Bean', w / 2, 590);
+    beanLogo(x, images.bean, w / 2, 300, 260); beanLogo(x, images.bean, w / 2, 560, 130, true);
+    x.textAlign = 'center';
     x.fillStyle = '#4B5563'; x.font = '500 30px Inter, system-ui, sans-serif'; x.fillText('The last meal planner', w / 2, 660); x.fillText("you'll ever need", w / 2, 700);
     x.fillStyle = '#9CA3AF'; x.font = '22px Inter, system-ui, sans-serif'; x.fillText('beantheapp.com', w / 2, 790); x.textAlign = 'left';
   }] },
-};
+});
 
 export const BADGE_PAINT: Record<string, Paint> = {
   badge: {

@@ -2,13 +2,13 @@
 // turns this into optimised .glb files under public/assets/stage/ and a credits file; the runtime
 // only ever asks assetUrl(). Downloaded assets carry their licences; local geometry has a rebuild script. Model textures are capped at 512 px
 // and scanned surfaces at 1k: the whole set has to stay light enough for a phone on a bad connection.
-export type Licence = 'CC0' | 'CC-BY-3.0' | 'RF' | 'Original'; // Original: project-authored geometry; RF: BlenderKit royalty free
+export type Licence = 'CC0' | 'CC-BY-3.0' | 'CC-BY-4.0' | 'RF' | 'Original'; // Original: project-authored geometry; RF: BlenderKit royalty free
 export type TexMap = 'diff' | 'nor' | 'arm'; // colour, normal (gl), and ambient occlusion + roughness + metalness packed in r, g, b
 export interface Asset {
   id: string; // the Poly Haven slug, or our own name for a url asset
   kind: 'model' | 'texture';
-  source: 'polyhaven' | 'url' | 'blenderkit' | 'local';
-  url?: string; // source 'url': a direct .glb
+  source: 'polyhaven' | 'url' | 'blenderkit' | 'sketchfab' | 'local';
+  url?: string; // source 'url': a direct .glb; source 'sketchfab': the model page (the file is downloaded by hand with an account into .cache/polyhaven/<id>/<id>.glb)
   bk?: number; // source 'blenderkit': the numeric download id of the gltf file (api/v1/downloads/<id>/)
   res: '1k';
   licence: Licence;
@@ -18,6 +18,7 @@ export interface Asset {
   simplify?: number; // meshopt simplification error (fraction of the mesh's size); off when absent
   anims?: string[]; // rigged models: the animation clips to keep, the rest are dropped
   drop?: string[]; // node names (or `prefix*`) cut before optimising: the unseen and the too dense
+  skin?: Record<string, { color?: string; map?: false; emissive?: false; rough?: number; metal?: number }>; // material names: colour, roughness and metalness set at load, the colour map or the glow dropped (a night-lit model in daylight)
   maps?: TexMap[]; // textures: which maps to ship (a wall keeps its designed colour and takes only the relief)
   size?: number; // textures: metres per repeat, from the scan
 }
@@ -31,6 +32,11 @@ const texture = (id: string, author: string, use: string, size: number, maps: Te
 
 export const ASSETS: Asset[] = [
   { id: 'dalhousie_campus', kind: 'model', source: 'local', res: '1k', licence: 'Original', author: 'Project-authored in Blender', use: 'the dimensional Goldberg campus seen while airborne', maxTex: 512 },
+  // 2024, Sydney: out of the hacker house window. Downloaded from Sketchfab with the user's account into the cache; the pipeline optimises it from there
+  { id: 'sydney_opera_house', kind: 'model', source: 'sketchfab', url: 'https://sketchfab.com/3d-models/sydney-opera-house-317b2d540f0a4f7e8d87dd3b0372712d', res: '1k', licence: 'CC-BY-4.0', author: 'Nick Reinhardt (Sketchfab)', use: 'the Opera House across the water from the Sydney window', maxTex: 512, simplify: 0.001,
+    drop: ['Plane_3', 'Object_12'], // its painted night sky and its water: the harbour is ours
+    // modelled for a night scene: the shells and the podium take daylight colours here, and nothing glows
+    skin: { FINS: { color: '#EDE7DA', map: false, emissive: false, rough: 0.45 }, STONE: { color: '#B9AE9A', map: false, emissive: false, rough: 0.85 }, GLASS: { color: '#3C4A56', map: false, rough: 0.2 }, BRONZE: { color: '#8A6A3F', rough: 0.5, metal: 0.6 }, LIGHT: { emissive: false }, LIGHTPOLE: { color: '#4A4A4A', map: false } } },
   // now, Toronto
   model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp, and the bedside lamp', 256, 0.004),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),

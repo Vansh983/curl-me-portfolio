@@ -8,9 +8,10 @@ test('every asset is named once, credited, licensed, and capped at 512 px (1k fo
   for (const a of ASSETS) {
     assert.ok(!ids.has(a.id), `${a.id} twice`);
     ids.add(a.id);
-    assert.ok(a.licence === 'CC0' || a.licence === 'CC-BY-3.0' || a.licence === 'RF' || (a.licence === 'Original' && a.source === 'local'), `${a.id} licence`);
+    assert.ok(a.licence === 'CC0' || a.licence === 'CC-BY-3.0' || a.licence === 'CC-BY-4.0' || a.licence === 'RF' || (a.licence === 'Original' && a.source === 'local'), `${a.id} licence`);
     if (a.source === 'blenderkit') assert.ok((a.bk ?? 0) > 0, `${a.id} bk id`);
     if (a.source === 'url') assert.match(a.url ?? '', /^https:\/\/.+\.glb$/, `${a.id} url`);
+    if (a.source === 'sketchfab') assert.match(a.url ?? '', /^https:\/\/sketchfab\.com\/3d-models\/.+/, `${a.id} url`);
     assert.ok(a.author.length > 1, `${a.id} author`);
     assert.ok(a.use.length > 3, `${a.id} use`);
     assert.match(a.id, /^[a-z0-9_]+$/i);

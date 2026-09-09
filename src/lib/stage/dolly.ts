@@ -123,8 +123,10 @@ export const DOLLY: DollyKey[] = [
   { q: ch(7.25), cam: [-2.7, 1.6, -15.0], look: [-4.5, 1.45, -13.3], fov: 74, set: 7 }, // the whiteboard
   { q: ch(7.38), cam: [-2.95, 1.6, -14.35], look: [-6.0, 1.15, -14.6], fov: 74, set: 7 }, // at the table's end, the room's length ahead
   { q: ch(7.52), cam: [-3.05, 1.55, -14.3], look: [-4.8, 0.85, -15.5], fov: 74, set: 7 }, // down at the monitors and the wires
-  { q: ch(7.62), cam: [-3.05, 1.6, -14.3], look: [-7.4, 1.4, -15.9], fov: 74, set: 7 }, // down the table to the window: the Opera House, the sign
-  { q: ch(8), cam: [-3.05, 1.6, -14.3], look: [-7.4, 1.4, -15.9], fov: 74, set: 7 }, // and hold: 2024, Bean
+  { q: ch(7.62), cam: [-3.05, 1.6, -14.3], look: [-7.4, 1.4, -15.9], fov: 74, set: 7 }, // down the table to the window and the sign
+  { q: ch(7.8), cam: [-5.0, 1.6, -14.28], look: [-7.4, 1.5, -15.8], fov: 74, set: 7 }, // along the north side to the window
+  { q: ch(7.93), cam: [-6.55, 1.6, -15.2], look: [-12.0, 1.6, -15.8], fov: 74, set: 7 }, // at the glass
+  { q: ch(8), cam: [-6.6, 1.6, -15.5], look: [-40.0, 8.0, -18.6], fov: 74, set: 7 }, // out over the water: the Opera House, the bridge behind it; hold. 2024, Bean
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

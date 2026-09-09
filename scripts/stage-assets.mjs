@@ -45,7 +45,7 @@ for (const a of ASSETS) {
     credits.push(`- \`${a.id}\` (${a.kind}), ${a.author}. ${a.use}. See [flight credits](./FLIGHT-CREDITS.md).`);
     continue;
   }
-  if (a.source === 'url' || a.source === 'blenderkit') {
+  if (a.source === 'url' || a.source === 'blenderkit' || a.source === 'sketchfab') {
     authors[a.id] = a.author;
     const dir = `${CACHE}/${a.id}`;
     let src = `${dir}/${a.id}.glb`;
@@ -57,7 +57,8 @@ for (const a of ASSETS) {
         const { filePath } = await r.json();
         await fetchTo(filePath, src);
       }
-    } else await fetchTo(a.url, src);
+    } else if (a.source === 'sketchfab') { if (!existsSync(src)) throw new Error(`${a.id}: download the glTF from ${a.url} with a Sketchfab account and save it as ${src}`); }
+    else await fetchTo(a.url, src);
     if (a.anims) { const trimmed = `${dir}/${a.id}.anims.glb`; await keepAnims(src, trimmed, a.anims); src = trimmed; }
     if (a.drop) { const cut = `${dir}/${a.id}.cut.glb`; execFileSync('node', ['scripts/gltf-drop.mjs', src, cut, ...a.drop], { stdio: 'inherit' }); src = cut; }
     if (!existsSync(out)) {
@@ -116,7 +117,7 @@ for (const a of ASSETS) {
   credits.push(`- \`${a.id}\` (${a.kind}) by ${author}, CC0, https://polyhaven.com/a/${a.id}. ${a.use}.`);
   console.log(a.id, '|', author, '|', a.use);
 }
-await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels and textures from [Poly Haven](https://polyhaven.com) (CC0) and free models from [BlenderKit](https://www.blenderkit.com) (royalty free). Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n\nThe Toronto skyline out of the condo window and Halifax under the aircraft are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).\n`);
+await writeFile(`${OUT}/CREDITS.md`, `# Stage assets\n\nModels and textures from [Poly Haven](https://polyhaven.com) (CC0), free models from [BlenderKit](https://www.blenderkit.com) (royalty free), and one from [Sketchfab](https://sketchfab.com) (CC BY 4.0, downloaded with an account). Optimised by scripts/stage-assets.mjs.\n\n${credits.join('\n')}\n\nThe Toronto skyline out of the condo window and Halifax under the aircraft are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).\n\n\`bean-logo.png\` is the Bean logo from [beanmeals.com](https://www.beanmeals.com), the company the site's author co-founded, used on the Sydney set's sign, whiteboard and screens.\n`);
 const wrong = ASSETS.filter((a) => a.author !== authors[a.id]).map((a) => `${a.id}: manifest says ${a.author}, site says ${authors[a.id]}`);
 if (wrong.length) console.log('authors to fix in the manifest:\n  ' + wrong.join('\n  '));
 console.log(`total ${(total / 1e6).toFixed(1)} MB`);
