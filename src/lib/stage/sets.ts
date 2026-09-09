@@ -388,7 +388,7 @@ export const SETS: StageSet[] = [
     // west wall with the Bean sign above it; the Opera House close across the water, the bridge and the city behind.
     id: 'sydney', env: 'studio', tint: { sky: '#C9D8E6', ground: '#6B5A48', power: 0.4 }, exposure: 0.95, envPower: 0.5, baked: true,
     sun: { dir: [-0.8, 0.55, -0.25], color: '#FFE0B0', power: 2.2, shadow: 0.85 },
-    fog: { color: '#6BA3DA', near: 60, far: 500 }, // the sky's blue: the painted harbour runs into it above and beside the window
+    fog: { color: '#6BA3DA', near: 150, far: 900 }, // the sky's blue: the painted harbour runs into it above and beside the window
     shell: {
       x: [-7.4, -1.4], z: [-18.2, -13.2], h: 2.9,
       floor: 'sydneyFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
@@ -398,10 +398,11 @@ export const SETS: StageSet[] = [
       ],
     },
     props: [
-      { build: 'sydneyHarbour', at: [-268.0, 40.0, -30.0], live: 'city', shadow: false, cap: 'Sydney Harbour: the bridge, the city, a ferry crossing.' },
-      { build: 'harbourWater', at: [-7.4, -0.6, -15.7], live: 'city', shadow: false },
-      { build: 'bennelongPoint', at: [-48, 0, -30], live: 'city', shadow: false },
-      { model: 'sydney_opera_house', at: [-142, 3.3, -30], rot: [0, -90, 0], scale: 4.9, live: 'city', shadow: false, cap: 'The Opera House across the water. Model by Nick Reinhardt, CC BY.', href: '/assets/stage/CREDITS.md' }, // the model is a 1:4.9 miniature: at 4.9 the shells stand 60 m and the podium 184 m, as built
+      // the room is 30 m up: the water, the headland and the Opera House sit below the window, the whole building in frame from the table
+      { build: 'sydneyHarbour', at: [-440.0, 54.0, -30.0], live: 'city', shadow: false, cap: 'Sydney Harbour: the bridge, the city, a ferry crossing.' },
+      { build: 'harbourWater', at: [-7.4, -30.6, -15.7], live: 'city', shadow: false },
+      { build: 'bennelongPoint', at: [-190, -30, -5], live: 'city', shadow: false },
+      { model: 'sydney_opera_house', at: [-262, -26.7, -30], rot: [0, -90, 0], scale: 4.9, live: 'city', shadow: false, cap: 'The Opera House across the water. Model by Nick Reinhardt, CC BY.', href: '/assets/stage/CREDITS.md' }, // the model is a 1:4.9 miniature: at 4.9 the shells stand 60 m and the podium 184 m, as built
       { build: 'sydneyWindow', at: [-7.4, 0.75, -15.7], rot: [0, 90, 0] },
       { build: 'beanSign', at: [-7.39, 2.58, -15.7], rot: [0, 90, 0], live: 'screen', cap: 'Bean. Your kitchen assistant.' },
       // the table (x -6.1..-3.1, z -16.4..-15.0, top 0.74): two rows of older monitors back to back down the middle facing

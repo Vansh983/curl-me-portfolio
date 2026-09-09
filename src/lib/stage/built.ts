@@ -613,16 +613,16 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const pane = new Sink().quad([-2.0, 0, 0.012], [2.0, 0, 0.012], [2.0, 1.55, 0.012], [-2.0, 1.55, 0.012]).quad([2.0, 0, -0.012], [-2.0, 0, -0.012], [-2.0, 1.55, -0.012], [2.0, 1.55, -0.012]);
     return [piece(s.out(), M('windowFrame')), piece(pane.out(), M('cabinGlass'))];
   },
-  /** The water outside the window: a 320 by 600 m sheet of harbour from the wall out, at the origin's height. */
-  harbourWater: () => [piece(new Sink().quad([0, 0, 300], [0, 0, -300], [-320, 0, -300], [-320, 0, 300]).out(), M('seaWater'), { metres: 'xz' })],
-  /** Bennelong Point under the Opera House: a paved headland 220 by 220 m running from the window's water back to the painted shore, its quay edge in dark stone, top at y 0.3, the water at −0.6 round it. Origin at its east end's centre. */
+  /** The water outside the window: a 500 by 1000 m sheet of harbour from the wall out, at the origin's height. */
+  harbourWater: () => [piece(new Sink().quad([0, 0, 500], [0, 0, -500], [-500, 0, -500], [-500, 0, 500]).out(), M('seaWater'), { metres: 'xz' })],
+  /** Bennelong Point under the Opera House: a paved headland 250 by 210 m from 180 m off the window back to the painted shore, water in front of it, its quay edge in dark stone, top at y 0.3, the water at −0.6 round it. Origin at its east end's centre. */
   bennelongPoint: () => {
-    const top = new Sink().box(-110, 0.15, 0, 220, 0.3, 220);
-    const edge = new Sink().box(-110, -0.5, 0, 220.4, 1.3, 220.4);
+    const top = new Sink().box(-125, 0.15, 0, 250, 0.3, 210);
+    const edge = new Sink().box(-125, -0.5, 0, 250.4, 1.3, 210.4);
     return [piece(top.out(), M('campusPaving'), { metres: 'xz' }), piece(edge.out(), M('quayStone'))];
   },
-  /** The harbour out of the west window: an 800 by 300 m painted view, its face toward +x, 260 m out behind the Opera House, filling the window from the glass; its sky runs into the set's fog colour, unlit. */
-  sydneyHarbour: () => [piece(new Sink().quad([0, -150, 400], [0, -150, -400], [0, 150, -400], [0, 150, 400], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
+  /** The harbour out of the west window: a 1200 by 450 m painted view, its face toward +x, 430 m out behind the Opera House, filling the window from the glass; its sky runs into the set's fog colour, unlit. */
+  sydneyHarbour: () => [piece(new Sink().quad([0, -225, 600], [0, -225, -600], [0, 225, -600], [0, 225, 600], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
   /** An interior door leaf, 0.85 by 2.04, hinged at the origin along +z, its face toward +x; placed at the hinge and turned open. */
   doorLeaf: () => {
     const s = new Sink().rbox(0, 1.02, 0.425, 0.04, 2.04, 0.85, 0.004, 1);
