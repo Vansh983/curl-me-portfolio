@@ -16,7 +16,7 @@ Updated 2026-09-09. Supersedes the Codex export of the same day. Read newest doc
 3. Large stepped auditorium, fixed seats. **Done** (96 seats, 8 tiers).
 4. Seated pause, get up, walk down to the stage, turn to see the whole hall, teach Generative AI behind a podium with a laptop. **Done except the students.**
 5. Exit through the door on the teacher's right into Sydney, Australia: build Bean's app in a room with a central messy table and computers. **Done 2026-09-09** (set 7, doc 27).
-6. The Canada tour, laptop in hand, streets in each city: Vancouver (Web Summit) → Calgary → Toronto (Elevate, the Floqer house) → Halifax (Volta, Collect., Invest NS). **All four streets built** (sets 8 to 11, doc 28); Calgary's content still waits on his facts.
+6. The Canada tour, laptop in hand, as simple booths and offices: Vancouver (Web Summit expo hall) → Toronto (an office, Elevate week) → Montréal (ALL IN conference floor) → Halifax (Volta's coworking floor). **Built** (sets 8 to 11, doc 28). No cafés (he has other ideas for those), no slogans on signs, facts only.
 7. Dalhousie graduation, receive the degree. **Not started.**
 8. Finish in Toronto, reusing the studio. **Not started.**
 
@@ -24,7 +24,7 @@ Corrections that stand: no landing before the phone transition; no campus photo 
 
 ## State on disk
 
-Twelve sets in `src/lib/stage/sets.ts`: 0 `now`, 1 `room`, 2 `lab`, 3 `plaza`, 4 `delhi`, 5 `flight`, 6 `halifax`, 7 `sydney`, 8 `vancouver`, 9 `calgary`, 10 `toronto`, 11 `halifaxStreet` (the tour: outdoor, live, one 11 m block each along +x with glass gateways between). The ring was cut at the studio's brick door: the passage there is now the jet bridge. Neighbour visibility no longer wraps (index distance only).
+Twelve sets in `src/lib/stage/sets.ts`: 0 `now`, 1 `room`, 2 `lab`, 3 `plaza`, 4 `delhi`, 5 `flight`, 6 `halifax`, 7 `sydney`, 8 `vancouver`, 9 `toronto`, 10 `montreal`, 11 `halifaxVolta` (the tour: four shell rooms in a row east of the hacker house, live, not baked yet). The ring was cut at the studio's brick door: the passage there is now the jet bridge. Neighbour visibility no longer wraps (index distance only).
 
 - `src/lib/stage/shot.ts`: `STAGE_SPAN = 12` and `ch(c) = c / STAGE_SPAN`. Stage progress is read off the chapter articles' positions (stage-run.ts `progress()`), and `window.__stage.yFor(q)` gives the scroll for a q (the audit scripts use it). Every key (dolly, `FLIGHT`, `PHONE`, door and drop windows, tests) is written in chapter lengths, so adding a set means raising the span and appending keys after `ch(7.62)`; nothing earlier moves. Chapter cards: 2020 on the Delhi room, 2022 on the descent, 2023 on the aisle, the podium and the exit, 2024 on Sydney, 2025 "Bean on the road" on the Sydney exit and the Vancouver seawall (cards are centred on integer chapters; see doc 28).
 - `src/lib/stage/dolly.ts`: `APPROACH_SCALE = ch(4.2)` compresses the first five rooms; boarding to ch(4.7); the descent to `PHONE.transfer` ch(5.215) (the one portal cut); seated pause to ch(5.53); the aisle ch(5.6) to ch(6.2) via `aisle(z)`; the dais; the hold behind the lectern ch(6.52) to ch(6.64); right along the dais and out of the front west door (jamb ch(7.06)) into Sydney; the table, the whiteboard, the harbour; hold from ch(7.62). Step and turn bounds in `tests/stage/dolly.test.ts` scale with `STAGE_SPAN`.
@@ -43,8 +43,8 @@ Verification at handoff (2026-09-09): `npm test` 81 pass, `npm run check` 0 erro
 ## Open
 
 - **Students.** Realistic seated people need BlenderKit Full or files the user supplies (candidates and the Renderpeople terms are in doc 24). Do not fake them with primitives. When they arrive: deploy the seat pans where they sit (`auditoriumSeat` folds them), re-bake set 6.
-- **The held laptop** (`heldLaptop`, `TOUR_SETS`, `TOUR_PAGE` in stage-run.ts) rides the camera through the tour sets with a page per city (`screenTour` frames).
-- **Calgary's content, the degree, Toronto.** Sets 8+ after Sydney (its west wall has the window; a door would go in the south wall past the kitchen or the north wall). Toronto reuses set 0 and needs an explicit neighbour rule (the wrap is gone).
+- **The held laptop** (`heldLaptop`, `TOUR_SETS`, `TOUR_PAGE` in stage-run.ts) rides the camera through the tour sets; its screen is live (`tourLive` in stage-paint.ts, repainted every 80 ms), with the numbers page per city.
+- **Baking sets 8 to 11** once he is happy with them; **the degree, Toronto.** Sets 8+ after Sydney (its west wall has the window; a door would go in the south wall past the kitchen or the north wall). Toronto reuses set 0 and needs an explicit neighbour rule (the wrap is gone).
 - The clouds are billboarded cumulus (`cloudField`, `cloudPuffs`, `cloudMaterial`); the quads are not depth-sorted among themselves.
 - `halifax.json` could be trimmed further (far buildings) if page weight matters.
 

@@ -57,30 +57,10 @@ export const MATS: Record<string, Mat> = {
   plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
   trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
   quayStone: { color: '#4A4A48', rough: 0.9, tile: 1 },
-  // 2025, Vancouver: the seawall promenade at the convention centre, Web Summit week
-  promenade: { color: '#BDB7AB', rough: 0.92, paint: 'pavers', tile: 0.9, layer: 3 },
-  seawall: { color: '#7E7B74', rough: 0.85, grain: 'speckle', amp: 0.2, tile: 1 },
-  harbourDeep: { color: '#3A7396', rough: 0.3, grain: 'ripple', amp: 0.3, clearcoat: 0.4, clearcoatRough: 0.15, tile: 6, layer: 1 },
-  curtainGlass: { color: '#8FB3C6', rough: 0.08, metal: 0.3, clearcoat: 0.8, clearcoatRough: 0.05, tile: 1 },
-  mullionDark: { color: '#2B2F33', rough: 0.5, metal: 0.4, tile: 1 },
-  greenRoof: { color: '#5F8A3C', rough: 1, tile: 1 },
-  sailCloth: { color: '#F4F3EE', rough: 0.7, sheen: 0.3, tile: 1 },
-  sailMast: { color: '#D9DBDD', rough: 0.4, metal: 0.6, tile: 1 },
-  bannerOrange: { color: '#FF6A13', rough: 0.8, tile: 1 },
   boothWhite: { color: '#F2F1EC', rough: 0.6, clearcoat: 0.1, tile: 1 },
-  cedar: { color: '#8B5E3C', rough: 0.8, tex: 'oak_veneer_01', amp: 0.35, tile: 1.4 },
-  // the tour's streets: Calgary sandstone, Toronto brick and a streetcar, Halifax ironstone and the boardwalk
-  sidewalk: { color: '#B7B3AA', rough: 0.92, grain: 'speckle', amp: 0.15, tile: 1.2, layer: 3 },
-  roadway: { color: '#3E4043', rough: 0.95, tile: 1, layer: 2 },
-  sandstone: { color: '#C9A87C', rough: 0.85, tile: 3.6, tint: true, paint: 'facade' },
-  towerConcrete: { color: '#B5B0A6', rough: 0.8, tile: 1 },
-  towerPod: { color: '#C43E2D', rough: 0.5, clearcoat: 0.2, tile: 1 },
-  streetcarRed: { color: '#C8102E', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
-  streetcarWhite: { color: '#F0F0EC', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
-  streetcarGlass: { color: '#2E3A44', rough: 0.1, clearcoat: 0.8, clearcoatRough: 0.05, tile: 1 },
-  tramRail: { color: '#8A8C8F', rough: 0.4, metal: 0.8, tile: 1 },
-  boardwalk: { color: '#9A7B58', rough: 0.85, tex: 'plank_flooring_02', amp: 0.4, tile: 1.98, layer: 3 },
-  gatewayGlass: { color: '#A9C3D2', rough: 0.05, clearcoat: 1, clearcoatRough: 0.03, alpha: 0.22, tile: 1 },
+  // the tour's rooms: expo carpet
+  expoCarpet: { color: '#3E4B63', rough: 1, tex: 'dirty_carpet', amp: 0.4, tile: 0.6 },
+  expoCarpetDark: { color: '#2E3340', rough: 1, tex: 'dirty_carpet', amp: 0.4, tile: 0.6 },
   oldPlastic: { color: '#2C2D30', rough: 0.62, clearcoat: 0.08, clearcoatRough: 0.5, tile: 1 }, // the black plastic of a 2010s monitor
   oldPlasticPale: { color: '#9A9891', rough: 0.7, tile: 1 }, // the greyed beige one
   airBed: { color: '#2A3446', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.25, tile: 1 }, // flocked PVC, a little sheen

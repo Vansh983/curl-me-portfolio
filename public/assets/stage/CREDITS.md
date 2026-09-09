@@ -4,9 +4,6 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 
 - `dalhousie_campus` (model), Project-authored in Blender. the dimensional Goldberg campus seen while airborne. See [flight credits](./FLIGHT-CREDITS.md).
 - `sydney_opera_house` (model) by Nick Reinhardt (Sketchfab), CC-BY-4.0, https://sketchfab.com/3d-models/sydney-opera-house-317b2d540f0a4f7e8d87dd3b0372712d. the Opera House across the water from the Sydney window.
-- `coffee_cart` (model) by Outlier Spa (Sketchfab), CC-BY-4.0, https://sketchfab.com/3d-models/coffee-cart-1a97f872c1ac4a83a0132cd749d0b2a8. the coffee cart on the Vancouver seawall.
-- `hot_dog_cart` (model) by Outlier Spa (Sketchfab), CC-BY-4.0, https://sketchfab.com/3d-models/new-york-hot-dog-cart-d363905ab6db442789acf06e031e2b21. the hot dog cart on the Toronto sidewalk.
-- `st_marys_basilica` (model) by Air Digital (Sketchfab), CC-BY-4.0, https://sketchfab.com/3d-models/saint-marys-cathedral-basilica-halifax-f14d1c9714e24b4a8367192e00bd02cd. Saint Mary's Cathedral Basilica across Barrington Street in Halifax, a scan simplified hard.
 - `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp, and the bedside lamp.
 - `steel_frame_shelves_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/steel_frame_shelves_01. the shelves behind the desk.
 - `potted_plant_01` (model) by Rico Cilliers, CC0, https://polyhaven.com/a/potted_plant_01. the plant by the window.

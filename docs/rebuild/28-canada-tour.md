@@ -59,3 +59,14 @@ He said: no time at the Sydney window, walk straight out; he hates the painted m
 - **Cards**: the tour's articles (data-i 8 to 11) get `padding-top: 72svh` so each card comes up while its city is walked; stage progress is now read off the article positions (`progress()` and `yFor()` in stage-run.ts), so uneven articles do not skew the keys, and the audit scripts scroll with `window.__stage.yFor(q)`.
 
 Frames: `.cache/tour4/sheet.png`.
+
+## Booths and offices (2026-09-09, late)
+
+He found the streets cluttered and the painted banners and fonts fake, asked for simple booths and offices, no cafés, Calgary out and Montréal in after Toronto (LinkedIn: two days at ALL IN, September 2025, representing Bean with the Nova Scotia startups, Digital Nova Scotia and Volta; "4 cities for 4 different conferences over the last 4 months"), everything accurate, and the laptop fully visible with code running and the screen changing.
+
+- The street kit is gone (builders, paints, materials, the three Sketchfab street models). Four plain rooms in a row east of the hacker house, doors between them, one chapter each: **Vancouver** an expo hall (carpet, 5 m ceiling, the Bean booth between two blank booths, one banner reading only "Web Summit, Vancouver, May 2025"); **Toronto** an office (two desks, a monitor, a laptop, the Elevate banner, the churn whiteboard in his own words); **Montréal** a conference floor (the booth with "Nova Scotia startups at ALL IN", rows of chairs, a screen with the event's name); **Halifax** Volta's floor (two long tables, laptops, the Collect. whiteboard, the Invest NS letter). Each room has a plain wall sign: the city, the event, the date, the logo.
+- Signage is facts only in a plain sans; no slogans, no invented copy. The whiteboards quote his posts.
+- The laptop is held in both hands, lid and the top keys in frame, its screen a canvas repainted twelve times a second (`tourLive` in stage-paint.ts): a terminal running tests and a deploy line by line, the editor typing the adapt endpoint, the app's home scrolling, the city's numbers filling in; four views cycling every eight seconds, the numbers page per city.
+- The CN Tower is not rebuilt: it stands in the Toronto skyline of the first set only.
+
+Frames: `.cache/rooms0/sheet.png`.

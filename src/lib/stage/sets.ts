@@ -10,10 +10,10 @@
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
 //   Set 7 SYDNEY   x -7.4..-1.4  z -18.2..-13.2 h 2.9  2024, the hacker house where Bean was built; the Opera House out of the west window; out by the south door
-//   Set 8 VANCOUVER x -7..4      z -24.5..-18.2      2025, the seawall at the Convention Centre, Web Summit; outdoors; a gateway east
-//   Set 9 CALGARY   x 4..15      z -33..-18.2        2025, Stephen Avenue under the Calgary Tower
-//   Set 10 TORONTO  x 15..26     z -33..-18.2        2025, Elevate: the DMZ, the café, the Floqer house, a streetcar, the CN Tower
-//   Set 11 HALIFAX  x 26..37     z -33..-18.2        2025 to 26, Barrington Street: Volta, Collect., Invest NS
+//   Set 8 VANCOUVER x -7.4..6    z -30..-18.2  h 5.0  2025, the Web Summit expo hall: the Bean booth between two plain ones
+//   Set 9 TORONTO   x 6..13      z -25.5..-18.2 h 3.0 2025, Elevate week in an office: two desks, the churn whiteboard
+//   Set 10 MONTREAL x 13..22     z -27..-18.2  h 4.0  2025, ALL IN: the booth, rows of chairs, a screen
+//   Set 11 HALIFAX  x 22..31     z -25.5..-18.2 h 3.2 2025 to 26, Volta's coworking floor: tables, the Collect. whiteboard, the Invest NS letter
 import { HALIFAX } from './halifax.ts';
 import { ch } from './shot.ts';
 
@@ -437,7 +437,7 @@ export const SETS: StageSet[] = [
       { build: 'airMattress', at: [-3.4, 0, -13.66], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' },
       { build: 'airMattress', at: [-3.2, 0, -17.7], rot: [0, 4, 0] },
       { model: 'throw_pillows_01', at: [-1.9, 0.0, -17.3], rot: [0, 30, 0], scale: 0.7 },
-      { build: 'doorLeaf', at: [-7.3, 0, -18.2], rot: [0, 90, 0], live: 'door', door: [ch(7.74), ch(7.86)] }, // the south door beside the window: hinged on the west jamb, it swings out onto the promenade ahead of the walk // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
+      { build: 'doorLeaf', at: [-6.4, 0, -18.2], rot: [0, -90, 0], live: 'door', door: [ch(7.74), ch(7.86)] }, // the south door beside the window: hinged on the east jamb, it swings into the room, clear of the walk down the west side // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
       { build: 'bin', at: [-1.85, 0, -14.7] },
       // the walls
       { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.' },
@@ -446,81 +446,108 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2025, Vancouver: out of the hacker house's south door onto the seawall at the Convention Centre, Web Summit
-    // week: the totem, the harbour and the sails to the south, the glass wall with the Socratica session inside it,
-    // banners, the Bean booth, then the gateway east into Calgary. Each city is one 11 m block along +x.
-    id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
-    sun: { dir: [0.4, 0.6, -0.65], color: '#FFF3DC', power: 2.4, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 250, far: 1200 },
+    // 2025, Vancouver: out of the hacker house's south door into the expo hall at Web Summit: a carpeted floor
+    // under a high ceiling, the Bean booth between two plain ones, one banner. Then a door east to Toronto.
+    id: 'vancouver', env: 'studio', tint: { sky: '#D9E2EC', ground: '#4A5266', power: 0.45 }, exposure: 0.95, envPower: 0.55,
+    sun: { dir: [0.2, 0.9, -0.3], color: '#FFFFFF', power: 1.4, shadow: 0.6 },
+    fog: { color: '#E8ECF0', near: 20, far: 90 },
+    shell: {
+      x: [-7.4, 3], z: [-30, -18.2], h: 5.0,
+      floor: 'expoCarpet', wall: 'sydneyWall', ceiling: 'labCeiling',
+      openings: [
+        { wall: 'z+', at: -6.85, w: 0.9, h: 2.05 }, // in from the hacker house
+        { wall: 'x+', at: -24, w: 1.2, h: 2.2 }, // out east, to Toronto
+      ],
+    },
     props: [
-      { build: 'promenade', at: [-7, 0, -18.2], cap: 'The seawall at the Convention Centre. Web Summit Vancouver, May 2025.' },
-      { build: 'harbour', at: [-7, -3, -24.5], live: 'city' },
-      { build: 'conventionCentre', at: [-1.4, 0, -18.2], cap: 'Vancouver Convention Centre West: Web Summit; a Socratica session inside.' },
-      { build: 'canadaPlace', at: [8, -3, -46], live: 'city', cap: 'Canada Place.' },
-      { build: 'totemVancouver', at: [-5.6, 0, -20.6], cap: 'Vancouver. Web Summit, May 2025.' },
-      ...[-4.5, -0.5, 3.5].map((x): Placement => ({ build: 'bannerPost', at: [x, 0, -23.4], rot: [0, -90, 0] })),
-      { build: 'beanBooth', at: [1.0, 0, -20.4], cap: 'The Bean booth. One day: 500 conversations, 120 signups, an investor MOU.' },
-      { build: 'benchCedar', at: [-2.5, 0, -23.0] },
-      { build: 'bin', at: [-0.8, 0, -22.9] },
-      { model: 'coffee_cart', at: [2.9, 0, -23.3], rot: [0, 90, 0], scale: 0.9, cap: 'Coffee on the seawall.' },
-      { build: 'gateway', at: [4, 0, -18.2] },
-      { build: 'gateCalgary', at: [3.95, 2.6, -21.8], live: 'screen' },
+      { build: 'signVancouver', at: [-2.2, 3.6, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Vancouver. Web Summit, May 2025.' },
+      { build: 'expoBooth', at: [-5.3, 0, -22.0] },
+      { build: 'beanBooth', at: [-2.2, 0, -22.0], cap: 'The Bean booth. One day: 500 conversations, 120 signups, an investor MOU.' },
+      { build: 'expoBooth', at: [0.9, 0, -22.0] },
+      { build: 'hangWebSummit', at: [-2.2, 5.0, -25.4], live: 'screen' },
+      ...[-5.3, -2.2, 0.9].map((x): Placement => ({ build: 'downlight', at: [x, 5.0, -24.5], live: 'downlight' })),
     ],
   },
   {
-    // 2025, Calgary: through the gateway onto a sandstone street with the Calgary Tower over the far fronts. What he did here is his to say.
-    id: 'calgary', env: 'sky', tint: { sky: '#D6E4F2', ground: '#B3A48E', power: 0.25 }, exposure: 0.88, envPower: 0.7, outdoor: true,
-    sun: { dir: [-0.3, 0.7, -0.6], color: '#FFF4E0', power: 2.5, shadow: 1 },
-    fog: { color: '#D3DEE8', near: 250, far: 1400 },
+    // 2025, Toronto: Elevate week, in an office: two desks, the Elevate banner, the whiteboard with the churn notes
+    // on the east wall. Then a door east to Montréal.
+    id: 'toronto', env: 'studio', tint: { sky: '#D4DCE6', ground: '#5A5A5A', power: 0.4 }, exposure: 0.92, envPower: 0.5,
+    sun: { dir: [-0.3, 0.8, 0.5], color: '#FFF6E8', power: 1.2, shadow: 0.6 },
+    fog: { color: '#E6E9ED', near: 14, far: 60 },
+    shell: {
+      x: [3, 10], z: [-25.5, -18.2], h: 3.0,
+      floor: 'lectureFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
+      openings: [
+        { wall: 'x-', at: -24, w: 1.2, h: 2.2 }, // in from Vancouver
+        { wall: 'x+', at: -22, w: 1.2, h: 2.2 }, // out east, to Montréal
+      ],
+    },
     props: [
-      { build: 'cityBlock', at: [4, 0, -18.2], cap: 'Stephen Avenue, Calgary. 2025.' },
-      { build: 'frontsCalgary', at: [4, 0, -18.2] },
-      { build: 'frontsCalgary', at: [15, 0, -33.2], rot: [0, 180, 0] },
-      { build: 'calgaryTower', at: [220, 0, -27], live: 'city', cap: 'The Calgary Tower.' }, // dead ahead at the end of the street, this set only
-      { build: 'totemCalgary', at: [5.5, 0, -20.6], cap: 'Calgary. On the road with Bean.' },
-      { build: 'benchCedar', at: [10.5, 0, -21.6] },
-      { build: 'bin', at: [8.5, 0, -21.8] },
-      { build: 'gateway', at: [15, 0, -18.2] },
-      { build: 'gateToronto', at: [14.95, 2.6, -21.8], live: 'screen' },
+      { build: 'signToronto', at: [6.5, 2.4, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Toronto. Elevate, October 2025, with the Startup Atlantic delegation.' },
+      { build: 'deskWide', at: [5.2, 0, -19.0], rot: [0, 180, 0] },
+      { build: 'deskWide', at: [8, 0, -19.0], rot: [0, 180, 0] },
+      { build: 'monitor', at: [5.2, 0.74, -19.2], rot: [0, 180, 0], live: 'screen' },
+      { model: 'laptop_14_aluminium', at: [8, 0.74, -19.4], rot: [0, 190, 0] },
+      { model: 'keyboard_mouse_black', at: [5.2, 0.74, -19.8], rot: [0, 180, 0] },
+      { model: 'office_chair_black', at: [5.2, 0, -20.1], rot: [0, 0, 0] },
+      { model: 'office_chair_black', at: [8, 0, -20.1], rot: [0, 10, 0] },
+      { build: 'whiteboardChurn', at: [9.94, 1.5, -20.3], rot: [0, -90, 0], live: 'screen', cap: 'Day two of Elevate: churn on the whiteboard instead of the meetings. Reminders every day; retention 3x week over week.' },
+      { build: 'hangElevate', at: [6.5, 3.0, -23.6], rot: [0, -90, 0], live: 'screen' },
+      { build: 'discLight', at: [6.5, 3.0, -21.5], live: 'pendant' },
     ],
   },
   {
-    // 2025, Toronto: Elevate week. A streetcar on the road, the CN Tower over the far fronts, Elevate banners, the DMZ
-    // door, the café where the churn problem beat the meetings, the Floqer hacker house door at the end of the block.
-    id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.82, envPower: 0.65, outdoor: true,
-    sun: { dir: [0.5, 0.55, -0.6], color: '#FFEFD6', power: 2.2, shadow: 1 },
-    fog: { color: '#C4CFDA', near: 250, far: 1400 },
+    // 2025, Montréal: ALL IN, two days with the Nova Scotia startups. A conference floor: the Bean booth by the
+    // door, rows of chairs facing a screen, the ALL IN banner. Then a door east to Halifax.
+    id: 'montreal', env: 'studio', tint: { sky: '#D6D9E6', ground: '#3A3A44', power: 0.4 }, exposure: 0.9, envPower: 0.5,
+    sun: { dir: [0.1, 0.9, 0.2], color: '#FFFFFF', power: 1.2, shadow: 0.6 },
+    fog: { color: '#E3E5EC', near: 18, far: 80 },
+    shell: {
+      x: [10, 19], z: [-27, -18.2], h: 4.0,
+      floor: 'expoCarpetDark', wall: 'sydneyWall', ceiling: 'labCeiling',
+      openings: [
+        { wall: 'x-', at: -22, w: 1.2, h: 2.2 }, // in from Toronto
+        { wall: 'x+', at: -22, w: 1.2, h: 2.2 }, // out east, to Halifax
+      ],
+    },
     props: [
-      { build: 'cityBlock', at: [15, 0, -18.2], cap: 'Downtown Toronto. Elevate, October 2025.' },
-      { build: 'doorDMZ', at: [16.8, 0, -18.2], cap: 'DMZ, Startup Open House. Day three of Elevate.' },
-      { build: 'cafeChurn', at: [22.4, 0, -18.2], cap: 'Day two. Cancelled everything, went to a cafe, and worked on churn.' },
-      { build: 'doorFloqer', at: [27.6, 0, -18.2], cap: 'The Floqer hacker house. "If someone offers you a seat on a rocket, you take it."' },
-      { build: 'frontsToronto', at: [26, 0, -33.2], rot: [0, 180, 0] },
-      { build: 'streetcar', at: [23, 0, -26.2], cap: 'A streetcar.' },
-      { build: 'cnTowerDay', at: [420, 0, -27], live: 'city', cap: 'The CN Tower.' }, // dead ahead at the end of the street, this set only
-      { build: 'totemToronto', at: [16.5, 0, -20.6], cap: 'Toronto. Elevate, with the Startup Atlantic delegation.' },
-      ...[18.5, 24.0].map((x): Placement => ({ build: 'bannerElevate', at: [x, 0, -22.4], rot: [0, -90, 0] })),
-      { model: 'hot_dog_cart', at: [19.6, 0, -19.5], rot: [0, 20, 0], cap: 'A hot dog cart. Toronto.' },
-      { build: 'bin', at: [19.2, 0, -21.8] },
-      { build: 'gateway', at: [26, 0, -18.2] },
-      { build: 'gateHalifax', at: [25.95, 2.6, -21.8], live: 'screen' },
+      { build: 'signMontreal', at: [14.5, 3.0, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Montréal. ALL IN, September 2025, with the Nova Scotia startups.' },
+      { build: 'beanBoothMontreal', at: [12.4, 0, -20.4], cap: 'The Bean booth at ALL IN, with Digital Nova Scotia and Volta.' },
+      { build: 'talkScreen', at: [16.6, 0, -19.2], rot: [0, 180, 0], live: 'screen', cap: 'Workshops, day two.' },
+      ...[[15.3, -21.8], [16.1, -21.8], [16.9, -21.8], [17.7, -21.8], [15.3, -22.8], [16.1, -22.8], [16.9, -22.8], [17.7, -22.8]].map(([x, z]): Placement => ({ build: 'hallChair', at: [x, 0, z], rot: [0, 180, 0] })),
+      { build: 'hangAllIn', at: [13.5, 4.0, -24.8], rot: [0, -90, 0], live: 'screen' },
+      ...[12.5, 16.5].map((x): Placement => ({ build: 'downlight', at: [x, 4.0, -24.0], live: 'downlight' })),
     ],
   },
   {
-    // 2025 to 2026, Halifax: Barrington Street. Volta's door, Collect. Demo Day on the lampposts, the ironstone
-    // fronts, Saint Mary's Basilica across the street; the walk ends here with the laptop in hand.
-    id: 'halifaxStreet', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.82, envPower: 0.65, outdoor: true,
-    sun: { dir: [-0.45, 0.6, -0.65], color: '#FFEBD0', power: 2.1, shadow: 1 },
-    fog: { color: '#C9D3DC', near: 220, far: 1200 },
+    // 2025 to 2026, Halifax: Volta's coworking floor: two long tables, chairs, laptops, the Collect. whiteboard on
+    // the east wall, the Invest Nova Scotia letter on the north wall. The walk ends here.
+    id: 'halifaxVolta', env: 'studio', tint: { sky: '#D9E0E6', ground: '#58554F', power: 0.42 }, exposure: 0.92, envPower: 0.5,
+    sun: { dir: [-0.4, 0.8, 0.4], color: '#FFF4E4', power: 1.3, shadow: 0.6 },
+    fog: { color: '#E6E9EC', near: 14, far: 60 },
+    shell: {
+      x: [19, 28], z: [-25.5, -18.2], h: 3.2,
+      floor: 'lectureFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
+      openings: [
+        { wall: 'x-', at: -22, w: 1.2, h: 2.2 }, // in from Montréal
+      ],
+    },
     props: [
-      { build: 'cityBlock', at: [26, 0, -18.2], cap: 'Barrington Street, Halifax.' },
-      { build: 'doorVolta', at: [28.3, 0, -18.2], cap: 'Volta. Collect. every Thursday; Invest Nova Scotia Accelerate, one of twelve.' },
-      { build: 'frontsHalifax', at: [30.0, 0, -18.2] },
-      { model: 'st_marys_basilica', at: [63, -41.8, -18], live: 'city', shadow: false, cap: "Saint Mary's Cathedral Basilica, Barrington Street. The tallest granite spire in North America." },
-      { build: 'totemHalifax', at: [27.5, 0, -20.6], cap: 'Halifax. Invest NS, Volta, Collect.' },
-      ...[29.5, 35.0].map((x): Placement => ({ build: 'bannerCollect', at: [x, 0, -22.4], rot: [0, -90, 0] })),
-      { build: 'benchCedar', at: [33.0, 0, -21.6] },
-      { build: 'bin', at: [31.2, 0, -21.8] },
+      { build: 'signHalifax', at: [23.5, 2.5, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Halifax. Volta: Collect. every Thursday; Invest Nova Scotia Accelerate.' },
+      { build: 'certificateInvestNS', at: [20.6, 1.7, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Invest Nova Scotia Accelerate: one of twelve, $40k over five months.' },
+      { build: 'hackerTable', at: [22, 0, -20.4] },
+      { build: 'hackerTable', at: [25.6, 0, -20.4] },
+      { model: 'laptop_14_aluminium', at: [21.3, 0.74, -20.1], rot: [0, 6, 0] },
+      { build: 'laptopBean', at: [22.9, 0.74, -20.1], rot: [0, -8, 0], live: 'screen' },
+      { model: 'laptop_14_aluminium', at: [25, 0.74, -20.6], rot: [0, 176, 0] },
+      { model: 'coffee_mug', at: [22.2, 0.74, -20.8], rot: [0, 30, 0] },
+      { model: 'office_chair_black', at: [21.3, 0, -19.3], rot: [0, 180, 0] },
+      { model: 'SchoolChair_01', at: [22.9, 0, -19.3], rot: [0, 175, 0] },
+      { model: 'office_chair_black', at: [25, 0, -21.5], rot: [0, 6, 0] },
+      { model: 'SchoolChair_01', at: [26.4, 0, -19.3], rot: [0, 185, 0] },
+      { build: 'whiteboardCollect', at: [27.94, 1.5, -21.5], rot: [0, -90, 0], live: 'screen', cap: 'Collect. at Volta: Thursdays with Noah and Sam, from a handful of builders to almost a hundred; Demo Day packed the space.' },
+      { build: 'discLight', at: [22, 3.2, -21.8], live: 'pendant' },
+      { build: 'discLight', at: [25.6, 3.2, -21.8], live: 'pendant' },
     ],
   },
 ];

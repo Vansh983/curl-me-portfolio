@@ -83,16 +83,17 @@ export const timeline: Milestone[] = [
   },
   {
     year: '2025',
-    lane: 'Calgary',
-    title: 'Calgary',
-    body: 'On the road with Bean.',
-  },
-  {
-    year: '2025',
     lane: 'Toronto',
     title: 'Elevate, and a seat on a rocket',
     body: 'Elevate with the Startup Atlantic delegation: every investor in reach messaged on day zero, eight calls booked. Then a cafe instead of the shiny meetings, the churn problem on the table, feedback calls with parents. Startup Open House: DMZ, and a hacker house downtown called Floqer.',
     stat: '8 investor calls · Startup Atlantic · DMZ · Floqer',
+  },
+  {
+    year: '2025',
+    lane: 'Montréal',
+    title: 'ALL IN',
+    body: 'Two days at ALL IN with the Nova Scotia startups, Digital Nova Scotia and Volta behind it. Workshops in the morning, then working the room and talking about Bean to hundreds of people, until the voice gave out. Four cities and four conferences in four months.',
+    stat: '2 days · 4 cities in 4 months · Digital NS',
   },
   {
     year: '2025',
