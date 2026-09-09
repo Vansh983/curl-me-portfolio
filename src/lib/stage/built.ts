@@ -3,12 +3,12 @@
 // the fog softens anyway. Every part is a list of pieces, one per material, built at the origin
 // (a Placement moves it). Materials come from materials.ts; uv is in metres, painted faces 0..1.
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
-import { cityBlocks, cnTower } from './city.ts';
+import { cityBlocks, cnTower, CITY } from './city.ts';
 import { halifaxCity } from './halifax.ts';
-import { dalhousieCampus, rng } from './dalhousie.ts';
+import { dalhousieCampus, rng, treeBlob } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, COHN } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -57,6 +57,13 @@ function auditoriumSeat(study = false): BuiltPart {
     piece(pan.out(), M('auditoriumFabric'), { smooth: true, metres: 'xy' }),
     piece(oak.out(), M('auditoriumOak'), { smooth: true, metres: 'xy' }),
     piece(steel.out(), M('chairBase'), { smooth: true }), piece(tablet.out(), M('deskTop'), { smooth: true })];
+}
+
+/** A painted sign 2.4 by 0.6 on two round posts, its middle at 1.85 m, the face toward +z. */
+function signPost(paint: string): BuiltPart {
+  const posts = new Sink().cylinder(-1.0, 1.05, -0.03, 0.03, 2.1, 12).cylinder(1.0, 1.05, -0.03, 0.03, 2.1, 12);
+  const board = new Sink().rbox(0, 1.85, -0.02, 2.44, 0.64, 0.03, 0.006, 2);
+  return [piece(posts.out(), M('aluminium'), { smooth: true }), piece(board.out(), M('boothWhite'), { smooth: true }), piece(offsetGeo(face(2.4, 0.6, 0.0), 0, 1.85, 0.0), { paint })];
 }
 
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
@@ -627,6 +634,138 @@ export const BUILT: Record<string, () => BuiltPart> = {
     return [piece(top.out(), M('campusPaving'), { metres: 'xz' }), piece(edge.out(), M('quayStone'))];
   },
   // ---- 2025, the tour: booths and offices. An expo hall, an office, a conference floor, a coworking space
+  /** A block of paved walk outdoors: 14 by 12 m of pavers along x from the origin, the far edge a low planter with hedge. */
+  /**
+   * The tour's promenade: 7 m of paving straight down -z from the hacker house's door for 42 m, a granite seawall along
+   * its left edge and the water beyond, a lawn on the right where his things stand. The water and the lawn run to the fog.
+   */
+  promenade: () => {
+    const paving = new Sink().box(-0.1, -0.03, -20, 7.0, 0.06, 42);
+    const wall = new Sink().rbox(-3.85, 0.25, -20, 0.5, 0.5, 42.4, 0.02, 2).rbox(-3.85, 0.52, -20, 0.62, 0.06, 42.6, 0.015, 2);
+    const lawn = new Sink().quad([-4.1, -0.02, 400], [900, -0.02, 400], [900, -0.02, -1600], [-4.1, -0.02, -1600]);
+    return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(lawn.out(), M('parkGreen'), { metres: 'xz' })];
+  },
+  /** The water left of the seawall, 1.2 m down, to the fog. */
+  harbourWide: () => [piece(new Sink().quad([-4.1, -1.2, 400], [-4.1, -1.2, -1600], [-1600, -1.2, -1600], [-1600, -1.2, 400]).out(), M('seaWater'), { metres: 'xz' })],
+  /** A city sign on two posts at eye height, 2.4 by 0.6, its face toward +z: the city, the event, the date, the logo. */
+  signPostVancouver: () => signPost('signVancouver'),
+  signPostToronto: () => signPost('signToronto'),
+  signPostHalifax: () => signPost('signHalifax'),
+  /**
+   * Canada Place: the pier at its real size, 400 by 100 m and 12 m over the water, and the five white sails over the
+   * cruise terminal along its length, masts 24 m over the deck. The long axis along x. Authored to the footprint.
+   */
+  canadaPlaceSails: () => {
+    const pier = new Sink().box(0, 6, 0, 400, 12, 100), sail = new Sink(), mast = new Sink();
+    for (let i = 0; i < 5; i++) {
+      const cx = -86 + i * 43, h = 12;
+      const base: V3[] = [[cx + 21, h, 32], [cx - 21, h, 32], [cx - 21, h, -32], [cx + 21, h, -32]];
+      const mid: V3[] = base.map(([x, y, z]) => [cx + (x - cx) * 0.42, y + 13, z * 0.42]);
+      const apex: V3 = [cx, h + 24, 0];
+      for (let j = 0; j < 4; j++) { const a = base[j], b = base[(j + 1) % 4], c = mid[(j + 1) % 4], d = mid[j]; sail.quad(a, b, c, d).tri(d, c, apex).quad(d, c, b, a).tri(apex, c, d); }
+      mast.cylinder(cx, h + 12.5, 0, 0.5, 25, 10);
+    }
+    return [piece(pier.out(), M('pier')), piece(sail.out(), M('sailWhite'), { smooth: true }), piece(mast.out(), M('aluminium'), { smooth: true })];
+  },
+  /**
+   * The Angus L. Macdonald Bridge: a suspension bridge 1.3 km long across the harbour, its two towers 96 m tall and
+   * 441 m apart, the deck 47 m over the water, the cables from the tower tops sagging to the deck at mid-span with
+   * hangers every 15 m. Along x. Authored to its dimensions.
+   */
+  macdonaldBridge: () => {
+    const steel = new Sink(), deck = new Sink(), cable = new Sink();
+    const L = 1300, T = 96, D = 47, span = 441, tx = [-span / 2, span / 2];
+    deck.box(0, D, 0, L, 3.2, 12).box(0, D + 2.2, 0, L, 0.06, 12.6); // the deck and its surface
+    for (const x of tx) {
+      for (const z of [-5, 5]) steel.box(x, T / 2, z, 4, T, 3);
+      for (const y of [D + 6, D + 24, D + 42, T - 2]) steel.box(x, y, 0, 4.4, 2.2, 10);
+      steel.box(x, D - 4, 0, 8, 8, 14); // the pier under the tower
+    }
+    for (const z of [-5.5, 5.5]) {
+      for (let i = 0; i < 24; i++) { // the main cable from the anchorage over each tower to mid-span: a parabola in pieces
+        const x0 = -L / 2 + (i * L) / 24, x1 = -L / 2 + ((i + 1) * L) / 24;
+        cable.bone([x0, cableY(x0), z], [x1, cableY(x1), z], 0.45, 0.45);
+      }
+      for (let x = -L / 2 + 15; x < L / 2; x += 15) if (cableY(x) > D + 3) cable.box(x, (cableY(x) + D + 1.6) / 2, z, 0.16, cableY(x) - D - 1.6, 0.16);
+    }
+    function cableY(x: number): number {
+      const a = Math.abs(x);
+      if (a <= span / 2) return T - (T - D - 2) * (1 - (x / (span / 2)) ** 2); // sags to the deck at the middle
+      return T - ((a - span / 2) / (L / 2 - span / 2)) * (T - D + 2); // down to the anchorages
+    }
+    return [piece(steel.out(), M('bridgeGreen')), piece(deck.out(), M('bridge')), piece(cable.out(), M('bridgeGreen'), { smooth: true })];
+  },
+  /**
+   * The Rebecca Cohn's entrance at the end of the promenade: a bronze-framed glass vestibule across the walk, the
+   * door in its middle, the hall's name over it in plain letters; the lobby behind it 3.2 m deep. Seen from outside.
+   */
+  cohnLobby: () => {
+    const L = COHN.lobby, W = 9, H = 3.4;
+    const wall = new Sink(), frame = new Sink(), glass = new Sink(), floor = new Sink(), ceiling = new Sink();
+    for (const [x0, x1] of [[-W / 2, -0.66], [0.66, W / 2]]) glass.quad([x0, 0.08, 0.02], [x1, 0.08, 0.02], [x1, 2.6, 0.02], [x0, 2.6, 0.02]);
+    frame.box(0, 2.72, 0, W, 0.24, 0.16).box(-0.66, 1.3, 0, 0.1, 2.6, 0.16).box(0.66, 1.3, 0, 0.1, 2.6, 0.16).box(0, 0.04, 0, W, 0.08, 0.16);
+    for (const x of [-W / 2 + 0.05, -2.4, 2.4, W / 2 - 0.05]) frame.box(x, 1.3, 0, 0.1, 2.6, 0.16);
+    wall.box(0, (H + 2.84) / 2, 0, W, H - 2.84, 0.16); // the fascia over the frame
+    wall.box(-W / 2, H / 2, -L / 2, 0.16, H, L).box(W / 2, H / 2, -L / 2, 0.16, H, L); // the sides
+    for (const [x0, x1] of [[-W / 2, -1.4], [1.4, W / 2]]) wall.box((x0 + x1) / 2, H / 2, -L, x1 - x0, H, 0.16); // the back, open in the middle into the hall
+    wall.box(0, (H + 2.7) / 2, -L, 2.8, H - 2.7, 0.16);
+    floor.box(0, -0.01, -L / 2, W, 0.02, L);
+    ceiling.box(0, H, -L / 2, W, 0.08, L + 0.16);
+    return [piece(wall.out(), M('concrete'), { metres: 'xy' }), piece(frame.out(), M('bezel'), { smooth: true }), piece(glass.out(), M('tvGlass')), piece(floor.out(), M('auditoriumCarpet'), { metres: 'xz' }), piece(ceiling.out(), M('condoCeiling')),
+      piece(offsetGeo(face(3.6, 0.5, 0.0), 0, 3.05, 0.09), { paint: 'cohnSign' })];
+  },
+  /** The hall: the stalls between oak-panelled walls under a dark ceiling, a balcony front over the back rows, the proscenium wall with its opening; measured from the door. */
+  cohnHall: () => {
+    const { lobby: L, stageFront: F, width: W, depth: D, height: H } = COHN;
+    const oak = new Sink(), carpet = new Sink(), dark = new Sink(), fabric = new Sink(), steel = new Sink();
+    carpet.box(0, -0.01, -(L + D) / 2, W, 0.02, D + L);
+    dark.box(0, H, -(L + D) / 2, W, 0.1, D + L); // the ceiling
+    oak.box(-W / 2, H / 2, -(L + D) / 2, 0.2, H, D + L).box(W / 2, H / 2, -(L + D) / 2, 0.2, H, D + L); // the side walls
+    for (const [x0, x1] of [[-W / 2, -4.5], [4.5, W / 2]]) oak.box((x0 + x1) / 2, H / 2, -L, x1 - x0, H, 0.2); // the back wall either side of the lobby's opening
+    oak.box(0, (H + 2.7) / 2, -L, 9, H - 2.7, 0.2);
+    oak.box(0, 6.0, -L - 2.6, W - 0.4, 1.1, 5.2).box(0, 6.55, -L - 5.2, W - 0.4, 0.12, 0.3); // the balcony over the back rows, its front
+    for (const [x0, x1] of [[-W / 2, -10], [10, W / 2]]) dark.box((x0 + x1) / 2, H / 2, -F, x1 - x0, H, 0.4); // the proscenium wall
+    dark.box(0, (H + 8.6) / 2, -F, 20, H - 8.6, 0.4);
+    oak.box(-10.1, 4.3, -F, 0.5, 8.6, 0.6).box(10.1, 4.3, -F, 0.5, 8.6, 0.6).box(0, 8.75, -F, 20.6, 0.5, 0.6); // the frame of the opening
+    const rows = 6, pitch = 0.95, seatW = 0.55, first = -(L + 3.0); // the stalls either side of the centre aisle, facing the stage
+    for (let r = 0; r < rows; r++) {
+      const z = first - r * pitch;
+      for (const side of [-1, 1]) {
+        const n = 22;
+        for (let i = 0; i < n; i++) {
+          const x = side * (1.0 + seatW / 2 + i * seatW);
+          fabric.rbox(x, 0.78, z + 0.2, seatW - 0.05, 0.62, 0.1, 0.03, 2).rbox(x, 0.44, z - 0.05, seatW - 0.06, 0.09, 0.44, 0.025, 2);
+          oak.box(x - seatW / 2, 0.62, z - 0.02, 0.04, 0.05, 0.5);
+        }
+        oak.box(side * (1.0 + n * seatW), 0.62, z - 0.02, 0.04, 0.05, 0.5);
+        steel.box(side * (1.0 + (n * seatW) / 2), 0.2, z - 0.05, n * seatW, 0.4, 0.06);
+      }
+    }
+    for (let i = 0; i < 4; i++) oak.box(0, (i + 1) * 0.125, -F + 1.2 - i * 0.3 - 0.15, 2.6, (i + 1) * 0.25, 0.3); // the four steps up to the stage
+    return [piece(carpet.out(), M('auditoriumCarpet'), { metres: 'xz' }), piece(dark.out(), M('condoCeiling')), piece(oak.out(), M('auditoriumOak'), { metres: 'xy' }), piece(fabric.out(), M('auditoriumFabric'), { smooth: true, metres: 'xy' }), piece(steel.out(), M('chairBase'))];
+  },
+  /** The stage a metre up beyond the proscenium: an oak floor, the back curtain, the side legs. */
+  cohnStage: () => {
+    const { stageFront: F, depth: D, width: W, stage: S } = COHN;
+    const oak = new Sink().box(0, S / 2, -(F + D + 0.2) / 2 - 0.1, W, S, D - F + 0.4);
+    const curtain = new Sink().box(0, S + 4.5, -(D + 0.4) + 0.6, W - 0.4, 9, 0.2);
+    for (const x of [-9.2, 9.2]) curtain.box(x, S + 4.3, -F - 3, 0.2, 8.6, 1.2);
+    return [piece(oak.out(), M('auditoriumOak'), { metres: 'xz' }), piece(curtain.out(), M('acousticPanel'), { metres: 'xy' })];
+  },
+  /** The convocation banner over the stage: 7 by 2.4 m, black, the university's name in gold, hung from a rod. */
+  convocationBanner: (): BuiltPart => [piece(new Sink().box(0, 1.25, 0, 7.3, 0.05, 0.05).out(), M('chrome')), piece(face(7.0, 2.4, 0.0), { paint: 'convocationBanner' })],
+  /** The degree in hand: a rolled parchment 30 cm long, 4 cm across, a black and gold ribbon round its middle; along +x. */
+  degreeScroll: (): BuiltPart => [piece(new Sink().cylinder(0, 0, 0, 0.021, 0.3, 20).rotateZ(0, 0, Math.PI / 2).out(), M('parchment'), { smooth: true }),
+    piece(new Sink().cylinder(0, 0, 0, 0.024, 0.03, 20).rotateZ(0, 0, Math.PI / 2).out(), M('ribbonGold'), { smooth: true }),
+    piece(new Sink().cylinder(0.025, 0, 0, 0.0235, 0.02, 20).rotateZ(0, 0, Math.PI / 2).out(), M('ribbonBlack'), { smooth: true })],
+  /** The CN Tower as the condo has it (city.ts), rebuilt at the origin: placed across the water on the tour, by day. */
+  cnTowerFar: () => {
+    const cn = new Sink(), pod = new Sink(), light = new Sink();
+    cnTower(cn, pod, light);
+    const [tx, tz] = CITY.cn;
+    for (const k of [cn, pod, light]) k.translate(-tx, 0, -tz);
+    return [piece(cn.out(), M('cnShaftDay')), piece(pod.out(), M('cnPodDay')), piece(light.out(), M('cnLight'), { smooth: true })];
+  },
   /** A hanging banner: 1.2 by 3 m of fabric on a rod, hung from the origin (the ceiling), its face toward -z; three of them. */
   hangWebSummit: (): BuiltPart => [piece(new Sink().box(0, -0.62, 0, 1.3, 0.04, 0.04).out(), M('chrome')), piece(new Sink().bone([0, 0, 0], [0, -0.6, 0], 0.006, 0.006).out(), M('cable')), piece(offsetGeo(faceBack(1.2, 3.0, 0.0), 0, -2.15, 0), { paint: 'bannerWebSummit' })],
   hangAllIn: (): BuiltPart => [piece(new Sink().box(0, -0.62, 0, 1.3, 0.04, 0.04).out(), M('chrome')), piece(new Sink().bone([0, 0, 0], [0, -0.6, 0], 0.006, 0.006).out(), M('cable')), piece(offsetGeo(faceBack(1.2, 3.0, 0.0), 0, -2.15, 0), { paint: 'bannerAllIn' })],

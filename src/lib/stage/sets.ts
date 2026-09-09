@@ -10,10 +10,10 @@
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
 //   Set 7 SYDNEY   x -7.4..-1.4  z -18.2..-13.2 h 2.9  2024, the hacker house where Bean was built; the Opera House out of the west window; out by the south door
-//   Set 8 VANCOUVER x -7.4..6    z -30..-18.2  h 5.0  2025, the Web Summit expo hall: the Bean booth between two plain ones
-//   Set 9 TORONTO   x 6..13      z -25.5..-18.2 h 3.0 2025, Elevate week in an office: two desks, the churn whiteboard
-//   Set 10 MONTREAL x 13..22     z -27..-18.2  h 4.0  2025, ALL IN: the booth, rows of chairs, a screen
-//   Set 11 HALIFAX  x 22..31     z -25.5..-18.2 h 3.2 2025 to 26, Volta's coworking floor: tables, the Collect. whiteboard, the Invest NS letter
+//   Set 8 VANCOUVER x -7.4..6.6  z -30..-18.2        2025, outside the Convention Centre, Web Summit: the Bean booth; outdoors, laptop in hand
+//   Set 9 TORONTO   x 10..24     z -30..-18.2        2025, Elevate week: a brick front, the sign
+//   Set 10 MONTREAL x 24..38     z -30..-18.2        2025, ALL IN: the booth outside a plain front
+//   Set 11 HALIFAX  x 38..52     z -30..-18.2        2025 to 26, Volta's front; the walk ends
 import { HALIFAX } from './halifax.ts';
 import { ch } from './shot.ts';
 
@@ -99,6 +99,26 @@ export const aisleHeight = (z: number): number => {
   const i = Math.floor((z - LECTURE_ROWS[0].front) / 1.35), rem = z - LECTURE_ROWS[0].front - i * 1.35;
   return LECTURE_ROWS[i].height - (rem < 0.675 ? 0.18 : 0);
 };
+
+/**
+ * The Canada tour: out of the hacker house's south door and straight on down -z along one promenade, no turning, the
+ * water on the left and his things on the right, one city a chapter. The promenade and the water are the same in all
+ * three sets (each holds its own copy, this set only), so nothing but the sky and the things changes at a sign.
+ */
+export const TOUR = { vancouver: [-6.85, 0, -19.3] as V3, toronto: [-6.85, 0, -32.3] as V3, halifax: [-6.85, 0, -45.3] as V3 } as const;
+/** The Rebecca Cohn: the door at the end of the promenade, the lobby 3.2 m deep, the stalls, the stage a metre up. Measured from the door. */
+export const COHN = { origin: [-6.85, 0, -59.0] as V3, lobby: 3.2, stageFront: 14.0, stage: 1.0, width: 30, depth: 28, height: 11 } as const;
+/** The promenade and the water, the lamps and the trees along it: the same in every tour set. */
+function promenade(): Placement[] {
+  const [x, , z0] = TOUR.vancouver;
+  const out: Placement[] = [
+    { build: 'promenade', at: [x, 0, z0], live: 'city', cap: 'The promenade: the water on the left, the walk straight on.' },
+    { build: 'harbourWide', at: [x, 0, z0], live: 'city', shadow: false, cap: 'The water.' },
+  ];
+  for (let k = 0; k < 4; k++) out.push({ build: 'lampPost', at: [x - 2.9, 0, z0 - 4 - k * 12], live: 'city' });
+  for (let k = 0; k < 5; k++) out.push({ model: 'island_tree_01', at: [x + 6.5 + (k % 2) * 2, 0, z0 - 2 - k * 9.5], rot: [0, (k * 77) % 360, 0], scale: 0.7 + (k % 3) * 0.06, live: 'city' });
+  return out;
+}
 
 export const SETS: StageSet[] = [
   {
@@ -446,108 +466,63 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2025, Vancouver: out of the hacker house's south door into the expo hall at Web Summit: a carpeted floor
-    // under a high ceiling, the Bean booth between two plain ones, one banner. Then a door east to Toronto.
-    id: 'vancouver', env: 'studio', tint: { sky: '#D9E2EC', ground: '#4A5266', power: 0.45 }, exposure: 0.95, envPower: 0.55,
-    sun: { dir: [0.2, 0.9, -0.3], color: '#FFFFFF', power: 1.4, shadow: 0.6 },
-    fog: { color: '#E8ECF0', near: 20, far: 90 },
-    shell: {
-      x: [-7.4, 3], z: [-30, -18.2], h: 5.0,
-      floor: 'expoCarpet', wall: 'sydneyWall', ceiling: 'labCeiling',
-      openings: [
-        { wall: 'z+', at: -6.85, w: 0.9, h: 2.05 }, // in from the hacker house
-        { wall: 'x+', at: -24, w: 1.2, h: 2.2 }, // out east, to Toronto
-      ],
-    },
+    // 2025, Vancouver: straight out of the hacker house's south door onto the promenade, Web Summit week: the Bean booth
+    // on the right, the sails of Canada Place out on the water ahead on the left. Laptop in hand.
+    id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
+    sun: { dir: [0.45, 0.62, 0.55], color: '#FFF3DC', power: 2.3, shadow: 1 },
+    fog: { color: '#C9D7E3', near: 300, far: 1400 },
     props: [
-      { build: 'signVancouver', at: [-2.2, 3.6, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Vancouver. Web Summit, May 2025.' },
-      { build: 'expoBooth', at: [-5.3, 0, -22.0] },
-      { build: 'beanBooth', at: [-2.2, 0, -22.0], cap: 'The Bean booth. One day: 500 conversations, 120 signups, an investor MOU.' },
-      { build: 'expoBooth', at: [0.9, 0, -22.0] },
-      { build: 'hangWebSummit', at: [-2.2, 5.0, -25.4], live: 'screen' },
-      ...[-5.3, -2.2, 0.9].map((x): Placement => ({ build: 'downlight', at: [x, 5.0, -24.5], live: 'downlight' })),
+      ...promenade(),
+      { build: 'canadaPlaceSails', at: [TOUR.vancouver[0] - 125, 0, TOUR.vancouver[2] - 330], rot: [0, 82, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier. Web Summit, May 2025.' },
+      { build: 'beanBooth', at: [TOUR.vancouver[0] + 3.2, 0, TOUR.vancouver[2] - 8.6], rot: [0, 90, 0], live: 'city', cap: 'The Bean booth. One day: 500 conversations, 120 signups, an investor MOU.' },
+      { build: 'signPostVancouver', at: [TOUR.vancouver[0] + 2.4, 0, TOUR.vancouver[2] - 3.2], live: 'city', cap: 'Vancouver. Web Summit, May 2025.' },
     ],
   },
   {
-    // 2025, Toronto: Elevate week, in an office: two desks, the Elevate banner, the whiteboard with the churn notes
-    // on the east wall. Then a door east to Montréal.
-    id: 'toronto', env: 'studio', tint: { sky: '#D4DCE6', ground: '#5A5A5A', power: 0.4 }, exposure: 0.92, envPower: 0.5,
-    sun: { dir: [-0.3, 0.8, 0.5], color: '#FFF6E8', power: 1.2, shadow: 0.6 },
-    fog: { color: '#E6E9ED', near: 14, far: 60 },
-    shell: {
-      x: [3, 10], z: [-25.5, -18.2], h: 3.0,
-      floor: 'lectureFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
-      openings: [
-        { wall: 'x-', at: -24, w: 1.2, h: 2.2 }, // in from Vancouver
-        { wall: 'x+', at: -22, w: 1.2, h: 2.2 }, // out east, to Montréal
-      ],
-    },
+    // 2025, Toronto: the same promenade, Elevate week with the Startup Atlantic delegation: the CN Tower across the water
+    // on the left (the condo's tower, by day), the sign on the right.
+    id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
+    sun: { dir: [-0.5, 0.6, 0.45], color: '#FFEFD6', power: 2.3, shadow: 1 },
+    fog: { color: '#C9D7E3', near: 400, far: 2200 },
     props: [
-      { build: 'signToronto', at: [6.5, 2.4, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Toronto. Elevate, October 2025, with the Startup Atlantic delegation.' },
-      { build: 'deskWide', at: [5.2, 0, -19.0], rot: [0, 180, 0] },
-      { build: 'deskWide', at: [8, 0, -19.0], rot: [0, 180, 0] },
-      { build: 'monitor', at: [5.2, 0.74, -19.2], rot: [0, 180, 0], live: 'screen' },
-      { model: 'laptop_14_aluminium', at: [8, 0.74, -19.4], rot: [0, 190, 0] },
-      { model: 'keyboard_mouse_black', at: [5.2, 0.74, -19.8], rot: [0, 180, 0] },
-      { model: 'office_chair_black', at: [5.2, 0, -20.1], rot: [0, 0, 0] },
-      { model: 'office_chair_black', at: [8, 0, -20.1], rot: [0, 10, 0] },
-      { build: 'whiteboardChurn', at: [9.94, 1.5, -20.3], rot: [0, -90, 0], live: 'screen', cap: 'Day two of Elevate: churn on the whiteboard instead of the meetings. Reminders every day; retention 3x week over week.' },
-      { build: 'hangElevate', at: [6.5, 3.0, -23.6], rot: [0, -90, 0], live: 'screen' },
-      { build: 'discLight', at: [6.5, 3.0, -21.5], live: 'pendant' },
+      ...promenade(),
+      { build: 'cnTowerFar', at: [TOUR.toronto[0] - 330, 0, TOUR.toronto[2] - 640], live: 'city', shadow: false, cap: 'The CN Tower across the water, 720 m off.' },
+      { build: 'signPostToronto', at: [TOUR.toronto[0] + 2.4, 0, TOUR.toronto[2] - 3.2], live: 'city', cap: 'Toronto. Elevate, October 2025.' },
     ],
   },
   {
-    // 2025, Montréal: ALL IN, two days with the Nova Scotia startups. A conference floor: the Bean booth by the
-    // door, rows of chairs facing a screen, the ALL IN banner. Then a door east to Halifax.
-    id: 'montreal', env: 'studio', tint: { sky: '#D6D9E6', ground: '#3A3A44', power: 0.4 }, exposure: 0.9, envPower: 0.5,
-    sun: { dir: [0.1, 0.9, 0.2], color: '#FFFFFF', power: 1.2, shadow: 0.6 },
-    fog: { color: '#E3E5EC', near: 18, far: 80 },
-    shell: {
-      x: [10, 19], z: [-27, -18.2], h: 4.0,
-      floor: 'expoCarpetDark', wall: 'sydneyWall', ceiling: 'labCeiling',
-      openings: [
-        { wall: 'x-', at: -22, w: 1.2, h: 2.2 }, // in from Toronto
-        { wall: 'x+', at: -22, w: 1.2, h: 2.2 }, // out east, to Halifax
-      ],
-    },
+    // 2025 to 2026, Halifax: the harbour on the left with the Macdonald Bridge across it ahead, Volta's sign on the
+    // right. The walk ends at the door of the hall.
+    id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
+    sun: { dir: [-0.55, 0.6, 0.5], color: '#FFEBD0', power: 2.3, shadow: 1 },
+    fog: { color: '#C9D7E3', near: 400, far: 2200 },
     props: [
-      { build: 'signMontreal', at: [14.5, 3.0, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Montréal. ALL IN, September 2025, with the Nova Scotia startups.' },
-      { build: 'beanBoothMontreal', at: [12.4, 0, -20.4], cap: 'The Bean booth at ALL IN, with Digital Nova Scotia and Volta.' },
-      { build: 'talkScreen', at: [16.6, 0, -19.2], rot: [0, 180, 0], live: 'screen', cap: 'Workshops, day two.' },
-      ...[[15.3, -21.8], [16.1, -21.8], [16.9, -21.8], [17.7, -21.8], [15.3, -22.8], [16.1, -22.8], [16.9, -22.8], [17.7, -22.8]].map(([x, z]): Placement => ({ build: 'hallChair', at: [x, 0, z], rot: [0, 180, 0] })),
-      { build: 'hangAllIn', at: [13.5, 4.0, -24.8], rot: [0, -90, 0], live: 'screen' },
-      ...[12.5, 16.5].map((x): Placement => ({ build: 'downlight', at: [x, 4.0, -24.0], live: 'downlight' })),
+      ...promenade(),
+      { build: 'macdonaldBridge', at: [TOUR.halifax[0] - 240, 0, TOUR.halifax[2] - 520], rot: [0, 12, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across Halifax Harbour.' },
+      { build: 'signPostHalifax', at: [TOUR.halifax[0] + 2.4, 0, TOUR.halifax[2] - 3.2], live: 'city', cap: 'Halifax. Volta, 2025 to 2026: Invest Nova Scotia Accelerate, Collect. every Thursday.' },
+      { build: 'cohnLobby', at: COHN.origin, live: 'city', cap: 'The door at the end of the walk: the Rebecca Cohn Auditorium, Dalhousie University.' },
+      { build: 'doorLeafWide', at: [COHN.origin[0] - 0.6, 0, COHN.origin[2]], rot: [0, 90, 0], live: 'door', door: [ch(10.76), ch(10.9)], cap: 'The door of the hall.' },
     ],
   },
   {
-    // 2025 to 2026, Halifax: Volta's coworking floor: two long tables, chairs, laptops, the Collect. whiteboard on
-    // the east wall, the Invest Nova Scotia letter on the north wall. The walk ends here.
-    id: 'halifaxVolta', env: 'studio', tint: { sky: '#D9E0E6', ground: '#58554F', power: 0.42 }, exposure: 0.92, envPower: 0.5,
-    sun: { dir: [-0.4, 0.8, 0.4], color: '#FFF4E4', power: 1.3, shadow: 0.6 },
-    fog: { color: '#E6E9EC', near: 14, far: 60 },
-    shell: {
-      x: [19, 28], z: [-25.5, -18.2], h: 3.2,
-      floor: 'lectureFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
-      openings: [
-        { wall: 'x-', at: -22, w: 1.2, h: 2.2 }, // in from Montréal
-      ],
-    },
+    // Dalhousie convocation: through the door into the Rebecca Cohn Auditorium, down the centre aisle between the stalls,
+    // up the steps onto the stage, the degree in hand. Authored: the hall's shape and size, not a survey.
+    id: 'convocation', env: 'studio', tint: { sky: '#3A3436', ground: '#241F1E', power: 0.5 }, exposure: 0.9, envPower: 0.35,
+    sun: { dir: [0.1, 0.9, -0.4], color: '#FFE6C4', power: 0.9, shadow: 0.7 },
+    fog: { color: '#16141A', near: 60, far: 180 },
     props: [
-      { build: 'signHalifax', at: [23.5, 2.5, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Halifax. Volta: Collect. every Thursday; Invest Nova Scotia Accelerate.' },
-      { build: 'certificateInvestNS', at: [20.6, 1.7, -18.24], rot: [0, 180, 0], live: 'screen', cap: 'Invest Nova Scotia Accelerate: one of twelve, $40k over five months.' },
-      { build: 'hackerTable', at: [22, 0, -20.4] },
-      { build: 'hackerTable', at: [25.6, 0, -20.4] },
-      { model: 'laptop_14_aluminium', at: [21.3, 0.74, -20.1], rot: [0, 6, 0] },
-      { build: 'laptopBean', at: [22.9, 0.74, -20.1], rot: [0, -8, 0], live: 'screen' },
-      { model: 'laptop_14_aluminium', at: [25, 0.74, -20.6], rot: [0, 176, 0] },
-      { model: 'coffee_mug', at: [22.2, 0.74, -20.8], rot: [0, 30, 0] },
-      { model: 'office_chair_black', at: [21.3, 0, -19.3], rot: [0, 180, 0] },
-      { model: 'SchoolChair_01', at: [22.9, 0, -19.3], rot: [0, 175, 0] },
-      { model: 'office_chair_black', at: [25, 0, -21.5], rot: [0, 6, 0] },
-      { model: 'SchoolChair_01', at: [26.4, 0, -19.3], rot: [0, 185, 0] },
-      { build: 'whiteboardCollect', at: [27.94, 1.5, -21.5], rot: [0, -90, 0], live: 'screen', cap: 'Collect. at Volta: Thursdays with Noah and Sam, from a handful of builders to almost a hundred; Demo Day packed the space.' },
-      { build: 'discLight', at: [22, 3.2, -21.8], live: 'pendant' },
-      { build: 'discLight', at: [25.6, 3.2, -21.8], live: 'pendant' },
+      { build: 'cohnHall', at: COHN.origin, live: 'city', cap: 'The Rebecca Cohn Auditorium, Dalhousie Arts Centre.' },
+      { build: 'cohnLobby', at: COHN.origin, live: 'city', cap: 'The lobby behind the door.' },
+      { build: 'cohnStage', at: COHN.origin, live: 'city', cap: 'The stage. Convocation.' },
+      { build: 'lectern', at: [COHN.origin[0] + 3.4, COHN.stage, COHN.origin[2] - COHN.stageFront - 5.2], rot: [0, 0, 0], live: 'city', cap: 'The lectern.' },
+      { build: 'convocationBanner', at: [COHN.origin[0], COHN.stage + 4.6, COHN.origin[2] - COHN.stageFront - 9.9], live: 'city', cap: 'Dalhousie University. Convocation.' },
+      ...Array.from({ length: 7 }, (_, i) => ({ build: 'hallChair', at: [COHN.origin[0] - 6.6 + i * 1.1 + (i > 2 ? 1.4 : 0), COHN.stage, COHN.origin[2] - COHN.stageFront - 8.4] as V3, rot: [0, 0, 0] as V3, live: 'city' as const })),
+      { build: 'downlight', at: [COHN.origin[0], COHN.stage + 8.2, COHN.origin[2] - COHN.stageFront - 4], live: 'downlight' },
+      { build: 'downlight', at: [COHN.origin[0] - 5, COHN.stage + 8.2, COHN.origin[2] - COHN.stageFront - 4], live: 'downlight' },
+      { build: 'downlight', at: [COHN.origin[0] + 5, COHN.stage + 8.2, COHN.origin[2] - COHN.stageFront - 4], live: 'downlight' },
+      { build: 'downlight', at: [COHN.origin[0], 8.6, COHN.origin[2] - 8], live: 'downlight' },
+      { build: 'downlight', at: [COHN.origin[0], 8.6, COHN.origin[2] - 14], live: 'downlight' },
     ],
   },
 ];
+

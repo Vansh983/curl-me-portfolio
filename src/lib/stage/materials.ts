@@ -53,6 +53,13 @@ export const MATS: Record<string, Mat> = {
   campusPaving: { color: '#B6B2A8', rough: 0.9, tile: 1, layer: 4 },
   campusTurf: { color: '#FFFFFF', rough: 1, tile: 1, paint: 'pitch', layer: 5 },
   copperRoof: { color: '#5E8C7A', rough: 0.6, metal: 0.2, tile: 1 },
+  // the tour's promenade: the water on one side, his things on the other
+  sailWhite: { color: '#F5F4EF', rough: 0.55, tile: 1 },
+  pavement: { color: '#FFFFFF', rough: 0.9, tex: 'concrete_pavement', amp: 0.55, tile: 2 },
+  bridgeGreen: { color: '#3E6B4F', rough: 0.55, metal: 0.4, tile: 1 }, // the Macdonald's painted steel
+  parchment: { color: '#F1E9D6', rough: 0.85, grain: 'weave', amp: 0.15, tile: 0.1 },
+  ribbonGold: { color: '#C9A227', rough: 0.45, metal: 0.3, tile: 1 },
+  ribbonBlack: { color: '#17161A', rough: 0.6, tile: 1 },
   // 2024, Sydney: the hacker house. A plywood table on trestles, white walls, timber underfoot
   plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
   trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
@@ -119,6 +126,8 @@ export const MATS: Record<string, Mat> = {
   cnShaft: { color: '#D6D8DE', rough: 1, unlit: true, tint: true, tile: 1, fog: false }, // floodlit concrete
   cnPod: { color: '#F4F1EA', rough: 1, unlit: true, tint: true, tile: 1, fog: false },
   cnLight: { color: '#FF4A4A', rough: 0.5, emissive: '#FF3030', emissivePower: 4, tile: 1, fog: false },
+  cnShaftDay: { color: '#B9BCC2', rough: 0.9, tile: 1 }, // the same tower by day from Front Street, lit by the sun and the sky
+  cnPodDay: { color: '#E8E6E0', rough: 0.8, tile: 1 },
   dome: { color: '#C9CED8', rough: 0.9, emissive: '#3A4260', emissivePower: 0.5, tile: 1, fog: false },
   nightSky: { color: '#FFFFFF', rough: 1, paint: 'nightSky', tile: 1, unlit: true, fog: false, inside: true },
   towerFar: { color: '#A9B2CC', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false, tint: true },

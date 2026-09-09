@@ -17,6 +17,8 @@ const DESCENT = { start: ch(4.704), end: ch(5.047), distance: 1450 };
 export const FLIGHT = { ...DESCENT, top: 385, low: 130, deck: FLIGHT_DECK, bank: 7, cruise: (0.35 * DESCENT.distance) / (DESCENT.end - DESCENT.start) } as const; // cruise: the ground speed the descent ends at, per unit of progress
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
 export const PHONE = { raise: ch(5.012), framed: ch(5.075), zoom: ch(5.103), filled: ch(5.194), transfer: ch(5.215), reveal: ch(5.264) } as const;
+/** The degree: raised into the hand over the last steps onto the stage, held from there. */
+export const DEGREE = { raise: ch(11.82), held: ch(11.94) } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
 /** The window seat, the front row, well ahead of the wing: eye at the oval, looking out and a little down at the city. */

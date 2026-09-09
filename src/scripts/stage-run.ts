@@ -32,7 +32,7 @@ import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
 import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
-import { flightAt, phoneAt, FLIGHT, PHONE } from '../lib/stage/flight.ts';
+import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE } from '../lib/stage/flight.ts';
 import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
@@ -81,8 +81,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   heldLaptop.name = 'heldLaptop';
   heldLaptop.visible = false;
   camera.add(heldLaptop);
-  const TOUR_SETS = new Set([8, 9, 10, 11]);
-  const TOUR_PAGE: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3 }; // the laptop's page per city
+  const TOUR_SETS = new Set([8, 9, 10]);
+  const TOUR_PAGE: Record<number, number> = { 8: 0, 9: 1, 10: 3 }; // the laptop's page per city (screenTour's frames; 2 was Montréal)
+  /** The degree in hand on the stage at the end: a rolled parchment, raised as the walk reaches the dais. */
+  const heldDegree = new Group();
+  heldDegree.name = 'heldDegree';
+  heldDegree.visible = false;
+  camera.add(heldDegree);
   // the laptop's screen is live: a canvas repainted a dozen times a second with code running, the editor, the app, the numbers
   const tourCanvas = canvas2d(768, 480);
   const tourTex = new CanvasTexture(tourCanvas);
@@ -446,9 +451,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const buildHeldLaptop = () => {
     const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' });
     obj.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
-    obj.position.set(0.0, -0.33, -0.5); // held in both hands while walking: the whole lid and the top of the keyboard in frame
-    obj.rotation.set(0.46, 0.0, 0.0);
-    obj.scale.setScalar(1.2);
+    obj.position.set(0.0, -0.23, -0.52); // held in both hands while walking: the whole laptop in frame, lid and keyboard
+    obj.rotation.set(0.5, 0.0, 0.0);
+    obj.scale.setScalar(1.0);
     obj.traverse((o) => { if (o instanceof Mesh && o.name.includes('paint:screenTour')) { tourScreen = o; (o.material as MeshBasicMaterial).map = tourTex; (o.material as MeshBasicMaterial).needsUpdate = true; } });
     heldLaptop.add(obj);
   };
@@ -988,6 +993,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       tourTex.needsUpdate = true;
     }
     heldLaptop.visible = TOUR_SETS.has(mainFrame.set) || (mainFrame.into !== mainFrame.from && TOUR_SETS.has(mainFrame.into) && mainFrame.blend > 0.5);
+    { // the degree: raised into the frame over the last steps to the dais
+      const t = Math.max(0, Math.min(1, (mainFrame.q - DEGREE.raise) / (DEGREE.held - DEGREE.raise)));
+      heldDegree.visible = mainFrame.set === 11 && t > 0;
+      if (heldDegree.visible && heldDegree.children.length === 0) heldDegree.add(placeBuilt('degreeScroll', { build: 'degreeScroll', at: [0, 0, 0] }));
+      const e = t * t * (3 - 2 * t);
+      heldDegree.position.set(0.16, -0.5 + 0.26 * e, -0.42);
+      heldDegree.rotation.set(0.35 + 0.25 * (1 - e), 0.35, -0.75);
+    }
 
     // things on their own clock
     const t = now / 1000;

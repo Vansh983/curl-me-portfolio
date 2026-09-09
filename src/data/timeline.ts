@@ -90,18 +90,18 @@ export const timeline: Milestone[] = [
   },
   {
     year: '2025',
-    lane: 'Montréal',
-    title: 'ALL IN',
-    body: 'Two days at ALL IN with the Nova Scotia startups, Digital Nova Scotia and Volta behind it. Workshops in the morning, then working the room and talking about Bean to hundreds of people, until the voice gave out. Four cities and four conferences in four months.',
-    stat: '2 days · 4 cities in 4 months · Digital NS',
-  },
-  {
-    year: '2025',
     span: 'to 26',
     lane: 'Halifax',
     title: 'Invest NS, Volta, Collect.',
     body: 'Invest Nova Scotia Accelerate: one of twelve, one of two consumer companies. Collect. at Volta every Thursday with Noah and Sam, from a handful of builders to almost a hundred, then a Demo Day that packed the space. Bean at #4 on Product Hunt.',
     stat: 'Invest NS Accelerate · Collect. Demo Day · #4 Product Hunt',
+  },
+  {
+    year: 'Dal',
+    lane: 'Dalhousie',
+    title: 'The degree',
+    body: 'Through the door at the end of the walk into the Rebecca Cohn, down the aisle and up the steps onto the stage. Computer science, Dalhousie University: the reason for Halifax in the first place.',
+    stat: 'Dalhousie University · Halifax',
   },
   {
     year: '2025',

@@ -677,6 +677,19 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     x.fillStyle = '#4B5563'; x.font = `400 50px ${SANS}`; x.fillText(what, 74, 280);
     beanLogo(x, images.bean, w - 220, 180, 150, true);
   }] }])),
+  /** The name over the Cohn's door, 3.6 by 0.5: plain letters on the dark fascia. */
+  cohnSign: { w: 1440, h: 200, frames: [(x, w, h) => {
+    x.fillStyle = '#B9B6AE'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#1F1F22'; x.font = `500 74px ${SANS}`; x.textAlign = 'center'; x.fillText('Rebecca Cohn Auditorium', w / 2, 92);
+    x.fillStyle = '#4A4A4E'; x.font = `400 44px ${SANS}`; x.fillText('Dalhousie Arts Centre', w / 2, 158); x.textAlign = 'left';
+  }] },
+  /** The banner over the stage, 7 by 2.4: the university and the occasion, gold on black. */
+  convocationBanner: { w: 1400, h: 480, frames: [(x, w, h) => {
+    x.fillStyle = '#111114'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#C9A227'; x.fillRect(80, 60, w - 160, 4); x.fillRect(80, h - 64, w - 160, 4);
+    x.font = `500 118px ${SANS}`; x.textAlign = 'center'; x.fillText('Dalhousie University', w / 2, 230);
+    x.fillStyle = '#E8E4DA'; x.font = `400 66px ${SANS}`; x.fillText('Convocation', w / 2, 340); x.textAlign = 'left';
+  }] },
   /** Toronto's whiteboard, in his words from the trip: churn instead of the meetings. */
   whiteboardChurn: { w: 1024, h: 640, frames: [(x, w, h) => {
     x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h); x.fillStyle = '#B8BFC4'; x.fillRect(0, h - 26, w, 26);

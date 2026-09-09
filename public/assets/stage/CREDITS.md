@@ -47,6 +47,7 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 - `dirty_carpet` (texture) by Rohit Seervi, CC0, https://polyhaven.com/a/dirty_carpet. the rugs.
 - `oak_veneer_01` (texture) by Jenelle van Heerden, CC0, https://polyhaven.com/a/oak_veneer_01. the shelves, the bed frame.
 - `asphalt_02` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/asphalt_02. the Embarcadero road.
+- `concrete_pavement` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/concrete_pavement. the paving of the promenade.
 
 The Toronto skyline out of the condo window and Halifax under the aircraft are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).
 

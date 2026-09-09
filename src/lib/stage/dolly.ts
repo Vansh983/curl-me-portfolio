@@ -6,11 +6,11 @@
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
 import { CatmullRomCurve3, Vector3 } from 'three';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3 } from './sets.ts';
+import { TOUR, COHN, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3 } from './sets.ts';
 import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
 import { ch } from './shot.ts';
 
-export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1; portal?: true }
+export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1; portal?: true; soft?: true } // soft: an open-air threshold, the light crossfades without the doorway's dip
 /** `from` and `into` are the sets a doorway joins; outside a doorway both equal `set`. */
 export interface Frame { q: number; set: number; from: number; into: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
 
@@ -127,32 +127,40 @@ export const DOLLY: DollyKey[] = [
   { q: ch(7.56), cam: [-5.0, 1.6, -14.28], look: [-8.4, 1.5, -16.4], fov: 74, set: 7 },
   { q: ch(7.68), cam: [-6.7, 1.6, -15.5], look: [-9.5, 1.4, -18.3], fov: 74, set: 7 }, // a glance out of the window on the way past, already turning to the door
   { q: ch(7.9), cam: [-6.85, 1.6, -17.95], look: [-6.85, 1.15, -21.95], fov: 74, set: 7, blend: 0 }, // the jamb
-  { q: ch(7.98), cam: [-6.85, 1.6, -19.3], look: [-6.4, 1.2, -23.3], fov: 74, set: 8, blend: 1 }, // into the expo hall
-  { q: ch(8.12), cam: [-6.3, 1.6, -21.4], look: [-2.6, 1.3, -23.6], fov: 74, set: 8 }, // into the hall, the booths ahead-left
-  { q: ch(8.28), cam: [-5.2, 1.6, -23.9], look: [-2.2, 1.2, -22.0], fov: 74, set: 8 }, // the booths ahead: ours in the middle
-  { q: ch(8.44), cam: [-3.2, 1.6, -24.9], look: [-2.2, 1.3, -21.6], fov: 74, set: 8 }, // at the Bean booth: the day's count
-  { q: ch(8.6), cam: [-0.6, 1.6, -24.7], look: [2.0, 1.3, -22.0], fov: 74, set: 8 },
-  { q: ch(8.74), cam: [1.4, 1.6, -24.3], look: [5.4, 1.35, -24.0], fov: 74, set: 8 }, // the door east
-  { q: ch(8.86), cam: [2.9, 1.6, -24.0], look: [6.9, 1.35, -24.0], fov: 74, set: 8, blend: 0 }, // the jamb
-  { q: ch(8.94), cam: [3.9, 1.6, -24.0], look: [7.0, 1.3, -21.5], fov: 74, set: 9, blend: 1 }, // Toronto: the office
-  { q: ch(9.08), cam: [5.0, 1.6, -23.2], look: [5.2, 1.0, -19.5], fov: 74, set: 9 }, // the desks
-  { q: ch(9.24), cam: [6.6, 1.6, -22.6], look: [8.0, 1.0, -19.5], fov: 74, set: 9 },
-  { q: ch(9.4), cam: [7.4, 1.6, -22.6], look: [9.9, 1.5, -20.3], fov: 74, set: 9 }, // the whiteboard: churn
-  { q: ch(9.56), cam: [8.6, 1.6, -22.2], look: [11.6, 1.35, -22.0], fov: 74, set: 9 }, // the door east
-  { q: ch(9.66), cam: [9.9, 1.6, -22.0], look: [13.9, 1.35, -22.0], fov: 74, set: 9, blend: 0 }, // the jamb
-  { q: ch(9.74), cam: [10.9, 1.6, -22.0], look: [14.0, 1.3, -21.0], fov: 74, set: 10, blend: 1 }, // Montréal: the conference floor
-  { q: ch(9.88), cam: [12.3, 1.6, -23.6], look: [12.5, 1.3, -20.6], fov: 74, set: 10 }, // the booth by the door
-  { q: ch(10.04), cam: [14.0, 1.6, -23.8], look: [16.5, 1.7, -19.4], fov: 74, set: 10 }, // the screen and the chairs
-  { q: ch(10.2), cam: [15.8, 1.6, -24.0], look: [16.6, 1.6, -20.0], fov: 74, set: 10 },
-  { q: ch(10.36), cam: [17.5, 1.6, -23.0], look: [21.5, 1.35, -22.0], fov: 74, set: 10 }, // the door east
-  { q: ch(10.46), cam: [18.9, 1.6, -22.0], look: [22.9, 1.35, -22.0], fov: 74, set: 10, blend: 0 }, // the jamb
-  { q: ch(10.54), cam: [19.9, 1.6, -22.0], look: [23.0, 1.3, -21.0], fov: 74, set: 11, blend: 1 }, // Halifax: Volta
-  { q: ch(10.68), cam: [21.2, 1.6, -22.8], look: [22.0, 1.0, -20.4], fov: 74, set: 11 }, // the tables
-  { q: ch(10.84), cam: [23.0, 1.6, -23.0], look: [25.6, 1.0, -20.4], fov: 74, set: 11 },
-  { q: ch(11.0), cam: [24.6, 1.6, -22.8], look: [27.9, 1.5, -21.5], fov: 74, set: 11 }, // the whiteboard: Collect.
-  { q: ch(11.1), cam: [25.6, 1.6, -22.6], look: [27.9, 1.5, -21.5], fov: 74, set: 11 },
-  { q: ch(12), cam: [25.6, 1.6, -22.6], look: [27.9, 1.5, -21.5], fov: 74, set: 11 }, // and hold
+  // 2025: straight out of the door and on down the sidewalk, no turning: Vancouver, Toronto, Halifax, one city a chapter,
+  // the light changing at each sign; then the door at the end of Barrington Street, the aisle of the Cohn, the stage
+  ...walk(),
 ];
+
+/**
+ * The straight walk from the hacker house's door (z -19.3) to the Cohn's stage, keyed every tenth of a chapter at an
+ * even pace so the spline stays a line: 13.2 m a chapter down the streets, a little quicker down the aisle. The eye at
+ * 1.6, looking 4 m ahead and a little down at the laptop's height; on the stage a metre up.
+ */
+function walk(): DollyKey[] {
+  const X = TOUR.vancouver[0], keys: DollyKey[] = [];
+  const key = (q: number, z: number, set: number, extra: Partial<DollyKey> = {}, y = 1.6, lookZ = z - 4, lookY = 1.3): DollyKey => ({ q: ch(q), cam: [X, y, z], look: [X, lookY, lookZ], fov: 74, set, ...extra });
+  const door = TOUR.vancouver[2], pace = 13.0; // metres a chapter on the streets: the sets are 13 m apart
+  keys.push(key(7.98, door, 8, { blend: 1 }));
+  for (let k = 1; k <= 29; k++) { // 8.08 .. 10.88: z -20.6 .. -57.7
+    const q = Math.round((7.98 + k * 0.1) * 100) / 100, z = Math.round((door - k * 0.1 * pace) * 100) / 100;
+    const set = q < 8.98 ? 8 : q < 9.98 ? 9 : 10; // the light changes over 8.88..8.98 and 9.88..9.98: the signs
+    const blend = q === 8.88 || q === 9.88 ? 0 : q === 8.98 || q === 9.98 ? 1 : undefined;
+    keys.push(key(q, z, set, blend === undefined ? {} : blend === 1 ? { blend, soft: true } : { blend }));
+  }
+  // the door of the Cohn at z -59: the jamb, the lobby, the hall opening out, the aisle, the steps, the stage
+  const O = COHN.origin[2];
+  keys.push(key(10.98, O + 0.1, 10, { blend: 0 }));
+  keys.push(key(11.08, O - 1.5, 11, { blend: 1 }));
+  // the aisle and the rise onto the stage at one pace to the end of the scroll: the eye starts up 2.4 m before the
+  // four steps and levels a stride past them, the way an eye takes stairs (a kink in the path would break the step bound)
+  const aisleEnd = O - COHN.stageFront + 1.4, aisleStart = O - 1.5, rise = 5.0;
+  const pace2 = (aisleStart - aisleEnd + rise) / (12.0 - 11.08), qRise = 12.0 - rise / pace2;
+  for (let k = 1; k <= 5; k++) keys.push(key(11.08 + (qRise - 11.08) * (k / 5), aisleStart + (aisleEnd + 2.4 - aisleStart) * (k / 5), 11));
+  keys.push(key(12.0, aisleEnd - 2.6, 11, {}, 1.6 + COHN.stage, O - COHN.stageFront - 7.5, 2.3)); // up the steps, on the stage before the lectern: the degree
+  return keys;
+}
+
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
 
@@ -184,7 +192,7 @@ export function makeDolly(keys: DollyKey[]): (q: number) => Frame {
       blend = clamp01((q - keys[s].q) / (keys[e].q - keys[s].q));
       from = keys[s].set; into = keys[e].set;
       set = keys[e].portal ? (q < keys[e].q ? from : into) : (blend < 0.5 ? from : into);
-      envDip = 1 - 0.88 * Math.sin(Math.PI * blend);
+      envDip = keys[e].soft ? 1 : 1 - 0.88 * Math.sin(Math.PI * blend);
     }
     return {
       q, set, from, into, blend, envDip,

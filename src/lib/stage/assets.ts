@@ -85,6 +85,7 @@ export const ASSETS: Asset[] = [
   texture('dirty_carpet', 'Rohit Seervi', 'the rugs', 0.6, ['nor', 'arm']),
   texture('oak_veneer_01', 'Jenelle van Heerden', 'the shelves, the bed frame', 1.83, ['diff', 'nor', 'arm']),
   texture('asphalt_02', 'Rob Tuytel', 'the Embarcadero road', 3.0, ['diff', 'nor', 'arm']),
+  texture('concrete_pavement', 'Charlotte Baglioni', 'the paving of the promenade', 2.0, ['diff', 'nor', 'arm']),
 ];
 
 export const assetUrl = (a: Asset): string => (a.kind === 'texture' ? `/assets/stage/tex/${a.id}` : `/assets/stage/${a.id}.glb`);
