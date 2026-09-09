@@ -564,6 +564,72 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     x.fillStyle = BEAN_ORANGE; x.beginPath(); x.roundRect(24, 540, w - 48, 56, 28); x.fill(); x.fillStyle = '#FFFFFF'; x.font = '600 18px Inter, system-ui, sans-serif'; x.fillText('Plan my week', 118, 575);
     x.fillStyle = '#9CA3AF'; x.font = '13px Inter, system-ui, sans-serif'; x.fillText('pantry  ·  recipes  ·  week  ·  shopping', 60, 680);
   }] },
+  /** The laptop in hand on the road: Bean's numbers for the trip, live-looking, the logo top left. */
+  screenTour: { w: 768, h: 480, frames: [(x, w, h) => {
+    x.fillStyle = '#FBF8F4'; x.fillRect(0, 0, w, h); x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, 64);
+    beanLogo(x, images.bean, 110, 32, 40, true);
+    x.fillStyle = '#7A8290'; x.font = '500 16px Inter, system-ui, sans-serif'; x.fillText('on the road  ·  May 2025', 560, 40);
+    x.fillStyle = '#21293C'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Web Summit Vancouver', 32, 118);
+    const cells: Array<[string, string]> = [['500', 'conversations'], ['120', 'signups'], ['1', 'investor MOU'], ['700+', 'parents cooking']];
+    cells.forEach(([n, t], i) => { const cx = 32 + i * 180; x.fillStyle = '#FFFFFF'; x.beginPath(); x.roundRect(cx, 150, 164, 130, 14); x.fill(); x.fillStyle = BEAN_ORANGE; x.font = '800 52px Inter, system-ui, sans-serif'; x.fillText(n, cx + 16, 216); x.fillStyle = '#4B5563'; x.font = '500 17px Inter, system-ui, sans-serif'; x.fillText(t, cx + 16, 256); });
+    x.fillStyle = '#21293C'; x.font = '600 18px Inter, system-ui, sans-serif'; x.fillText('Today', 32, 330);
+    ['09:00  booth open, Convention Centre West', '11:30  investor coffee, level 2', '14:00  Socratica, come work on your thing', '18:00  night summit, the seawall'].forEach((t, i) => { x.fillStyle = i === 2 ? BEAN_ORANGE : '#4B5563'; x.font = '15px Inter, system-ui, sans-serif'; x.fillText(t, 32, 362 + i * 26); });
+    x.fillStyle = '#E5E7EB'; x.fillRect(420, 316, 316, 150); x.fillStyle = '#4B5563'; x.font = '600 15px Inter, system-ui, sans-serif'; x.fillText('signups by hour', 436, 340);
+    [3, 8, 14, 22, 19, 26, 17, 11].forEach((v, i) => { x.fillStyle = BEAN_ORANGE; x.fillRect(436 + i * 36, 456 - v * 4, 24, v * 4); });
+  }] },
+  /** A Web Summit lamppost banner, 0.85 by 2.05: orange, the name, Vancouver, the dates. */
+  bannerWebSummit: { w: 340, h: 820, frames: [(x, w, h) => {
+    x.fillStyle = '#FF6A13'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#FFFFFF'; x.font = '800 64px Inter, system-ui, sans-serif'; x.fillText('Web', 40, 150); x.fillText('Summit', 40, 220);
+    x.fillStyle = '#1B1B1B'; x.font = '700 38px Inter, system-ui, sans-serif'; x.fillText('Vancouver', 40, 320);
+    x.fillStyle = '#FFFFFF'; x.font = '500 28px Inter, system-ui, sans-serif'; x.fillText('May 27 to 30, 2025', 40, 370);
+    x.strokeStyle = '#FFFFFF'; x.lineWidth = 6; x.beginPath(); x.moveTo(40, 420); x.lineTo(300, 420); x.stroke();
+    x.fillStyle = '#FFFFFF'; x.font = '600 30px Inter, system-ui, sans-serif'; x.fillText('where the tech', 40, 500); x.fillText('world meets', 40, 540);
+    x.fillStyle = '#1B1B1B'; x.font = '500 24px Inter, system-ui, sans-serif'; x.fillText('Convention Centre', 40, 720); x.fillText('West', 40, 754);
+  }] },
+  /** The booth's counter front, 2.3 by 0.7: the logo and the line. */
+  boothFront: { w: 1150, h: 350, frames: [(x, w, h) => {
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h);
+    beanLogo(x, images.bean, 300, 175, 220, true);
+    x.fillStyle = '#7A8290'; x.font = '500 40px Inter, system-ui, sans-serif'; x.fillText('Your Kitchen Assistant', 640, 150);
+    x.fillStyle = BEAN_ORANGE; x.font = '600 34px Inter, system-ui, sans-serif'; x.fillText('beanmeals.com', 640, 210);
+  }] },
+  /** The booth's back panel, 2.4 by 2.2: the logo, what Bean is, and the day's count. */
+  boothBack: { w: 1200, h: 1100, frames: [(x, w, h) => {
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h);
+    x.fillStyle = BEAN_ORANGE; x.fillRect(0, 0, w, 26);
+    beanLogo(x, images.bean, 600, 200, 220, true);
+    x.fillStyle = '#21293C'; x.font = '700 60px Inter, system-ui, sans-serif'; x.textAlign = 'center'; x.fillText('What is in your fridge?', 600, 400);
+    x.fillStyle = '#4B5563'; x.font = '500 38px Inter, system-ui, sans-serif'; x.fillText('Pantry-first meal plans for busy parents', 600, 460);
+    const cells: Array<[string, string]> = [['500', 'conversations'], ['120', 'signups'], ['1', 'investor MOU']];
+    cells.forEach(([n, t], i) => { const cx = 200 + i * 400; x.fillStyle = '#FFF1E8'; x.beginPath(); x.roundRect(cx - 170, 560, 340, 260, 24); x.fill(); x.fillStyle = BEAN_ORANGE; x.font = '800 110px Inter, system-ui, sans-serif'; x.fillText(n, cx, 690); x.fillStyle = '#21293C'; x.font = '500 34px Inter, system-ui, sans-serif'; x.fillText(t, cx, 770); });
+    x.fillStyle = '#7A8290'; x.font = '500 34px Inter, system-ui, sans-serif'; x.fillText('Web Summit Vancouver  ·  one day at the booth', 600, 940);
+    x.textAlign = 'left';
+  }] },
+  /** The café window at Socratica, 7.6 by 3.3: warm inside, long tables, laptops open, the sign; no one drawn in. */
+  cafeWindow: { w: 1520, h: 660, frames: [(x, w, h) => {
+    const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#5A4636'); g.addColorStop(1, '#2E241C'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#F2C48A'; for (let i = 0; i < 5; i++) { x.beginPath(); x.arc(160 + i * 300, 90, 26, 0, Math.PI * 2); x.fill(); } // pendants
+    x.fillStyle = '#8B6A4A'; x.fillRect(80, 380, 620, 30); x.fillRect(820, 380, 620, 30); // two long tables
+    x.fillStyle = '#6E5238'; for (const tx of [80, 690, 820, 1430]) x.fillRect(tx, 410, 14, 200);
+    for (let i = 0; i < 9; i++) { const lx = 120 + i * 155 + (i > 3 ? 60 : 0); x.fillStyle = '#C9CDD3'; x.fillRect(lx, 330, 90, 52); x.fillStyle = ['#2E5C9E', '#1E1E24', '#2B7A4B', '#3C3F4A'][i % 4]; x.fillRect(lx + 6, 336, 78, 40); x.fillStyle = '#B7BBC1'; x.fillRect(lx - 4, 382, 98, 6); } // laptops on the tables
+    for (let i = 0; i < 6; i++) { x.fillStyle = '#E9E2D6'; x.beginPath(); x.arc(260 + i * 210, 372, 12, 0, Math.PI * 2); x.fill(); } // mugs
+    x.fillStyle = '#F4EFE6'; x.font = '800 78px Inter, system-ui, sans-serif'; x.fillText('SOCRATICA', 560, 220);
+    x.fillStyle = '#D9CDBA'; x.font = '500 34px Inter, system-ui, sans-serif'; x.fillText('Sunday 2 pm  ·  come work on your thing', 520, 270);
+    x.fillStyle = 'rgba(255,255,255,0.10)'; x.fillRect(0, 0, w * 0.32, h); // the glass's reflection
+  }] },
+  /** The North Shore across the water, 1600 by 500 m: mountains with snow on the tops, the forest, the water, freighters at anchor; the sky the set's fog colour. Unlit. */
+  vancouver: { w: 2048, h: 640, frames: [(x, w, h) => {
+    const sky = x.createLinearGradient(0, 0, 0, h * 0.55); sky.addColorStop(0, '#9EC1DC'); sky.addColorStop(1, '#D8E6EF'); x.fillStyle = sky; x.fillRect(0, 0, w, h);
+    const ridge = (pts: number[][], fill: string) => { x.fillStyle = fill; x.beginPath(); x.moveTo(0, h); pts.forEach(([px, py]) => x.lineTo(px, py)); x.lineTo(w, h); x.closePath(); x.fill(); };
+    ridge([[0, 300], [180, 250], [360, 190], [520, 230], [700, 150], [860, 200], [1040, 120], [1200, 180], [1380, 140], [1560, 210], [1740, 170], [1900, 230], [2048, 260]], '#7E93A6'); // the far peaks
+    x.fillStyle = '#EEF3F6'; for (const [px, py] of [[700, 150], [1040, 120], [1380, 140]]) { x.beginPath(); x.moveTo(px, py); x.lineTo(px - 60, py + 40); x.lineTo(px + 55, py + 36); x.closePath(); x.fill(); } // snow
+    ridge([[0, 350], [220, 320], [420, 290], [640, 330], [860, 280], [1080, 310], [1300, 270], [1520, 320], [1760, 290], [2048, 340]], '#4F6B5B'); // the forested slopes
+    ridge([[0, 400], [300, 385], [600, 395], [900, 380], [1200, 392], [1500, 378], [1800, 390], [2048, 400]], '#2F4A3A'); // Stanley Park's trees at the water
+    x.fillStyle = '#3F6E8C'; x.fillRect(0, 400, w, h - 400); // the water
+    x.fillStyle = '#B33A2E'; for (const fx of [400, 1300]) { x.fillRect(fx, 402, 180, 16); x.fillStyle = '#E8E4DA'; x.fillRect(fx + 120, 388, 40, 14); x.fillStyle = '#B33A2E'; } // freighters at anchor
+    x.strokeStyle = 'rgba(255,255,255,0.15)'; x.lineWidth = 2; for (let i = 0; i < 30; i++) { const y = 420 + i * 7; x.beginPath(); x.moveTo((i * 197) % w, y); x.lineTo(((i * 197) % w) + 80, y); x.stroke(); }
+  }] },
   /** The sign above the window: the mark and the wordmark on the wall's own colour. */
   beanSign: { w: 1440, h: 300, frames: [(x, w, h) => {
     x.fillStyle = '#F1ECE3'; x.fillRect(0, 0, w, h);

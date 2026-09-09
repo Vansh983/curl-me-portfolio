@@ -120,13 +120,22 @@ export const DOLLY: DollyKey[] = [
   { q: ch(7.02), cam: [-0.6, 1.62, -15.9], look: [-3.5, 1.3, -15.8], fov: 72, set: 6 }, // down the step
   { q: ch(7.06), cam: [-1.3, 1.6, -15.8], look: [-4.3, 1.25, -15.85], fov: 72, set: 6, blend: 0 }, // the jamb
   { q: ch(7.12), cam: [-2.2, 1.6, -15.8], look: [-5.5, 1.2, -15.9], fov: 72, set: 7, blend: 1 }, // in: the table, the monitors, the window
-  { q: ch(7.25), cam: [-2.7, 1.6, -15.0], look: [-4.5, 1.45, -13.3], fov: 74, set: 7 }, // the whiteboard
-  { q: ch(7.38), cam: [-2.95, 1.6, -14.35], look: [-6.0, 1.15, -14.6], fov: 74, set: 7 }, // at the table's end, the room's length ahead
-  { q: ch(7.52), cam: [-3.05, 1.55, -14.3], look: [-4.8, 0.85, -15.5], fov: 74, set: 7 }, // down at the monitors and the wires
-  { q: ch(7.62), cam: [-3.05, 1.6, -14.3], look: [-7.4, 1.4, -15.9], fov: 74, set: 7 }, // down the table to the window and the sign
-  { q: ch(7.8), cam: [-5.0, 1.6, -14.28], look: [-7.4, 1.5, -15.8], fov: 74, set: 7 }, // along the north side to the window
-  { q: ch(7.93), cam: [-6.55, 1.6, -15.2], look: [-12.0, 1.6, -15.8], fov: 74, set: 7 }, // at the glass
-  { q: ch(8), cam: [-6.6, 1.6, -15.5], look: [-40.0, 0.2, -19.5], fov: 74, set: 7 }, // out over the water: the Opera House, the bridge behind it; hold. 2024, Bean
+  { q: ch(7.24), cam: [-2.7, 1.6, -15.0], look: [-4.8, 1.45, -13.4], fov: 74, set: 7 }, // the whiteboard
+  { q: ch(7.35), cam: [-2.95, 1.6, -14.35], look: [-6.0, 1.15, -14.6], fov: 74, set: 7 }, // at the table's end, the room's length ahead
+  { q: ch(7.42), cam: [-3.05, 1.55, -14.3], look: [-4.8, 0.85, -15.5], fov: 74, set: 7 }, // down at the monitors and the wires
+  { q: ch(7.57), cam: [-5.0, 1.6, -14.28], look: [-7.4, 1.5, -15.8], fov: 74, set: 7 }, // up, and along the north side to the window and the sign
+  { q: ch(7.68), cam: [-6.55, 1.6, -15.2], look: [-12.0, 1.6, -15.8], fov: 74, set: 7 }, // at the glass
+  { q: ch(7.72), cam: [-6.6, 1.6, -15.5], look: [-10.6, 1.43, -15.9], fov: 74, set: 7 }, // out over the water: the Opera House on its point, the bridge behind. 2024, Bean
+  // 2025: turn, along the south side of the table and out of the south door onto the Vancouver seawall, laptop in hand
+  { q: ch(7.95), cam: [-6.8, 1.6, -16.4], look: [-6.85, 1.35, -20.4], fov: 74, set: 7 }, // turning left to the door beside the window
+  { q: ch(8.06), cam: [-6.85, 1.6, -17.95], look: [-6.85, 1.15, -21.95], fov: 74, set: 7, blend: 0 }, // the jamb: the water and the mountains through the door
+  { q: ch(8.14), cam: [-6.85, 1.6, -19.3], look: [-6.85, 1.2, -23.3], fov: 74, set: 8, blend: 1 }, // out on the promenade: the harbour, the North Shore
+  { q: ch(8.28), cam: [-6.4, 1.6, -21.3], look: [-3.6, 1.3, -24.1], fov: 74, set: 8 }, // turning east: the banners, the sails over the water
+  { q: ch(8.43), cam: [-4.1, 1.6, -21.8], look: [-0.1, 1.2, -21.8], fov: 74, set: 8 }, // along the seawall
+  { q: ch(8.58), cam: [-1.8, 1.6, -22.0], look: [2.2, 1.15, -21.6], fov: 74, set: 8 },
+  { q: ch(8.72), cam: [0.5, 1.6, -22.1], look: [4.1, 1.1, -20.3], fov: 74, set: 8 }, // the booth: the day's numbers
+  { q: ch(8.84), cam: [2.2, 1.6, -22.2], look: [4.8, 1.2, -20.2], fov: 74, set: 8 },
+  { q: ch(9), cam: [3.3, 1.6, -22.2], look: [11.0, 1.5, -19.5], fov: 74, set: 8 }, // past the booth: the café, the sails; hold
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

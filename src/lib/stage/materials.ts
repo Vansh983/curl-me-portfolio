@@ -57,6 +57,18 @@ export const MATS: Record<string, Mat> = {
   plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
   trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
   quayStone: { color: '#4A4A48', rough: 0.9, tile: 1 },
+  // 2025, Vancouver: the seawall promenade at the convention centre, Web Summit week
+  promenade: { color: '#BDB7AB', rough: 0.92, paint: 'pavers', tile: 0.9, layer: 3 },
+  seawall: { color: '#7E7B74', rough: 0.85, grain: 'speckle', amp: 0.2, tile: 1 },
+  harbourDeep: { color: '#3A7396', rough: 0.3, grain: 'ripple', amp: 0.3, clearcoat: 0.4, clearcoatRough: 0.15, tile: 6, layer: 1 },
+  curtainGlass: { color: '#8FB3C6', rough: 0.08, metal: 0.3, clearcoat: 0.8, clearcoatRough: 0.05, tile: 1 },
+  mullionDark: { color: '#2B2F33', rough: 0.5, metal: 0.4, tile: 1 },
+  greenRoof: { color: '#5F8A3C', rough: 1, tile: 1 },
+  sailCloth: { color: '#F4F3EE', rough: 0.7, sheen: 0.3, tile: 1 },
+  sailMast: { color: '#D9DBDD', rough: 0.4, metal: 0.6, tile: 1 },
+  bannerOrange: { color: '#FF6A13', rough: 0.8, tile: 1 },
+  boothWhite: { color: '#F2F1EC', rough: 0.6, clearcoat: 0.1, tile: 1 },
+  cedar: { color: '#8B5E3C', rough: 0.8, tex: 'oak_veneer_01', amp: 0.35, tile: 1.4 },
   oldPlastic: { color: '#2C2D30', rough: 0.62, clearcoat: 0.08, clearcoatRough: 0.5, tile: 1 }, // the black plastic of a 2010s monitor
   oldPlasticPale: { color: '#9A9891', rough: 0.7, tile: 1 }, // the greyed beige one
   airBed: { color: '#2A3446', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.25, tile: 1 }, // flocked PVC, a little sheen

@@ -1,4 +1,4 @@
-// The world as data: eight sets in a chain, each with its light, its shell and what stands in it.
+// The world as data: nine sets in a chain, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
 //   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick door on x+ at z 1.6
@@ -9,7 +9,8 @@
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
-//   Set 7 SYDNEY   x -7.4..-1.4  z -18.2..-13.2 h 2.9  2024, the hacker house where Bean was built; the Opera House out of the west window
+//   Set 7 SYDNEY   x -7.4..-1.4  z -18.2..-13.2 h 2.9  2024, the hacker house where Bean was built; the Opera House out of the west window; out by the south door
+//   Set 8 VANCOUVER x -7..73     z -24.5..-18.2      2025, the seawall promenade at the Convention Centre, Web Summit; outdoors
 import { HALIFAX } from './halifax.ts';
 import { ch } from './shot.ts';
 
@@ -395,6 +396,7 @@ export const SETS: StageSet[] = [
       openings: [
         { wall: 'x+', at: -15.8, w: 1.2, h: 2.2 }, // in from the auditorium, heading west
         { wall: 'x-', at: -15.7, w: 4.0, h: 1.55, sill: 0.75 }, // the window on the harbour
+        { wall: 'z-', at: -6.85, w: 0.9, h: 2.05 }, // out to the street beside the window, heading south: Vancouver
       ],
     },
     props: [
@@ -430,13 +432,37 @@ export const SETS: StageSet[] = [
       { model: 'pendant_tense', at: [-3.8, 1.86, -15.7], live: 'pendant' },
       // the floor: two air mattresses along the walls
       { build: 'airMattress', at: [-3.4, 0, -13.66], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' },
-      { build: 'airMattress', at: [-2.7, 0, -17.7], rot: [0, 4, 0] },
-      { model: 'throw_pillows_01', at: [-2.2, 0.0, -16.9], rot: [0, 30, 0], scale: 0.7 },
+      { build: 'airMattress', at: [-3.2, 0, -17.7], rot: [0, 4, 0] },
+      { model: 'throw_pillows_01', at: [-1.9, 0.0, -17.3], rot: [0, 30, 0], scale: 0.7 },
+      { build: 'doorLeaf', at: [-7.3, 0, -18.2], rot: [0, 90, 0], live: 'door', door: [ch(7.96), ch(8.08)] }, // the south door beside the window: hinged on the west jamb, it swings out onto the promenade ahead of the walk // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
       { build: 'bin', at: [-1.85, 0, -14.7] },
       // the walls
       { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.' },
       { model: 'wall_clock', at: [-1.44, 2.3, -17.4], rot: [0, -90, 0] },
       { build: 'discLight', at: [-2.4, 2.9, -14.3], live: 'pendant' },
+    ],
+  },
+  {
+    // 2025, Vancouver: out of the hacker house's south door onto the seawall promenade at the Convention Centre, Web
+    // Summit week. The harbour and the North Shore to the south, the glass wall to the north with the Bean booth
+    // against it, banners on the lampposts, the Socratica café ahead, Canada Place's sails east over the water.
+    id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
+    sun: { dir: [0.4, 0.6, -0.65], color: '#FFF3DC', power: 2.4, shadow: 1 },
+    fog: { color: '#C9D7E3', near: 250, far: 1200 },
+    props: [
+      { build: 'promenade', at: [-7, 0, -18.2], cap: 'The seawall at the Convention Centre. Web Summit Vancouver, May 2025.' },
+      { build: 'harbour', at: [-7, -3, -24.5], live: 'water' },
+      { build: 'conventionCentre', at: [-1.4, 0, -18.2], cap: 'Vancouver Convention Centre West: Web Summit.' }, // its glass runs east from the hacker house's corner to the café
+      { build: 'canadaPlace', at: [16, -3, -26], cap: 'Canada Place.' },
+      { build: 'northShore', at: [40, 60, -720], live: 'city', shadow: false, cap: 'The North Shore.' },
+      ...[-5, 0, 5, 10, 15, 20].map((x): Placement => ({ build: 'bannerPost', at: [x, 0, -23.4], rot: [0, -90, 0] })),
+      { build: 'beanBooth', at: [3.6, 0, -20.4], cap: 'The Bean booth. One day: 500 conversations, 120 signups, an investor MOU.' },
+      { build: 'socraticaCafe', at: [14, 0, -18.2], cap: 'Socratica, the first time. Builders at their laptops on a Sunday; the idea that came home to Halifax.' },
+      { build: 'benchCedar', at: [-2.5, 0, -23.0] },
+      { build: 'benchCedar', at: [7.5, 0, -23.0] },
+      { model: 'island_tree_01', at: [1.2, 0, -19.5], rot: [0, 40, 0], scale: 0.6 }, // nothing west of the hacker house's wall: it would show in its window over the Sydney harbour
+      { model: 'island_tree_01', at: [9.6, 0, -19.6], rot: [0, 200, 0], scale: 0.75 },
+      { build: 'bin', at: [1.0, 0, -22.9] },
     ],
   },
 ];

@@ -36,18 +36,18 @@ test('the Delhi desk views keep the full awards shelf in frame on a laptop', () 
   }
 });
 
-test('keys are ordered in q from 0 to 1 and land on the eight sets', () => {
+test('keys are ordered in q from 0 to 1 and land on the nine sets', () => {
   assert.equal(DOLLY[0].q, 0);
   assert.equal(DOLLY[DOLLY.length - 1].q, 1);
   for (let k = 1; k < DOLLY.length; k++) assert.ok(DOLLY[k].q > DOLLY[k - 1].q);
-  assert.deepEqual([...new Set(DOLLY.map((k) => k.set))], [0, 1, 2, 3, 4, 5, 6, 7]);
+  assert.deepEqual([...new Set(DOLLY.map((k) => k.set))], [0, 1, 2, 3, 4, 5, 6, 7, 8]);
 });
 
 test('blend windows come in pairs, 0 then 1, and the set flips inside them', () => {
   const dolly = makeDolly(DOLLY);
   const zeros = DOLLY.filter((k) => k.blend === 0), ones = DOLLY.filter((k) => k.blend === 1);
-  assert.equal(zeros.length, 7);
-  assert.equal(ones.length, 7);
+  assert.equal(zeros.length, 8);
+  assert.equal(ones.length, 8);
   for (let w = 0; w < zeros.length; w++) {
     const a = zeros[w], b = ones[w];
     assert.ok(b.q > a.q);
@@ -102,8 +102,9 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[4], -2.35, 1.6), `${jambs[4].cam}`); // its west door, into the passage to the brick door
   assert.ok(at(jambs[5], WINDOW_VIEW.cam[0], WINDOW_VIEW.cam[2]), `${jambs[5].cam}`);
   assert.ok(at(jambs[6], -1.3, -15.8), `${jambs[6].cam}`); // the auditorium's front west door, out to Sydney
+  assert.ok(at(jambs[7], -6.85, -17.95), `${jambs[7].cam}`); // the hacker house's south door beside the window, out to Vancouver
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
-  assert.equal(dolly(1).set, 7);
+  assert.equal(dolly(1).set, 8);
   assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);
   // heading north through the south door, the desk on the far wall dead ahead
   const inRoom = dolly(jambs[3].q + 0.02);

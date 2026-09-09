@@ -76,6 +76,13 @@ export const timeline: Milestone[] = [
   },
   {
     year: '2025',
+    lane: 'Vancouver · Toronto · Halifax',
+    title: 'Bean on the road',
+    body: 'Laptop in hand across Canada. Web Summit Vancouver: 500 conversations, 120 signups and an investor MOU in a day, and a first taste of Socratica. Elevate in Toronto with the Startup Atlantic delegation: eight investor calls booked in a day, then a cafe and the churn problem instead of the shiny meetings. Invest Nova Scotia Accelerate, one of twelve. Collect. at Volta every Thursday, from a handful of builders to a packed Demo Day.',
+    stat: 'Web Summit · Elevate · Invest NS Accelerate · Collect. Demo Day',
+  },
+  {
+    year: '2025',
     span: 'to now',
     lane: 'Floqer',
     title: 'Head of Engineering at Floqer',

@@ -75,6 +75,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   scene.fog = fog;
   const camera = new PerspectiveCamera(50, 1, 0.05, 2600); // the city outside the condo is a kilometre away
   const phone = createPhone(renderer);
+  // the laptop in hand for the tour: built like any prop, hung on the camera low and left, the road dashboard on it
+  scene.add(camera);
+  const heldLaptop = new Group();
+  heldLaptop.name = 'heldLaptop';
+  heldLaptop.visible = false;
+  camera.add(heldLaptop);
+  const TOUR_SETS = new Set([8]);
 
   // one sun that casts, one hemisphere that tints; the rest of the light is the environment
   const sun = new DirectionalLight(0xffffff, 1);
@@ -344,7 +351,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const [name, frame] = s.paint.split(':');
       // screens and the city at night give off their own light: unlit, not tone mapped, no fog on the city
       if (name === 'video') return new MeshBasicMaterial({ map: videoTex, toneMapped: false });
-      const backdrop = name === 'toronto' || name === 'sydney' || name.startsWith('campus'); // a view out of a window: unlit, beyond the fog
+      const backdrop = name === 'toronto' || name === 'sydney' || name === 'vancouver' || name.startsWith('campus'); // a view out of a window: unlit, beyond the fog
       if (name.startsWith('screen') || backdrop) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: !backdrop });
       if (name === 'cloudPuffs') return cloudMaterial(paintTex(name, 0)); // the cloud field: every quad turned to the camera, sized by its vertex colour
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
@@ -429,6 +436,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const pts = new Points(geo, mat);
     pts.name = 'b|city|mat:streetLight|city';
     return pts;
+  };
+  const buildHeldLaptop = () => {
+    const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' });
+    obj.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
+    obj.position.set(0.16, -0.36, -0.5); // held on the right, the base low in the frame, the lid up and turned toward the eye
+    obj.rotation.set(0.25, -0.35, -0.05);
+    obj.scale.setScalar(0.85);
+    heldLaptop.add(obj);
   };
   const placeBuilt = (name: string, p: Placement, baked = false): Object3D => {
     const part: Built[] = BUILT[name]();
@@ -710,7 +725,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
-  loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster']); });
+  loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'screenTour']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
   const dolly = makeDolly(DOLLY);
@@ -941,6 +956,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     flightWorld.position.set(0, -flight.altitude - flightRoll.position.y, flight.travel - FLIGHT.distance);
     flightRoll.rotation.z = flight.bank * D;
     veil.style.opacity = String(mainFrame.set === 5 ? 0.7 * flight.veil : 0); // the puffs on the track do most of it; the veil adds the glow
+    if (heldLaptop.children.length === 0 && TOUR_SETS.has(mainFrame.set)) buildHeldLaptop();
+    heldLaptop.visible = TOUR_SETS.has(mainFrame.set) || (mainFrame.into !== mainFrame.from && TOUR_SETS.has(mainFrame.into) && mainFrame.blend > 0.5);
 
     // things on their own clock
     const t = now / 1000;

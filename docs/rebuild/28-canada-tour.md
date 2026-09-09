@@ -34,3 +34,13 @@ First person, his laptop in hand: a held laptop in the lower left of the frame, 
 1. Calgary: what happened there, and when? (Nothing on LinkedIn.)
 2. Vancouver 2025: is there a post or numbers beyond the timeline's 500 / 120 / MOU?
 3. Does the tour end in Halifax before the degree, or after?
+
+## Built so far (2026-09-09, evening)
+
+- **Set 8 `vancouver`** (outdoor): out of the hacker house's new south door beside the window onto the seawall promenade (`promenade`, pavers, parapet, a west end wall), the harbour 3 m down (`harbour`), the Convention Centre's glass wall with its green roof (`conventionCentre`, 16 m, from the hacker house's corner to the café), Canada Place's five sails on their pier (`canadaPlace`), six lampposts with Web Summit banners (`bannerPost`, paint `bannerWebSummit`), the Bean booth with the logo on its counter and the day's numbers on its back panel (`beanBooth`, `boothFront`, `boothBack`), the Socratica café pavilion with its painted window (`socraticaCafe`, `cafeWindow`: tables, laptops, the sign, nobody drawn in), two cedar benches, two trees, a bin, and the North Shore painted 700 m off (`northShore`, `vancouver`). Nothing stands west of the hacker house's wall: it would show in its window over the Sydney harbour. Live, not baked.
+- **The laptop in hand**: `laptopTour` (paint `screenTour`: the trip's numbers, the day, signups by hour) built once and hung on the camera low right (`heldLaptop` in stage-run.ts), on for the tour sets (`TOUR_SETS`) and through the door into them.
+- **The walk**: keys ch(7.72) to ch(9): the glass, a quarter chapter to turn south to the door, the jamb at 8.06, out at 8.14, then 10 m east along the seawall past the banners to the booth (8.72), the café and the sails ahead at 9. Each 90° turn takes a quarter chapter: the turn-rate bound is 5.4° per thousandth and the spline peaks at about 1.45× the average.
+- **Chapter card**: a 2025 "Bean on the road" card sits between the Bean card and the Floqer card (timeline.ts, `STAGE_SPAN` 9). Cards are centred on integer chapters, so the road card shows over the Sydney glass, the exit and the first steps on the seawall; the Floqer card takes the promenade's second half. To centre Vancouver on its card the beats before it would have to run faster than the walk bound allows; revisit when Toronto and Halifax add their cards (one per city).
+- Sydney re-baked for the new door (the mattress moved to the east end of the south wall).
+
+Still open: Calgary (no facts), Toronto, Halifax, the degree, Toronto.

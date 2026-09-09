@@ -61,6 +61,8 @@ function auditoriumSeat(study = false): BuiltPart {
 
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
 const face = (w: number, h: number, z = 0): Geo => new Sink().quad([-w / 2, -h / 2, z], [w / 2, -h / 2, z], [w / 2, h / 2, z], [-w / 2, h / 2, z], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
+/** The same painted face turned to look toward -z. */
+const faceBack = (w: number, h: number, z = 0): Geo => new Sink().quad([w / 2, -h / 2, z], [-w / 2, -h / 2, z], [-w / 2, h / 2, z], [w / 2, h / 2, z], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
 
 /** A flat rectangle in the xz plane at y, w along x and d along z, centred. */
 const slab = (w: number, d: number, y = 0): Geo => new Sink().quad([-w / 2, y, d / 2], [w / 2, y, d / 2], [w / 2, y, -d / 2], [-w / 2, y, -d / 2]).out();
@@ -597,6 +599,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
   monitorOldBeanCode: monOld('screenBeanCode'),
   /** A phone flat on the table, the app on it: 0.075 by 0.155, the screen up. */
   phoneBean: () => [piece(new Sink().rbox(0, 0.004, 0, 0.075, 0.008, 0.155, 0.003, 2).out(), M('bezel'), { smooth: true }), piece(offsetGeo(new Sink().quad([-0.034, 0.0085, 0.072], [0.034, 0.0085, 0.072], [0.034, 0.0085, -0.072], [-0.034, 0.0085, -0.072], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), 0, 0, 0), { paint: 'screenBeanPhone' })],
+  /** The laptop carried through the tour, held in the lower left of the frame (stage-run.ts): the road dashboard on it. */
+  laptopTour: () => laptopFor('screenTour'),
   /** The design laptop and the code laptop on the hacker house table. */
   laptopBean: () => laptopFor('screenBeanApp'),
   laptopBeanCode: () => laptopFor('screenBeanCode'),
@@ -621,6 +625,79 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const edge = new Sink().box(-125, -0.5, 0, 250.4, 1.3, 210.4);
     return [piece(top.out(), M('campusPaving'), { metres: 'xz' }), piece(edge.out(), M('quayStone'))];
   },
+  // ---- 2025, Vancouver: the seawall promenade at the Convention Centre, Web Summit week. The street runs along +x
+  //      from the hacker house's south door; the harbour to the south (-z), the glass wall to the north, the sails east
+  /** The promenade: 80 by 6 m of pavers along x from the origin, its seawall parapet along the south edge, the water beyond and below. */
+  promenade: () => {
+    const deck = new Sink().box(40, -0.01, -3, 80, 0.02, 6.2);
+    const wall = new Sink().rbox(40, 0.45, -6.2, 80, 0.9, 0.5, 0.03, 2).rbox(40, 0.95, -6.2, 80, 0.1, 0.62, 0.02, 2); // the parapet and its coping
+    wall.rbox(0.25, 0.45, -3.1, 0.5, 0.9, 6.2, 0.03, 2).rbox(0.25, 0.95, -3.1, 0.62, 0.1, 6.4, 0.02, 2); // and the west end, where the promenade meets the building: nothing stands west of the hacker house's wall, or it would show in its window
+    return [piece(deck.out(), M('promenade'), { metres: 'xz' }), piece(wall.out(), M('seawall'), { smooth: true, metres: 'xy' })];
+  },
+  /** The harbour water: 500 by 400 m south and east of the promenade's west end, 3 m down, uv in metres. */
+  harbour: () => [piece(new Sink().quad([0, 0, 0], [500, 0, 0], [500, 0, -400], [0, 0, -400]).out(), M('harbourDeep'), { metres: 'xz' })],
+  /**
+   * The Convention Centre's west building as its glass wall: 16 m along x from the origin, 18 m tall, dark mullions every
+   * 2.4 m and a floor line at 6 and 12, the green roof's edge over it. The face toward -z, the promenade.
+   */
+  conventionCentre: () => {
+    const L = 16;
+    const glass = new Sink().quad([0, 0, 0], [L, 0, 0], [L, 18, 0], [0, 18, 0], [[0, 0], [L, 0], [L, 18], [0, 18]]);
+    const frame = new Sink();
+    for (let x = 0; x <= L; x += 2.0) frame.box(x, 9, 0.02, 0.12, 18, 0.16);
+    for (const y of [6, 12]) frame.box(L / 2, y, 0.02, L, 0.3, 0.2);
+    frame.box(L / 2, 18.3, -0.6, L + 0.4, 0.6, 1.6); // the roof's fascia
+    const roof = new Sink().box(L / 2, 18.75, 4, L + 0.4, 0.3, 9); // the green roof, seen from the promenade as a lip
+    const inside = new Sink().box(L / 2, 9, 0.95, L, 18, 1.7); // a dark hall just behind the glass so it reads as a building
+    return [piece(glass.out(), M('curtainGlass')), piece(frame.out(), M('mullionDark')), piece(roof.out(), M('greenRoof')), piece(inside.out(), M('bezel'))];
+  },
+  /** Canada Place's sails: five white sails on masts along a pier, 20 m tall, spanning 70 m along x from the origin, the pier deck 3 m up over the water. */
+  canadaPlace: () => {
+    const cloth = new Sink(), masts = new Sink(), pier = new Sink();
+    pier.box(35, 1.5, -12, 76, 3, 30).box(35, 3.2, -12, 74, 0.4, 28);
+    for (let i = 0; i < 5; i++) {
+      const x = 8 + i * 14, top = 24;
+      masts.cylinder(x, top / 2 + 3, -12, 0.35, top, 10);
+      // a sail: a taut triangle from the mast head down to two deck points, doubled so it shows both ways
+      const a: V3 = [x, top + 3, -12], b: V3 = [x - 6.5, 4.2, -2], c: V3 = [x + 6.5, 4.2, -22];
+      cloth.tri(a, b, c).tri(a, c, b);
+      const d: V3 = [x - 6.5, 4.2, -22], e: V3 = [x + 6.5, 4.2, -2];
+      cloth.tri(a, d, e).tri(a, e, d);
+      masts.bone([x - 6.5, 4.2, -2], [x, top + 3, -12], 0.05, 0.05).bone([x + 6.5, 4.2, -22], [x, top + 3, -12], 0.05, 0.05); // the stays
+    }
+    return [piece(cloth.out(), M('sailCloth')), piece(masts.out(), M('sailMast'), { smooth: true }), piece(pier.out(), M('seawall'), { metres: 'xz' })];
+  },
+  /** A promenade lamp post with a Web Summit banner: a 6 m grey column, the lantern, an orange banner 0.8 by 2 hung from an arm, its face toward -z. */
+  bannerPost: () => {
+    const post = new Sink().cylinder(0, 3, 0, 0.09, 6, 12).cylinder(0, 0.1, 0, 0.22, 0.2, 12).rbox(0, 6.15, 0, 0.36, 0.5, 0.36, 0.04, 2);
+    const arm = new Sink().box(0.5, 5.4, 0, 1.0, 0.04, 0.04).box(0.5, 3.3, 0, 1.0, 0.04, 0.04);
+    return [piece(post.out(), M('sailMast'), { smooth: true }), piece(arm.out(), M('sailMast')), piece(offsetGeo(face(0.85, 2.05, 0.0), 0.55, 4.35, 0), { paint: 'bannerWebSummit' })];
+  },
+  /** The Bean booth at Web Summit: a white counter with the logo on its front, a tall back panel with the day's numbers, a stool; the front toward -z. */
+  beanBooth: () => {
+    const counter = new Sink().rbox(0, 0.5, 0, 2.4, 1.0, 0.7, 0.03, 2);
+    const back = new Sink().rbox(0, 1.25, 0.9, 2.6, 2.5, 0.08, 0.02, 2).box(-1.2, 1.25, 0.9, 0.06, 2.5, 0.12).box(1.2, 1.25, 0.9, 0.06, 2.5, 0.12);
+    const stool = new Sink().cylinder(0.7, 0.66, 0.55, 0.17, 0.05, 16).cylinder(0.7, 0.32, 0.55, 0.02, 0.62, 8).cylinder(0.7, 0.02, 0.55, 0.2, 0.04, 16);
+    return [piece(counter.out(), M('boothWhite'), { smooth: true }), piece(back.out(), M('boothWhite'), { smooth: true }), piece(offsetGeo(faceBack(2.3, 0.7, 0.0), 0, 0.55, -0.36), { paint: 'boothFront' }), piece(offsetGeo(faceBack(2.4, 2.2, 0.0), 0, 1.3, 0.85), { paint: 'boothBack' }), piece(stool.out(), M('bezel'), { smooth: true })];
+  },
+  /** The café where Socratica met: a cedar and glass pavilion, 8 by 5 m, its window on -z painted with the builders at their laptops. */
+  socraticaCafe: () => {
+    const body = new Sink().box(0, 1.9, 2.5, 8, 3.8, 5);
+    const frame = new Sink().box(0, 3.9, 0.02, 8.2, 0.3, 0.3).box(-4, 1.9, 0.0, 0.3, 3.8, 0.3).box(4, 1.9, 0.0, 0.3, 3.8, 0.3).box(0, 0.15, 0.0, 8.2, 0.3, 0.3);
+    const roof = new Sink().box(0, 4.05, 2.4, 8.8, 0.3, 5.8);
+    return [piece(body.out(), M('bezel')), piece(offsetGeo(faceBack(7.6, 3.3, 0.0), 0, 2.0, -0.02), { paint: 'cafeWindow' }), piece(frame.out(), M('cedar'), { metres: 'xy' }), piece(roof.out(), M('cedar'), { metres: 'xz' })];
+  },
+  /** A promenade bench: cedar slats on two steel frames, 1.8 m, facing -z. */
+  benchCedar: () => {
+    const slats = new Sink();
+    for (const z of [-0.2, -0.05, 0.1]) slats.rbox(0, 0.45, z, 1.8, 0.04, 0.12, 0.01, 1);
+    for (const z of [0.3, 0.42]) slats.rbox(0, 0.62 + (z - 0.3) * 1.2, z, 1.8, 0.04, 0.1, 0.01, 1);
+    const legs = new Sink();
+    for (const x of [-0.75, 0.75]) legs.box(x, 0.22, 0, 0.05, 0.44, 0.5).box(x, 0.65, 0.36, 0.05, 0.4, 0.05);
+    return [piece(slats.out(), M('cedar'), { smooth: true }), piece(legs.out(), M('mullionDark'))];
+  },
+  /** The North Shore behind the harbour: a 1600 by 500 m painted view (mountains, Stanley Park's trees, the water), its face toward +z, unlit. */
+  northShore: () => [piece(new Sink().quad([-800, -250, 0], [800, -250, 0], [800, 250, 0], [-800, 250, 0], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'vancouver' })],
   /** The harbour out of the west window: a 1200 by 450 m painted view, its face toward +x, 430 m out behind the Opera House, filling the window from the glass; its sky runs into the set's fog colour, unlit. */
   sydneyHarbour: () => [piece(new Sink().quad([0, -225, 600], [0, -225, -600], [0, 225, -600], [0, 225, 600], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
   /** An interior door leaf, 0.85 by 2.04, hinged at the origin along +z, its face toward +x; placed at the hinge and turned open. */
