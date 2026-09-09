@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, SETS } from '../../src/lib/stage/sets.ts';
 import { DOLLY } from '../../src/lib/stage/dolly.ts';
+import { ch } from '../../src/lib/stage/shot.ts';
 import { ASSETS } from '../../src/lib/stage/assets.ts';
 import { MATS } from '../../src/lib/stage/materials.ts';
 
@@ -27,8 +28,8 @@ test('96 fixed auditorium seats follow eight tiers with clear central and side a
   assert.ok(theatre.shell!.z[1] - theatre.shell!.z[0] > 15);
 });
 
-test('seven sets, each lit and finite', () => {
-  assert.equal(SETS.length, 7);
+test('eight sets, each lit and finite', () => {
+  assert.equal(SETS.length, 8);
   for (const s of SETS) {
     assert.ok(s.env === 'studio' || s.env === 'sky');
     assert.ok(s.tint.power >= 0);
@@ -71,7 +72,7 @@ test('shells use designed materials and open where the dolly passes', () => {
 test('every door leaf on the walk is open before the dolly reaches its doorway, and swings away from the walk', () => {
   const jambs = DOLLY.filter((k) => k.blend === 0);
   const delhi = SETS[4].props.find((p) => p.build === 'doorLeaf')!;
-  assert.ok(delhi.door && delhi.door[1] <= jambs[4].q - 0.01, `the Delhi leaf is open by ${delhi.door?.[1]}, the jamb is at ${jambs[4].q}`);
+  assert.ok(delhi.door && delhi.door[1] <= jambs[4].q - ch(0.07), `the Delhi leaf is open by ${delhi.door?.[1]}, the jamb is at ${jambs[4].q}`);
   assert.equal(delhi.rot?.[1], 180); // hinged on the north jamb: the leaf swings west into the bridge, not into the room the walk crosses
   assert.ok(Math.abs(delhi.at[2] - 2.05) < 1e-9 && Math.abs(delhi.at[0] + 2.4) < 1e-9);
 });

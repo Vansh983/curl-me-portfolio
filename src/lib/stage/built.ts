@@ -507,6 +507,44 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const s = new Sink().cylinder(0.02, 1.4, 0, 0.012, 1.4, 12).bone([0.02, 2.05, 0], [0.32, 2.12, 0], 0.012, 0.012).cylinder(0.32, 2.1, 0, 0.1, 0.02, 24).cylinder(0.02, 1.0, 0, 0.06, 0.04, 20);
     return [piece(s.out(), M('chrome'), { smooth: true })];
   },
+  /** The auditorium's exit leaf: 1.16 by 2.18 for the wider front door, hinged at the origin along +z like doorLeaf. */
+  doorLeafWide: () => {
+    const s = new Sink().rbox(0, 1.09, 0.58, 0.04, 2.18, 1.16, 0.004, 1);
+    s.rbox(0.03, 1.09, 0.58, 0.006, 1.8, 0.9, 0.002, 1).rbox(-0.03, 1.09, 0.58, 0.006, 1.8, 0.9, 0.002, 1);
+    return [piece(s.out(), M('doorPaint'), { smooth: true }), piece(new Sink().box(0, 1.0, 1.08, 0.13, 0.02, 0.1).out(), M('chrome'))];
+  },
+  /** The hacker house table: a 3 by 1.4 m plywood top at 0.74 on two pairs of pine trestles, the mess of a launch week on it. */
+  hackerTable: () => {
+    const top = new Sink().rbox(0, 0.725, 0, 3.0, 0.03, 1.4, 0.006, 2);
+    const legs = new Sink();
+    for (const x of [-1.05, 1.05]) {
+      legs.box(x, 0.68, 0, 0.06, 0.06, 1.2); // the beam
+      for (const z of [-0.5, 0.5]) legs.box(x, 0.34, z, 0.045, 0.66, 0.045).rotateZ(x, 0.68, 0.3, legs.count - 36).box(x, 0.34, z, 0.045, 0.66, 0.045).rotateZ(x, 0.68, -0.3, legs.count - 36); // an A-frame each end
+      legs.box(x, 0.3, 0, 0.5, 0.04, 0.04); // the tie
+    }
+    return [piece(top.out(), M('plywood'), { smooth: true, metres: 'xz' }), piece(legs.out(), M('trestle'))];
+  },
+  /** A phone flat on the table, the app on it: 0.075 by 0.155, the screen up. */
+  phoneBean: () => [piece(new Sink().rbox(0, 0.004, 0, 0.075, 0.008, 0.155, 0.003, 2).out(), M('bezel'), { smooth: true }), piece(offsetGeo(new Sink().quad([-0.034, 0.0085, 0.072], [0.034, 0.0085, 0.072], [0.034, 0.0085, -0.072], [-0.034, 0.0085, -0.072], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), 0, 0, 0), { paint: 'screenBeanPhone' })],
+  /** The design laptop and the code laptop on the hacker house table. */
+  laptopBean: () => laptopFor('screenBeanApp'),
+  laptopBeanCode: () => laptopFor('screenBeanCode'),
+  /** The monitor with the Product Hunt page up on launch day. */
+  monitorPH: mon('screenProductHunt'),
+  /** The whiteboard on the north wall: how Bean works, and launch week. */
+  whiteboardBean: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardBean' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
+  /** The poster by the door, 0.6 by 0.85 in a thin black frame, its face toward +z. */
+  beanPoster: () => [piece(face(0.6, 0.85, 0.012), { paint: 'beanPoster' }), piece(frame(0.62, 0.87, 0.02, 0.006).out(), M('bezel'))],
+  /** The hacker house window: a frame 4.4 by 2.0 with two mullions and a transom, its glass in one pane; along x at the origin, sill at y 0. */
+  sydneyWindow: () => {
+    const s = new Sink().box(0, 0, 0, 4.46, 0.06, 0.08).box(0, 2.0, 0, 4.46, 0.06, 0.08).box(-2.2, 1.0, 0, 0.06, 2.0, 0.08).box(2.2, 1.0, 0, 0.06, 2.0, 0.08);
+    for (const x of [-0.75, 0.75]) s.box(x, 1.0, 0, 0.045, 2.0, 0.06);
+    s.box(0, 1.25, 0, 4.4, 0.045, 0.06);
+    const pane = new Sink().quad([-2.2, 0, 0.012], [2.2, 0, 0.012], [2.2, 2.0, 0.012], [-2.2, 2.0, 0.012]).quad([2.2, 0, -0.012], [-2.2, 0, -0.012], [-2.2, 2.0, -0.012], [2.2, 2.0, -0.012]);
+    return [piece(s.out(), M('windowFrame')), piece(pane.out(), M('cabinGlass'))];
+  },
+  /** The harbour out of the west window: a 40 by 15 m painted view, its face toward +x (placed well beyond the wall so the window barely parallaxes), unlit. */
+  sydneyHarbour: () => [piece(new Sink().quad([0, -7.5, 20], [0, -7.5, -20], [0, 7.5, -20], [0, 7.5, 20], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
   /** An interior door leaf, 0.85 by 2.04, hinged at the origin along +z, its face toward +x; placed at the hinge and turned open. */
   doorLeaf: () => {
     const s = new Sink().rbox(0, 1.02, 0.425, 0.04, 2.04, 0.85, 0.004, 1);

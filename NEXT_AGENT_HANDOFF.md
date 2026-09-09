@@ -1,6 +1,6 @@
 # Portfolio journey: next-agent handoff
 
-Updated 2026-09-09. Supersedes the Codex export of the same day. Read newest docs first: [26](docs/rebuild/26-flight-rebuilt.md), [25](docs/rebuild/25-flight-auditorium-review.md), then [24](docs/rebuild/24-bean-journey-continuation.md) and [23](docs/rebuild/23-lecture-auditorium.md).
+Updated 2026-09-09. Supersedes the Codex export of the same day. Read newest docs first: [27](docs/rebuild/27-sydney-hacker-house.md), [26](docs/rebuild/26-flight-rebuilt.md), [25](docs/rebuild/25-flight-auditorium-review.md), then [24](docs/rebuild/24-bean-journey-continuation.md) and [23](docs/rebuild/23-lecture-auditorium.md).
 
 ## Start here
 
@@ -15,7 +15,7 @@ Updated 2026-09-09. Supersedes the Codex export of the same day. Read newest doc
 2. Door into an aircraft, seated at the window while airborne, a 3D Dalhousie campus outside, a phone whose screen already shows the auditorium, zoom through it, arrive seated in the top row. **Done and rebuilt 2026-09-08.**
 3. Large stepped auditorium, fixed seats. **Done** (96 seats, 8 tiers).
 4. Seated pause, get up, walk down to the stage, turn to see the whole hall, teach Generative AI behind a podium with a laptop. **Done except the students.**
-5. Exit through the door on the teacher's right into Sydney, Australia: build Bean's app in a room with a central messy table and computers. **Not started.**
+5. Exit through the door on the teacher's right into Sydney, Australia: build Bean's app in a room with a central messy table and computers. **Done 2026-09-09** (set 7, doc 27).
 6. Fly to Vancouver, present Bean, convey travelling across Canada building and fundraising (no invented cities, amounts, dates). **Not started.**
 7. Dalhousie graduation, receive the degree. **Not started.**
 8. Finish in Toronto, reusing the studio. **Not started.**
@@ -24,10 +24,10 @@ Corrections that stand: no landing before the phone transition; no campus photo 
 
 ## State on disk
 
-Seven sets in `src/lib/stage/sets.ts`: 0 `now`, 1 `room`, 2 `lab`, 3 `plaza`, 4 `delhi`, 5 `flight`, 6 `halifax`. The ring was cut at the studio's brick door: the passage there is now the jet bridge.
+Eight sets in `src/lib/stage/sets.ts`: 0 `now`, 1 `room`, 2 `lab`, 3 `plaza`, 4 `delhi`, 5 `flight`, 6 `halifax`, 7 `sydney`. The ring was cut at the studio's brick door: the passage there is now the jet bridge. Neighbour visibility no longer wraps (index distance only).
 
-- `src/lib/stage/shot.ts`: `STAGE_SPAN = 7`. Stage progress q runs over seven chapter lengths of the nine-chapter scroll; chapter cards: 2020 on the Delhi room, 2022 on the descent, 2023 on the walk down the aisle, 2024 on the podium hold. Adding a set means raising `STAGE_SPAN`, re-spacing the keys after the flight, and moving the podium off the 2024 card.
-- `src/lib/stage/dolly.ts`: `APPROACH_SCALE = 0.6` compresses the first five rooms; boarding 0.57 to 0.675; `FLIGHT.start` 0.675 to `PHONE.transfer` 0.745 (the one portal cut); seated pause to 0.79; rise; the aisle 0.812 to 0.932 via `aisle(z)`; the turn round the lectern's aisle side; the hold 0.5 m behind the lectern at 1, pitched down so the laptop is in frame (tested). Step and turn bounds in `tests/stage/dolly.test.ts` scale with `STAGE_SPAN`.
+- `src/lib/stage/shot.ts`: `STAGE_SPAN = 8` and `ch(c) = c / STAGE_SPAN`. Every key (dolly, `FLIGHT`, `PHONE`, door and drop windows, tests) is written in chapter lengths, so adding a set means raising the span and appending keys after `ch(7.62)`; nothing earlier moves. Chapter cards: 2020 on the Delhi room, 2022 on the descent, 2023 on the aisle, the podium and the exit, 2024 on Sydney.
+- `src/lib/stage/dolly.ts`: `APPROACH_SCALE = ch(4.2)` compresses the first five rooms; boarding to ch(4.7); the descent to `PHONE.transfer` ch(5.215) (the one portal cut); seated pause to ch(5.53); the aisle ch(5.6) to ch(6.2) via `aisle(z)`; the dais; the hold behind the lectern ch(6.52) to ch(6.64); right along the dais and out of the front west door (jamb ch(7.06)) into Sydney; the table, the whiteboard, the harbour; hold from ch(7.62). Step and turn bounds in `tests/stage/dolly.test.ts` scale with `STAGE_SPAN`.
 - `src/lib/stage/flight.ts`: `FLIGHT` (0.672 to 0.721, 385 → 130 m, 1,450 m of track, 7° bank, deck at `FLIGHT_DECK` 300 m, then level at `cruise`), `PHONE`, `WINDOW_VIEW` (the front row, z −8.5), `CLASSROOM_VIEW`, `flightAt(q)` → altitude, travel, bank, veil; `crossingZ()` for the cloud cluster on the track.
 - `src/scripts/stage-run.ts`: `flightRoll` (at the cabin, rotates with the bank, the sky inside it) ⊃ `flightWorld` (sinks and slides; every `live: 'flight'` prop). The veil is a `.veil` div over the stage. `live.drops` lowers `Placement.drop` things. `downlight` props get point lights only when a set is not baked. The phone capture uses `dolly(PHONE.reveal)`.
 - Halifax: `npm run stage:halifax` (`scripts/stage-halifax.mjs`, caches `.cache/osm/halifax.json` 25 MB and `.cache/osm/dalhousie.json`, `--fetch` re-asks Overpass with a User-Agent) → `src/lib/stage/halifax.json` (312 KB, the city less the campus box) and `src/lib/stage/dalhousie.json` (62 KB, the Studley campus by name: kinds, heights, roofs, paths, car parks, Wickwire, trees). Origin 44.63892, -63.58473 (420 m east of University Avenue), heading 340°. `halifax.ts` extrudes the city (facade tile, hip roofs on houses, street trees); `dalhousie.ts` builds the campus (Hicks tower, Dalplex dome, quad, lawns, 300 trees). `HALIFAX_CAMPUS` in sets.ts is the Goldberg footprint; the authored model (`scripts/stage-flight-campus.py`) stands on it at `rot [0, 90, 0]`. Ground layers use `Mat.layer` (polygon offset).
@@ -35,14 +35,15 @@ Seven sets in `src/lib/stage/sets.ts`: 0 `now`, 1 `room`, 2 `lab`, 3 `plaza`, 4 
 - Auditorium: `DAIS`, `lectern`, `laptopSlide` (paint `screenSlide`: title, "Taught by Vansh Sood", the ShiftKey Labs mark from `shiftkeyLabs()`), `projectorScreen` (`live: 'drop'`, `drop: [0.8, 0.9, 2.2]`), 15 `downlight` props, `aisleHeight(z)`.
 - Phone: `src/scripts/stage-phone.ts` (bevelled frame, glass sheen, island, status bar canvas).
 - Doorways crossfade (no light dip, no flare): `frame()` in stage-run.ts lerps exposure, fog, hemisphere, sun colour/intensity/direction and shadow strength by the doorway `blend`; only the environment map switches in `enter()`. Neighbour sets are always visible both ways. `.cache/seams.mjs out step` scores frame-to-frame change along the stage (`Q0`, `Q1`, `KEEP`, `WAIT`): the only intended spike is the phone portal at 0.745. Every door leaf must be open before its jamb (`tests/stage/sets.test.ts`).
-- Bakes: `npm run stage:bake -- 5 128 2048 512 0` (1.5 MB), `npm run stage:bake -- 6 128 2048 512 0.002` (4.1 MB, the 5 MB cap). Re-bake 5 after any cabin, wing or bridge change; 6 after any seat, wall, dais or light change. Live things (flight world, screens, the dropping screen, panes) need no bake.
+- Sydney (set 7): `dalhousie`-style code props in built.ts (`hackerTable`, `sydneyWindow`, `sydneyHarbour`, `whiteboardBean`, `beanPoster`, `phoneBean`, `laptopBean`, `laptopBeanCode`, `monitorPH`, `doorLeafWide`), paints in `BEAN_PAINT` (stage-paint.ts, `beanMark`). The harbour is an unlit backdrop (`live: 'city'`).
+- Bakes: `npm run stage:bake -- 5 128 2048 512 0` (1.5 MB), `npm run stage:bake -- 6 128 2048 512 0.002` (4.1 MB, the 5 MB cap), `npm run stage:bake -- 7 128 2048 512 0.002` (3.9 MB). Re-bake 5 after any cabin, wing or bridge change; 6 after any seat, wall, dais or light change. Live things (flight world, screens, the dropping screen, panes) need no bake.
 
-Verification at handoff: `npm test` 81 pass, `npm run check` 0 errors, `git diff --check` clean, headless captures of the descent and the walk in `.cache/` (`fb2/`, `ab/`) with no browser errors.
+Verification at handoff (2026-09-09): `npm test` 81 pass, `npm run check` 0 errors, `git diff --check` clean, headless captures of the descent and the walk in `.cache/` (`fb2/`, `ab/`) with no browser errors.
 
 ## Open
 
 - **Students.** Realistic seated people need BlenderKit Full or files the user supplies (candidates and the Renderpeople terms are in doc 24). Do not fake them with primitives. When they arrive: deploy the seat pans where they sit (`auditoriumSeat` folds them), re-bake set 6.
-- **Sydney, Vancouver, graduation, Toronto.** Each is a new set after 6; the teacher's right when facing +z is −x, so the front west door (x −1.4, z −15.8) is the exit to Sydney.
+- **Vancouver, graduation, Toronto.** Sets 8+ after Sydney (its west wall has the window; a door would go in the south wall past the kitchen or the north wall). Toronto reuses set 0 and needs an explicit neighbour rule (the wrap is gone).
 - The clouds are billboarded cumulus (`cloudField`, `cloudPuffs`, `cloudMaterial`); the quads are not depth-sorted among themselves.
 - `halifax.json` could be trimmed further (far buildings) if page weight matters.
 

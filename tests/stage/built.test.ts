@@ -82,7 +82,7 @@ test('the exterior facade sits beyond Delhi interior walls without coplanar face
   parts.forEach((part) => { part.geometry.dispose(); part.material.dispose(); });
 });
 
-const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto']; // video: the live television
+const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto', 'sydney', 'whiteboardBean', 'screenBeanApp', 'screenBeanCode', 'screenProductHunt', 'screenBeanPhone', 'beanPoster']; // video: the live television
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {

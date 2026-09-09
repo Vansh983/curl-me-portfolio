@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { stageProgress, STAGE_SPAN } from '../../src/lib/stage/shot.ts';
+import { stageProgress, STAGE_SPAN, ch } from '../../src/lib/stage/shot.ts';
 
 test('stageProgress runs the stage over `span` chapter lengths, then holds', () => {
   assert.equal(stageProgress(0, 8, 1), 0);
@@ -12,6 +12,7 @@ test('stageProgress runs the stage over `span` chapter lengths, then holds', () 
   assert.ok(Math.abs(stageProgress(2 / 8, 9, 3) - 2 / 3) < 1e-9);
   assert.equal(stageProgress(3 / 8, 9, 3), 1);
   // nine chapters, the stage over seven of them: the flight on the 2022 card, the podium on the last stage card
-  assert.ok(Math.abs(stageProgress(5 / 8, 9, STAGE_SPAN) - 5 / 7) < 1e-9);
-  assert.equal(stageProgress(7 / 8, 9, STAGE_SPAN), 1);
+  assert.ok(Math.abs(stageProgress(5 / 8, 9, STAGE_SPAN) - 5 / 8) < 1e-9);
+  assert.equal(stageProgress(1, 9, STAGE_SPAN), 1);
+  assert.ok(Math.abs(ch(7) * STAGE_SPAN - 7) < 1e-12, 'chapter units');
 });

@@ -25,6 +25,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [24-bean-journey-continuation.md](./24-bean-journey-continuation.md) | Pending requested teaching, Sydney Bean workspace, Vancouver fundraising, graduation and Toronto return; model access and integration notes |
 | [25-flight-auditorium-review.md](./25-flight-auditorium-review.md) | Review of the flight, the phone and the auditorium as Codex left them: what was wrong, in what order to fix it |
 | [26-flight-rebuilt.md](./26-flight-rebuilt.md) | The rebuild: stage span, a real descent over OpenStreetMap Halifax, the cabin dressed, the phone, the walk down to the lectern |
+| [27-sydney-hacker-house.md](./27-sydney-hacker-house.md) | Chapter units for every key; out of the auditorium's right-hand door straight into Sydney: the hacker house where Bean was built |
 
 ## The one-paragraph verdict
 

@@ -1,4 +1,4 @@
-// The world as data: seven sets in a ring, each with its light, its shell and what stands in it.
+// The world as data: eight sets in a chain, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
 //   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick door on x+ at z 1.6
@@ -8,8 +8,10 @@
 //   Set 3 PLAZA    x -4.14..     z < 4.6               2018, the Embarcadero, outdoors; south, then round west and north to the 2020 room's door
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
-//   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row
+//   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
+//   Set 7 SYDNEY   x -9.6..-1.4  z -19.4..-12.0 h 3.0  2024, the hacker house where Bean was built; the harbour out of the west window
 import { HALIFAX } from './halifax.ts';
+import { ch } from './shot.ts';
 
 export type V3 = [number, number, number];
 
@@ -150,7 +152,7 @@ export const SETS: StageSet[] = [
       { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
       { build: 'passage', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room
       { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the return from Halifax
-      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.961, 0.985] }, // the return from Halifax; opens into the studio
+      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [ch(6.727), ch(6.895)] }, // the return from Halifax; opens into the studio
     ],
   },
   {
@@ -316,7 +318,7 @@ export const SETS: StageSet[] = [
       { model: 'coffee_mug', at: [0.1, 0, 2.55], rot: [0, 110, 0] },
       { model: 'ceiling_fan', at: [-0.85, 2.7, 1.8], live: 'fan' },
       { build: 'discLight', at: [-0.85, 2.7, 2.6], live: 'pendant' },
-      { build: 'doorLeaf', at: [-2.4, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.535, 0.56] }, // the west door: hinged on the north jamb, it swings open into the bridge as the walk turns to it, well before the jamb at 0.57
+      { build: 'doorLeaf', at: [-2.4, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [ch(3.745), ch(3.92)] }, // the west door: hinged on the north jamb, it swings open into the bridge as the walk turns to it, well before the jamb at chapter 3.99
     ],
   },
   {
@@ -359,14 +361,13 @@ export const SETS: StageSet[] = [
     props: [
       { build: 'lectureBoard', at: [4.9, 2.45, -17.22], scale: 1.55, live: 'screen', cap: 'Computer science at Dalhousie University. Halifax, Nova Scotia.' },
       { build: 'dalhousieSign', at: [4.9, 4.34, -17.2], scale: 1.3, live: 'screen' },
-      { build: 'projectorScreen', at: [4.9, 6.3, -16.85], live: 'drop', drop: [0.8, 0.9, 2.2], cap: 'Generative AI. The lecture: transformers, attention, what a model is and is not.' },
+      { build: 'projectorScreen', at: [4.9, 6.3, -16.85], live: 'drop', drop: [ch(5.53), ch(6.06), 2.2], cap: 'Generative AI. The lecture: transformers, attention, what a model is and is not.' },
       { build: 'lectureTiers', at: [0, 0, 0] },
       { build: 'auditoriumInterior', at: [0, 0, 0] },
       { build: 'lectern', at: [DAIS.lectern[0], DAIS.height, DAIS.lectern[1]], cap: 'The lectern. ShiftKey Labs: curriculums, certificates in hundreds of hands.' },
       { build: 'laptopSlide', at: [DAIS.lectern[0], DAIS.height + 1.12, DAIS.lectern[1] + 0.02], rot: [0, 180, 0], live: 'screen' },
       ...[0, 2, 4, 6].flatMap((i) => [2.1, 4.9, 7.7].map((x): Placement => ({ build: 'downlight', at: [x, 6.6, LECTURE_ROWS[i].seat + 0.6], live: 'downlight' }))),
       ...[2.6, 4.9, 7.2].map((x): Placement => ({ build: 'downlight', at: [x, 6.6, -16.0], live: 'downlight' })),
-      { build: 'doorLeaf', at: [-1.38, 0, -16.4], scale: [1, 2.2 / 2.04, 1.2 / 0.85], live: 'door' },
       ...LECTURE_ROWS.flatMap((row) => AUDITORIUM.seatXs.map((x): Placement => ({
         build: row === TOP_ROW && x === AUDITORIUM.studyX ? 'auditoriumStudySeat' : 'auditoriumSeat',
         at: [x, row.height, row.seat],
@@ -374,8 +375,69 @@ export const SETS: StageSet[] = [
       { model: 'laptop_14_aluminium', at: [AUDITORIUM.studyX, TOP_ROW.height + AUDITORIUM.tabletHeight, TOP_ROW.seat - 0.47], live: 'monitor', screen: 'studyScreen', cap: 'Seated at the very back of a 96-seat Dalhousie computer science auditorium.' },
       { build: 'studyNotes', at: [AUDITORIUM.studyX + 0.16, TOP_ROW.height + AUDITORIUM.tabletHeight + 0.015, TOP_ROW.seat - 0.32], scale: 0.35, live: 'screen', rot: [0, 6, 0] },
       { model: 'wall_clock', at: [10.85, 3.35, -17.22] },
+      { build: 'doorLeafWide', at: [-1.4, 0, -15.2], rot: [0, 180, 0], live: 'door', door: [ch(6.86), ch(7.0)] }, // the front west door: hinged on the north jamb, it swings into Sydney ahead of the walk
       ...[-15.3, -11.6, -7.9, -4.2].flatMap((z) => [1.4, 4.9, 8.4].map((x): Placement => ({ build: 'tube', at: [x, 6.48, z], scale: 1.5, live: 'tube' }))),
       { build: 'halifaxSign', at: [-1.37, 2.68, -15.8], rot: [0, 90, 0], live: 'screen' },
+    ],
+  },
+  {
+    // 2024, Sydney: the hacker house where Bean was built. In from the auditorium's front door on the east wall; a
+    // plywood table on trestles in the middle of the room under two pendants, four mismatched chairs, the laptops
+    // (the app in a design tool, the adapt endpoint), the monitor with the Product Hunt page, the phone, mugs and
+    // papers; the whiteboard on the north wall, the kitchen run on the south, a sofa, a mattress in the corner,
+    // boxes; the harbour out of the west window, the bridge and the Opera House across the water.
+    id: 'sydney', env: 'studio', tint: { sky: '#C9D8E6', ground: '#6B5A48', power: 0.4 }, exposure: 0.95, envPower: 0.5, baked: true,
+    sun: { dir: [-0.8, 0.55, -0.25], color: '#FFE0B0', power: 2.2, shadow: 0.85 },
+    fog: { color: '#EEE8DE', near: 12, far: 60 },
+    shell: {
+      x: [-9.6, -1.4], z: [-19.4, -12.0], h: 3.0,
+      floor: 'sydneyFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
+      openings: [
+        { wall: 'x+', at: -15.8, w: 1.2, h: 2.2 }, // in from the auditorium, heading west
+        { wall: 'x-', at: -15.7, w: 4.4, h: 2.0, sill: 0.85 }, // the window on the harbour
+      ],
+    },
+    props: [
+      { build: 'sydneyHarbour', at: [-23.0, 4.6, -17.5], live: 'city', shadow: false, cap: 'Sydney Harbour: the bridge, the Opera House, a ferry crossing.' },
+      { build: 'sydneyWindow', at: [-9.6, 0.85, -15.7], rot: [0, 90, 0] },
+      // the table and what is on it
+      { build: 'hackerTable', at: [-5.5, 0, -15.7], cap: 'The hacker house table. Bean was built here: pantry, recipes, the week, the shopping list.' },
+      { build: 'laptopBean', at: [-6.35, 0.74, -15.1], rot: [0, 4, 0], live: 'screen', cap: 'The app in a design tool: pantry, this week, shopping.' },
+      { model: 'laptop_14_aluminium', at: [-4.7, 0.74, -15.12], rot: [0, -8, 0] },
+      { build: 'laptopBeanCode', at: [-6.05, 0.74, -16.3], rot: [0, 176, 0], live: 'screen', cap: 'Recipe adapt: tell Bean what to change and it rewrites the recipe as you type.' },
+      { build: 'monitorPH', at: [-4.85, 0.74, -16.02], rot: [0, 168, 0], live: 'screen', cap: 'Launch day on Product Hunt. Number four Product of the Day.' },
+      { model: 'keyboard_mouse_black', at: [-4.85, 0.74, -16.5], rot: [0, 180, 0] },
+      { build: 'phoneBean', at: [-5.55, 0.74, -15.35], rot: [0, 25, 0], live: 'screen', cap: 'Bean on the phone: your kitchen assistant.' },
+      { model: 'coffee_mug', at: [-7.0, 0.74, -15.6], rot: [0, 40, 0] },
+      { model: 'coffee_mug', at: [-4.15, 0.74, -15.75], rot: [0, -60, 0] },
+      { model: 'coffee_mug', at: [-5.35, 0.74, -16.6], rot: [0, 110, 0] },
+      { build: 'papers', at: [-5.5, 0.74, -15.8], rot: [0, 10, 0] },
+      { build: 'papers', at: [-4.05, 0.74, -16.25], rot: [0, -30, 0] },
+      { build: 'papers', at: [-6.9, 0.74, -16.2], rot: [0, 60, 0] },
+      { build: 'cables', at: [-5.2, 0, -16.2] },
+      { model: 'office_chair_black', at: [-6.3, 0, -14.75], rot: [0, 180, 0] },
+      { model: 'SchoolChair_01', at: [-4.7, 0, -14.75], rot: [0, 170, 0] },
+      { model: 'office_chair_black', at: [-6.0, 0, -16.9], rot: [0, 10, 0] },
+      { model: 'SchoolChair_01', at: [-4.5, 0, -16.95], rot: [0, -15, 0] },
+      { model: 'pendant_tense', at: [-6.3, 1.96, -15.7], live: 'pendant' },
+      { model: 'pendant_tense', at: [-4.7, 1.96, -15.7], live: 'pendant' },
+      // the walls
+      { build: 'whiteboardBean', at: [-5.5, 1.5, -12.06], rot: [0, 180, 0], live: 'screen', cap: 'The whiteboard. How Bean works, and launch week.' },
+      { build: 'beanPoster', at: [-1.44, 1.6, -17.6], rot: [0, -90, 0], live: 'screen', cap: 'Bean. The last meal planner you will ever need.' },
+      { model: 'wall_clock', at: [-1.44, 2.35, -14.0], rot: [0, -90, 0] },
+      { model: 'steel_frame_shelves_01', at: [-1.67, 0, -13.3], rot: [0, -90, 0], scale: 0.1 },
+      { build: 'cartons', at: [-1.9, 0.0, -13.3], rot: [0, -90, 0], scale: 0.6 },
+      // the room
+      { model: 'kitchen_modern', at: [-5.2, 0, -18.62], cap: 'The kitchen. Bean started as: what is in your fridge?' },
+      { model: 'sofa_teak', at: [-7.6, 0, -12.85], rot: [0, 180, 0] },
+      { model: 'bed_single', at: [-8.55, 0, -18.4], cap: 'A mattress in the corner. A hacker house.' },
+      { model: 'throw_pillows_01', at: [-8.0, 0.57, -18.3], rot: [0, 20, 0], scale: 0.8 },
+      { model: 'potted_plant_01', at: [-9.1, 0, -13.35], scale: 0.9 },
+      { build: 'cartons', at: [-2.6, 0, -19.0], rot: [0, 30, 0] },
+      { build: 'cartons', at: [-2.2, 0, -18.1], rot: [0, -15, 0], scale: 0.7 },
+      { build: 'bin', at: [-2.8, 0, -16.9] },
+      { build: 'discLight', at: [-5.2, 3.0, -18.5], live: 'pendant' },
+      { build: 'discLight', at: [-2.8, 3.0, -14.2], live: 'pendant' },
     ],
   },
 ];

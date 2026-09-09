@@ -53,6 +53,11 @@ export const MATS: Record<string, Mat> = {
   campusPaving: { color: '#B6B2A8', rough: 0.9, tile: 1, layer: 4 },
   campusTurf: { color: '#FFFFFF', rough: 1, tile: 1, paint: 'pitch', layer: 5 },
   copperRoof: { color: '#5E8C7A', rough: 0.6, metal: 0.2, tile: 1 },
+  // 2024, Sydney: the hacker house. A plywood table on trestles, white walls, timber underfoot
+  plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
+  trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
+  sydneyWall: { color: '#F1ECE3', rough: 0.9, tex: 'plastered_wall_04', amp: 0.18, tile: 3.2 },
+  sydneyFloor: { color: '#B08A5E', rough: 0.55, tex: 'plank_flooring_02', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.3, tile: 1.98 },
   clockFace: { color: '#F4F1E6', rough: 0.5, emissive: '#F4F1E6', emissivePower: 0.4, tile: 1 },
   treeCanopy: { color: '#FFFFFF', rough: 1, tile: 1, tint: true },
   treeTrunk: { color: '#4A3A2A', rough: 1, tile: 1 },

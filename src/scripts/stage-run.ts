@@ -39,7 +39,7 @@ import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress, STAGE_SPAN } from '../lib/stage/shot.ts';
 import { loadAllSets, showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
-import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, type Paint } from './stage-paint.ts';
+import { painters, loadImage, canvas2d, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, BEAN_PAINT, type Paint } from './stage-paint.ts';
 
 const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
@@ -143,7 +143,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
   const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null, dalhousie: null as HTMLImageElement | null };
-  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT };
+  const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...BEAN_PAINT };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
     const p = PAINT[name];
@@ -334,7 +334,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const [name, frame] = s.paint.split(':');
       // screens and the city at night give off their own light: unlit, not tone mapped, no fog on the city
       if (name === 'video') return new MeshBasicMaterial({ map: videoTex, toneMapped: false });
-      if (name.startsWith('screen') || name === 'toronto' || name.startsWith('campus')) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: name !== 'toronto' && !name.startsWith('campus') });
+      const backdrop = name === 'toronto' || name === 'sydney' || name.startsWith('campus'); // a view out of a window: unlit, beyond the fog
+      if (name.startsWith('screen') || backdrop) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: !backdrop });
       if (name === 'cloudPuffs') return cloudMaterial(paintTex(name, 0)); // the cloud field: every quad turned to the camera, sized by its vertex colour
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }

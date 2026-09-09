@@ -2,6 +2,7 @@
 // The aircraft never moves: the world under it does (stage-run.ts: the flight group), sinking as the
 // altitude falls, sliding aft as the ground track runs, rolling for the bank onto the approach.
 import { AUDITORIUM, TOP_ROW, FLIGHT_DECK } from './sets.ts';
+import { ch } from './shot.ts';
 const ease = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
@@ -12,9 +13,9 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
  * At `end` the Studley campus is abeam, 250 to 900 m off the wing and `low` metres down; after it the aircraft holds
  * height and the ground keeps sliding at `cruise` metres per unit of progress (the speed the descent ended at).
  */
-export const FLIGHT = { start: 0.672, end: 0.721, top: 385, low: 130, distance: 1450, deck: FLIGHT_DECK, bank: 7, cruise: 10360 } as const;
+export const FLIGHT = { start: ch(4.704), end: ch(5.047), top: 385, low: 130, distance: 1450, deck: FLIGHT_DECK, bank: 7, cruise: 11840 } as const;
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
-export const PHONE = { raise: 0.716, framed: 0.725, zoom: 0.729, filled: 0.742, transfer: 0.745, reveal: 0.752 } as const;
+export const PHONE = { raise: ch(5.012), framed: ch(5.075), zoom: ch(5.103), filled: ch(5.194), transfer: ch(5.215), reveal: ch(5.264) } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
 /** The window seat, the front row, well ahead of the wing: eye at the oval, looking out and a little down at the city. */
