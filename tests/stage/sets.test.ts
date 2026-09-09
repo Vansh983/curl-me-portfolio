@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, SETS } from '../../src/lib/stage/sets.ts';
+import { DOLLY } from '../../src/lib/stage/dolly.ts';
 import { ASSETS } from '../../src/lib/stage/assets.ts';
 import { MATS } from '../../src/lib/stage/materials.ts';
 
@@ -65,6 +66,14 @@ test('shells use designed materials and open where the dolly passes', () => {
   assert.equal(delhi.id, 'delhi');
   assert.ok(door(delhi, 'z-') && door(delhi, 'x-'));
   assert.ok(!delhi.shell!.openings.some((o) => (o.sill ?? 0) > 0), 'no window: the curtain is drawn');
+});
+
+test('every door leaf on the walk is open before the dolly reaches its doorway, and swings away from the walk', () => {
+  const jambs = DOLLY.filter((k) => k.blend === 0);
+  const delhi = SETS[4].props.find((p) => p.build === 'doorLeaf')!;
+  assert.ok(delhi.door && delhi.door[1] <= jambs[4].q - 0.01, `the Delhi leaf is open by ${delhi.door?.[1]}, the jamb is at ${jambs[4].q}`);
+  assert.equal(delhi.rot?.[1], 180); // hinged on the north jamb: the leaf swings west into the bridge, not into the room the walk crosses
+  assert.ok(Math.abs(delhi.at[2] - 2.05) < 1e-9 && Math.abs(delhi.at[0] + 2.4) < 1e-9);
 });
 
 test('the 2020 room stands east of the apartment, between the brick door and the lab passage', () => {

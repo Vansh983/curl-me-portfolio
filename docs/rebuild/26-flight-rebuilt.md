@@ -12,6 +12,16 @@
 - **The auditorium.** A dais across the front (`DAIS`), a lectern right of centre with a gooseneck mic and the presenter's laptop, 15 downlights (baked), a projection screen that comes down over the board between q 0.8 and 0.9 with the Generative AI slide (`live: 'drop'`, `Placement.drop`). The seated pause (0.745 to 0.79), the rise, the walk down the central aisle over `aisleHeight(z)` to 0.932, the turn on the dais, and the hold behind the lectern facing the hall at q 1.
 - Bakes: set 5 `npm run stage:bake -- 5 128 2048 512 0`, set 6 `npm run stage:bake -- 6 128 2048 512 0.002`.
 
+## Continuity pass (same evening)
+
+He said the scenes had "breakpoints" and "areas of slippage". Measured with `.cache/seams.mjs` (frame-to-frame pixel difference every 0.004 of q, chapter text hidden): the spikes were the doorways. Two causes:
+
+- Every door dipped the light to 12% and swapped the set at the midpoint, and the plaza was hidden until then: through the lab's south door the plaza was a white void that popped in. Now `frame()` crossfades exposure, fog, hemisphere, sun colour, intensity, direction and shadow strength from the set left to the set entered across the doorway (`blend`, smoothstepped); only the environment map switches at the midpoint. Neighbours are always visible both ways (`d <= 1`, no outdoor clause). The daylight flare is gone with the dip.
+- The Delhi room's west door had a closed leaf timed to the old span (0.608 to 0.634): the walk hit it at 0.56 and saw its back for a dozen frames. Rehinged on the north jamb so it swings into the bridge, opening 0.535 to 0.56, ahead of the jamb at 0.57; a test now holds every leaf open before its jamb.
+- The jet bridge's first section still had the old opening west to the studio (sky and wing showed through it) and no light, and the plaza's facade brick stood 6 cm inside the bridge's end wall. Walled up, lit, and the brick moved behind the wall. Sets 3 and 5 re-baked.
+
+The phone portal remains the one intended cut. The other spikes left are fast turns (the dais, the rise from the seat), not cuts.
+
 ## Still open
 
 - Students in the seats: blocked on licensed seated models (see the handoff). The turn at the dais faces an empty hall until then.

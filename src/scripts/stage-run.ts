@@ -650,7 +650,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   if (bloom) bloom.enabled = !off.has('bloom');
   vignette.enabled = !off.has('vignette');
   smaa.enabled = !off.has('smaa');
-  if (DEBUG) (window as unknown as { __stage: unknown }).__stage = { renderer, composer, ao, bloom, scene, camera };
+  if (DEBUG) (window as unknown as { __stage: unknown }).__stage = { renderer, composer, ao, bloom, scene, camera, Raycaster, Vector3 }; // the classes too, for a probe script to cast rays
 
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
@@ -715,27 +715,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     curSet = i;
     showSetBackdrops(live.backdrops, i);
     // the sets share one scene in a ring; only a neighbour can be seen through a door, so the rest are
-    // hidden, and an outdoor set only from itself: its ground and daylight would stand outside the windows
-    // and doors of the rooms either side of it (the San Francisco piers once stood in the line from the
-    // Toronto window to the CN Tower). The doorway dip covers its arrival and its going.
+    // hidden. A neighbour stays visible through the doorway both ways, so a door is never a void that
+    // pops: the plaza's daylight shows through the lab's south door before the walk reaches it
     groups.forEach((g, k) => {
       const d = Math.min(Math.abs(k - i), groups.length - Math.abs(k - i));
-      g.visible = d <= 1 && (!SETS[k].outdoor || k === i);
+      g.visible = d <= 1;
     });
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion
     scene.environment = i === 5 && flightEnvironment ? flightEnvironment.texture : S.env === 'sky' ? skyEnv : studioEnv;
-    renderer.toneMappingExposure = S.exposure;
-    hemi.color.set(S.tint.sky);
-    hemi.groundColor.set(S.tint.ground);
-    sun.color.set(S.sun.color);
-    sun.shadow.intensity = S.sun.shadow;
     const span = i === 5 ? 140 : 7;
     Object.assign(sun.shadow.camera, { left: -span, right: span, top: span, bottom: -span, far: i === 5 ? 450 : 80 });
     sun.shadow.camera.updateProjectionMatrix();
-    fog.color.set(S.fog.color);
-    fog.near = S.fog.near;
-    fog.far = S.fog.far;
     if (i === 1 && tubeClock < 0) tubeClock = 0;
   };
 
@@ -762,19 +753,28 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // These neighbours connect by the phone, not their shared wall. Keep cabin trim out of
     // the theatre; its boarding corridor becomes visible again beyond the rear exit.
     if (f.set === 6) groups[5].visible = f.cam[2] > -2;
-    const S: StageSet = SETS[f.set];
-    // inside a doorway the light dips, except a door onto daylight: there the frame flares white
-    // instead, the way eyes meet the sun, so the plaza is never seen dark under a bright sky
-    const daylight = f.from !== f.into && SETS[f.into].env === 'sky' && SETS[f.from].env !== 'sky';
-    const dip = daylight ? 1 : f.envDip;
-    scene.environmentIntensity = S.envPower * dip;
-    hemi.intensity = S.tint.power * dip;
-    sun.intensity = S.sun.power * dip;
-    renderer.toneMappingExposure = S.exposure * (daylight ? 1 + 4.5 * (1 - f.envDip) : 1);
+    // through a doorway the light of one set becomes the light of the next by degrees: exposure, fog,
+    // sky and sun cross over the length of the passage, so the eye never sees a cut or a blink. Only
+    // the environment map and the shadow strength switch, at the midpoint, inside enter()
+    const A: StageSet = SETS[f.from], B: StageSet = SETS[f.into];
+    const t = f.from === f.into ? 0 : f.blend * f.blend * (3 - 2 * f.blend);
+    const mix = (a: number, b: number) => a + (b - a) * t;
+    scene.environmentIntensity = mix(A.envPower, B.envPower);
+    hemi.intensity = mix(A.tint.power, B.tint.power);
+    hemi.color.set(A.tint.sky).lerp(new Color(B.tint.sky), t);
+    hemi.groundColor.set(A.tint.ground).lerp(new Color(B.tint.ground), t);
+    sun.intensity = mix(A.sun.power, B.sun.power);
+    sun.color.set(A.sun.color).lerp(new Color(B.sun.color), t);
+    fog.color.set(A.fog.color).lerp(new Color(B.fog.color), t);
+    fog.near = mix(A.fog.near, B.fog.near);
+    fog.far = mix(A.fog.far, B.fog.far);
+    renderer.toneMappingExposure = mix(A.exposure, B.exposure);
+    sun.shadow.intensity = mix(A.sun.shadow, B.sun.shadow);
+    const sunDir = new Vector3(...A.sun.dir).normalize().lerp(new Vector3(...B.sun.dir).normalize(), t).normalize(); // the shadows swing round with the light, never jump
     // the sun follows the look, so the shadow map stays tight around what is in frame
     const fl = flightAt(f.q, reduce.matches);
     const look = f.set === 5 ? new Vector3(flightRoll.position.x + HALIFAX_CAMPUS[0], -fl.altitude, flightRoll.position.z + HALIFAX_CAMPUS[1] + fl.travel - FLIGHT.distance) : new Vector3(...f.look);
-    sun.position.copy(look).addScaledVector(new Vector3(...S.sun.dir).normalize(), f.set === 5 ? 600 : 30);
+    sun.position.copy(look).addScaledVector(sunDir, f.set === 5 ? 600 : 30);
     sun.target.position.copy(look);
     sun.target.updateMatrixWorld();
   };

@@ -316,7 +316,7 @@ export const SETS: StageSet[] = [
       { model: 'coffee_mug', at: [0.1, 0, 2.55], rot: [0, 110, 0] },
       { model: 'ceiling_fan', at: [-0.85, 2.7, 1.8], live: 'fan' },
       { build: 'discLight', at: [-0.85, 2.7, 2.6], live: 'pendant' },
-      { build: 'doorLeaf', at: [-2.4, 0, 1.15], live: 'door', door: [0.608, 0.634] },
+      { build: 'doorLeaf', at: [-2.4, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [0.535, 0.56] }, // the west door: hinged on the north jamb, it swings open into the bridge as the walk turns to it, well before the jamb at 0.57
     ],
   },
   {
@@ -342,6 +342,7 @@ export const SETS: StageSet[] = [
       { build: 'cloudDeck', at: [0, FLIGHT_DECK - 33, 0], rot: [0, 90, 0], live: 'flight', shadow: false },
       { build: 'halifaxSign', at: [-2.735, 2.0, -3.6], rot: [0, -90, 0], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
       ...[-8.7, -6.6, -1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, z < -4.8 ? 2.6 : 2.4, z], live: 'pendant', scale: 0.65 })),
+      { build: 'discLight', at: [-3.3, 2.4, 1.6], live: 'pendant', scale: 0.65 }, // the first section of the bridge, by the Delhi door
     ],
   },
   {

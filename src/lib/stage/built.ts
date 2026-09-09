@@ -264,12 +264,12 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** The jet bridge: the old passage from the brick door turned south, 5.8 m of grey panel and rubber floor down to the cabin door, a light strip along its ceiling. */
   boardingPassage: () => {
     const sections = [
-      { x: [-4.2, -2.4] as [number, number], z: [1, 2.2] as [number, number], openings: [{ wall: 'x+' as const, at: 1.6, w: 0.9, h: 2.05 }, { wall: 'z-' as const, at: -3.35, w: 1.2, h: 2.4 }, { wall: 'x-' as const, at: 1.6, w: 1.2, h: 2.4 }] },
+      { x: [-4.2, -2.4] as [number, number], z: [1, 2.2] as [number, number], openings: [{ wall: 'x+' as const, at: 1.6, w: 0.9, h: 2.05 }, { wall: 'z-' as const, at: -3.35, w: 1.2, h: 2.4 }] }, // the brick door west is walled up: the ring left through the flight
       { x: [-3.95, -2.75] as [number, number], z: [-4.8, 1] as [number, number], openings: [{ wall: 'z+' as const, at: -3.35, w: 1.2, h: 2.4 }, { wall: 'z-' as const, at: -3.4, w: 1.1, h: 2.4 }] },
     ];
     const ribs = new Sink(), strip = new Sink();
     for (let z = 0.4; z > -4.6; z -= 0.6) for (const x of [-3.93, -2.77]) ribs.box(x, 1.2, z, 0.04, 2.4, 0.05);
-    strip.box(-3.35, 2.385, -1.9, 0.12, 0.02, 5.6);
+    strip.box(-3.35, 2.385, -1.9, 0.12, 0.02, 5.6).box(-3.3, 2.385, 1.6, 1.6, 0.02, 0.12); // and across the first section, from the Delhi door
     return [...sections.flatMap((s) => { const sh = buildShell({ ...s, h: 2.4, floor: 'bridgeFloor', wall: 'bridgeWall' }); return [
       { ...sh.floor, surface: M('bridgeFloor') }, { ...sh.walls, surface: M('bridgeWall') }, { ...sh.ceiling, surface: M('bridgeWall') },
     ]; }), piece(ribs.out(), M('aluminium')), piece(strip.out(), M('ledStrip'))];
@@ -711,9 +711,10 @@ export const BUILT: Record<string, () => BuiltPart> = {
    */
   facade: () => {
     const brick = new Sink(), dark = new Sink(), t = 0.06, H = 14;
-    // the apartment's east face at x -4.14, z -3.5..8.0, round the brick door (z 1.15..2.05) and the passage east (z 6.0..7.2)
-    for (const [z0, z1, y0] of [[-3.5, 1.15, 0], [2.05, 6.0, 0], [7.2, 8.0, 0], [1.15, 2.05, 2.05], [6.0, 7.2, 2.4]] as Array<[number, number, number]>)
-      brick.box(-4.14 + t / 2, (y0 + H) / 2, (z0 + z1) / 2, t, H - y0, z1 - z0);
+    // the apartment's east face just behind the studio's wall and the jet bridge's end (x -4.2), z -3.5..8.0, round the passage east (z 6.0..7.2);
+    // the brick door is walled up: the ring leaves through the flight now
+    for (const [z0, z1, y0] of [[-3.5, 6.0, 0], [7.2, 8.0, 0], [6.0, 7.2, 2.4]] as Array<[number, number, number]>)
+      brick.box(-4.205 - t / 2, (y0 + H) / 2, (z0 + z1) / 2, t, H - y0, z1 - z0);
     dark.box(-6.82, H / 2, 8.0 + t / 2, 5.36, H, t); // the studio block's north face, x -9.5..-4.14
     dark.box(-9.5 - t / 2, H / 2, 2.25, t, H, 11.5); // its west face, z -3.5..8.0
     // the lab's block: x -4.14..2.25, z 4.6..9.9; its south face round the passage south (x 0.8..2.0)
