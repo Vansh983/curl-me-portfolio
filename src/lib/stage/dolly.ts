@@ -119,12 +119,12 @@ export const DOLLY: DollyKey[] = [
   { q: ch(6.96), cam: [0.35, DAIS.height + 1.6, -16.15], look: [-2.4, 1.35, -15.8], fov: 72, set: 6 },
   { q: ch(7.02), cam: [-0.6, 1.62, -15.9], look: [-3.5, 1.3, -15.8], fov: 72, set: 6 }, // down the step
   { q: ch(7.06), cam: [-1.3, 1.6, -15.8], look: [-4.3, 1.25, -15.85], fov: 72, set: 6, blend: 0 }, // the jamb
-  { q: ch(7.12), cam: [-2.2, 1.6, -15.8], look: [-5.5, 1.2, -15.9], fov: 72, set: 7, blend: 1 }, // in: the table, the window, the harbour
-  { q: ch(7.25), cam: [-3.6, 1.6, -14.6], look: [-5.6, 1.4, -12.4], fov: 74, set: 7 }, // round the table's end: the whiteboard
-  { q: ch(7.38), cam: [-4.6, 1.6, -13.8], look: [-8.2, 1.15, -14.5], fov: 74, set: 7 }, // along the north side, the window ahead
-  { q: ch(7.52), cam: [-5.3, 1.6, -13.6], look: [-6.4, 0.9, -15.4], fov: 74, set: 7 }, // down at the laptops
-  { q: ch(7.62), cam: [-5.7, 1.6, -13.5], look: [-8.4, 1.05, -16.2], fov: 74, set: 7 }, // across the table to the harbour
-  { q: ch(8), cam: [-5.7, 1.6, -13.5], look: [-8.4, 1.05, -16.2], fov: 74, set: 7 }, // and hold: 2024, Bean
+  { q: ch(7.12), cam: [-2.2, 1.6, -15.8], look: [-5.5, 1.2, -15.9], fov: 72, set: 7, blend: 1 }, // in: the table, the monitors, the window
+  { q: ch(7.25), cam: [-2.7, 1.6, -15.0], look: [-4.5, 1.45, -13.3], fov: 74, set: 7 }, // the whiteboard
+  { q: ch(7.38), cam: [-2.95, 1.6, -14.35], look: [-6.0, 1.15, -14.6], fov: 74, set: 7 }, // at the table's end, the room's length ahead
+  { q: ch(7.52), cam: [-3.05, 1.55, -14.3], look: [-4.8, 0.85, -15.5], fov: 74, set: 7 }, // down at the monitors and the wires
+  { q: ch(7.62), cam: [-3.05, 1.6, -14.3], look: [-7.4, 1.4, -15.9], fov: 74, set: 7 }, // down the table to the window: the Opera House, the sign
+  { q: ch(8), cam: [-3.05, 1.6, -14.3], look: [-7.4, 1.4, -15.9], fov: 74, set: 7 }, // and hold: 2024, Bean
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

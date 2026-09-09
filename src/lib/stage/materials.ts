@@ -56,6 +56,12 @@ export const MATS: Record<string, Mat> = {
   // 2024, Sydney: the hacker house. A plywood table on trestles, white walls, timber underfoot
   plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
   trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
+  airBed: { color: '#2A3446', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.25, tile: 1 }, // flocked PVC, a little sheen
+  airBedFlock: { color: '#3B4457', rough: 0.95, sheen: 0.4, tile: 1 },
+  bedding: { color: '#D9D6CF', rough: 0.95, tex: 'wool_boucle', amp: 0.3, sheen: 0.5, tile: 0.35 },
+  cableWhite: { color: '#E8E6E0', rough: 0.55, tile: 1 },
+  cableRed: { color: '#B8262A', rough: 0.55, tile: 1 },
+  powerStrip: { color: '#EAE8E2', rough: 0.5, clearcoat: 0.2, tile: 1 },
   sydneyWall: { color: '#F1ECE3', rough: 0.9, tex: 'plastered_wall_04', amp: 0.18, tile: 3.2 },
   sydneyFloor: { color: '#B08A5E', rough: 0.55, tex: 'plank_flooring_02', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.3, tile: 1.98 },
   clockFace: { color: '#F4F1E6', rough: 0.5, emissive: '#F4F1E6', emissivePower: 0.4, tile: 1 },

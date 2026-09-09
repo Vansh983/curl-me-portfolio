@@ -524,6 +524,43 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     return [piece(top.out(), M('plywood'), { smooth: true, metres: 'xz' }), piece(legs.out(), M('trestle'))];
   },
+  /** An air mattress on the floor: 1.9 by 0.95, 0.22 deep, its I-beam ribs across, a pillow and a thrown-back blanket; along x at the origin. */
+  airMattress: () => {
+    const bed = new Sink().rbox(0, 0.11, 0, 1.9, 0.22, 0.95, 0.05, 3);
+    const top = new Sink();
+    for (let i = 0; i < 9; i++) top.rbox(-0.85 + i * 0.2125, 0.215, 0, 0.17, 0.035, 0.86, 0.015, 2); // the ribs, flocked
+    const bedding = new Sink().rbox(0.62, 0.29, 0, 0.5, 0.11, 0.42, 0.04, 3); // the pillow
+    bedding.rbox(-0.3, 0.255, 0.05, 1.1, 0.05, 0.9, 0.02, 2).rotateY(-0.3, 0.05, 0.1); // the blanket, pushed back and askew
+    return [piece(bed.out(), M('airBed'), { smooth: true }), piece(top.out(), M('airBedFlock'), { smooth: true }), piece(bedding.out(), M('bedding'), { smooth: true, metres: 'xz' })];
+  },
+  /** The wires: leads snaking across the table top between the monitors, a few dropping over the south edge to a power strip on the floor. Origin at the table's centre, top at y 0.74. */
+  wires: () => {
+    const black = new Sink(), white = new Sink(), red = new Sink(), strip = new Sink();
+    const rnd = rng(17);
+    const lead = (sink: Sink, from: V3, to: V3, wobble: number, n = 10, sagTo?: number) => {
+      const pts: V3[] = [];
+      for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        const y = sagTo === undefined ? from[1] + (to[1] - from[1]) * t : from[1] * (1 - t) * (1 - t) + sagTo * 2 * t * (1 - t) + to[1] * t * t;
+        pts.push([from[0] + (to[0] - from[0]) * t + Math.sin(t * Math.PI * 2.3 + rnd() * 2) * wobble * (rnd() * 0.5 + 0.5), y, from[2] + (to[2] - from[2]) * t + Math.sin(t * Math.PI * 1.7 + rnd()) * wobble]);
+      }
+      for (let i = 0; i < n; i++) sink.bone(pts[i], pts[i + 1], 0.004, 0.004);
+    };
+    const y = 0.745;
+    for (let i = 0; i < 9; i++) { // across the top, monitor to monitor, keyboard to laptop
+      const sink = [black, black, white, black, red, white, black, black, white][i];
+      lead(sink, [-1.3 + rnd() * 2.6, y, -0.55 + rnd() * 1.1], [-1.3 + rnd() * 2.6, y, -0.55 + rnd() * 1.1], 0.12 + rnd() * 0.1);
+    }
+    for (let i = 0; i < 5; i++) lead([black, white, black, red, black][i], [-0.9 + i * 0.4 + rnd() * 0.2, y, -0.4 - rnd() * 0.2], [-0.5 + rnd() * 0.5, 0.05, -0.95], 0.06, 8, 0.25); // over the edge to the floor
+    strip.rbox(-0.25, 0.02, -1.0, 0.36, 0.04, 0.06, 0.008, 2); // the power strip
+    for (let i = 0; i < 4; i++) strip.box(-0.37 + i * 0.08, 0.041, -1.0, 0.03, 0.004, 0.03);
+    return [piece(black.out(), M('cable'), { smooth: true }), piece(white.out(), M('cableWhite'), { smooth: true }), piece(red.out(), M('cableRed'), { smooth: true }), piece(strip.out(), M('powerStrip'), { smooth: true })];
+  },
+  /** The Bean sign on the wall above the window: the mark and the wordmark, painted, 2.4 by 0.5, its face toward +z. */
+  beanSign: () => [piece(face(2.4, 0.5, 0.004), { paint: 'beanSign' })],
+  /** The other monitors on the table: the app in its design tool, the code. */
+  monitorBeanApp: mon('screenBeanApp'),
+  monitorBeanCode: mon('screenBeanCode'),
   /** A phone flat on the table, the app on it: 0.075 by 0.155, the screen up. */
   phoneBean: () => [piece(new Sink().rbox(0, 0.004, 0, 0.075, 0.008, 0.155, 0.003, 2).out(), M('bezel'), { smooth: true }), piece(offsetGeo(new Sink().quad([-0.034, 0.0085, 0.072], [0.034, 0.0085, 0.072], [0.034, 0.0085, -0.072], [-0.034, 0.0085, -0.072], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), 0, 0, 0), { paint: 'screenBeanPhone' })],
   /** The design laptop and the code laptop on the hacker house table. */
@@ -535,16 +572,17 @@ export const BUILT: Record<string, () => BuiltPart> = {
   whiteboardBean: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardBean' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
   /** The poster by the door, 0.6 by 0.85 in a thin black frame, its face toward +z. */
   beanPoster: () => [piece(face(0.6, 0.85, 0.012), { paint: 'beanPoster' }), piece(frame(0.62, 0.87, 0.02, 0.006).out(), M('bezel'))],
-  /** The hacker house window: a frame 4.4 by 2.0 with two mullions and a transom, its glass in one pane; along x at the origin, sill at y 0. */
+  /** The hacker house window: a frame 4.0 by 1.55 with two mullions, its glass in one pane; along x at the origin, sill at y 0. */
   sydneyWindow: () => {
-    const s = new Sink().box(0, 0, 0, 4.46, 0.06, 0.08).box(0, 2.0, 0, 4.46, 0.06, 0.08).box(-2.2, 1.0, 0, 0.06, 2.0, 0.08).box(2.2, 1.0, 0, 0.06, 2.0, 0.08);
-    for (const x of [-0.75, 0.75]) s.box(x, 1.0, 0, 0.045, 2.0, 0.06);
-    s.box(0, 1.25, 0, 4.4, 0.045, 0.06);
-    const pane = new Sink().quad([-2.2, 0, 0.012], [2.2, 0, 0.012], [2.2, 2.0, 0.012], [-2.2, 2.0, 0.012]).quad([2.2, 0, -0.012], [-2.2, 0, -0.012], [-2.2, 2.0, -0.012], [2.2, 2.0, -0.012]);
+    const s = new Sink().box(0, 0, 0, 4.06, 0.06, 0.08).box(0, 1.55, 0, 4.06, 0.06, 0.08).box(-2.0, 0.775, 0, 0.06, 1.55, 0.08).box(2.0, 0.775, 0, 0.06, 1.55, 0.08);
+    for (const x of [-0.67, 0.67]) s.box(x, 0.775, 0, 0.045, 1.55, 0.06);
+    const pane = new Sink().quad([-2.0, 0, 0.012], [2.0, 0, 0.012], [2.0, 1.55, 0.012], [-2.0, 1.55, 0.012]).quad([2.0, 0, -0.012], [-2.0, 0, -0.012], [-2.0, 1.55, -0.012], [2.0, 1.55, -0.012]);
     return [piece(s.out(), M('windowFrame')), piece(pane.out(), M('cabinGlass'))];
   },
-  /** The harbour out of the west window: a 40 by 15 m painted view, its face toward +x (placed well beyond the wall so the window barely parallaxes), unlit. */
-  sydneyHarbour: () => [piece(new Sink().quad([0, -7.5, 20], [0, -7.5, -20], [0, 7.5, -20], [0, 7.5, 20], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
+  /** The water outside the window: a 120 by 60 m sheet of harbour from the wall out, at the origin's height. */
+  harbourWater: () => [piece(new Sink().quad([0, 0, 30], [0, 0, -30], [-120, 0, -30], [-120, 0, 30]).out(), M('seaWater'), { metres: 'xz' })],
+  /** The harbour out of the west window: an 80 by 30 m painted view, its face toward +x, 60 m out beyond the water, unlit. */
+  sydneyHarbour: () => [piece(new Sink().quad([0, -15, 40], [0, -15, -40], [0, 15, -40], [0, 15, 40], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],
   /** An interior door leaf, 0.85 by 2.04, hinged at the origin along +z, its face toward +x; placed at the hinge and turned open. */
   doorLeaf: () => {
     const s = new Sink().rbox(0, 1.02, 0.425, 0.04, 2.04, 0.85, 0.004, 1);

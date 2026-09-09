@@ -20,3 +20,14 @@
 
 - Vancouver, graduation, Toronto: sets 8+, each `ch()` keys after 7.62 and a raised span. Toronto needs an explicit neighbour to set 0.
 - People in the hacker house and the auditorium: still blocked on licensed models.
+
+## Second pass (same day)
+
+He liked it and asked for less: a smaller room, no appliances, the desk, a couple of air mattresses, monitors and wires in the middle, a Bean logo at the back, and a real Opera House model much closer in the window.
+
+- Room now x −7.4..−1.4, z −18.2..−13.2, h 2.9. Kitchen, sofa, bed, shelves, boxes, plant and poster gone.
+- On the table: four monitors back to back down the middle (the app design, code, the Product Hunt page, recipe adapt), two laptops, two keyboards, the phone, mugs, papers, and `wires`: fourteen leads snaking between them, five dropping over the edge to a power strip on the floor. Three chairs.
+- Two `airMattress` props on the floor along the north and south walls: flocked I-beam ribs, a pillow, a blanket thrown back.
+- The window is 4.0 by 1.55 (sill 0.75); the `beanSign` (mark and wordmark) sits on the wall above it, the "back" wall as you enter. The whiteboard stays on the north wall, smaller.
+- Outside: `harbourWater` from the wall out, the painted backdrop (bridge, city, ferry) 60 m off with its painted Opera House removed. **The Opera House model is not in yet:** the pick is Nick Reinhardt's hand-modelled "Sydney Opera House" on Sketchfab (uid 317b2d540f0a4f7e8d87dd3b0372712d, CC Attribution, 62k faces); the other downloadable ones are Google Earth rips. Sketchfab downloads need his login or API token. Place it about 60 m out, `live: 'city'`, `shadow: false`, credited in FLIGHT-CREDITS.md or a SYDNEY-CREDITS.md.
+- Re-baked (1.8 MB).

@@ -447,7 +447,7 @@ export function beanMark(x: Ctx, cx: number, cy: number, size: number, fill = '#
 
 /** Sydney, 2024: the hacker house where Bean was built, and the harbour out of its window. */
 export const BEAN_PAINT: Record<string, Paint> = {
-  /** The harbour out of the west window: the bridge's arch, the Opera House sails, the city behind, a ferry crossing. Unlit, daylight. */
+  /** The harbour out of the west window: the bridge's arch, the city behind, a ferry crossing; the Opera House itself is the model in front. Unlit, daylight. */
   sydney: { w: 2048, h: 768, frames: [(x, w, h) => {
     const sky = x.createLinearGradient(0, 0, 0, h * 0.62); sky.addColorStop(0, '#5B9BD8'); sky.addColorStop(1, '#C9DFF0');
     x.fillStyle = sky; x.fillRect(0, 0, w, h);
@@ -473,16 +473,9 @@ export const BEAN_PAINT: Record<string, Paint> = {
     x.lineWidth = 3; x.strokeStyle = '#3F434A';
     for (let i = 1; i < 24; i++) { const t = i / 24, px = bx0 + (bx1 - bx0) * t, ay = (1 - t) * (1 - t) * (deck + 8) + 2 * (1 - t) * t * (top - 120) + t * t * (deck + 8); x.beginPath(); x.moveTo(px, ay); x.lineTo(px, deck); x.stroke(); }
     x.fillStyle = '#3F434A'; x.fillRect(bx0 - 46, deck - 4, bx1 - bx0 + 92, 14); x.fillRect(0, deck + 4, bx0, 8); x.fillRect(bx1, deck + 4, 200, 8);
-    // the Opera House on Bennelong Point: white shells stepping up to the right
-    const ox = 1290, oy = h * 0.615;
-    x.fillStyle = '#C9B99C'; x.fillRect(ox - 40, oy - 26, 420, 26); // the podium
-    x.fillStyle = '#F4F1EA'; x.strokeStyle = '#D8D2C6'; x.lineWidth = 2;
-    for (const [sx, sw, sh] of [[0, 120, 120], [95, 130, 160], [200, 120, 130], [280, 100, 95]]) {
-      x.beginPath(); x.moveTo(ox + sx, oy - 26); x.quadraticCurveTo(ox + sx + sw * 0.25, oy - 26 - sh * 1.05, ox + sx + sw * 0.72, oy - 26 - sh); x.lineTo(ox + sx + sw * 0.62, oy - 26); x.closePath(); x.fill(); x.stroke();
-    }
     // a ferry crossing, green and cream
-    x.fillStyle = '#F2EBD8'; x.fillRect(700, h * 0.72, 120, 22); x.fillStyle = '#2E6B4F'; x.fillRect(692, h * 0.72 + 22, 136, 14); x.fillStyle = '#F2EBD8'; x.fillRect(720, h * 0.72 - 16, 70, 16);
-    x.fillStyle = 'rgba(255,255,255,0.4)'; x.fillRect(640, h * 0.72 + 38, 200, 4);
+    x.fillStyle = '#F2EBD8'; x.fillRect(1500, h * 0.7, 120, 22); x.fillStyle = '#2E6B4F'; x.fillRect(1492, h * 0.7 + 22, 136, 14); x.fillStyle = '#F2EBD8'; x.fillRect(1520, h * 0.7 - 16, 70, 16);
+    x.fillStyle = 'rgba(255,255,255,0.4)'; x.fillRect(1440, h * 0.7 + 38, 200, 4);
   }] },
   /** The whiteboard on the north wall: how Bean works, and the week the launch was planned on. */
   whiteboardBean: { w: 1024, h: 640, frames: [(x, w, h) => {
@@ -567,6 +560,13 @@ export const BEAN_PAINT: Record<string, Paint> = {
     ['Lemon chicken with rice  ·  25 min', 'Spinach shakshuka  ·  20 min', 'Egg fried rice  ·  15 min'].forEach((t, i) => { x.fillStyle = '#FFFFFF'; x.beginPath(); x.roundRect(20, 222 + i * 92, w - 40, 76, 14); x.fill(); x.fillStyle = '#E7F1E5'; x.beginPath(); x.roundRect(32, 234 + i * 92, 52, 52, 10); x.fill(); x.fillStyle = '#21293C'; x.font = '500 15px Inter, system-ui, sans-serif'; x.fillText(t, 98, 266 + i * 92); });
     x.fillStyle = '#3E9A4C'; x.beginPath(); x.roundRect(24, 540, w - 48, 56, 28); x.fill(); x.fillStyle = '#FFFFFF'; x.font = '600 18px Inter, system-ui, sans-serif'; x.fillText('Plan my week', 118, 575);
     x.fillStyle = '#9CA3AF'; x.font = '13px Inter, system-ui, sans-serif'; x.fillText('pantry  ·  recipes  ·  week  ·  shopping', 60, 680);
+  }] },
+  /** The sign above the window: the mark and the wordmark on the wall's own colour. */
+  beanSign: { w: 1440, h: 300, frames: [(x, w, h) => {
+    x.fillStyle = '#F1ECE3'; x.fillRect(0, 0, w, h);
+    beanMark(x, 250, 150, 200, '#4FA85A', '#F1ECE3');
+    x.fillStyle = '#21293C'; x.font = '800 190px Inter, system-ui, sans-serif'; x.fillText('Bean', 420, 218);
+    x.fillStyle = '#7A8290'; x.font = '500 40px Inter, system-ui, sans-serif'; x.fillText('Your Kitchen Assistant', 940, 205);
   }] },
   /** A poster by the door: the mark and the line. */
   beanPoster: { w: 600, h: 850, frames: [(x, w, h) => {

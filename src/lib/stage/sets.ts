@@ -9,7 +9,7 @@
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
-//   Set 7 SYDNEY   x -9.6..-1.4  z -19.4..-12.0 h 3.0  2024, the hacker house where Bean was built; the harbour out of the west window
+//   Set 7 SYDNEY   x -7.4..-1.4  z -18.2..-13.2 h 2.9  2024, the hacker house where Bean was built; the Opera House out of the west window
 import { HALIFAX } from './halifax.ts';
 import { ch } from './shot.ts';
 
@@ -381,63 +381,60 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2024, Sydney: the hacker house where Bean was built. In from the auditorium's front door on the east wall; a
-    // plywood table on trestles in the middle of the room under two pendants, four mismatched chairs, the laptops
-    // (the app in a design tool, the adapt endpoint), the monitor with the Product Hunt page, the phone, mugs and
-    // papers; the whiteboard on the north wall, the kitchen run on the south, a sofa, a mattress in the corner,
-    // boxes; the harbour out of the west window, the bridge and the Opera House across the water.
+    // 2024, Sydney: the hacker house where Bean was built. A small room in from the auditorium's front door on the
+    // east wall: one plywood table on trestles in the middle under two pendants, monitors back to back on it with the
+    // wires between them dropping to a power strip, laptops, the phone, mugs, papers; three mismatched chairs; two
+    // air mattresses on the floor along the walls; the whiteboard on the north wall; the window on the harbour in the
+    // west wall with the Bean sign above it; the Opera House close across the water, the bridge and the city behind.
     id: 'sydney', env: 'studio', tint: { sky: '#C9D8E6', ground: '#6B5A48', power: 0.4 }, exposure: 0.95, envPower: 0.5, baked: true,
     sun: { dir: [-0.8, 0.55, -0.25], color: '#FFE0B0', power: 2.2, shadow: 0.85 },
     fog: { color: '#EEE8DE', near: 12, far: 60 },
     shell: {
-      x: [-9.6, -1.4], z: [-19.4, -12.0], h: 3.0,
+      x: [-7.4, -1.4], z: [-18.2, -13.2], h: 2.9,
       floor: 'sydneyFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
       openings: [
         { wall: 'x+', at: -15.8, w: 1.2, h: 2.2 }, // in from the auditorium, heading west
-        { wall: 'x-', at: -15.7, w: 4.4, h: 2.0, sill: 0.85 }, // the window on the harbour
+        { wall: 'x-', at: -15.7, w: 4.0, h: 1.55, sill: 0.75 }, // the window on the harbour
       ],
     },
     props: [
-      { build: 'sydneyHarbour', at: [-23.0, 4.6, -17.5], live: 'city', shadow: false, cap: 'Sydney Harbour: the bridge, the Opera House, a ferry crossing.' },
-      { build: 'sydneyWindow', at: [-9.6, 0.85, -15.7], rot: [0, 90, 0] },
-      // the table and what is on it
-      { build: 'hackerTable', at: [-5.5, 0, -15.7], cap: 'The hacker house table. Bean was built here: pantry, recipes, the week, the shopping list.' },
-      { build: 'laptopBean', at: [-6.35, 0.74, -15.1], rot: [0, 4, 0], live: 'screen', cap: 'The app in a design tool: pantry, this week, shopping.' },
-      { model: 'laptop_14_aluminium', at: [-4.7, 0.74, -15.12], rot: [0, -8, 0] },
-      { build: 'laptopBeanCode', at: [-6.05, 0.74, -16.3], rot: [0, 176, 0], live: 'screen', cap: 'Recipe adapt: tell Bean what to change and it rewrites the recipe as you type.' },
-      { build: 'monitorPH', at: [-4.85, 0.74, -16.02], rot: [0, 168, 0], live: 'screen', cap: 'Launch day on Product Hunt. Number four Product of the Day.' },
-      { model: 'keyboard_mouse_black', at: [-4.85, 0.74, -16.5], rot: [0, 180, 0] },
-      { build: 'phoneBean', at: [-5.55, 0.74, -15.35], rot: [0, 25, 0], live: 'screen', cap: 'Bean on the phone: your kitchen assistant.' },
-      { model: 'coffee_mug', at: [-7.0, 0.74, -15.6], rot: [0, 40, 0] },
-      { model: 'coffee_mug', at: [-4.15, 0.74, -15.75], rot: [0, -60, 0] },
-      { model: 'coffee_mug', at: [-5.35, 0.74, -16.6], rot: [0, 110, 0] },
-      { build: 'papers', at: [-5.5, 0.74, -15.8], rot: [0, 10, 0] },
-      { build: 'papers', at: [-4.05, 0.74, -16.25], rot: [0, -30, 0] },
-      { build: 'papers', at: [-6.9, 0.74, -16.2], rot: [0, 60, 0] },
-      { build: 'cables', at: [-5.2, 0, -16.2] },
-      { model: 'office_chair_black', at: [-6.3, 0, -14.75], rot: [0, 180, 0] },
-      { model: 'SchoolChair_01', at: [-4.7, 0, -14.75], rot: [0, 170, 0] },
-      { model: 'office_chair_black', at: [-6.0, 0, -16.9], rot: [0, 10, 0] },
-      { model: 'SchoolChair_01', at: [-4.5, 0, -16.95], rot: [0, -15, 0] },
-      { model: 'pendant_tense', at: [-6.3, 1.96, -15.7], live: 'pendant' },
-      { model: 'pendant_tense', at: [-4.7, 1.96, -15.7], live: 'pendant' },
+      { build: 'sydneyHarbour', at: [-60.0, 6.0, -19.0], live: 'city', shadow: false, cap: 'Sydney Harbour: the bridge, the city, a ferry crossing.' },
+      { build: 'harbourWater', at: [-7.4, -0.6, -15.7], live: 'city', shadow: false },
+      { build: 'sydneyWindow', at: [-7.4, 0.75, -15.7], rot: [0, 90, 0] },
+      { build: 'beanSign', at: [-7.39, 2.58, -15.7], rot: [0, 90, 0], live: 'screen', cap: 'Bean. Your kitchen assistant.' },
+      // the table and what is on it: monitors back to back down the middle, the wires between them
+      { build: 'hackerTable', at: [-4.6, 0, -15.7], cap: 'The hacker house table. Bean was built here: pantry, recipes, the week, the shopping list.' },
+      { build: 'monitorBeanApp', at: [-5.5, 0.74, -15.92], rot: [0, 3, 0], live: 'screen', cap: 'The app in a design tool: pantry, this week, shopping.' },
+      { build: 'monitor', at: [-3.85, 0.74, -15.9], rot: [0, -6, 0], live: 'screen' },
+      { build: 'monitorPH', at: [-4.7, 0.74, -15.48], rot: [0, 176, 0], live: 'screen', cap: 'Launch day on Product Hunt. Number four Product of the Day.' },
+      { build: 'monitorBeanCode', at: [-5.95, 0.74, -15.52], rot: [0, 188, 0], live: 'screen', cap: 'Recipe adapt: tell Bean what to change and it rewrites the recipe as you type.' },
+      { build: 'laptopBean', at: [-3.45, 0.74, -15.15], rot: [0, 8, 0], live: 'screen' },
+      { model: 'laptop_14_aluminium', at: [-3.55, 0.74, -16.25], rot: [0, 172, 0] },
+      { build: 'laptopBeanCode', at: [-4.95, 0.74, -14.95], rot: [0, -4, 0], live: 'screen' },
+      { model: 'keyboard_mouse_black', at: [-5.5, 0.74, -15.2], rot: [0, 0, 0] },
+      { model: 'keyboard_mouse_black', at: [-4.7, 0.74, -16.2], rot: [0, 180, 0] },
+      { build: 'phoneBean', at: [-4.15, 0.74, -15.4], rot: [0, 25, 0], live: 'screen', cap: 'Bean on the phone: your kitchen assistant.' },
+      { build: 'wires', at: [-4.6, 0, -15.7], cap: 'The wires.' },
+      { model: 'coffee_mug', at: [-6.0, 0.74, -16.3], rot: [0, 40, 0] },
+      { model: 'coffee_mug', at: [-3.25, 0.74, -15.7], rot: [0, -60, 0] },
+      { model: 'coffee_mug', at: [-4.35, 0.74, -16.55], rot: [0, 110, 0] },
+      { build: 'papers', at: [-6.0, 0.74, -15.0], rot: [0, 10, 0] },
+      { build: 'papers', at: [-3.2, 0.74, -16.3], rot: [0, -30, 0] },
+      { build: 'cables', at: [-5.3, 0, -16.35], rot: [0, 180, 0] },
+      { model: 'office_chair_black', at: [-5.4, 0, -14.5], rot: [0, 180, 0] },
+      { model: 'SchoolChair_01', at: [-3.6, 0, -14.5], rot: [0, 170, 0] },
+      { model: 'office_chair_black', at: [-4.7, 0, -16.95], rot: [0, 10, 0] },
+      { model: 'pendant_tense', at: [-5.4, 1.86, -15.7], live: 'pendant' },
+      { model: 'pendant_tense', at: [-3.8, 1.86, -15.7], live: 'pendant' },
+      // the floor: two air mattresses along the walls
+      { build: 'airMattress', at: [-5.6, 0, -13.7], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' },
+      { build: 'airMattress', at: [-2.7, 0, -17.7], rot: [0, 4, 0] },
+      { model: 'throw_pillows_01', at: [-2.2, 0.0, -16.9], rot: [0, 30, 0], scale: 0.7 },
+      { build: 'bin', at: [-1.85, 0, -14.3] },
       // the walls
-      { build: 'whiteboardBean', at: [-5.5, 1.5, -12.06], rot: [0, 180, 0], live: 'screen', cap: 'The whiteboard. How Bean works, and launch week.' },
-      { build: 'beanPoster', at: [-1.44, 1.6, -17.6], rot: [0, -90, 0], live: 'screen', cap: 'Bean. The last meal planner you will ever need.' },
-      { model: 'wall_clock', at: [-1.44, 2.35, -14.0], rot: [0, -90, 0] },
-      { model: 'steel_frame_shelves_01', at: [-1.67, 0, -13.3], rot: [0, -90, 0], scale: 0.1 },
-      { build: 'cartons', at: [-1.9, 0.0, -13.3], rot: [0, -90, 0], scale: 0.6 },
-      // the room
-      { model: 'kitchen_modern', at: [-5.2, 0, -18.62], cap: 'The kitchen. Bean started as: what is in your fridge?' },
-      { model: 'sofa_teak', at: [-7.6, 0, -12.85], rot: [0, 180, 0] },
-      { model: 'bed_single', at: [-8.55, 0, -18.4], cap: 'A mattress in the corner. A hacker house.' },
-      { model: 'throw_pillows_01', at: [-8.0, 0.57, -18.3], rot: [0, 20, 0], scale: 0.8 },
-      { model: 'potted_plant_01', at: [-9.1, 0, -13.35], scale: 0.9 },
-      { build: 'cartons', at: [-2.6, 0, -19.0], rot: [0, 30, 0] },
-      { build: 'cartons', at: [-2.2, 0, -18.1], rot: [0, -15, 0], scale: 0.7 },
-      { build: 'bin', at: [-2.8, 0, -16.9] },
-      { build: 'discLight', at: [-5.2, 3.0, -18.5], live: 'pendant' },
-      { build: 'discLight', at: [-2.8, 3.0, -14.2], live: 'pendant' },
+      { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.' },
+      { model: 'wall_clock', at: [-1.44, 2.3, -17.4], rot: [0, -90, 0] },
+      { build: 'discLight', at: [-2.4, 2.9, -14.3], live: 'pendant' },
     ],
   },
 ];

@@ -43,6 +43,7 @@ Verification at handoff (2026-09-09): `npm test` 81 pass, `npm run check` 0 erro
 ## Open
 
 - **Students.** Realistic seated people need BlenderKit Full or files the user supplies (candidates and the Renderpeople terms are in doc 24). Do not fake them with primitives. When they arrive: deploy the seat pans where they sit (`auditoriumSeat` folds them), re-bake set 6.
+- **The Opera House.** Set 7's window is waiting for Nick Reinhardt's CC-BY model (Sketchfab uid 317b2d540f0a4f7e8d87dd3b0372712d); download needs the user's Sketchfab login or token, never committed. See doc 27.
 - **Vancouver, graduation, Toronto.** Sets 8+ after Sydney (its west wall has the window; a door would go in the south wall past the kitchen or the north wall). Toronto reuses set 0 and needs an explicit neighbour rule (the wrap is gone).
 - The clouds are billboarded cumulus (`cloudField`, `cloudPuffs`, `cloudMaterial`); the quads are not depth-sorted among themselves.
 - `halifax.json` could be trimmed further (far buildings) if page weight matters.
