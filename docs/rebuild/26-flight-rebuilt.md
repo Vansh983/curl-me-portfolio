@@ -22,6 +22,11 @@ He said the scenes had "breakpoints" and "areas of slippage". Measured with `.ca
 
 The phone portal remains the one intended cut. The other spikes left are fast turns (the dais, the rise from the seat), not cuts.
 
+## Podium and slide (2026-09-09)
+
+- He could not see the lectern or the laptop from the podium: the hold stood 0.1 m behind the lectern with the eye at the mic and the view pitched up 4°, so the top and the laptop sat 40° below the frame, and the route at 0.954 passed through the lectern body. Now the walk rounds the lectern on its aisle side, the hold stands 0.5 m behind it (z −16.7) pitched down 9°: the laptop and the top fill the bottom of the frame, the hall above. A test keeps the laptop inside the frame and the camera out of the lectern.
+- The slide is the title only: "Generative AI", "Taught by Vansh Sood", the ShiftKey Labs mark (`shiftkeyLabs()` in stage-paint.ts draws the folded-ribbon S and wordmark as vectors; the reference was the old project screenshot `public/assets/projects/shiftkey.png` in git history at 3a6552b).
+
 ## Still open
 
 - Students in the seats: blocked on licensed seated models (see the handoff). The turn at the dais faces an empty hall until then.

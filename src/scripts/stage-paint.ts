@@ -410,6 +410,25 @@ export const BADGE_PAINT: Record<string, Paint> = {
 };
 
 /** What is on his screens now: an editor, the Floqer app, a terminal on the laptop. */
+/**
+ * The ShiftKey Labs mark and wordmark: a ribbon folded into an S, two blue folds and a cyan band across the middle,
+ * parted by a hairline in the slide's background colour; "SHIFTKEY" heavy and "LABS" light beside it.
+ * `size` is the mark's height; the wordmark scales with it.
+ */
+export function shiftkeyLabs(x: Ctx, left: number, top: number, size: number, ground: string): void {
+  const s = size / 380, X = (u: number) => left + u * s, Y = (v: number) => top + v * s;
+  const poly = (pts: [number, number][], fill: string | CanvasGradient) => { x.beginPath(); pts.forEach(([u, v], i) => (i ? x.lineTo(X(u), Y(v)) : x.moveTo(X(u), Y(v)))); x.closePath(); x.fillStyle = fill; x.fill(); };
+  const grad = (u0: number, v0: number, u1: number, v1: number, c0: string, c1: string) => { const g = x.createLinearGradient(X(u0), Y(v0), X(u1), Y(v1)); g.addColorStop(0, c0); g.addColorStop(1, c1); return g; };
+  poly([[160, 0], [160, 140], [0, 90]], grad(0, 90, 160, 0, '#1C3D8C', '#2C74CC')); // the top fold, tapering to the left
+  poly([[75, 240], [75, 380], [235, 290]], grad(235, 290, 75, 380, '#2C74CC', '#1CA9E2')); // the bottom fold
+  x.lineJoin = 'miter'; x.strokeStyle = ground; x.lineWidth = 7 * s;
+  x.beginPath(); x.moveTo(X(0), Y(90)); x.lineTo(X(235), Y(175)); x.lineTo(X(235), Y(280)); x.lineTo(X(0), Y(185)); x.closePath(); x.stroke(); // the hairline parting the band from the folds
+  poly([[0, 90], [235, 175], [235, 280], [0, 185]], grad(0, 137, 235, 227, '#1FB4E6', '#3FD3F4')); // the band
+  const tx = X(235) + size * 0.22;
+  x.fillStyle = '#F7F8FA'; x.font = `800 ${Math.round(size * 0.4)}px Inter, system-ui, sans-serif`; x.fillText('SHIFTKEY', tx, Y(150));
+  x.fillStyle = '#B9C4CF'; x.font = `300 ${Math.round(size * 0.33)}px Inter, system-ui, sans-serif`; x.fillText('LABS', tx + size * 0.44, Y(330));
+}
+
 export const SCREEN_PAINT: Record<string, Paint> = {
   flightSign: { w: 920, h: 256, frames: [(x, w, h) => {
     x.fillStyle = '#142C3C'; x.fillRect(0, 0, w, h);
@@ -474,20 +493,13 @@ export const SCREEN_PAINT: Record<string, Paint> = {
     x.font = '20px Inter, system-ui, sans-serif'; x.fillStyle = '#A9B8C6';
     x.fillText('Ground speed 210 kt  ·  Outside 9 °C  ·  Local time 15:42', 26, h - 14);
   }] },
-  /** The Generative AI lecture: the slide on the projection screen and the presenter's laptop. */
+  /** The Generative AI lecture: the title slide on the projection screen and the presenter's laptop, with the ShiftKey Labs mark. */
   screenSlide: { w: 1408, h: 800, frames: [(x, w, h) => {
     x.fillStyle = '#101418'; x.fillRect(0, 0, w, h);
-    x.fillStyle = '#F2C94C'; x.fillRect(0, 0, 14, h);
-    x.fillStyle = '#F7F8FA'; x.font = '700 64px Inter, system-ui, sans-serif'; x.fillText('Generative AI', 70, 120);
-    x.fillStyle = '#A9B4C0'; x.font = '500 30px Inter, system-ui, sans-serif'; x.fillText('What a model is, what it is not  ·  ShiftKey Labs, Dalhousie', 72, 172);
-    const bullets = ['Attention: every token looks at every other token', 'A transformer is a stack of those, hundreds of times over', 'Training predicts the next token; everything else is emergent', 'Prompting, retrieval, tools: how you make it useful', 'Where it fails, and how you would know'];
-    x.font = '500 34px Inter, system-ui, sans-serif';
-    bullets.forEach((b, i) => { x.fillStyle = '#F2C94C'; x.fillRect(72, 252 + i * 74, 14, 14); x.fillStyle = '#E6EBF0'; x.fillText(b, 108, 268 + i * 74); });
-    // the attention diagram on the right: six tokens, weighted lines
-    const toks = ['the', 'model', 'reads', 'every', 'token', 'first'];
-    toks.forEach((t, i) => { const y = 250 + i * 62; x.fillStyle = '#1E262E'; x.fillRect(1010, y - 30, 130, 46); x.fillStyle = '#E6EBF0'; x.font = '500 26px ui-monospace, Menlo, monospace'; x.fillText(t, 1026, y + 2); });
-    toks.forEach((_, i) => toks.forEach((_, j) => { if (i === j) return; const wgt = ((i * 7 + j * 3) % 5) / 5; x.strokeStyle = `rgba(242,201,76,${0.08 + wgt * 0.5})`; x.lineWidth = 1 + wgt * 3; x.beginPath(); x.moveTo(1140, 250 + i * 62 - 8); x.bezierCurveTo(1260, 250 + i * 62, 1260, 250 + j * 62, 1340, 250 + j * 62 - 8); x.stroke(); }));
-    x.fillStyle = '#5B6672'; x.font = '24px Inter, system-ui, sans-serif'; x.fillText('CSCI 4xxx · Fall  ·  slide 3 / 41', 72, h - 40);
+    x.fillStyle = '#22C4EE'; x.fillRect(0, 0, 14, h);
+    x.fillStyle = '#F7F8FA'; x.font = '700 112px Inter, system-ui, sans-serif'; x.fillText('Generative AI', 108, 356);
+    x.fillStyle = '#B9C4CF'; x.font = '500 44px Inter, system-ui, sans-serif'; x.fillText('Taught by Vansh Sood', 112, 434);
+    shiftkeyLabs(x, 112, 572, 148, '#101418');
   }] },
   studyScreen: { w: 960, h: 600, frames: [(x, w, h) => {
     x.fillStyle = '#14212B'; x.fillRect(0, 0, w, h); x.fillStyle = '#263A48'; x.fillRect(0, 0, w, 57);

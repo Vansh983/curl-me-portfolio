@@ -110,3 +110,20 @@ test('arrival is seated in the highest row, then the walk down the aisle ends be
   assert.ok(end.look[2] > end.cam[2] + 5, 'facing the hall');
   assert.ok(SETS[5].props.some(p=>p.model==='dalhousie_campus' && p.live==='flight'));
 });
+
+test('the podium hold keeps the lectern top and its laptop in the bottom of the frame, and the walk up never passes through the lectern', () => {
+  const dolly = makeDolly(DOLLY);
+  const [lx, lz] = DAIS.lectern;
+  for (let q = 0.93; q <= 1; q += 0.001) {
+    const c = dolly(q).cam;
+    assert.ok(!(Math.abs(c[0] - lx) < 0.42 && Math.abs(c[2] - lz) < 0.34), `through the lectern at ${q.toFixed(3)}: ${c}`);
+  }
+  const laptop = { keys: [lx, DAIS.height + 1.12 + 0.02, lz - 0.05], screenTop: [lx, DAIS.height + 1.12 + 0.2, lz - 0.03] };
+  const pitch = (from: number[], to: number[]) => Math.asin((to[1] - from[1]) / Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]));
+  for (const q of [0.978, 0.99, 1]) {
+    const f = dolly(q);
+    const axis = pitch(f.cam, f.look), half = (f.fov / 2) * Math.PI / 180;
+    for (const [name, at] of Object.entries(laptop)) assert.ok(axis - pitch(f.cam, at) < half - 0.06, `${name} below the frame at ${q}`);
+    assert.ok(f.cam[2] < lz - 0.6, `standing back from the lectern at ${q}`);
+  }
+});

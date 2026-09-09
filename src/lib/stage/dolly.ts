@@ -102,12 +102,12 @@ export const DOLLY: DollyKey[] = [
   { q: 0.905, cam: aisle(-11.1), look: [5.5, 1.4, -15.9], fov: 74, set: 6 },
   { q: 0.92, cam: aisle(-12.45), look: [5.6, 1.35, -16.0], fov: 74, set: 6 }, // the lectern
   { q: 0.932, cam: aisle(-13.8), look: [6.8, 1.3, -16.0], fov: 74, set: 6 },
-  { q: 0.943, cam: [5.1, 1.62, -15.0], look: [8.8, 1.4, -15.4], fov: 74, set: 6 }, // on the floor, turning right past the lectern
-  { q: 0.954, cam: [5.4, DAIS.height + 1.6, -15.8], look: [9.6, 1.8, -13.6], fov: 74, set: 6 }, // up on the dais, the right bank coming round
-  { q: 0.966, cam: [5.55, DAIS.height + 1.6, -16.2], look: [8.2, 2.6, -10.0], fov: 74, set: 6 },
-  { q: 0.978, cam: [5.6, DAIS.height + 1.6, -16.3], look: [5.8, 2.9, -7.5], fov: 74, set: 6 }, // behind the lectern: the whole hall
-  { q: 0.99, cam: [5.6, DAIS.height + 1.6, -16.3], look: [4.9, 2.8, -7.0], fov: 74, set: 6 },
-  { q: 1, cam: [5.6, DAIS.height + 1.6, -16.3], look: [4.7, 2.5, -8.0], fov: 74, set: 6 }, // teaching
+  { q: 0.943, cam: [4.95, 1.62, -15.0], look: [8.8, 1.4, -15.4], fov: 74, set: 6 }, // on the floor, turning right past the lectern
+  { q: 0.954, cam: [4.9, DAIS.height + 1.6, -15.95], look: [9.4, 1.8, -13.9], fov: 74, set: 6 }, // up on the dais, passing the lectern's side, the right bank coming round
+  { q: 0.966, cam: [5.25, DAIS.height + 1.6, -16.55], look: [8.2, 2.2, -10.0], fov: 74, set: 6 },
+  { q: 0.978, cam: [5.6, DAIS.height + 1.6, -16.7], look: [5.8, 0.55, -7.5], fov: 74, set: 6 }, // behind the lectern: the laptop at the bottom of the frame, the whole hall above it
+  { q: 0.99, cam: [5.6, DAIS.height + 1.6, -16.7], look: [4.9, 0.45, -7.0], fov: 74, set: 6 },
+  { q: 1, cam: [5.6, DAIS.height + 1.6, -16.7], look: [4.7, 0.5, -8.0], fov: 74, set: 6 }, // teaching
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
