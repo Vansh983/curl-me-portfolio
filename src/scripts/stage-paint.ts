@@ -565,17 +565,75 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     x.fillStyle = '#9CA3AF'; x.font = '13px Inter, system-ui, sans-serif'; x.fillText('pantry  ·  recipes  ·  week  ·  shopping', 60, 680);
   }] },
   /** The laptop in hand on the road: Bean's numbers for the trip, live-looking, the logo top left. */
-  screenTour: { w: 768, h: 480, frames: [(x, w, h) => {
+  screenTour: { w: 768, h: 480, frames: (([['Vancouver', 'Web Summit  ·  May 2025', [['500', 'conversations'], ['120', 'signups'], ['1', 'investor MOU'], ['700+', 'parents cooking']], ['09:00  booth open, Convention Centre West', '11:30  investor coffee, level 2', '14:00  Socratica, come work on your thing', '18:00  night summit, the seawall']],
+    ['Calgary', 'on the road  ·  2025', [['700+', 'parents cooking'], ['28.6k', 'recipes'], ['3x', 'retention'], ['24/7', 'founder support']], ['calls with parents all day', 'fixes shipped from the road', 'pantry photo to items', 'family plan sharing']],
+    ['Toronto', 'Elevate  ·  Oct 2025', [['8', 'investor calls'], ['1', 'delegation'], ['2', 'open houses'], ['0', 'shiny meetings']], ['day 0  DM every investor in reach', 'day 1  the conference, dinner with Alex', 'day 2  a cafe. churn, not meetings', 'day 3  feedback calls; DMZ, Floqer house']],
+    ['Halifax', 'Invest NS  ·  Volta  ·  2025 to 26', [['12', 'startups picked'], ['$40k', 'over 5 months'], ['~100', 'at Collect.'], ['#4', 'Product Hunt']], ['Thursday  Collect. at Volta', 'pitch practice with Lindsay', 'Demo Day: the space packed', 'ship. then sleep.']]]) as Array<[string, string, Array<[string, string]>, string[]]>).map(([city, when, cells, plan]) => (x: Ctx, w: number, h: number) => {
     x.fillStyle = '#FBF8F4'; x.fillRect(0, 0, w, h); x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, 64);
     beanLogo(x, images.bean, 110, 32, 40, true);
-    x.fillStyle = '#7A8290'; x.font = '500 16px Inter, system-ui, sans-serif'; x.fillText('on the road  ·  May 2025', 560, 40);
-    x.fillStyle = '#21293C'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText('Web Summit Vancouver', 32, 118);
-    const cells: Array<[string, string]> = [['500', 'conversations'], ['120', 'signups'], ['1', 'investor MOU'], ['700+', 'parents cooking']];
-    cells.forEach(([n, t], i) => { const cx = 32 + i * 180; x.fillStyle = '#FFFFFF'; x.beginPath(); x.roundRect(cx, 150, 164, 130, 14); x.fill(); x.fillStyle = BEAN_ORANGE; x.font = '800 52px Inter, system-ui, sans-serif'; x.fillText(n, cx + 16, 216); x.fillStyle = '#4B5563'; x.font = '500 17px Inter, system-ui, sans-serif'; x.fillText(t, cx + 16, 256); });
+    x.fillStyle = '#7A8290'; x.font = '500 16px Inter, system-ui, sans-serif'; x.textAlign = 'right'; x.fillText(when, w - 24, 40); x.textAlign = 'left';
+    x.fillStyle = '#21293C'; x.font = '700 34px Inter, system-ui, sans-serif'; x.fillText(city, 32, 118);
+    cells.forEach(([n, t], i) => { const cx = 32 + i * 180; x.fillStyle = '#FFFFFF'; x.beginPath(); x.roundRect(cx, 150, 164, 130, 14); x.fill(); x.fillStyle = BEAN_ORANGE; x.font = '800 48px Inter, system-ui, sans-serif'; x.fillText(n, cx + 16, 216); x.fillStyle = '#4B5563'; x.font = '500 17px Inter, system-ui, sans-serif'; x.fillText(t, cx + 16, 256); });
     x.fillStyle = '#21293C'; x.font = '600 18px Inter, system-ui, sans-serif'; x.fillText('Today', 32, 330);
-    ['09:00  booth open, Convention Centre West', '11:30  investor coffee, level 2', '14:00  Socratica, come work on your thing', '18:00  night summit, the seawall'].forEach((t, i) => { x.fillStyle = i === 2 ? BEAN_ORANGE : '#4B5563'; x.font = '15px Inter, system-ui, sans-serif'; x.fillText(t, 32, 362 + i * 26); });
+    plan.forEach((t, i) => { x.fillStyle = i === 2 ? BEAN_ORANGE : '#4B5563'; x.font = '15px Inter, system-ui, sans-serif'; x.fillText(t, 32, 362 + i * 26); });
     x.fillStyle = '#E5E7EB'; x.fillRect(420, 316, 316, 150); x.fillStyle = '#4B5563'; x.font = '600 15px Inter, system-ui, sans-serif'; x.fillText('signups by hour', 436, 340);
     [3, 8, 14, 22, 19, 26, 17, 11].forEach((v, i) => { x.fillStyle = BEAN_ORANGE; x.fillRect(436 + i * 36, 456 - v * 4, 24, v * 4); });
+  }) },
+  /** The wayfinding totems, 0.9 by 2.4: the city large, what he was there for, the date; dark on white with the city's colour band. */
+  ...Object.fromEntries((([['totemVancouver', 'Vancouver', 'Web Summit', 'May 2025', '#FF6A13', 'Convention Centre West · Canada Place · the seawall'], ['totemCalgary', 'Calgary', 'on the road', '2025', '#C43E2D', 'Stephen Avenue · the Calgary Tower'], ['totemToronto', 'Toronto', 'Elevate', 'Oct 2025', '#1B4FBF', 'Startup Atlantic delegation · DMZ · Floqer house'], ['totemHalifax', 'Halifax', 'Volta · Collect.', '2025 to 26', '#2E7D32', 'Barrington Street · Invest NS Accelerate']]) as Array<[string, string, string, string, string, string]>).map(([key, city, what, when, colour, line]) => [key, { w: 450, h: 1200, frames: [(x: Ctx, w: number, h: number) => {
+    x.fillStyle = '#F6F4EF'; x.fillRect(0, 0, w, h); x.fillStyle = colour; x.fillRect(0, 0, w, 90); x.fillRect(0, h - 40, w, 40);
+    x.fillStyle = '#FFFFFF'; x.font = '600 34px Inter, system-ui, sans-serif'; x.fillText(when, 30, 60);
+    x.fillStyle = '#1B1B1B'; x.font = '800 92px Inter, system-ui, sans-serif'; x.fillText(city, 30, 250);
+    x.fillStyle = colour; x.font = '700 54px Inter, system-ui, sans-serif'; x.fillText(what, 30, 340);
+    x.fillStyle = '#4B5563'; x.font = '500 30px Inter, system-ui, sans-serif';
+    line.split(' · ').forEach((t, i) => x.fillText(t, 30, 440 + i * 46));
+    x.strokeStyle = '#1B1B1B'; x.lineWidth = 4; x.beginPath(); x.moveTo(30, 640); x.lineTo(w - 30, 640); x.stroke();
+    beanLogo(x, images.bean, 225, 780, 150, true); x.fillStyle = '#7A8290'; x.font = '500 28px Inter, system-ui, sans-serif'; x.textAlign = 'center'; x.fillText('laptop in hand', 225, 900); x.textAlign = 'left';
+    x.fillStyle = '#1B1B1B'; x.font = '600 26px Inter, system-ui, sans-serif'; x.fillText('you are here', 30, 1080); x.fillStyle = colour; x.beginPath(); x.arc(230, 1072, 12, 0, Math.PI * 2); x.fill();
+  }] }])),
+  /** The gateway signs over the doorways between cities, 3 by 0.7: "to <city>" and what waits there. */
+  ...Object.fromEntries((([['gateCalgary', 'Calgary', 'on the road', '#C43E2D'], ['gateToronto', 'Toronto', 'Elevate · the Floqer house', '#1B4FBF'], ['gateHalifax', 'Halifax', 'Volta · Collect. · Invest NS', '#2E7D32']]) as Array<[string, string, string, string]>).map(([key, city, what, colour]) => [key, { w: 1500, h: 350, frames: [(x: Ctx, w: number, h: number) => {
+    x.fillStyle = '#111316'; x.fillRect(0, 0, w, h); x.fillStyle = colour; x.fillRect(0, 0, 40, h);
+    x.fillStyle = '#FFFFFF'; x.font = '500 54px Inter, system-ui, sans-serif'; x.fillText('to', 90, 130);
+    x.font = '800 150px Inter, system-ui, sans-serif'; x.fillText(city, 170, 160);
+    x.fillStyle = '#C9CDD3'; x.font = '500 50px Inter, system-ui, sans-serif'; x.fillText(what, 90, 280);
+    x.fillStyle = colour; x.beginPath(); x.moveTo(w - 200, 130); x.lineTo(w - 90, 175); x.lineTo(w - 200, 220); x.closePath(); x.fill(); // the arrow on
+  }] }])),
+  /** The shop bands along the fronts, 14 by 3.6 m: awnings, windows and the city's shop names. */
+  ...Object.fromEntries((([['shopsCalgary', ['Stephen Ave Coffee', 'Alberta Boot', 'Tim Hortons'], '#C43E2D', '#E8DCC8'], ['shopsToronto', ['Balzac\'s', 'Queen St Vintage', 'Convenience'], '#1B4FBF', '#D9CFC0'], ['shopsHalifax', ['The Coastal', 'Barrington Books', 'Halifax Donair'], '#2E7D32', '#DCD6CC']]) as Array<[string, string[], string, string]>).map(([key, names, colour, wall]) => [key, { w: 1400, h: 360, frames: [(x: Ctx, w: number, h: number) => {
+    x.fillStyle = wall; x.fillRect(0, 0, w, h);
+    names.forEach((n, i) => { const sx = i * (w / 3), sw = w / 3; x.fillStyle = '#2E3A44'; x.fillRect(sx + 30, 120, sw - 60, 200); x.fillStyle = 'rgba(255,255,255,0.18)'; x.fillRect(sx + 40, 130, (sw - 80) * 0.4, 180); x.fillStyle = i === 1 ? '#3B3F46' : colour; x.fillRect(sx + 20, 60, sw - 40, 50); x.fillStyle = '#FFFFFF'; x.font = '700 30px Inter, system-ui, sans-serif'; x.fillText(n, sx + 40, 96); for (let k = 0; k < 6; k++) { x.fillStyle = k % 2 ? colour : '#F6F4EF'; x.fillRect(sx + 20 + k * ((sw - 40) / 6), 110, (sw - 40) / 6, 14); } x.fillStyle = '#5B5B5B'; x.fillRect(sx + sw / 2 - 40, 200, 80, 120); }); // the door
+  }] }])),
+  /** Toronto's Elevate banner and Halifax's Collect. Demo Day banner on their lampposts, 0.85 by 2.05. */
+  bannerElevate: { w: 340, h: 820, frames: [(x, w, h) => {
+    x.fillStyle = '#0E0E10'; x.fillRect(0, 0, w, h); x.fillStyle = '#1B4FBF'; x.fillRect(0, 0, w, 14);
+    x.fillStyle = '#FFFFFF'; x.font = '800 66px Inter, system-ui, sans-serif'; x.fillText('Elevate', 34, 170);
+    x.fillStyle = '#9DB7F5'; x.font = '600 36px Inter, system-ui, sans-serif'; x.fillText('Toronto', 34, 230); x.fillText('Oct 2025', 34, 280);
+    x.fillStyle = '#FFFFFF'; x.font = '500 28px Inter, system-ui, sans-serif'; ['Canada\'s', 'tech and', 'innovation', 'festival'].forEach((t, i) => x.fillText(t, 34, 400 + i * 40));
+    x.fillStyle = '#1B4FBF'; x.fillRect(34, 620, 270, 6); x.fillStyle = '#C9CDD3'; x.font = '500 24px Inter, system-ui, sans-serif'; x.fillText('Startup Atlantic', 34, 690); x.fillText('delegation', 34, 724);
+  }] },
+  bannerCollect: { w: 340, h: 820, frames: [(x, w, h) => {
+    x.fillStyle = '#F6F4EF'; x.fillRect(0, 0, w, h); x.fillStyle = '#2E7D32'; x.fillRect(0, 0, w, 90);
+    x.fillStyle = '#FFFFFF'; x.font = '800 40px Inter, system-ui, sans-serif'; x.fillText('Collect.', 30, 62);
+    x.fillStyle = '#1B1B1B'; x.font = '800 64px Inter, system-ui, sans-serif'; x.fillText('Demo', 30, 200); x.fillText('Day', 30, 270);
+    x.fillStyle = '#2E7D32'; x.font = '600 32px Inter, system-ui, sans-serif'; x.fillText('at Volta', 30, 340); x.fillText('Feb 15', 30, 385);
+    x.fillStyle = '#4B5563'; x.font = '500 26px Inter, system-ui, sans-serif'; ['every Thursday', 'builders', 'coworking', 'from a handful', 'to almost 100'].forEach((t, i) => x.fillText(t, 30, 480 + i * 40));
+    x.fillStyle = '#2E7D32'; x.fillRect(30, 700, 280, 6); x.fillStyle = '#1B1B1B'; x.font = '600 26px Inter, system-ui, sans-serif'; x.fillText('Socratica · Halifax', 30, 760);
+  }] },
+  /** Door signs, 2.4 by 0.7: Floqer's hacker house, the DMZ, Volta. */
+  signFloqer: { w: 960, h: 280, frames: [(x, w, h) => { x.fillStyle = '#111316'; x.fillRect(0, 0, w, h); x.fillStyle = '#FFFFFF'; x.font = '800 120px Inter, system-ui, sans-serif'; x.fillText('FLOQER', 60, 150); x.fillStyle = '#9DB7F5'; x.font = '500 40px Inter, system-ui, sans-serif'; x.fillText('hacker house  ·  a seat on a rocket', 60, 230); }] },
+  signDMZ: { w: 960, h: 280, frames: [(x, w, h) => { x.fillStyle = '#C8102E'; x.fillRect(0, 0, w, h); x.fillStyle = '#FFFFFF'; x.font = '800 140px Inter, system-ui, sans-serif'; x.fillText('DMZ', 60, 160); x.font = '500 40px Inter, system-ui, sans-serif'; x.fillText('Startup Open House', 400, 100); x.fillText('Toronto Metropolitan University', 400, 160); }] },
+  signVolta: { w: 960, h: 280, frames: [(x, w, h) => { x.fillStyle = '#F6F4EF'; x.fillRect(0, 0, w, h); x.fillStyle = '#111316'; x.font = '800 150px Inter, system-ui, sans-serif'; x.fillText('volta', 60, 170); x.fillStyle = '#2E7D32'; x.font = '500 40px Inter, system-ui, sans-serif'; x.fillText('1505 Barrington St  ·  Collect. Thursdays  ·  Invest NS Accelerate', 60, 240); }] },
+  /** The café in Toronto: day two of Elevate, the churn problem on the table instead of the meetings. */
+  cafeChurn: { w: 1520, h: 660, frames: [(x, w, h) => {
+    const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3E3630'); g.addColorStop(1, '#221D19'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#F2C48A'; for (let i = 0; i < 4; i++) { x.beginPath(); x.arc(220 + i * 360, 90, 26, 0, Math.PI * 2); x.fill(); }
+    x.fillStyle = '#8B6A4A'; x.fillRect(120, 400, 500, 26); x.fillRect(900, 400, 500, 26);
+    x.fillStyle = '#C9CDD3'; x.fillRect(300, 340, 110, 62); x.fillStyle = '#1E1E24'; x.fillRect(306, 346, 98, 50); // one laptop, his
+    x.fillStyle = '#F4EFE6'; x.fillRect(430, 386, 60, 8); x.fillStyle = '#E9E2D6'; x.beginPath(); x.arc(520, 392, 12, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#FFFFFF'; x.fillRect(880, 120, 460, 250); x.fillStyle = '#1B1B1B'; x.font = '700 40px "Comic Sans MS", "Chalkboard SE", cursive'; x.fillText('churn', 910, 180);
+    x.font = '500 26px "Comic Sans MS", "Chalkboard SE", cursive'; ['"I don\'t remember to open the app"', '"I don\'t see my own recipes"', 'reminders every day  ·  3x retention', 'cancel the meetings. fix the product.'].forEach((t, i) => { x.fillStyle = i === 3 ? '#C0392B' : '#1B1B1B'; x.fillText(t, 910, 230 + i * 36); });
+    x.fillStyle = 'rgba(255,255,255,0.10)'; x.fillRect(0, 0, w * 0.3, h);
   }] },
   /** A Web Summit lamppost banner, 0.85 by 2.05: orange, the name, Vancouver, the dates. */
   bannerWebSummit: { w: 340, h: 820, frames: [(x, w, h) => {

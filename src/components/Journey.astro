@@ -105,6 +105,14 @@ const n = chapters.length;
     min-height: 100svh;
     padding-top: 18svh;
   }
+  /* the tour's cities (Vancouver on) run over the whole of their chapters on the stage, so their cards sit lower in
+     their articles: each card comes up the screen while its city is walked, not the city before */
+  .ch[data-i='8'],
+  .ch[data-i='9'],
+  .ch[data-i='10'],
+  .ch[data-i='11'] {
+    padding-top: 72svh;
+  }
   @media (min-width: 48.001rem) {
     .ch:first-child {
       padding-top: 13svh;

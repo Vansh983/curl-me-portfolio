@@ -12,7 +12,7 @@ test('stageProgress runs the stage over `span` chapter lengths, then holds', () 
   assert.ok(Math.abs(stageProgress(2 / 8, 9, 3) - 2 / 3) < 1e-9);
   assert.equal(stageProgress(3 / 8, 9, 3), 1);
   // nine chapters, the stage over seven of them: the flight on the 2022 card, the podium on the last stage card
-  assert.ok(Math.abs(stageProgress(5 / 9, 10, STAGE_SPAN) - 5 / 9) < 1e-9);
-  assert.equal(stageProgress(1, 10, STAGE_SPAN), 1);
+  assert.ok(Math.abs(stageProgress(5 / 12, 13, STAGE_SPAN) - 5 / 12) < 1e-9);
+  assert.equal(stageProgress(1, 13, STAGE_SPAN), 1);
   assert.ok(Math.abs(ch(7) * STAGE_SPAN - 7) < 1e-12, 'chapter units');
 });

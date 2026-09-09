@@ -13,7 +13,8 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
  * At `end` the Studley campus is abeam, 250 to 900 m off the wing and `low` metres down; after it the aircraft holds
  * height and the ground keeps sliding at `cruise` metres per unit of progress (the speed the descent ended at).
  */
-export const FLIGHT = { start: ch(4.704), end: ch(5.047), top: 385, low: 130, distance: 1450, deck: FLIGHT_DECK, bank: 7, cruise: 11840 } as const;
+const DESCENT = { start: ch(4.704), end: ch(5.047), distance: 1450 };
+export const FLIGHT = { ...DESCENT, top: 385, low: 130, deck: FLIGHT_DECK, bank: 7, cruise: (0.35 * DESCENT.distance) / (DESCENT.end - DESCENT.start) } as const; // cruise: the ground speed the descent ends at, per unit of progress
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
 export const PHONE = { raise: ch(5.012), framed: ch(5.075), zoom: ch(5.103), filled: ch(5.194), transfer: ch(5.215), reveal: ch(5.264) } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */

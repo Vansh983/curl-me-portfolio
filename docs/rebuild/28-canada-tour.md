@@ -44,3 +44,18 @@ First person, his laptop in hand: a held laptop in the lower left of the frame, 
 - Sydney re-baked for the new door (the mattress moved to the east end of the south wall).
 
 Still open: Calgary (no facts), Toronto, Halifax, the degree, Toronto.
+
+## The full path (2026-09-09, night)
+
+He said: no time at the Sydney window, walk straight out; he hates the painted mountains; every stop needs to say where he is and what he is doing; keep it compact; the whole path; real models; the laptop more visible, walking while working.
+
+- **Sydney** now exits at chapter 7.42: from the monitors straight along the north side, down the gap by the window (a glance out on the way), out of the south door beside it at 7.9. No hold at the glass.
+- **Four cities in a row along +x, 11 m each,** joined by glass gateways across the sidewalk with a lit sign over the doorway ("to Calgary", "to Toronto", "to Halifax"): Vancouver x −7..4, Calgary 4..15, Toronto 15..26, Halifax 26..37. One chapter per city (`STAGE_SPAN` 12; the road card became four city cards in timeline.ts). Each city: a wayfinding totem at its start (city, event, date, "you are here"), the shop band and fronts in its own colour, the laptop's page turning to the city (`screenTour` frames, `TOUR_PAGE` in stage-run.ts), and the landmark dead ahead at the end of the street, this set only.
+- **Vancouver**: the seawall, the Convention Centre glass with the Socratica session painted inside it, the booth, Web Summit banners, a coffee cart (Outlier Spa, CC BY), Canada Place's sails on the water. The mountains are gone; sky and water.
+- **Calgary**: sandstone fronts (Stephen Avenue), the Calgary Tower authored as a lathe (no licensed model exists). What he did there is still his to say; the totem and card say "on the road".
+- **Toronto**: the DMZ door, the café with churn on the whiteboard, the Floqer hacker house door, Elevate banners, a streetcar on the road, a hot dog cart (Outlier Spa, CC BY), the CN Tower at the end of the street.
+- **Halifax**: Volta's door, Collect. Demo Day banners, ironstone fronts (Barrington Books, Halifax Donair), Saint Mary's Cathedral Basilica across the street: Air Digital's scan (CC BY), 2.8 M faces simplified to 650 KB, its west front to the street. The walk ends here.
+- **The laptop** rides low centre in both hands, lid up, the screen square to the eye.
+- **Cards**: the tour's articles (data-i 8 to 11) get `padding-top: 72svh` so each card comes up while its city is walked; stage progress is now read off the article positions (`progress()` and `yFor()` in stage-run.ts), so uneven articles do not skew the keys, and the audit scripts scroll with `window.__stage.yFor(q)`.
+
+Frames: `.cache/tour4/sheet.png`.

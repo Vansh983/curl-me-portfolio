@@ -123,19 +123,42 @@ export const DOLLY: DollyKey[] = [
   { q: ch(7.24), cam: [-2.7, 1.6, -15.0], look: [-4.8, 1.45, -13.4], fov: 74, set: 7 }, // the whiteboard
   { q: ch(7.35), cam: [-2.95, 1.6, -14.35], look: [-6.0, 1.15, -14.6], fov: 74, set: 7 }, // at the table's end, the room's length ahead
   { q: ch(7.42), cam: [-3.05, 1.55, -14.3], look: [-4.8, 0.85, -15.5], fov: 74, set: 7 }, // down at the monitors and the wires
-  { q: ch(7.57), cam: [-5.0, 1.6, -14.28], look: [-7.4, 1.5, -15.8], fov: 74, set: 7 }, // up, and along the north side to the window and the sign
-  { q: ch(7.68), cam: [-6.55, 1.6, -15.2], look: [-12.0, 1.6, -15.8], fov: 74, set: 7 }, // at the glass
-  { q: ch(7.72), cam: [-6.6, 1.6, -15.5], look: [-10.6, 1.43, -15.9], fov: 74, set: 7 }, // out over the water: the Opera House on its point, the bridge behind. 2024, Bean
-  // 2025: turn, along the south side of the table and out of the south door onto the Vancouver seawall, laptop in hand
-  { q: ch(7.95), cam: [-6.8, 1.6, -16.4], look: [-6.85, 1.35, -20.4], fov: 74, set: 7 }, // turning left to the door beside the window
-  { q: ch(8.06), cam: [-6.85, 1.6, -17.95], look: [-6.85, 1.15, -21.95], fov: 74, set: 7, blend: 0 }, // the jamb: the water and the mountains through the door
-  { q: ch(8.14), cam: [-6.85, 1.6, -19.3], look: [-6.85, 1.2, -23.3], fov: 74, set: 8, blend: 1 }, // out on the promenade: the harbour, the North Shore
-  { q: ch(8.28), cam: [-6.4, 1.6, -21.3], look: [-3.6, 1.3, -24.1], fov: 74, set: 8 }, // turning east: the banners, the sails over the water
-  { q: ch(8.43), cam: [-4.1, 1.6, -21.8], look: [-0.1, 1.2, -21.8], fov: 74, set: 8 }, // along the seawall
-  { q: ch(8.58), cam: [-1.8, 1.6, -22.0], look: [2.2, 1.15, -21.6], fov: 74, set: 8 },
-  { q: ch(8.72), cam: [0.5, 1.6, -22.1], look: [4.1, 1.1, -20.3], fov: 74, set: 8 }, // the booth: the day's numbers
-  { q: ch(8.84), cam: [2.2, 1.6, -22.2], look: [4.8, 1.2, -20.2], fov: 74, set: 8 },
-  { q: ch(9), cam: [3.3, 1.6, -22.2], look: [11.0, 1.5, -19.5], fov: 74, set: 8 }, // past the booth: the café, the sails; hold
+  // 2025: straight out. Along the north side, down the gap between the table and the window (the Opera House through it), out of the south door, laptop in hand
+  { q: ch(7.56), cam: [-5.0, 1.6, -14.28], look: [-8.4, 1.5, -16.4], fov: 74, set: 7 },
+  { q: ch(7.68), cam: [-6.7, 1.6, -15.5], look: [-9.5, 1.4, -18.3], fov: 74, set: 7 }, // a glance out of the window on the way past, already turning to the door
+  { q: ch(7.9), cam: [-6.85, 1.6, -17.95], look: [-6.85, 1.15, -21.95], fov: 74, set: 7, blend: 0 }, // the jamb
+  { q: ch(7.98), cam: [-6.85, 1.6, -19.3], look: [-6.4, 1.2, -23.3], fov: 74, set: 8, blend: 1 }, // out on the seawall: the harbour, the totem
+  { q: ch(8.1), cam: [-6.5, 1.6, -21.2], look: [-3.7, 1.3, -24.0], fov: 74, set: 8 },
+  { q: ch(8.24), cam: [-4.6, 1.6, -21.8], look: [-0.6, 1.3, -21.8], fov: 74, set: 8 }, // east along the seawall: the banners, the glass, the session inside
+  { q: ch(8.38), cam: [-2.7, 1.6, -21.9], look: [1.3, 1.2, -21.9], fov: 74, set: 8 },
+  { q: ch(8.52), cam: [-0.8, 1.6, -22.0], look: [1.6, 1.1, -20.3], fov: 74, set: 8 }, // the booth: the day's numbers
+  { q: ch(8.66), cam: [1.1, 1.6, -22.0], look: [5.1, 1.5, -22.0], fov: 74, set: 8 }, // the gateway: to Calgary
+  { q: ch(8.8), cam: [3.0, 1.6, -21.9], look: [7.0, 1.5, -21.9], fov: 74, set: 8 },
+  { q: ch(8.92), cam: [3.9, 1.6, -21.8], look: [7.9, 1.4, -21.8], fov: 74, set: 8, blend: 0 }, // the gateway's jamb
+  // Calgary: the sandstone street, the tower over the far fronts
+  { q: ch(8.98), cam: [4.9, 1.6, -21.8], look: [8.9, 1.4, -21.8], fov: 74, set: 9, blend: 1 }, // in: Calgary, the totem
+  { q: ch(9.12), cam: [6.8, 1.6, -21.7], look: [10.8, 1.3, -21.0], fov: 74, set: 9 }, // the sandstone fronts
+  { q: ch(9.26), cam: [8.7, 1.6, -21.7], look: [12.4, 2.6, -23.3], fov: 74, set: 9 }, // up: the Calgary Tower over the far side
+  { q: ch(9.4), cam: [10.6, 1.6, -21.8], look: [13.6, 4.2, -24.4], fov: 74, set: 9 }, // along the street
+  { q: ch(9.54), cam: [12.5, 1.6, -21.8], look: [16.5, 1.5, -21.8], fov: 74, set: 9 }, // the gateway: to Toronto
+  { q: ch(9.68), cam: [14.2, 1.6, -21.8], look: [18.2, 1.4, -21.8], fov: 74, set: 9 }, // at the gateway
+  { q: ch(9.78), cam: [14.9, 1.6, -21.8], look: [18.9, 1.4, -21.8], fov: 74, set: 9, blend: 0 }, // the gateway's jamb
+  // Toronto: Elevate week, the DMZ, the café, the Floqer house, a streetcar, the CN Tower
+  { q: ch(9.9), cam: [15.9, 1.6, -21.8], look: [19.9, 1.4, -21.8], fov: 74, set: 10, blend: 1 }, // in: Toronto, the totem, the Elevate banners
+  { q: ch(10.04), cam: [17.8, 1.6, -21.7], look: [21.8, 1.3, -21.0], fov: 74, set: 10 }, // the DMZ door
+  { q: ch(10.18), cam: [19.7, 1.6, -21.7], look: [23.4, 2.6, -23.3], fov: 74, set: 10 }, // the streetcar; the CN Tower over the far side
+  { q: ch(10.32), cam: [21.6, 1.6, -21.8], look: [24.6, 4.2, -24.4], fov: 74, set: 10 }, // the café: churn on the table
+  { q: ch(10.46), cam: [23.5, 1.6, -21.8], look: [27.5, 1.5, -21.8], fov: 74, set: 10 }, // the Floqer house door
+  { q: ch(10.6), cam: [25.2, 1.6, -21.8], look: [29.2, 1.4, -21.8], fov: 74, set: 10 }, // the gateway: to Halifax
+  { q: ch(10.7), cam: [25.9, 1.6, -21.8], look: [29.9, 1.4, -21.8], fov: 74, set: 10, blend: 0 }, // the gateway's jamb
+  // Halifax: Barrington Street, Volta, Collect., and the end of the road
+  { q: ch(10.82), cam: [26.9, 1.6, -21.8], look: [30.9, 1.4, -21.8], fov: 74, set: 11, blend: 1 }, // in: Halifax, the totem
+  { q: ch(10.96), cam: [28.8, 1.6, -21.7], look: [32.8, 1.3, -21.0], fov: 74, set: 11 }, // Volta's door
+  { q: ch(11.1), cam: [30.7, 1.6, -21.7], look: [34.4, 2.6, -23.3], fov: 74, set: 11 }, // the Collect. banners; the basilica across the street
+  { q: ch(11.24), cam: [32.6, 1.6, -21.8], look: [35.6, 4.2, -24.4], fov: 74, set: 11 }, // along Barrington
+  { q: ch(11.38), cam: [34.5, 1.6, -21.8], look: [38.5, 1.5, -21.8], fov: 74, set: 11 }, // the ironstone fronts
+  { q: ch(11.52), cam: [36.2, 1.6, -21.8], look: [39.5, 1.3, -19.8], fov: 74, set: 11 }, // the end of the block: laptop in hand
+  { q: ch(12), cam: [36.2, 1.6, -21.8], look: [39.5, 1.3, -19.8], fov: 74, set: 11 }, // and hold
 ];
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);

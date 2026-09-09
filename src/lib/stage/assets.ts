@@ -37,6 +37,10 @@ export const ASSETS: Asset[] = [
     drop: ['Plane_3', 'Object_12', 'Object_15', 'Object_17'], // its painted night sky, its water and its camera: the harbour is ours
     // modelled for a night scene: the shells and the podium take daylight colours here, and nothing glows
     skin: { FINS: { color: '#EDE7DA', map: false, emissive: false, rough: 0.45 }, STONE: { color: '#B9AE9A', map: false, emissive: false, rough: 0.85 }, GLASS: { color: '#3C4A56', map: false, rough: 0.2 }, BRONZE: { color: '#8A6A3F', rough: 0.5, metal: 0.6 }, LIGHT: { emissive: false }, LIGHTPOLE: { color: '#4A4A4A', map: false } } },
+  // the tour's streets, from Sketchfab with the user's account
+  { id: 'coffee_cart', kind: 'model', source: 'sketchfab', url: 'https://sketchfab.com/3d-models/coffee-cart-1a97f872c1ac4a83a0132cd749d0b2a8', res: '1k', licence: 'CC-BY-4.0', author: 'Outlier Spa (Sketchfab)', use: 'the coffee cart on the Vancouver seawall', maxTex: 512, simplify: 0.002 },
+  { id: 'hot_dog_cart', kind: 'model', source: 'sketchfab', url: 'https://sketchfab.com/3d-models/new-york-hot-dog-cart-d363905ab6db442789acf06e031e2b21', res: '1k', licence: 'CC-BY-4.0', author: 'Outlier Spa (Sketchfab)', use: 'the hot dog cart on the Toronto sidewalk', maxTex: 512 },
+  { id: 'st_marys_basilica', kind: 'model', source: 'sketchfab', url: 'https://sketchfab.com/3d-models/saint-marys-cathedral-basilica-halifax-f14d1c9714e24b4a8367192e00bd02cd', res: '1k', licence: 'CC-BY-4.0', author: 'Air Digital (Sketchfab)', use: "Saint Mary's Cathedral Basilica across Barrington Street in Halifax, a scan simplified hard", maxTex: 512, simplify: 0.01 },
   // now, Toronto
   model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp, and the bedside lamp', 256, 0.004),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),

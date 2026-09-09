@@ -69,6 +69,18 @@ export const MATS: Record<string, Mat> = {
   bannerOrange: { color: '#FF6A13', rough: 0.8, tile: 1 },
   boothWhite: { color: '#F2F1EC', rough: 0.6, clearcoat: 0.1, tile: 1 },
   cedar: { color: '#8B5E3C', rough: 0.8, tex: 'oak_veneer_01', amp: 0.35, tile: 1.4 },
+  // the tour's streets: Calgary sandstone, Toronto brick and a streetcar, Halifax ironstone and the boardwalk
+  sidewalk: { color: '#B7B3AA', rough: 0.92, grain: 'speckle', amp: 0.15, tile: 1.2, layer: 3 },
+  roadway: { color: '#3E4043', rough: 0.95, tile: 1, layer: 2 },
+  sandstone: { color: '#C9A87C', rough: 0.85, tile: 3.6, tint: true, paint: 'facade' },
+  towerConcrete: { color: '#B5B0A6', rough: 0.8, tile: 1 },
+  towerPod: { color: '#C43E2D', rough: 0.5, clearcoat: 0.2, tile: 1 },
+  streetcarRed: { color: '#C8102E', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
+  streetcarWhite: { color: '#F0F0EC', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
+  streetcarGlass: { color: '#2E3A44', rough: 0.1, clearcoat: 0.8, clearcoatRough: 0.05, tile: 1 },
+  tramRail: { color: '#8A8C8F', rough: 0.4, metal: 0.8, tile: 1 },
+  boardwalk: { color: '#9A7B58', rough: 0.85, tex: 'plank_flooring_02', amp: 0.4, tile: 1.98, layer: 3 },
+  gatewayGlass: { color: '#A9C3D2', rough: 0.05, clearcoat: 1, clearcoatRough: 0.03, alpha: 0.22, tile: 1 },
   oldPlastic: { color: '#2C2D30', rough: 0.62, clearcoat: 0.08, clearcoatRough: 0.5, tile: 1 }, // the black plastic of a 2010s monitor
   oldPlasticPale: { color: '#9A9891', rough: 0.7, tile: 1 }, // the greyed beige one
   airBed: { color: '#2A3446', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.25, tile: 1 }, // flocked PVC, a little sheen

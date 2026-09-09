@@ -81,7 +81,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   heldLaptop.name = 'heldLaptop';
   heldLaptop.visible = false;
   camera.add(heldLaptop);
-  const TOUR_SETS = new Set([8]);
+  const TOUR_SETS = new Set([8, 9, 10, 11]);
+  const TOUR_PAGE: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3 }; // the laptop's page per city
+  const tourPages: CanvasTexture[] = [];
+  let tourPage = -1, tourScreen: Mesh | undefined;
 
   // one sun that casts, one hemisphere that tints; the rest of the light is the environment
   const sun = new DirectionalLight(0xffffff, 1);
@@ -440,9 +443,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const buildHeldLaptop = () => {
     const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' });
     obj.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
-    obj.position.set(0.16, -0.36, -0.5); // held on the right, the base low in the frame, the lid up and turned toward the eye
-    obj.rotation.set(0.25, -0.35, -0.05);
-    obj.scale.setScalar(0.85);
+    obj.position.set(-0.02, -0.3, -0.44); // held in both hands while walking: the base low in the frame, the lid up, the screen square to the eye
+    obj.rotation.set(0.36, 0.0, 0.0);
+    obj.scale.setScalar(1.0);
+    obj.traverse((o) => { if (o instanceof Mesh && o.name.includes('paint:screenTour')) tourScreen = o; });
     heldLaptop.add(obj);
   };
   const placeBuilt = (name: string, p: Placement, baked = false): Object3D => {
@@ -720,12 +724,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   if (bloom) bloom.enabled = !off.has('bloom');
   vignette.enabled = !off.has('vignette');
   smaa.enabled = !off.has('smaa');
-  if (DEBUG) (window as unknown as { __stage: unknown }).__stage = { renderer, composer, ao, bloom, scene, camera, Raycaster, Vector3 }; // the classes too, for a probe script to cast rays
+  if (DEBUG) (window as unknown as { __stage: unknown }).__stage = { yFor, renderer, composer, ao, bloom, scene, camera, Raycaster, Vector3 }; // the classes too, for a probe script to cast rays
 
   // assets that arrive later repaint what uses them
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
-  loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'screenTour']); });
+  loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'screenTour', 'totemVancouver', 'totemCalgary', 'totemToronto', 'totemHalifax']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
   const dolly = makeDolly(DOLLY);
@@ -775,10 +779,26 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     apply(Math.max(1, dpr - 0.25));
   };
 
+  // Section progress in chapter units, read off the chapter articles themselves rather than assumed uniform: a chapter
+  // is the scroll from one article's top to the next's, so a card given more room (the tour's first card) slows the
+  // stage over its chapter instead of skewing every chapter after it. Returned as a fraction of (chapters - 1) so
+  // stageProgress() maps it as before.
+  const articles = [...root.querySelectorAll<HTMLElement>('.ch')];
+  /** The document scroll that puts the stage at progress q: the audit scripts use it (window.__stage.yFor). */
+  function yFor(q: number): number { // hoisted: __stage takes it before this line runs
+    const c = Math.min(1, Math.max(0, q)) * STAGE_SPAN, i = Math.min(articles.length - 2, Math.floor(c));
+    const tops = articles.map((a) => a.offsetTop), base = root.getBoundingClientRect().top + scrollY;
+    return base + tops[i] + (c - i) * (tops[i + 1] - tops[i]);
+  }
   const progress = () => {
-    const r = root.getBoundingClientRect();
-    const total = r.height - innerHeight;
-    return total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+    if (articles.length < 2) return 0;
+    const y = -root.getBoundingClientRect().top;
+    const tops = articles.map((a) => a.offsetTop);
+    let i = 0;
+    while (i < tops.length - 2 && y >= tops[i + 1]) i++;
+    const span = Math.max(1, tops[i + 1] - tops[i]);
+    const c = i + Math.min(1, Math.max(0, (y - tops[i]) / span));
+    return Math.min(1, Math.max(0, c / (chapters - 1)));
   };
 
   /** Switches the light to a set: environment, tint, exposure, fog. Called while the frame is in a doorway. */
@@ -957,6 +977,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     flightRoll.rotation.z = flight.bank * D;
     veil.style.opacity = String(mainFrame.set === 5 ? 0.7 * flight.veil : 0); // the puffs on the track do most of it; the veil adds the glow
     if (heldLaptop.children.length === 0 && TOUR_SETS.has(mainFrame.set)) buildHeldLaptop();
+    const page = TOUR_PAGE[mainFrame.into] ?? TOUR_PAGE[mainFrame.set];
+    if (tourScreen && page !== undefined && page !== tourPage) { // the laptop's page follows the city
+      tourPage = page;
+      if (!tourPages[page]) tourPages[page] = paintTex('screenTour', page);
+      (tourScreen.material as MeshBasicMaterial).map = tourPages[page];
+      (tourScreen.material as MeshBasicMaterial).needsUpdate = true;
+    }
     heldLaptop.visible = TOUR_SETS.has(mainFrame.set) || (mainFrame.into !== mainFrame.from && TOUR_SETS.has(mainFrame.into) && mainFrame.blend > 0.5);
 
     // things on their own clock

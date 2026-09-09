@@ -23,7 +23,8 @@ test('the descent: high and level at the start, low and level at the end, a bank
   assert.equal(dolly(ch(5.95)).set, 6);
   assert.equal(dolly(ch(6.64)).set, 6);
   assert.equal(dolly(ch(7.3)).set, 7, 'Sydney on the 2024 chapter');
-  assert.equal(dolly(ch(8.5)).set, 8, 'Vancouver on the road chapter');
+  assert.equal(dolly(ch(8.5)).set, 8, 'Vancouver on its chapter');
+  assert.equal(dolly(ch(9.5)).set, 9); assert.equal(dolly(ch(10.5)).set, 10); assert.equal(dolly(ch(11.5)).set, 11);
 });
 
 test('flight motion is finite, monotonic, continuous and held at the end under reduced motion', () => {
