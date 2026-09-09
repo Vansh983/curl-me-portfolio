@@ -34,7 +34,7 @@ export const ASSETS: Asset[] = [
   { id: 'dalhousie_campus', kind: 'model', source: 'local', res: '1k', licence: 'Original', author: 'Project-authored in Blender', use: 'the dimensional Goldberg campus seen while airborne', maxTex: 512 },
   // 2024, Sydney: out of the hacker house window. Downloaded from Sketchfab with the user's account into the cache; the pipeline optimises it from there
   { id: 'sydney_opera_house', kind: 'model', source: 'sketchfab', url: 'https://sketchfab.com/3d-models/sydney-opera-house-317b2d540f0a4f7e8d87dd3b0372712d', res: '1k', licence: 'CC-BY-4.0', author: 'Nick Reinhardt (Sketchfab)', use: 'the Opera House across the water from the Sydney window', maxTex: 512, simplify: 0.001,
-    drop: ['Plane_3', 'Object_12'], // its painted night sky and its water: the harbour is ours
+    drop: ['Plane_3', 'Object_12', 'Object_15', 'Object_17'], // its painted night sky, its water and its camera: the harbour is ours
     // modelled for a night scene: the shells and the podium take daylight colours here, and nothing glows
     skin: { FINS: { color: '#EDE7DA', map: false, emissive: false, rough: 0.45 }, STONE: { color: '#B9AE9A', map: false, emissive: false, rough: 0.85 }, GLASS: { color: '#3C4A56', map: false, rough: 0.2 }, BRONZE: { color: '#8A6A3F', rough: 0.5, metal: 0.6 }, LIGHT: { emissive: false }, LIGHTPOLE: { color: '#4A4A4A', map: false } } },
   // now, Toronto

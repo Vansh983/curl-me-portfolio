@@ -398,9 +398,10 @@ export const SETS: StageSet[] = [
       ],
     },
     props: [
-      { build: 'sydneyHarbour', at: [-160.0, 12.0, -30.0], live: 'city', shadow: false, cap: 'Sydney Harbour: the bridge, the city, a ferry crossing.' },
+      { build: 'sydneyHarbour', at: [-268.0, 40.0, -30.0], live: 'city', shadow: false, cap: 'Sydney Harbour: the bridge, the city, a ferry crossing.' },
       { build: 'harbourWater', at: [-7.4, -0.6, -15.7], live: 'city', shadow: false },
-      { model: 'sydney_opera_house', at: [-110, 1.9, -26], rot: [0, -90, 0], scale: 1.3, live: 'city', shadow: false, cap: 'The Opera House across the water. Model by Nick Reinhardt, CC BY.', href: '/assets/stage/CREDITS.md' },
+      { build: 'bennelongPoint', at: [-48, 0, -30], live: 'city', shadow: false },
+      { model: 'sydney_opera_house', at: [-142, 3.3, -30], rot: [0, -90, 0], scale: 4.9, live: 'city', shadow: false, cap: 'The Opera House across the water. Model by Nick Reinhardt, CC BY.', href: '/assets/stage/CREDITS.md' }, // the model is a 1:4.9 miniature: at 4.9 the shells stand 60 m and the podium 184 m, as built
       { build: 'sydneyWindow', at: [-7.4, 0.75, -15.7], rot: [0, 90, 0] },
       { build: 'beanSign', at: [-7.39, 2.58, -15.7], rot: [0, 90, 0], live: 'screen', cap: 'Bean. Your kitchen assistant.' },
       // the table (x -6.1..-3.1, z -16.4..-15.0, top 0.74): two rows of older monitors back to back down the middle facing
