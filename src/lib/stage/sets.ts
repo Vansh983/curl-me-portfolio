@@ -466,7 +466,7 @@ export const SETS: StageSet[] = [
   {
     // 2025, Vancouver: out of the hacker house's south door onto the terrace, Web Summit week: Canada Place's sails out on
     // the water on the left, the Bean booth against the wall on the right. Laptop in hand.
-    id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true, baked: true,
+    id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, baked: true,
     sun: { dir: [0.45, 0.62, 0.55], color: '#FFF3DC', power: 2.3, shadow: 1 },
     fog: { color: '#C9D7E3', near: 300, far: 1500 },
     props: [
@@ -477,7 +477,7 @@ export const SETS: StageSet[] = [
   },
   {
     // 2025, Toronto: the same terrace, Elevate week with the Startup Atlantic delegation: the CN Tower across the water.
-    id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true, baked: true,
+    id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, baked: true,
     sun: { dir: [-0.5, 0.6, 0.45], color: '#FFEFD6', power: 2.3, shadow: 1 },
     fog: { color: '#C9D7E3', near: 400, far: 2400 },
     props: [
@@ -489,7 +489,7 @@ export const SETS: StageSet[] = [
   },
   {
     // 2025 to 2026, Halifax: the Macdonald Bridge across the harbour ahead. The walk ends at the door back into the house.
-    id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
+    id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true,
     sun: { dir: [-0.55, 0.6, 0.5], color: '#FFEBD0', power: 2.3, shadow: 1 },
     fog: { color: '#C9D7E3', near: 400, far: 2400 },
     props: [
@@ -501,8 +501,8 @@ export const SETS: StageSet[] = [
   {
     // Dalhousie convocation: through the terrace's north door into the wing, up the steps and straight onto the stage from
     // its side, to the centre for the degree, then a turn to the hall: the crowd on its feet. Authored, no survey.
-    id: 'convocation', env: 'studio', tint: { sky: '#3A3436', ground: '#241F1E', power: 0.5 }, exposure: 0.9, envPower: 0.35, baked: true,
-    sun: { dir: [0.5, 0.85, -0.2], color: '#FFE6C4', power: 0.9, shadow: 0.7 },
+    id: 'convocation', env: 'studio', tint: { sky: '#6E6258', ground: '#2A2422', power: 0.9 }, exposure: 0.9, envPower: 0.05, baked: true,
+    sun: { dir: [0.5, 0.85, -0.2], color: '#FFE6C4', power: 0.12, shadow: 0.7 },
     fog: { color: '#16141A', near: 60, far: 180 },
     props: [
       { build: 'stageWing', at: [0, 0, 0], cap: 'The wing: four steps up onto the stage from its side.' },
@@ -512,9 +512,9 @@ export const SETS: StageSet[] = [
       { build: 'crowdRows', at: [0, 0, 0], cap: 'The crowd on its feet.' },
       { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], cap: 'The lectern.' },
       ...Array.from({ length: 6 }, (_, i) => ({ build: 'hallChair', at: [STAGE.x[0] + 1.3, STAGE.height, STAGE.z[0] + 2.0 + i * 1.6 + (i > 2 ? 1.4 : 0)] as V3, rot: [0, 90, 0] as V3 })),
-      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 7.4, STAGE.centre], live: 'downlight' },
-      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 7.4, STAGE.centre - 5], live: 'downlight' },
-      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 7.4, STAGE.centre + 5], live: 'downlight' },
+      { build: 'downlight', at: [STAGE.x[1] - 3.5, STAGE.height + 8.8, STAGE.centre], live: 'downlight' },
+      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 8.8, STAGE.centre - 5.5], live: 'downlight' },
+      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 8.8, STAGE.centre + 5.5], live: 'downlight' },
       { build: 'downlight', at: [STAGE.hall[0] + 6, 8.2, STAGE.centre], live: 'downlight' },
       { build: 'downlight', at: [STAGE.hall[0] + 14, 8.2, STAGE.centre], live: 'downlight' },
     ],

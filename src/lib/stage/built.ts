@@ -674,7 +674,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     // the door in the wing's face: an opening 1.2 by 2.1 at the walk, the leaf is a live prop
     const dx = TERRACE.walkX;
     frame.box(dx - 0.65, 1.05, z1 - 0.02, 0.1, 2.1, 0.12).box(dx + 0.65, 1.05, z1 - 0.02, 0.1, 2.1, 0.12).box(dx, 2.15, z1 - 0.02, 1.4, 0.1, 0.12);
-    return [piece(wall.out(), M('sydneyWall'), { metres: 'xy' }), piece(glass.out(), M('tvGlass')), piece(frame.out(), M('bezel'), { smooth: true })];
+    return [piece(wall.out(), M('terraceWall'), { metres: 'xy' }), piece(glass.out(), M('tvGlass')), piece(frame.out(), M('bezel'), { smooth: true })];
   },
   /**
    * The wing behind the terrace's door: a dark passage 3 m long and the four steps up to the stage's side. The door
@@ -710,7 +710,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     oak.box(x1, 4.3, z0 - 0.25, 0.6, 8.6, 0.5).box(x1, 4.3, z1 + 0.25, 0.6, 8.6, 0.5).box(x1, 8.85, (z0 + z1) / 2, 0.6, 0.5, z1 - z0 + 1);
     // the house: a raked floor in steps
     for (let i = 0; i < 6; i++) carpet.box(h0 + 2.7 + i * 5.4 / 2 + (i === 0 ? -1.35 : 0), i * 0.18 - 0.01, (hz0 + hz1) / 2, i === 0 ? 5.4 : 2.7, 0.02 + i * 0.36, hz1 - hz0);
-    return [piece(oak.out(), M('auditoriumOak'), { metres: 'xz' }), piece(dark.out(), M('condoCeiling')), piece(drape.out(), M('acousticPanel'), { metres: 'xy' }), piece(gold.out(), M('gold')), piece(carpet.out(), M('auditoriumCarpet'), { metres: 'xz' })];
+    return [piece(oak.out(), M('stageOak'), { metres: 'xz' }), piece(dark.out(), M('condoCeiling')), piece(drape.out(), M('acousticPanel'), { metres: 'xy' }), piece(gold.out(), M('gold')), piece(carpet.out(), M('auditoriumCarpet'), { metres: 'xz' })];
   },
   /**
    * The crowd: rows of people on their feet in the house, painted (paint 'crowd', two frames for the waving), each row
@@ -818,7 +818,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const counter = new Sink().rbox(0, 0.5, 0, 2.4, 1.0, 0.7, 0.03, 2);
     const back = new Sink().rbox(0, 1.25, 0.9, 2.6, 2.5, 0.08, 0.02, 2).box(-1.2, 1.25, 0.9, 0.06, 2.5, 0.12).box(1.2, 1.25, 0.9, 0.06, 2.5, 0.12);
     const stool = new Sink().cylinder(0.7, 0.66, 0.55, 0.17, 0.05, 16).cylinder(0.7, 0.32, 0.55, 0.02, 0.62, 8).cylinder(0.7, 0.02, 0.55, 0.2, 0.04, 16);
-    return [piece(counter.out(), M('boothWhite'), { smooth: true }), piece(back.out(), M('boothWhite'), { smooth: true }), piece(offsetGeo(faceBack(2.3, 0.7, 0.0), 0, 0.55, -0.36), { paint: 'boothFront' }), piece(offsetGeo(faceBack(2.4, 2.2, 0.0), 0, 1.3, 0.85), { paint: 'boothBack' }), piece(stool.out(), M('bezel'), { smooth: true })];
+    return [piece(counter.out(), M('boothOff'), { smooth: true }), piece(back.out(), M('boothOff'), { smooth: true }), piece(offsetGeo(faceBack(2.3, 0.7, 0.0), 0, 0.55, -0.36), { paint: 'boothFront' }), piece(offsetGeo(faceBack(2.4, 2.2, 0.0), 0, 1.3, 0.85), { paint: 'boothBack' }), piece(stool.out(), M('bezel'), { smooth: true })];
   },
   /** The harbour out of the west window: a 1200 by 450 m painted view, its face toward +x, 430 m out behind the Opera House, filling the window from the glass; its sky runs into the set's fog colour, unlit. */
   sydneyHarbour: () => [piece(new Sink().quad([0, -225, 600], [0, -225, -600], [0, 225, -600], [0, 225, 600], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'sydney' })],

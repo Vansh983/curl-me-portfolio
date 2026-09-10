@@ -129,6 +129,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const skyEnv = pmrem.fromScene(skyScene, 0, 0.1, 3000).texture;
   skyScene.remove(sky);
   sky.visible = false;
+  sky.name = 'b|sky|mat:sky|sky';
+  scene.add(sky);
 
   // ---- loaders and caches
   const gltf = new GLTFLoader();
@@ -366,7 +368,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const backdrop = name === 'toronto' || name === 'sydney' || name.startsWith('campus'); // a view out of a window: unlit, beyond the fog
       if (name.startsWith('screen') || backdrop) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: !backdrop });
       if (name === 'cloudPuffs') return cloudMaterial(paintTex(name, 0)); // the cloud field: every quad turned to the camera, sized by its vertex colour
-      if (name === 'crowd') return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.9, metalness: 0, envMapIntensity: 0.5, transparent: true, alphaTest: 0.5, side: DoubleSide }); // a cut-out row of people
+      if (name === 'crowd') { const map = paintTex(name, Number(frame ?? 0)); return new MeshStandardMaterial({ map, emissive: '#FFFFFF', emissiveMap: map, emissiveIntensity: 0.32, roughness: 0.9, metalness: 0, envMapIntensity: 0.5, transparent: true, alphaTest: 0.5, side: DoubleSide }); } // a cut-out row of people, a little lit from the stage
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
     // emitters and the water get their own copy so their state does not leak into the shared one
@@ -634,13 +636,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       walls.castShadow = true;
       groups[i].add(floor, walls, ceiling);
     }
-    if (S.env === 'sky') {
-      const sets = [Math.max(0, i - 1), i]; // visible through the preceding set's exit before the environment swaps
-      sky.visible = sets.includes(curSet);
-      sky.name = 'b|sky|mat:sky|sky';
-      live.backdrops.push({ root: sky, sets });
-      groups[i].add(sky);
-    }
     await Promise.all(S.props.map((p) => place(p, i)));
     await Promise.all(scanning);
     groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
@@ -817,6 +812,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const enter = (i: number) => {
     curSet = i;
     showSetBackdrops(live.backdrops, i);
+    // one sky dome for every open-air set, in the scene itself (an object can only have one parent: adding it to each
+    // set's group in turn left it in the last one, and the plaza's sky went black in dark mode). It shows whenever the
+    // set, the one before (seen back through the door) or the one ahead (seen through the exit) is open-air
+    sky.visible = [i - 1, i, i + 1].some((k) => SETS[k]?.env === 'sky');
     // the sets share one scene in a ring; only a neighbour can be seen through a door, so the rest are
     // hidden. A neighbour stays visible through the doorway both ways, so a door is never a void that
     // pops: the plaza's daylight shows through the lab's south door before the walk reaches it
@@ -994,7 +993,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (mainFrame.set === 11 && live.crowd.length) { // the crowd waves: the rows swap between the two frames three times a second, out of step with each other
       if (!crowdFrames) crowdFrames = [paintTex('crowd', 0), paintTex('crowd', 1)];
       const f = Math.floor(now / 330) % 2;
-      for (const c of live.crowd) c.mat.map = crowdFrames[(c.base + f) % 2];
+      for (const c of live.crowd) { c.mat.map = crowdFrames[(c.base + f) % 2]; c.mat.emissiveMap = c.mat.map; }
     }
     if (tourScreen && heldLaptop.visible && now - tourLast > 80) { // repaint the live screen at about twelve a second
       tourLast = now;

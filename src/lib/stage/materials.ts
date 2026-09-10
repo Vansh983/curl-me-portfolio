@@ -56,6 +56,9 @@ export const MATS: Record<string, Mat> = {
   // the tour's promenade: the water on one side, his things on the other
   sailWhite: { color: '#F5F4EF', rough: 0.55, tile: 1 },
   pavement: { color: '#FFFFFF', rough: 0.9, tex: 'concrete_pavement', amp: 0.55, tile: 2 },
+  stageOak: { color: '#8B6A45', rough: 0.9, tex: 'plank_flooring_02', amp: 0.4, tile: 1.98 }, // the stage floor: matte boards (the veneer's roughness map is glossy and threw the room back as a white streak)
+  terraceWall: { color: '#D3CABA', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 }, // the house from outside: rendered, a shade under the sun so it never blooms
+  boothOff: { color: '#DAD8D0', rough: 0.6, clearcoat: 0.1, tile: 1 }, // the booth's white in daylight
   bridgeGreen: { color: '#3E6B4F', rough: 0.55, metal: 0.4, tile: 1 }, // the Macdonald's painted steel
   parchment: { color: '#F1E9D6', rough: 0.85, grain: 'weave', amp: 0.15, tile: 0.1 },
   ribbonGold: { color: '#C9A227', rough: 0.45, metal: 0.3, tile: 1 },
