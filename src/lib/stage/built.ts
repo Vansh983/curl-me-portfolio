@@ -59,6 +59,16 @@ function auditoriumSeat(study = false): BuiltPart {
     piece(steel.out(), M('chairBase'), { smooth: true }), piece(tablet.out(), M('deskTop'), { smooth: true })];
 }
 
+/** A room's six faces turned inward (a hall seen only from inside): invisible from outside, since faces are single-sided. */
+function inward(sink: Sink, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number): void {
+  sink.quad([x0, y0, z0], [x0, y0, z1], [x1, y0, z1], [x1, y0, z0]); // the floor faces up
+  sink.quad([x0, y1, z1], [x0, y1, z0], [x1, y1, z0], [x1, y1, z1]); // the ceiling faces down
+  sink.quad([x0, y0, z1], [x0, y1, z1], [x1, y1, z1], [x1, y0, z1]); // the z1 wall faces -z
+  sink.quad([x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z0]); // the z0 wall faces +z
+  sink.quad([x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [x0, y0, z1]); // the x0 wall faces +x
+  sink.quad([x1, y0, z1], [x1, y1, z1], [x1, y1, z0], [x1, y0, z0]); // the x1 wall faces -x
+}
+
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
 const face = (w: number, h: number, z = 0): Geo => new Sink().quad([-w / 2, -h / 2, z], [w / 2, -h / 2, z], [w / 2, h / 2, z], [-w / 2, h / 2, z], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
 /** The same painted face turned to look toward -z. */
@@ -637,10 +647,10 @@ export const BUILT: Record<string, () => BuiltPart> = {
    */
   terrace: () => {
     const [x0, x1] = TERRACE.x, [z0, z1] = TERRACE.z, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
-    const paving = new Sink().box(cx, -0.03, cz, x1 - x0, 0.06, z1 - z0).box((x0 - 1.4) / 2, -0.03, (z0 - 18.2) / 2, -1.4 - x0, 0.06, 2.8); // the walk and the leg along the south wall
+    const paving = new Sink().box(cx, -0.02, cz, x1 - x0, 0.08, z1 - z0).box((x0 - 1.4) / 2, -0.02, (z0 - 18.2) / 2, -1.4 - x0, 0.08, 2.8); // the walk and the leg along the south wall, its top 2 cm proud of the headland
     const wall = new Sink().rbox(x0 + 0.15, 0.55, cz, 0.3, 1.1, z1 - z0, 0.02, 2).rbox(x0 + 0.15, 1.12, cz, 0.42, 0.06, z1 - z0 + 0.12, 0.015, 2) // the parapet along the water
       .rbox((x0 - 1.4) / 2, 0.55, z0 + 0.15, -1.4 - x0, 1.1, 0.3, 0.02, 2).rbox((x0 - 1.4) / 2, 1.12, z0 + 0.15, -1.4 - x0 + 0.12, 0.06, 0.42, 0.015, 2); // and along the south leg
-    const cliff = new Sink().box(cx + 12, -16, cz + 3, x1 - x0 + 24, 32, z1 - z0 + 6); // the headland under the house and the terrace, down to the water
+    const cliff = new Sink().box(cx + 12, -16.05, cz + 3, x1 - x0 + 24, 32, z1 - z0 + 6); // the headland under the house and the terrace, its top 5 cm under the paving, down to the water
     const planter = new Sink(), hedge = new Sink();
     for (const z of [-14.0, -1.0, 6.0, 13.0, 20.0]) { planter.rbox(x1 - 0.5, 0.24, z, 0.7, 0.48, 1.6, 0.02, 2); hedge.rbox(x1 - 0.5, 0.75, z, 0.6, 0.55, 1.5, 0.12, 3); }
     return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(cliff.out(), M('quayStone'), { metres: 'xz' }),
@@ -689,18 +699,17 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const { x: [x0, x1], z: [z0, z1], height: S, hall: [h0, h1], hallZ: [hz0, hz1] } = STAGE;
     const H = 11, oak = new Sink(), dark = new Sink(), drape = new Sink(), gold = new Sink(), carpet = new Sink();
     oak.box((x0 + x1) / 2, S / 2, (z0 + z1) / 2, x1 - x0, S, z1 - z0); // the stage
-    drape.box(x0 + 0.3, S + 4.6, (z0 + z1) / 2, 0.3, 9.2, z1 - z0); // the back drape
-    gold.box(x0 + 0.34, S + 5.6, (z0 + z1) / 2, 0.24, 0.4, z1 - z0);
-    for (const z of [z0 - 0.4, z1 + 0.4]) drape.box((x0 + x1) / 2 - 1, S + 4.3, z, x1 - x0 - 2, 8.6, 0.8); // the wings' legs
-    dark.box((x0 + x1) / 2, H, (z0 + z1) / 2, x1 - x0 + 1, 0.2, z1 - z0 + 2); // over the stage
-    // the proscenium: the wall at the stage's front edge with the opening over the stage
+    drape.box(x0 + 0.5, S + 4.6, (z0 + z1) / 2, 0.3, 9.2, z1 - z0); // the back drape
+    gold.box(x0 + 0.54, S + 5.6, (z0 + z1) / 2, 0.24, 0.4, z1 - z0);
+    for (const z of [z0 + 0.6, z1 - 0.6]) drape.box((x0 + x1) / 2 - 1, S + 4.3, z, x1 - x0 - 2.4, 8.6, 0.6); // the wings' legs
+    // the room round it all, its faces turned inward so nothing shows from the terrace outside: floor, ceiling, four walls
+    inward(dark, x0 - 0.2, h1, 0, H, hz0 - 2, hz1 + 2);
+    // the proscenium: the wall at the stage's front edge with the opening over the stage, faced both ways
     for (const [za, zb] of [[hz0 - 2, z0], [z1, hz1 + 2]]) dark.box(x1, H / 2, (za + zb) / 2, 0.4, H, zb - za);
     dark.box(x1, (H + 8.6) / 2, (z0 + z1) / 2, 0.4, H - 8.6, z1 - z0);
     oak.box(x1, 4.3, z0 - 0.25, 0.6, 8.6, 0.5).box(x1, 4.3, z1 + 0.25, 0.6, 8.6, 0.5).box(x1, 8.85, (z0 + z1) / 2, 0.6, 0.5, z1 - z0 + 1);
-    // the house: a raked floor in five steps, walls, the ceiling
+    // the house: a raked floor in steps
     for (let i = 0; i < 6; i++) carpet.box(h0 + 2.7 + i * 5.4 / 2 + (i === 0 ? -1.35 : 0), i * 0.18 - 0.01, (hz0 + hz1) / 2, i === 0 ? 5.4 : 2.7, 0.02 + i * 0.36, hz1 - hz0);
-    dark.box((h0 + h1) / 2, H, (hz0 + hz1) / 2, h1 - h0, 0.2, hz1 - hz0 + 4).box(h1, H / 2, (hz0 + hz1) / 2, 0.3, H, hz1 - hz0 + 4)
-      .box((h0 + h1) / 2, H / 2, hz0 - 2, h1 - h0, H, 0.3).box((h0 + h1) / 2, H / 2, hz1 + 2, h1 - h0, H, 0.3);
     return [piece(oak.out(), M('auditoriumOak'), { metres: 'xz' }), piece(dark.out(), M('condoCeiling')), piece(drape.out(), M('acousticPanel'), { metres: 'xy' }), piece(gold.out(), M('gold')), piece(carpet.out(), M('auditoriumCarpet'), { metres: 'xz' })];
   },
   /**

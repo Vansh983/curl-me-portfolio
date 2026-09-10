@@ -84,6 +84,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const TOUR_SETS = new Set([8, 9, 10]);
   const TOUR_PAGE: Record<number, number> = { 8: 0, 9: 1, 10: 3 }; // the laptop's page per city (screenTour's frames; 2 was Montréal)
   /** The degree in hand on the stage at the end: a rolled parchment, raised as the walk reaches the dais. */
+  let crowdFrames: [CanvasTexture, CanvasTexture] | undefined; // the crowd's two frames, painted once
   const heldDegree = new Group();
   heldDegree.name = 'heldDegree';
   heldDegree.visible = false;
@@ -990,9 +991,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (heldLaptop.children.length === 0 && TOUR_SETS.has(mainFrame.set)) buildHeldLaptop();
     const page = TOUR_PAGE[mainFrame.into] ?? TOUR_PAGE[mainFrame.set];
     if (page !== undefined) tourPage = page; // the laptop's page follows the city
-    if (mainFrame.set === 11 && live.crowd.length) { // the crowd waves: the rows swap frames three times a second, out of step with each other
+    if (mainFrame.set === 11 && live.crowd.length) { // the crowd waves: the rows swap between the two frames three times a second, out of step with each other
+      if (!crowdFrames) crowdFrames = [paintTex('crowd', 0), paintTex('crowd', 1)];
       const f = Math.floor(now / 330) % 2;
-      for (const c of live.crowd) c.mat.map = paintTex('crowd', (c.base + f) % 2);
+      for (const c of live.crowd) c.mat.map = crowdFrames[(c.base + f) % 2];
     }
     if (tourScreen && heldLaptop.visible && now - tourLast > 80) { // repaint the live screen at about twelve a second
       tourLast = now;
