@@ -8,7 +8,7 @@ import { halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, COHN } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -57,13 +57,6 @@ function auditoriumSeat(study = false): BuiltPart {
     piece(pan.out(), M('auditoriumFabric'), { smooth: true, metres: 'xy' }),
     piece(oak.out(), M('auditoriumOak'), { smooth: true, metres: 'xy' }),
     piece(steel.out(), M('chairBase'), { smooth: true }), piece(tablet.out(), M('deskTop'), { smooth: true })];
-}
-
-/** A painted sign 2.4 by 0.6 on two round posts, its middle at 1.85 m, the face toward +z. */
-function signPost(paint: string): BuiltPart {
-  const posts = new Sink().cylinder(-1.0, 1.05, -0.03, 0.03, 2.1, 12).cylinder(1.0, 1.05, -0.03, 0.03, 2.1, 12);
-  const board = new Sink().rbox(0, 1.85, -0.02, 2.44, 0.64, 0.03, 0.006, 2);
-  return [piece(posts.out(), M('aluminium'), { smooth: true }), piece(board.out(), M('boothWhite'), { smooth: true }), piece(offsetGeo(face(2.4, 0.6, 0.0), 0, 1.85, 0.0), { paint })];
 }
 
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
@@ -627,6 +620,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** The water outside the window: a 500 by 1000 m sheet of harbour from the wall out, at the origin's height. */
   harbourWater: () => [piece(new Sink().quad([0, 0, 500], [0, 0, -500], [-500, 0, -500], [-500, 0, 500]).out(), M('seaWater'), { metres: 'xz' })],
+  /** The water all round the headland for the terrace: 3 km square, under everything; the cliff stands in it. */
+  harbourAround: () => [piece(new Sink().quad([1500, 0, 1500], [1500, 0, -1500], [-1500, 0, -1500], [-1500, 0, 1500]).out(), M('seaWater'), { metres: 'xz' })],
   /** Bennelong Point under the Opera House: a paved headland 250 by 210 m from 180 m off the window back to the painted shore, water in front of it, its quay edge in dark stone, top at y 0.3, the water at −0.6 round it. Origin at its east end's centre. */
   bennelongPoint: () => {
     const top = new Sink().box(-125, 0.15, 0, 250, 0.3, 210);
@@ -636,21 +631,91 @@ export const BUILT: Record<string, () => BuiltPart> = {
   // ---- 2025, the tour: booths and offices. An expo hall, an office, a conference floor, a coworking space
   /** A block of paved walk outdoors: 14 by 12 m of pavers along x from the origin, the far edge a low planter with hedge. */
   /**
-   * The tour's promenade: 7 m of paving straight down -z from the hacker house's door for 42 m, a granite seawall along
-   * its left edge and the water beyond, a lawn on the right where his things stand. The water and the lawn run to the fog.
+   * The terrace along the harbour side of the hacker house, 30 m over the water: paving 6.2 m wide from the south
+   * door's corner north for 45 m, a parapet along the edge, planters against the wall, and the cliff under it all
+   * down to the water. World metres.
    */
-  promenade: () => {
-    const paving = new Sink().box(-0.1, -0.03, -20, 7.0, 0.06, 42);
-    const wall = new Sink().rbox(-3.85, 0.25, -20, 0.5, 0.5, 42.4, 0.02, 2).rbox(-3.85, 0.52, -20, 0.62, 0.06, 42.6, 0.015, 2);
-    const lawn = new Sink().quad([-4.1, -0.02, 400], [900, -0.02, 400], [900, -0.02, -1600], [-4.1, -0.02, -1600]);
-    return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(lawn.out(), M('parkGreen'), { metres: 'xz' })];
+  terrace: () => {
+    const [x0, x1] = TERRACE.x, [z0, z1] = TERRACE.z, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    const paving = new Sink().box(cx, -0.03, cz, x1 - x0, 0.06, z1 - z0).box((x0 - 1.4) / 2, -0.03, (z0 - 18.2) / 2, -1.4 - x0, 0.06, 2.8); // the walk and the leg along the south wall
+    const wall = new Sink().rbox(x0 + 0.15, 0.55, cz, 0.3, 1.1, z1 - z0, 0.02, 2).rbox(x0 + 0.15, 1.12, cz, 0.42, 0.06, z1 - z0 + 0.12, 0.015, 2) // the parapet along the water
+      .rbox((x0 - 1.4) / 2, 0.55, z0 + 0.15, -1.4 - x0, 1.1, 0.3, 0.02, 2).rbox((x0 - 1.4) / 2, 1.12, z0 + 0.15, -1.4 - x0 + 0.12, 0.06, 0.42, 0.015, 2); // and along the south leg
+    const cliff = new Sink().box(cx + 12, -16, cz + 3, x1 - x0 + 24, 32, z1 - z0 + 6); // the headland under the house and the terrace, down to the water
+    const planter = new Sink(), hedge = new Sink();
+    for (const z of [-14.0, -1.0, 6.0, 13.0, 20.0]) { planter.rbox(x1 - 0.5, 0.24, z, 0.7, 0.48, 1.6, 0.02, 2); hedge.rbox(x1 - 0.5, 0.75, z, 0.6, 0.55, 1.5, 0.12, 3); }
+    return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(cliff.out(), M('quayStone'), { metres: 'xz' }),
+      piece(planter.out(), M('concrete'), { metres: 'xy' }), piece(hedge.out(), M('hedge'), { smooth: true })];
   },
-  /** The water left of the seawall, 1.2 m down, to the fog. */
-  harbourWide: () => [piece(new Sink().quad([-4.1, -1.2, 400], [-4.1, -1.2, -1600], [-1600, -1.2, -1600], [-1600, -1.2, 400]).out(), M('seaWater'), { metres: 'xz' })],
-  /** A city sign on two posts at eye height, 2.4 by 0.6, its face toward +z: the city, the event, the date, the logo. */
-  signPostVancouver: () => signPost('signVancouver'),
-  signPostToronto: () => signPost('signToronto'),
-  signPostHalifax: () => signPost('signHalifax'),
+  /**
+   * The house from the terrace: its west wall carried north of the room for 37 m, 3.2 m tall, with a window every 4.2 m
+   * (recessed, dark glass), a parapet over it all, and the wing across the terrace's north end with the door in it.
+   */
+  terraceWall: () => {
+    const [x0, x1] = TERRACE.x, z1 = TERRACE.z[1], H = 3.2, wall = new Sink(), glass = new Sink(), frame = new Sink();
+    const zRoom = -13.2; // the room's north wall: the shell's own wall stands south of it
+    wall.box(x1 + 0.25, H / 2, (zRoom + z1) / 2, 0.5, H, z1 - zRoom); // the west wall north of the room
+    wall.box(-4.4, H + 0.17, (z1 - 18.2) / 2, 6.4, 0.35, z1 + 18.2 + 0.4); // the parapet slab over the house
+    wall.box((x0 + x1) / 2, H / 2, z1 + 3.0, x1 - x0 + 0.5, H, 6.0); // the wing across the north end, the door cut into its south face below
+    wall.box((x0 + x1) / 2, H + 0.17, z1 + 3.0, x1 - x0 + 0.9, 0.35, 6.4);
+    for (let z = zRoom + 3.4; z < z1 - 2; z += 4.2) { // the windows: a reveal into the wall, the glass 0.2 m back
+      glass.quad([x1 - 0.2, 0.9, z - 0.8], [x1 - 0.2, 0.9, z + 0.8], [x1 - 0.2, 2.3, z + 0.8], [x1 - 0.2, 2.3, z - 0.8]);
+      frame.box(x1 - 0.1, 0.9, z, 0.2, 0.04, 1.64).box(x1 - 0.1, 2.3, z, 0.2, 0.04, 1.64).box(x1 - 0.1, 1.6, z - 0.8, 0.2, 1.44, 0.04).box(x1 - 0.1, 1.6, z + 0.8, 0.2, 1.44, 0.04);
+    }
+    // the door in the wing's face: an opening 1.2 by 2.1 at the walk, the leaf is a live prop
+    const dx = TERRACE.walkX;
+    frame.box(dx - 0.65, 1.05, z1 - 0.02, 0.1, 2.1, 0.12).box(dx + 0.65, 1.05, z1 - 0.02, 0.1, 2.1, 0.12).box(dx, 2.15, z1 - 0.02, 1.4, 0.1, 0.12);
+    return [piece(wall.out(), M('sydneyWall'), { metres: 'xy' }), piece(glass.out(), M('tvGlass')), piece(frame.out(), M('bezel'), { smooth: true })];
+  },
+  /**
+   * The wing behind the terrace's door: a dark passage 3 m long and the four steps up to the stage's side. The door
+   * opening is cut where the terrace wall's frame stands; the walk goes straight through and up.
+   */
+  stageWing: () => {
+    const [z0, z1] = STAGE.wing, [x0, x1] = STAGE.x, H = 3.2, cx = (x0 + x1) / 2;
+    const dark = new Sink(), floor = new Sink(), oak = new Sink();
+    floor.box(cx, -0.01, (z0 + z1) / 2, x1 - x0, 0.02, z1 - z0);
+    dark.box(x0 - 0.1, H / 2, (z0 + z1) / 2, 0.2, H, z1 - z0).box(x1 + 0.1, H / 2, (z0 + z1) / 2, 0.2, H, z1 - z0).box(cx, H, (z0 + z1) / 2, x1 - x0, 0.1, z1 - z0); // its walls and ceiling
+    for (const [xa, xb] of [[x0, TERRACE.walkX - 0.6], [TERRACE.walkX + 0.6, x1]]) dark.box((xa + xb) / 2, H / 2, z0, xb - xa, H, 0.2); // the door's wall
+    dark.box(TERRACE.walkX, (H + 2.1) / 2, z0, 1.2, H - 2.1, 0.2);
+    for (let i = 0; i < 4; i++) oak.box(cx, (i + 1) * 0.125, z1 - 1.2 + i * 0.3 + 0.15, x1 - x0, (i + 1) * 0.25, 0.3); // the steps up to the stage
+    return [piece(floor.out(), M('auditoriumCarpet'), { metres: 'xz' }), piece(dark.out(), M('condoCeiling')), piece(oak.out(), M('auditoriumOak'), { metres: 'xz' })];
+  },
+  /**
+   * The hall: the stage a metre up along the west side, its back drapes black with a gold band, its wings, a proscenium
+   * wall between it and the house; the house to the east under a dark ceiling, its floor stepping up toward the back
+   * for the rows of the crowd. World metres.
+   */
+  stageHall: () => {
+    const { x: [x0, x1], z: [z0, z1], height: S, hall: [h0, h1], hallZ: [hz0, hz1] } = STAGE;
+    const H = 11, oak = new Sink(), dark = new Sink(), drape = new Sink(), gold = new Sink(), carpet = new Sink();
+    oak.box((x0 + x1) / 2, S / 2, (z0 + z1) / 2, x1 - x0, S, z1 - z0); // the stage
+    drape.box(x0 + 0.3, S + 4.6, (z0 + z1) / 2, 0.3, 9.2, z1 - z0); // the back drape
+    gold.box(x0 + 0.34, S + 5.6, (z0 + z1) / 2, 0.24, 0.4, z1 - z0);
+    for (const z of [z0 - 0.4, z1 + 0.4]) drape.box((x0 + x1) / 2 - 1, S + 4.3, z, x1 - x0 - 2, 8.6, 0.8); // the wings' legs
+    dark.box((x0 + x1) / 2, H, (z0 + z1) / 2, x1 - x0 + 1, 0.2, z1 - z0 + 2); // over the stage
+    // the proscenium: the wall at the stage's front edge with the opening over the stage
+    for (const [za, zb] of [[hz0 - 2, z0], [z1, hz1 + 2]]) dark.box(x1, H / 2, (za + zb) / 2, 0.4, H, zb - za);
+    dark.box(x1, (H + 8.6) / 2, (z0 + z1) / 2, 0.4, H - 8.6, z1 - z0);
+    oak.box(x1, 4.3, z0 - 0.25, 0.6, 8.6, 0.5).box(x1, 4.3, z1 + 0.25, 0.6, 8.6, 0.5).box(x1, 8.85, (z0 + z1) / 2, 0.6, 0.5, z1 - z0 + 1);
+    // the house: a raked floor in five steps, walls, the ceiling
+    for (let i = 0; i < 6; i++) carpet.box(h0 + 2.7 + i * 5.4 / 2 + (i === 0 ? -1.35 : 0), i * 0.18 - 0.01, (hz0 + hz1) / 2, i === 0 ? 5.4 : 2.7, 0.02 + i * 0.36, hz1 - hz0);
+    dark.box((h0 + h1) / 2, H, (hz0 + hz1) / 2, h1 - h0, 0.2, hz1 - hz0 + 4).box(h1, H / 2, (hz0 + hz1) / 2, 0.3, H, hz1 - hz0 + 4)
+      .box((h0 + h1) / 2, H / 2, hz0 - 2, h1 - h0, H, 0.3).box((h0 + h1) / 2, H / 2, hz1 + 2, h1 - h0, H, 0.3);
+    return [piece(oak.out(), M('auditoriumOak'), { metres: 'xz' }), piece(dark.out(), M('condoCeiling')), piece(drape.out(), M('acousticPanel'), { metres: 'xy' }), piece(gold.out(), M('gold')), piece(carpet.out(), M('auditoriumCarpet'), { metres: 'xz' })];
+  },
+  /**
+   * The crowd: rows of people on their feet in the house, painted (paint 'crowd', two frames for the waving), each row
+   * a cut-out 24 m wide and 2.4 m tall on the raked floor, facing the stage; nine rows with the near ones lowest.
+   */
+  crowdRows: (): BuiltPart => {
+    const { hall: [h0], hallZ: [hz0, hz1] } = STAGE, out: BuiltPart = [];
+    for (let i = 0; i < 9; i++) {
+      const x = h0 + 3.2 + i * 2.35, y = Math.floor(Math.max(0, (x - h0 - 5.4) / 2.7) + 1) * 0.18 * (x > h0 + 5.4 ? 1 : 0);
+      const g = new Sink().quad([x, y, hz1 - 0.5], [x, y, hz0 + 0.5], [x, y + 2.4, hz0 + 0.5], [x, y + 2.4, hz1 - 0.5], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+      out.push(piece(g.out(), { paint: `crowd:${i % 2}` }));
+    }
+    return out;
+  },
   /**
    * Canada Place: the pier at its real size, 400 by 100 m and 12 m over the water, and the five white sails over the
    * cruise terminal along its length, masts 24 m over the deck. The long axis along x. Authored to the footprint.
@@ -695,65 +760,6 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     return [piece(steel.out(), M('bridgeGreen')), piece(deck.out(), M('bridge')), piece(cable.out(), M('bridgeGreen'), { smooth: true })];
   },
-  /**
-   * The Rebecca Cohn's entrance at the end of the promenade: a bronze-framed glass vestibule across the walk, the
-   * door in its middle, the hall's name over it in plain letters; the lobby behind it 3.2 m deep. Seen from outside.
-   */
-  cohnLobby: () => {
-    const L = COHN.lobby, W = 9, H = 3.4;
-    const wall = new Sink(), frame = new Sink(), glass = new Sink(), floor = new Sink(), ceiling = new Sink();
-    for (const [x0, x1] of [[-W / 2, -0.66], [0.66, W / 2]]) glass.quad([x0, 0.08, 0.02], [x1, 0.08, 0.02], [x1, 2.6, 0.02], [x0, 2.6, 0.02]);
-    frame.box(0, 2.72, 0, W, 0.24, 0.16).box(-0.66, 1.3, 0, 0.1, 2.6, 0.16).box(0.66, 1.3, 0, 0.1, 2.6, 0.16).box(0, 0.04, 0, W, 0.08, 0.16);
-    for (const x of [-W / 2 + 0.05, -2.4, 2.4, W / 2 - 0.05]) frame.box(x, 1.3, 0, 0.1, 2.6, 0.16);
-    wall.box(0, (H + 2.84) / 2, 0, W, H - 2.84, 0.16); // the fascia over the frame
-    wall.box(-W / 2, H / 2, -L / 2, 0.16, H, L).box(W / 2, H / 2, -L / 2, 0.16, H, L); // the sides
-    for (const [x0, x1] of [[-W / 2, -1.4], [1.4, W / 2]]) wall.box((x0 + x1) / 2, H / 2, -L, x1 - x0, H, 0.16); // the back, open in the middle into the hall
-    wall.box(0, (H + 2.7) / 2, -L, 2.8, H - 2.7, 0.16);
-    floor.box(0, -0.01, -L / 2, W, 0.02, L);
-    ceiling.box(0, H, -L / 2, W, 0.08, L + 0.16);
-    return [piece(wall.out(), M('concrete'), { metres: 'xy' }), piece(frame.out(), M('bezel'), { smooth: true }), piece(glass.out(), M('tvGlass')), piece(floor.out(), M('auditoriumCarpet'), { metres: 'xz' }), piece(ceiling.out(), M('condoCeiling')),
-      piece(offsetGeo(face(3.6, 0.5, 0.0), 0, 3.05, 0.09), { paint: 'cohnSign' })];
-  },
-  /** The hall: the stalls between oak-panelled walls under a dark ceiling, a balcony front over the back rows, the proscenium wall with its opening; measured from the door. */
-  cohnHall: () => {
-    const { lobby: L, stageFront: F, width: W, depth: D, height: H } = COHN;
-    const oak = new Sink(), carpet = new Sink(), dark = new Sink(), fabric = new Sink(), steel = new Sink();
-    carpet.box(0, -0.01, -(L + D) / 2, W, 0.02, D + L);
-    dark.box(0, H, -(L + D) / 2, W, 0.1, D + L); // the ceiling
-    oak.box(-W / 2, H / 2, -(L + D) / 2, 0.2, H, D + L).box(W / 2, H / 2, -(L + D) / 2, 0.2, H, D + L); // the side walls
-    for (const [x0, x1] of [[-W / 2, -4.5], [4.5, W / 2]]) oak.box((x0 + x1) / 2, H / 2, -L, x1 - x0, H, 0.2); // the back wall either side of the lobby's opening
-    oak.box(0, (H + 2.7) / 2, -L, 9, H - 2.7, 0.2);
-    oak.box(0, 6.0, -L - 2.6, W - 0.4, 1.1, 5.2).box(0, 6.55, -L - 5.2, W - 0.4, 0.12, 0.3); // the balcony over the back rows, its front
-    for (const [x0, x1] of [[-W / 2, -10], [10, W / 2]]) dark.box((x0 + x1) / 2, H / 2, -F, x1 - x0, H, 0.4); // the proscenium wall
-    dark.box(0, (H + 8.6) / 2, -F, 20, H - 8.6, 0.4);
-    oak.box(-10.1, 4.3, -F, 0.5, 8.6, 0.6).box(10.1, 4.3, -F, 0.5, 8.6, 0.6).box(0, 8.75, -F, 20.6, 0.5, 0.6); // the frame of the opening
-    const rows = 6, pitch = 0.95, seatW = 0.55, first = -(L + 3.0); // the stalls either side of the centre aisle, facing the stage
-    for (let r = 0; r < rows; r++) {
-      const z = first - r * pitch;
-      for (const side of [-1, 1]) {
-        const n = 22;
-        for (let i = 0; i < n; i++) {
-          const x = side * (1.0 + seatW / 2 + i * seatW);
-          fabric.rbox(x, 0.78, z + 0.2, seatW - 0.05, 0.62, 0.1, 0.03, 2).rbox(x, 0.44, z - 0.05, seatW - 0.06, 0.09, 0.44, 0.025, 2);
-          oak.box(x - seatW / 2, 0.62, z - 0.02, 0.04, 0.05, 0.5);
-        }
-        oak.box(side * (1.0 + n * seatW), 0.62, z - 0.02, 0.04, 0.05, 0.5);
-        steel.box(side * (1.0 + (n * seatW) / 2), 0.2, z - 0.05, n * seatW, 0.4, 0.06);
-      }
-    }
-    for (let i = 0; i < 4; i++) oak.box(0, (i + 1) * 0.125, -F + 1.2 - i * 0.3 - 0.15, 2.6, (i + 1) * 0.25, 0.3); // the four steps up to the stage
-    return [piece(carpet.out(), M('auditoriumCarpet'), { metres: 'xz' }), piece(dark.out(), M('condoCeiling')), piece(oak.out(), M('auditoriumOak'), { metres: 'xy' }), piece(fabric.out(), M('auditoriumFabric'), { smooth: true, metres: 'xy' }), piece(steel.out(), M('chairBase'))];
-  },
-  /** The stage a metre up beyond the proscenium: an oak floor, the back curtain, the side legs. */
-  cohnStage: () => {
-    const { stageFront: F, depth: D, width: W, stage: S } = COHN;
-    const oak = new Sink().box(0, S / 2, -(F + D + 0.2) / 2 - 0.1, W, S, D - F + 0.4);
-    const curtain = new Sink().box(0, S + 4.5, -(D + 0.4) + 0.6, W - 0.4, 9, 0.2);
-    for (const x of [-9.2, 9.2]) curtain.box(x, S + 4.3, -F - 3, 0.2, 8.6, 1.2);
-    return [piece(oak.out(), M('auditoriumOak'), { metres: 'xz' }), piece(curtain.out(), M('acousticPanel'), { metres: 'xy' })];
-  },
-  /** The convocation banner over the stage: 7 by 2.4 m, black, the university's name in gold, hung from a rod. */
-  convocationBanner: (): BuiltPart => [piece(new Sink().box(0, 1.25, 0, 7.3, 0.05, 0.05).out(), M('chrome')), piece(face(7.0, 2.4, 0.0), { paint: 'convocationBanner' })],
   /** The degree in hand: a rolled parchment 30 cm long, 4 cm across, a black and gold ribbon round its middle; along +x. */
   degreeScroll: (): BuiltPart => [piece(new Sink().cylinder(0, 0, 0, 0.021, 0.3, 20).rotateZ(0, 0, Math.PI / 2).out(), M('parchment'), { smooth: true }),
     piece(new Sink().cylinder(0, 0, 0, 0.024, 0.03, 20).rotateZ(0, 0, Math.PI / 2).out(), M('ribbonGold'), { smooth: true }),

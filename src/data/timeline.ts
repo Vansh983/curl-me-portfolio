@@ -100,7 +100,7 @@ export const timeline: Milestone[] = [
     year: 'Dal',
     lane: 'Dalhousie',
     title: 'The degree',
-    body: 'Through the door at the end of the walk into the Rebecca Cohn, down the aisle and up the steps onto the stage. Computer science, Dalhousie University: the reason for Halifax in the first place.',
+    body: 'Back in through the door at the end of the terrace, up the steps from the wing and straight onto the stage from its side. The degree, then the hall on its feet. Computer science, Dalhousie University: the reason for Halifax in the first place.',
     stat: 'Dalhousie University · Halifax',
   },
   {

@@ -83,3 +83,13 @@ He rejected the rooms (should be outside) and the outdoor draft (the walk turned
 - Open: the laptop's look (he will revisit); the Floqer return to Toronto (chapter 12 holds on the stage); baking sets 8 to 11; people in the hall.
 
 Frames: `.cache/prom0/sheet.png`, `.cache/prom1/sheet.png`.
+
+## The terrace (2026-09-10)
+
+He rejected the promenade: not smooth (hitches at every threshold), the city things not seen, text in the world pointless; the walk should be right outside his place, along its side, and back in through a different door; the graduation entered from the side of the stage, across it for the degree, then a turn to a cheering crowd. No Rebecca Cohn building.
+
+- **The terrace** (`terrace`, `terraceWall`, `harbourAround`; `TERRACE` in sets.ts): out of the hacker house's south door, right along the south wall, right again at the corner, and north along the harbour side of the house for 42 m at 16.7 m a chapter, 30 m over the water on a cliff. The house's west wall runs north of the room with a window every 4.2 m, planters against it, the Bean booth in Vancouver; the parapet and the water on the other side. The same terrace in all three sets (`live: 'city'`); soft thresholds (dolly.ts `soft`), no dip.
+- **The city on the water, ahead:** Canada Place's sails 230 m out, the CN Tower 640 m out, the Macdonald Bridge across the harbour 360 m out. No signs, no text anywhere in the world.
+- **Back in:** the door in the wing across the terrace's north end (`doorLeafWide`, `door: [ch(10.78), ch(10.92)]`, swings away), then set 11: the wing (`stageWing`, lit), four steps up, and straight along the stage from its side (`stageHall`: the stage a metre up, black drapes with a gold band, the proscenium, the raked house) to the centre by 11.66, the degree into the hand (`DEGREE` 11.56..11.7), then a quarter chapter turning right to the hall: the crowd on its feet (`crowdRows`: nine painted cut-out rows, paint `crowd` in two frames, arms and phones up; the runtime alternates the frames three times a second while set 11 is on). Painted, not primitives; no real people models.
+- **Smooth:** every set's geometry and shaders are warmed once at load (an off-screen 8 px render with everything visible, stage-run.ts), and the held laptop and degree are built then too; the 100 to 140 ms hitches at each threshold are gone (`.cache/perf.mjs` measures frame times along the scroll).
+- Frames: `.cache/ter1/sheet.png`, `.cache/ter2/sheet.png`.

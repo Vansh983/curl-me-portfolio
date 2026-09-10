@@ -677,19 +677,41 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     x.fillStyle = '#4B5563'; x.font = `400 50px ${SANS}`; x.fillText(what, 74, 280);
     beanLogo(x, images.bean, w - 220, 180, 150, true);
   }] }])),
-  /** The name over the Cohn's door, 3.6 by 0.5: plain letters on the dark fascia. */
-  cohnSign: { w: 1440, h: 200, frames: [(x, w, h) => {
-    x.fillStyle = '#B9B6AE'; x.fillRect(0, 0, w, h);
-    x.fillStyle = '#1F1F22'; x.font = `500 74px ${SANS}`; x.textAlign = 'center'; x.fillText('Rebecca Cohn Auditorium', w / 2, 92);
-    x.fillStyle = '#4A4A4E'; x.font = `400 44px ${SANS}`; x.fillText('Dalhousie Arts Centre', w / 2, 158); x.textAlign = 'left';
-  }] },
-  /** The banner over the stage, 7 by 2.4: the university and the occasion, gold on black. */
-  convocationBanner: { w: 1400, h: 480, frames: [(x, w, h) => {
-    x.fillStyle = '#111114'; x.fillRect(0, 0, w, h);
-    x.fillStyle = '#C9A227'; x.fillRect(80, 60, w - 160, 4); x.fillRect(80, h - 64, w - 160, 4);
-    x.font = `500 118px ${SANS}`; x.textAlign = 'center'; x.fillText('Dalhousie University', w / 2, 230);
-    x.fillStyle = '#E8E4DA'; x.font = `400 66px ${SANS}`; x.fillText('Convocation', w / 2, 340); x.textAlign = 'left';
-  }] },
+  /**
+   * A row of the crowd on its feet, 24 m across and 2.4 m tall, on a transparent ground: people of every height in dark
+   * clothes and gowns, arms up, a few phones lit; the faces and shoulders catch the stage light. Two frames: the arms
+   * move between them (the runtime alternates them while the hall is on). Painted, not modelled: seen from the stage.
+   */
+  crowd: { w: 2048, h: 205, frames: [0, 1].map((frame) => (x: Ctx, w: number, h: number) => {
+    x.clearRect(0, 0, w, h);
+    let seed = 41 + frame * 0; // the same people in both frames
+    const r = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    const ground = h - 4, scale = h / 2.4; // px per metre
+    for (let i = 0; i < 46; i++) {
+      const cx = 16 + i * (w - 32) / 45 + (r() - 0.5) * 14, tall = 1.55 + r() * 0.3, shoulder = ground - (tall - 0.28) * scale, headR = 0.105 * scale;
+      const gown = r() < 0.55, warm = 0.35 + r() * 0.35;
+      const skin = `rgb(${Math.round(150 + warm * 90)}, ${Math.round(105 + warm * 60)}, ${Math.round(80 + warm * 45)})`;
+      const cloth = gown ? `rgb(${18 + Math.round(r() * 10)}, ${16 + Math.round(r() * 8)}, ${20 + Math.round(r() * 10)})` : `hsl(${Math.round(r() * 360)}, ${20 + Math.round(r() * 30)}%, ${18 + Math.round(r() * 26)}%)`;
+      // the body: a rounded torso from the shoulders to the ground, a little wider at the hips for the gown
+      x.fillStyle = cloth; x.beginPath();
+      x.moveTo(cx - 0.21 * scale, shoulder + 0.04 * scale); x.quadraticCurveTo(cx, shoulder - 0.06 * scale, cx + 0.21 * scale, shoulder + 0.04 * scale);
+      x.lineTo(cx + (gown ? 0.27 : 0.2) * scale, ground); x.lineTo(cx - (gown ? 0.27 : 0.2) * scale, ground); x.closePath(); x.fill();
+      // the arms: up and out, the elbows bent, waving between the frames; the hands pale
+      const up = frame === 0 ? 0 : 1, lift = r() > 0.25;
+      x.strokeStyle = cloth; x.lineWidth = 0.075 * scale; x.lineCap = 'round';
+      for (const side of [-1, 1]) {
+        const sway = (r() - 0.5) * 0.12 + (up ? side * 0.08 : -side * 0.05);
+        const ex = cx + side * (lift ? 0.36 : 0.26) * scale, ey = shoulder - (lift ? 0.2 : -0.35) * scale, hx = cx + side * (lift ? 0.3 + sway : 0.3) * scale, hy = lift ? shoulder - (0.55 + (up ? 0.08 : 0)) * scale : shoulder + 0.5 * scale;
+        x.beginPath(); x.moveTo(cx + side * 0.19 * scale, shoulder + 0.02 * scale); x.lineTo(ex, ey); x.lineTo(hx, hy); x.stroke();
+        x.fillStyle = skin; x.beginPath(); x.arc(hx, hy, 0.045 * scale, 0, Math.PI * 2); x.fill();
+        if (lift && r() < 0.22) { x.fillStyle = '#EAF2FF'; x.fillRect(hx - 0.03 * scale, hy - 0.09 * scale, 0.06 * scale, 0.11 * scale); } // a phone held up
+      }
+      // the head, a cap on the graduates, the light on the face's edge
+      x.fillStyle = skin; x.beginPath(); x.arc(cx, shoulder - 0.15 * scale, headR, 0, Math.PI * 2); x.fill();
+      x.fillStyle = `rgba(20, 16, 14, 0.55)`; x.beginPath(); x.arc(cx, shoulder - 0.15 * scale, headR, Math.PI * 0.6, Math.PI * 1.6); x.fill(); // hair, shadow side
+      if (gown && r() < 0.8) { x.fillStyle = '#111114'; x.fillRect(cx - 0.16 * scale, shoulder - 0.27 * scale, 0.32 * scale, 0.03 * scale); } // the mortarboard
+    }
+  }) },
   /** Toronto's whiteboard, in his words from the trip: churn instead of the meetings. */
   whiteboardChurn: { w: 1024, h: 640, frames: [(x, w, h) => {
     x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h); x.fillStyle = '#B8BFC4'; x.fillRect(0, h - 26, w, 26);

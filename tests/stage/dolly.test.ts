@@ -103,8 +103,8 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[5], WINDOW_VIEW.cam[0], WINDOW_VIEW.cam[2]), `${jambs[5].cam}`);
   assert.ok(at(jambs[6], -1.3, -15.8), `${jambs[6].cam}`); // the auditorium's front west door, out to Sydney
   assert.ok(at(jambs[7], -6.85, -17.95), `${jambs[7].cam}`); // the hacker house's south door beside the window, out to Vancouver
-  assert.ok(at(jambs[8], -6.85, -31.0) && at(jambs[9], -6.85, -44.0), 'the signs between the cities of the tour, straight down the sidewalk');
-  assert.ok(at(jambs[10], -6.85, -58.9), `the Cohn's door at the end of Barrington Street: ${jambs[10].cam}`);
+  assert.ok(at(jambs[8], -10.5, -10.8) && at(jambs[9], -10.5, 4.4), `the thresholds along the terrace: ${jambs[8].cam} ${jambs[9].cam}`);
+  assert.ok(at(jambs[10], -10.5, 23.4), `the door back into the house at the terrace's end: ${jambs[10].cam}`);
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
   assert.equal(dolly(1).set, 11);
   assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);

@@ -101,23 +101,23 @@ export const aisleHeight = (z: number): number => {
 };
 
 /**
- * The Canada tour: out of the hacker house's south door and straight on down -z along one promenade, no turning, the
- * water on the left and his things on the right, one city a chapter. The promenade and the water are the same in all
- * three sets (each holds its own copy, this set only), so nothing but the sky and the things changes at a sign.
+ * The Canada tour: out of the hacker house's south door onto its terrace, 30 m over the harbour, right twice, and north
+ * along the harbour side of the building for 40 m: the water on the left with one simple thing for each city out on it,
+ * the building's wall and its things on the right, then back in through the door at the terrace's end. The terrace,
+ * the cliff and the water are the same in all three sets (each holds its own copy, this set only): only the sky and
+ * the thing on the water change at a threshold.
  */
-export const TOUR = { vancouver: [-6.85, 0, -19.3] as V3, toronto: [-6.85, 0, -32.3] as V3, halifax: [-6.85, 0, -45.3] as V3 } as const;
-/** The Rebecca Cohn: the door at the end of the promenade, the lobby 3.2 m deep, the stalls, the stage a metre up. Measured from the door. */
-export const COHN = { origin: [-6.85, 0, -59.0] as V3, lobby: 3.2, stageFront: 14.0, stage: 1.0, width: 30, depth: 28, height: 11 } as const;
-/** The promenade and the water, the lamps and the trees along it: the same in every tour set. */
-function promenade(): Placement[] {
-  const [x, , z0] = TOUR.vancouver;
-  const out: Placement[] = [
-    { build: 'promenade', at: [x, 0, z0], live: 'city', cap: 'The promenade: the water on the left, the walk straight on.' },
-    { build: 'harbourWide', at: [x, 0, z0], live: 'city', shadow: false, cap: 'The water.' },
+export const TERRACE = { x: [-13.6, -7.4] as [number, number], z: [-21.0, 24.0] as [number, number], walkX: -10.5, door: 24.0, water: -30.6 } as const;
+/** The stage beyond the terrace's north door: entered from its wing at the south end, the audience to the east. World metres. */
+export const STAGE = { wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [22.0, 46.0] as [number, number] } as const;
+export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
+/** The terrace, the cliff under it, the water, the building's wall along it: the same in every tour set. */
+function terrace(): Placement[] {
+  return [
+    { build: 'terrace', at: [0, 0, 0], live: 'city', cap: 'The terrace along the harbour side of the hacker house, 30 m over the water.' },
+    { build: 'terraceWall', at: [0, 0, 0], live: 'city', cap: 'The house from outside: its windows along the terrace, the door at the end.' },
+    { build: 'harbourAround', at: [0, TERRACE.water, 0], live: 'city', shadow: false, cap: 'The water, 30 m down.' },
   ];
-  for (let k = 0; k < 4; k++) out.push({ build: 'lampPost', at: [x - 2.9, 0, z0 - 4 - k * 12], live: 'city' });
-  for (let k = 0; k < 5; k++) out.push({ model: 'island_tree_01', at: [x + 6.5 + (k % 2) * 2, 0, z0 - 2 - k * 9.5], rot: [0, (k * 77) % 360, 0], scale: 0.7 + (k % 3) * 0.06, live: 'city' });
-  return out;
 }
 
 export const SETS: StageSet[] = [
@@ -466,62 +466,57 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2025, Vancouver: straight out of the hacker house's south door onto the promenade, Web Summit week: the Bean booth
-    // on the right, the sails of Canada Place out on the water ahead on the left. Laptop in hand.
+    // 2025, Vancouver: out of the hacker house's south door onto the terrace, Web Summit week: Canada Place's sails out on
+    // the water on the left, the Bean booth against the wall on the right. Laptop in hand.
     id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
     sun: { dir: [0.45, 0.62, 0.55], color: '#FFF3DC', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 300, far: 1400 },
+    fog: { color: '#C9D7E3', near: 300, far: 1500 },
     props: [
-      ...promenade(),
-      { build: 'canadaPlaceSails', at: [TOUR.vancouver[0] - 125, 0, TOUR.vancouver[2] - 330], rot: [0, 82, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier. Web Summit, May 2025.' },
-      { build: 'beanBooth', at: [TOUR.vancouver[0] + 3.2, 0, TOUR.vancouver[2] - 8.6], rot: [0, 90, 0], live: 'city', cap: 'The Bean booth. One day: 500 conversations, 120 signups, an investor MOU.' },
-      { build: 'signPostVancouver', at: [TOUR.vancouver[0] + 2.4, 0, TOUR.vancouver[2] - 3.2], live: 'city', cap: 'Vancouver. Web Summit, May 2025.' },
+      ...terrace(),
+      { build: 'canadaPlaceSails', at: [-190, TERRACE.water, 230], rot: [0, 90, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier. Web Summit, May 2025.' },
+      { build: 'beanBooth', at: [-8.55, 0, -8.5], rot: [0, 90, 0], live: 'city', cap: 'The Bean booth. One day at Web Summit: 500 conversations, 120 signups, an investor MOU.' },
     ],
   },
   {
-    // 2025, Toronto: the same promenade, Elevate week with the Startup Atlantic delegation: the CN Tower across the water
-    // on the left (the condo's tower, by day), the sign on the right.
+    // 2025, Toronto: the same terrace, Elevate week with the Startup Atlantic delegation: the CN Tower across the water.
     id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
     sun: { dir: [-0.5, 0.6, 0.45], color: '#FFEFD6', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 400, far: 2200 },
+    fog: { color: '#C9D7E3', near: 400, far: 2400 },
     props: [
-      ...promenade(),
-      { build: 'cnTowerFar', at: [TOUR.toronto[0] - 330, 0, TOUR.toronto[2] - 640], live: 'city', shadow: false, cap: 'The CN Tower across the water, 720 m off.' },
-      { build: 'signPostToronto', at: [TOUR.toronto[0] + 2.4, 0, TOUR.toronto[2] - 3.2], live: 'city', cap: 'Toronto. Elevate, October 2025.' },
+      ...terrace(),
+      { build: 'cnTowerFar', at: [-300, TERRACE.water, 560], live: 'city', shadow: false, cap: 'The CN Tower across the water, 640 m off. Elevate, October 2025.' },
     ],
   },
   {
-    // 2025 to 2026, Halifax: the harbour on the left with the Macdonald Bridge across it ahead, Volta's sign on the
-    // right. The walk ends at the door of the hall.
+    // 2025 to 2026, Halifax: the Macdonald Bridge across the harbour ahead. The walk ends at the door back into the house.
     id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.85, envPower: 0.7, outdoor: true,
     sun: { dir: [-0.55, 0.6, 0.5], color: '#FFEBD0', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 400, far: 2200 },
+    fog: { color: '#C9D7E3', near: 400, far: 2400 },
     props: [
-      ...promenade(),
-      { build: 'macdonaldBridge', at: [TOUR.halifax[0] - 240, 0, TOUR.halifax[2] - 520], rot: [0, 12, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across Halifax Harbour.' },
-      { build: 'signPostHalifax', at: [TOUR.halifax[0] + 2.4, 0, TOUR.halifax[2] - 3.2], live: 'city', cap: 'Halifax. Volta, 2025 to 2026: Invest Nova Scotia Accelerate, Collect. every Thursday.' },
-      { build: 'cohnLobby', at: COHN.origin, live: 'city', cap: 'The door at the end of the walk: the Rebecca Cohn Auditorium, Dalhousie University.' },
-      { build: 'doorLeafWide', at: [COHN.origin[0] - 0.6, 0, COHN.origin[2]], rot: [0, 90, 0], live: 'door', door: [ch(10.76), ch(10.9)], cap: 'The door of the hall.' },
+      ...terrace(),
+      { build: 'macdonaldBridge', at: [-330, TERRACE.water, 360], rot: [0, 8, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour. Halifax, Volta, 2025 to 2026.' },
+      { build: 'doorLeafWide', at: [TERRACE.walkX + 0.6, 0, TERRACE.door], rot: [0, -90, 0], live: 'door', door: [ch(10.78), ch(10.92)], cap: 'The door back into the house at the end of the terrace.' },
     ],
   },
   {
-    // Dalhousie convocation: through the door into the Rebecca Cohn Auditorium, down the centre aisle between the stalls,
-    // up the steps onto the stage, the degree in hand. Authored: the hall's shape and size, not a survey.
+    // Dalhousie convocation: through the terrace's north door into the wing, up the steps and straight onto the stage from
+    // its side, to the centre for the degree, then a turn to the hall: the crowd on its feet. Authored, no survey.
     id: 'convocation', env: 'studio', tint: { sky: '#3A3436', ground: '#241F1E', power: 0.5 }, exposure: 0.9, envPower: 0.35,
-    sun: { dir: [0.1, 0.9, -0.4], color: '#FFE6C4', power: 0.9, shadow: 0.7 },
+    sun: { dir: [0.5, 0.85, -0.2], color: '#FFE6C4', power: 0.9, shadow: 0.7 },
     fog: { color: '#16141A', near: 60, far: 180 },
     props: [
-      { build: 'cohnHall', at: COHN.origin, live: 'city', cap: 'The Rebecca Cohn Auditorium, Dalhousie Arts Centre.' },
-      { build: 'cohnLobby', at: COHN.origin, live: 'city', cap: 'The lobby behind the door.' },
-      { build: 'cohnStage', at: COHN.origin, live: 'city', cap: 'The stage. Convocation.' },
-      { build: 'lectern', at: [COHN.origin[0] + 3.4, COHN.stage, COHN.origin[2] - COHN.stageFront - 5.2], rot: [0, 0, 0], live: 'city', cap: 'The lectern.' },
-      { build: 'convocationBanner', at: [COHN.origin[0], COHN.stage + 4.6, COHN.origin[2] - COHN.stageFront - 9.9], live: 'city', cap: 'Dalhousie University. Convocation.' },
-      ...Array.from({ length: 7 }, (_, i) => ({ build: 'hallChair', at: [COHN.origin[0] - 6.6 + i * 1.1 + (i > 2 ? 1.4 : 0), COHN.stage, COHN.origin[2] - COHN.stageFront - 8.4] as V3, rot: [0, 0, 0] as V3, live: 'city' as const })),
-      { build: 'downlight', at: [COHN.origin[0], COHN.stage + 8.2, COHN.origin[2] - COHN.stageFront - 4], live: 'downlight' },
-      { build: 'downlight', at: [COHN.origin[0] - 5, COHN.stage + 8.2, COHN.origin[2] - COHN.stageFront - 4], live: 'downlight' },
-      { build: 'downlight', at: [COHN.origin[0] + 5, COHN.stage + 8.2, COHN.origin[2] - COHN.stageFront - 4], live: 'downlight' },
-      { build: 'downlight', at: [COHN.origin[0], 8.6, COHN.origin[2] - 8], live: 'downlight' },
-      { build: 'downlight', at: [COHN.origin[0], 8.6, COHN.origin[2] - 14], live: 'downlight' },
+      { build: 'stageWing', at: [0, 0, 0], cap: 'The wing: four steps up onto the stage from its side.' },
+      { build: 'downlight', at: [TERRACE.walkX, 3.1, STAGE.wing[0] + 1.4], live: 'downlight' },
+      { build: 'downlight', at: [TERRACE.walkX, 3.1, STAGE.wing[1] - 0.6], live: 'downlight' },
+      { build: 'stageHall', at: [0, 0, 0], live: 'city', cap: 'The hall: the stage a metre up, the drapes behind it in black and gold, the house beyond the proscenium.' },
+      { build: 'crowdRows', at: [0, 0, 0], live: 'city', cap: 'The crowd on its feet.' },
+      { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], live: 'city', cap: 'The lectern.' },
+      ...Array.from({ length: 6 }, (_, i) => ({ build: 'hallChair', at: [STAGE.x[0] + 1.3, STAGE.height, STAGE.z[0] + 2.0 + i * 1.6 + (i > 2 ? 1.4 : 0)] as V3, rot: [0, 90, 0] as V3, live: 'city' as const })),
+      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 7.4, STAGE.centre], live: 'downlight' },
+      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 7.4, STAGE.centre - 5], live: 'downlight' },
+      { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 7.4, STAGE.centre + 5], live: 'downlight' },
+      { build: 'downlight', at: [STAGE.hall[0] + 6, 8.2, STAGE.centre], live: 'downlight' },
+      { build: 'downlight', at: [STAGE.hall[0] + 14, 8.2, STAGE.centre], live: 'downlight' },
     ],
   },
 ];

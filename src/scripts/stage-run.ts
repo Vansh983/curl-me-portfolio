@@ -13,7 +13,7 @@ import {
   AdditiveBlending, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
   RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
   LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, DoubleSide, Float32BufferAttribute,
-  AnimationMixer, AnimationClip, Box3, ShaderChunk, type WebGLRenderTarget,
+  AnimationMixer, AnimationClip, Box3, ShaderChunk, WebGLRenderTarget,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -365,6 +365,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const backdrop = name === 'toronto' || name === 'sydney' || name.startsWith('campus'); // a view out of a window: unlit, beyond the fog
       if (name.startsWith('screen') || backdrop) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: !backdrop });
       if (name === 'cloudPuffs') return cloudMaterial(paintTex(name, 0)); // the cloud field: every quad turned to the camera, sized by its vertex colour
+      if (name === 'crowd') return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.9, metalness: 0, envMapIntensity: 0.5, transparent: true, alphaTest: 0.5, side: DoubleSide }); // a cut-out row of people
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
     // emitters and the water get their own copy so their state does not leak into the shared one
@@ -394,6 +395,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     doors: [] as Array<{ obj: Object3D; from: number; to: number; base: number }>, // leaves that swing open with the stage progress
     curtains: [] as MeshStandardMaterial[],
     water: [] as MeshStandardMaterial[],
+    crowd: [] as Array<{ mat: MeshStandardMaterial; base: number }>, // the rows of the crowd: their two frames alternate while the hall is on
     tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[],
     mixers: [] as AnimationMixer[],
     backdrops: [] as SetScoped<Object3D>[],
@@ -481,6 +483,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         live.curtains.push(m);
       }
       if (p.live === 'water') live.water.push(material as MeshStandardMaterial);
+      if (name === 'crowdRows' && 'paint' in piece.surface) live.crowd.push({ mat: material as MeshStandardMaterial, base: Number(piece.surface.paint.split(':')[1] ?? 0) });
       if (p.live === 'tube' && 'mat' in piece.surface && piece.surface.mat === 'tubeGlass') {
         const light = new PointLight('#EAF2FF', 0, 9, 1.5);
         light.position.set(0, -0.2, 0);
@@ -987,6 +990,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (heldLaptop.children.length === 0 && TOUR_SETS.has(mainFrame.set)) buildHeldLaptop();
     const page = TOUR_PAGE[mainFrame.into] ?? TOUR_PAGE[mainFrame.set];
     if (page !== undefined) tourPage = page; // the laptop's page follows the city
+    if (mainFrame.set === 11 && live.crowd.length) { // the crowd waves: the rows swap frames three times a second, out of step with each other
+      const f = Math.floor(now / 330) % 2;
+      for (const c of live.crowd) c.mat.map = paintTex('crowd', (c.base + f) % 2);
+    }
     if (tourScreen && heldLaptop.visible && now - tourLast > 80) { // repaint the live screen at about twelve a second
       tourLast = now;
       tourLive(tourCanvas.getContext('2d')!, tourCanvas.width, tourCanvas.height, now / 1000, tourPage, images.bean);
@@ -1057,7 +1064,28 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (curSet < 0) enter(0);
     kick();
   });
-  loading.catch((err) => console.warn('[journey] a set did not load', err));
+  loading.then(() => {
+    // warm every set once, off screen, so nothing is uploaded or compiled on the way in: a first look at a set used to
+    // cost a tenth of a second at its threshold (the geometry and the shaders arriving together). One tiny render.
+    if (Number.isInteger(exportSet)) return;
+    const shown = groups.map((g) => g.visible), backs = live.backdrops.map((b) => b.root.visible);
+    for (const g of groups) g.visible = true;
+    for (const b of live.backdrops) b.root.visible = true;
+    if (heldLaptop.children.length === 0) buildHeldLaptop(); // the things in hand too
+    if (heldDegree.children.length === 0) heldDegree.add(placeBuilt('degreeScroll', { build: 'degreeScroll', at: [0, 0, 0] }));
+    heldLaptop.visible = heldDegree.visible = true;
+    const warm = new WebGLRenderTarget(8, 8);
+    renderer.compile(scene, camera);
+    renderer.setRenderTarget(warm);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    warm.dispose();
+    heldLaptop.visible = heldDegree.visible = false;
+    groups.forEach((g, k) => { g.visible = shown[k]; });
+    live.backdrops.forEach((b, k) => { b.root.visible = backs[k]; });
+    if (curSet >= 0) enter(curSet);
+    kick();
+  }).catch((err) => console.warn('[journey] a set did not load', err));
 
   return () => {
     if (raf > 0) cancelAnimationFrame(raf);

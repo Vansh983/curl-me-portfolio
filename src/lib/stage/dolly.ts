@@ -6,7 +6,7 @@
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
 import { CatmullRomCurve3, Vector3 } from 'three';
-import { TOUR, COHN, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3 } from './sets.ts';
+import { TERRACE, STAGE, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3 } from './sets.ts';
 import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
 import { ch } from './shot.ts';
 
@@ -127,39 +127,50 @@ export const DOLLY: DollyKey[] = [
   { q: ch(7.56), cam: [-5.0, 1.6, -14.28], look: [-8.4, 1.5, -16.4], fov: 74, set: 7 },
   { q: ch(7.68), cam: [-6.7, 1.6, -15.5], look: [-9.5, 1.4, -18.3], fov: 74, set: 7 }, // a glance out of the window on the way past, already turning to the door
   { q: ch(7.9), cam: [-6.85, 1.6, -17.95], look: [-6.85, 1.15, -21.95], fov: 74, set: 7, blend: 0 }, // the jamb
-  // 2025: straight out of the door and on down the sidewalk, no turning: Vancouver, Toronto, Halifax, one city a chapter,
-  // the light changing at each sign; then the door at the end of Barrington Street, the aisle of the Cohn, the stage
+  // 2025: out of the door onto the terrace, right twice, and north along the harbour side of the house, laptop in hand:
+  // Vancouver, Toronto, Halifax, one city a chapter, the thing on the water changing at each threshold; then the door at
+  // the terrace's end, the wing, the steps, the side of the stage, the centre for the degree, and the turn to the crowd
   ...walk(),
 ];
 
 /**
- * The straight walk from the hacker house's door (z -19.3) to the Cohn's stage, keyed every tenth of a chapter at an
- * even pace so the spline stays a line: 13.2 m a chapter down the streets, a little quicker down the aisle. The eye at
- * 1.6, looking 4 m ahead and a little down at the laptop's height; on the stage a metre up.
+ * The walk from the hacker house's south door to the stage: keyed evenly so the spline stays a line. Two quarter-chapter
+ * right turns onto the terrace's walk line, then 40 m north at 15.7 m a chapter; the eye at 1.6, looking 4 m ahead and
+ * a little down at the laptop's height. Through the door at 10.98, up the four steps, along the stage to its centre by
+ * 11.5 (the degree comes up), then a quarter chapter turning right to the hall.
  */
 function walk(): DollyKey[] {
-  const X = TOUR.vancouver[0], keys: DollyKey[] = [];
-  const key = (q: number, z: number, set: number, extra: Partial<DollyKey> = {}, y = 1.6, lookZ = z - 4, lookY = 1.3): DollyKey => ({ q: ch(q), cam: [X, y, z], look: [X, lookY, lookZ], fov: 74, set, ...extra });
-  const door = TOUR.vancouver[2], pace = 13.0; // metres a chapter on the streets: the sets are 13 m apart
-  keys.push(key(7.98, door, 8, { blend: 1 }));
-  for (let k = 1; k <= 29; k++) { // 8.08 .. 10.88: z -20.6 .. -57.7
-    const q = Math.round((7.98 + k * 0.1) * 100) / 100, z = Math.round((door - k * 0.1 * pace) * 100) / 100;
-    const set = q < 8.98 ? 8 : q < 9.98 ? 9 : 10; // the light changes over 8.88..8.98 and 9.88..9.98: the signs
-    const blend = q === 8.88 || q === 9.88 ? 0 : q === 8.98 || q === 9.98 ? 1 : undefined;
-    keys.push(key(q, z, set, blend === undefined ? {} : blend === 1 ? { blend, soft: true } : { blend }));
+  const X = TERRACE.walkX, keys: DollyKey[] = [];
+  const K = (q: number, cam: V3, look: V3, set: number, extra: Partial<DollyKey> = {}): DollyKey => ({ q: ch(q), cam, look, fov: 74, set, ...extra });
+  keys.push(K(7.98, [-6.85, 1.6, -19.3], [-7.2, 1.25, -23.2], 8, { blend: 1 })); // out on the south leg of the terrace
+  keys.push(K(8.1, [-7.3, 1.6, -19.7], [-10.6, 1.3, -21.9], 8)); // turning right along the south wall
+  keys.push(K(8.22, [-8.5, 1.6, -19.7], [-12.5, 1.3, -19.9], 8)); // west: the parapet and the water ahead, 30 m down
+  keys.push(K(8.34, [-10.0, 1.6, -19.5], [-13.0, 1.3, -16.8], 8)); // the corner: turning right again
+  keys.push(K(8.46, [X, 1.6, -18.4], [X - 0.4, 1.3, -14.4], 8)); // north along the terrace: the water on the left, the house on the right
+  const z0 = -18.4, zJamb = TERRACE.door - 0.6, q0 = 8.46, q1 = 10.98, n = 22; // 42 m over 2.52 chapters
+  for (let k = 1; k <= n; k++) {
+    const q = Math.round((q0 + (q1 - q0) * (k / n)) * 1000) / 1000, z = Math.round((z0 + (zJamb - z0) * (k / n)) * 100) / 100;
+    const set = k < 5 ? 8 : k < 13 ? 9 : 10; // the thresholds at the fourth and twelfth keys, soft
+    const blend = k === 4 || k === 12 ? 0 : k === 5 || k === 13 ? 1 : undefined;
+    if (k === n) keys.push(K(q, [X, 1.6, z], [X, 1.3, z + 4], 10, { blend: 0 })); // the jamb of the door back in
+    else keys.push(K(q, [X, 1.6, z], [X, 1.3, z + 4], set, blend === undefined ? {} : blend === 1 ? { blend, soft: true } : { blend }));
   }
-  // the door of the Cohn at z -59: the jamb, the lobby, the hall opening out, the aisle, the steps, the stage
-  const O = COHN.origin[2];
-  keys.push(key(10.98, O + 0.1, 10, { blend: 0 }));
-  keys.push(key(11.08, O - 1.5, 11, { blend: 1 }));
-  // the aisle and the rise onto the stage at one pace to the end of the scroll: the eye starts up 2.4 m before the
-  // four steps and levels a stride past them, the way an eye takes stairs (a kink in the path would break the step bound)
-  const aisleEnd = O - COHN.stageFront + 1.4, aisleStart = O - 1.5, rise = 5.0;
-  const pace2 = (aisleStart - aisleEnd + rise) / (12.0 - 11.08), qRise = 12.0 - rise / pace2;
-  for (let k = 1; k <= 5; k++) keys.push(key(11.08 + (qRise - 11.08) * (k / 5), aisleStart + (aisleEnd + 2.4 - aisleStart) * (k / 5), 11));
-  keys.push(key(12.0, aisleEnd - 2.6, 11, {}, 1.6 + COHN.stage, O - COHN.stageFront - 7.5, 2.3)); // up the steps, on the stage before the lectern: the degree
+  // the wing: in through the door, up the steps (the rise spread over the stride, the way an eye takes stairs), and
+  // along the stage from its side to the centre, slowing into the stop where the degree is handed over
+  const S = STAGE.height, w0 = STAGE.wing[0];
+  keys.push(K(11.08, [X, 1.6, w0 + 1.2], [X, 1.4, w0 + 5.2], 11, { blend: 1 }));
+  keys.push(K(11.22, [X, 1.6 + S, 27.3], [X, 1.45 + S, 31.3], 11)); // up on the stage
+  keys.push(K(11.36, [X, 1.6 + S, 29.4], [X, 1.4 + S, 33.4], 11));
+  keys.push(K(11.5, [X, 1.6 + S, 31.5], [X, 1.4 + S, 35.5], 11));
+  keys.push(K(11.66, [X, 1.6 + S, STAGE.centre], [X, 1.4 + S, STAGE.centre + 4], 11)); // the centre: the degree
+  // the turn to the hall: a quarter chapter right, from +z to +x, the crowd on its feet
+  keys.push(K(11.78, [X, 1.6 + S, STAGE.centre], [X + 2.0, 1.45 + S, STAGE.centre + 3.5], 11));
+  keys.push(K(11.9, [X, 1.6 + S, STAGE.centre], [X + 3.6, 1.5 + S, STAGE.centre + 1.8], 11));
+  keys.push(K(12.0, [X, 1.6 + S, STAGE.centre], [X + 4, 1.55 + S, STAGE.centre], 11)); // facing the crowd
   return keys;
 }
+
+
 
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
