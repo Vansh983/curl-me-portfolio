@@ -162,3 +162,10 @@ He then asked what the window was, called the quote weird and the room still low
 - **The print** hangs in Poly Haven's `hanging_picture_frame_01` (59 by 84, CC0, James Ray Cock), the painted print (`jobsPoster`, 1000 by 1480) pressed to its front: the photograph in black and white over the top fading to black, Apple's text under it in a serif, "Think different." at the foot. The kind of tribute print sold after 2011.
 - **The figures** are turned now, each a lathe torso, cylinder limbs, a sphere head and its hair; the curtains hang in 24 deep folds with a hem and rings on the rod.
 - Rebaked (1.01 MB). Frames: `.cache/room2/win.png`, `.cache/room2/walk5.png`; scrolled in his Chrome.
+
+## Closer (2026-09-12, evening)
+
+He did not like the cities as backdrops: too far, too much water, nothing defined, "this is a laptop view"; the auditorium is the standard, detailed and close. And the plane had grown things nobody asked for (bins, service units, a lavatory door, tray tables): the minimal principle. So:
+
+- **The plane** is back to the cabin, its windows, the seats, the screens and two strips of light (commit 1e5e47d).
+- **Toronto** stands 500 m off the terrace now (`[-140, 500]` turned 100°, the CN Tower at 14° right and 518 m, the waterfront blocks kept, only the water side of the tower dropped), **Halifax** 300 to 450 m off (`[-480, 900]` turned 320°, the bridge at `[-820, 420]`). Both cities stand on a quay 3 m over the water (`quay` in `torontoDay` and `halifaxDay`, 40 m beyond the outermost block) so there is a shore, not blocks rising out of the sea; Halifax's walls take the day window tile Toronto's had, so every block reads as a building. Bearings from `.cache/cityaim4.mjs`. Frames: `.cache/fame2/cities.png`.

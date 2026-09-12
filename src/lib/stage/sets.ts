@@ -515,7 +515,7 @@ export const SETS: StageSet[] = [
     fog: { color: '#C9D7E3', near: 800, far: 5000 },
     props: [
       water(),
-      { build: 'torontoDay', at: [-450, TERRACE.water, 1000], rot: [0, 120, 0], live: 'city', shadow: false, cap: 'Downtown Toronto across the water: the real blocks and the CN Tower. Elevate, October 2025.' },
+      { build: 'torontoDay', at: [-140, TERRACE.water, 500], rot: [0, 100, 0], live: 'city', shadow: false, cap: 'Downtown Toronto across the water: the real blocks and the CN Tower. Elevate, October 2025.' },
       { build: 'logoElevate', at: [-7.44, 1.9, 0.7], rot: [0, -90, 0], cap: 'Elevate Festival, Toronto, October 2025: the Startup Atlantic delegation.' },
     ],
   },
@@ -528,8 +528,8 @@ export const SETS: StageSet[] = [
     props: [
       water(),
       { build: 'hallShell', at: [0, 0, 0] }, // the hall's outside over the wing: from the terrace a plain block, nothing of the inward room shows
-      { build: 'halifaxDay', at: [-650, TERRACE.water, 1350], rot: [0, 330, 0], live: 'city', shadow: false, cap: 'Downtown Halifax across the harbour: the real blocks from the flight data.' },
-      { build: 'macdonaldBridge', at: [-950, TERRACE.water, 650], rot: [0, -70, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
+      { build: 'halifaxDay', at: [-480, TERRACE.water, 900], rot: [0, 320, 0], live: 'city', shadow: false, cap: 'Downtown Halifax across the harbour: the real blocks from the flight data.' },
+      { build: 'macdonaldBridge', at: [-820, TERRACE.water, 420], rot: [0, -70, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
       { build: 'logoVolta', at: [-7.44, 1.9, 9.1], rot: [0, -90, 0], cap: 'Volta, Halifax: Collect. every Thursday; Demo Day, February 2026.' },
       { build: 'logoInvestNS', at: [-7.44, 1.9, 13.3], rot: [0, -90, 0], cap: 'Invest Nova Scotia Accelerate: one of twelve, October 2025.' },
       { build: 'logoProductHunt', at: [-7.44, 1.9, 17.5], rot: [0, -90, 0], cap: 'Bean at #4 on Product Hunt, December 2025.' },

@@ -800,7 +800,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
    * the origin; real north toward -x (away over the water), real east toward -z, so the skyline reads as from the lake.
    */
   torontoDay: () => {
-    const [tx, tz] = CITY.cn, walls = new Sink(), tops = new Sink();
+    const [tx, tz] = CITY.cn, walls = new Sink(), tops = new Sink(), quay = new Sink();
+    const Q = 3, box = [Infinity, Infinity, -Infinity, -Infinity]; // the quay's height over the water; the blocks' extent
     let seed = 31;
     const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
     const map = (x: number, z: number): [number, number] => [-(z - tz), x - tx]; // condo frame: x west, z north
@@ -808,17 +809,20 @@ export const BUILT: Record<string, () => BuiltPart> = {
       const ring = ringOf(b.p).map(([x, z]) => map(x, z));
       if (ring.length < 3) continue;
       const c = ring.reduce((a, q) => [a[0] + q[0] / ring.length, a[1] + q[1] / ring.length], [0, 0]);
-      if (Math.hypot(c[0], c[1]) > 1100 || b.h < 12 || c[0] > -260) continue; // the far shore only: nothing this side of the water
+      if (Math.hypot(c[0], c[1]) > 1100 || b.h < 12 || c[0] > -40) continue; // the tower's shore and north of it: nothing on the water side
+      for (const [x, z] of ring) { box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], z); box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], z); }
       const g = 0.62 + rnd() * 0.3, cool = rnd() < 0.6;
       walls.color(hex3(cool ? [g * 0.9, g * 0.95, g] : [g, g * 0.96, g * 0.9]));
-      walls.extrude(ring, b.min, b.h, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, tops);
+      walls.extrude(ring, b.min + Q, b.h, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, tops);
     }
+    // the land the city stands on: a quay 3 m over the water, its edge 40 m beyond the nearest block, the tower's foot on it
+    quay.box((box[0] + box[2]) / 2, Q / 2, (box[1] + box[3]) / 2, box[2] - box[0] + 80 + 120, Q, box[3] - box[1] + 80);
     const cn = new Sink(), pod = new Sink(), light = new Sink();
     cnTower(cn, pod, light);
-    for (const k of [cn, pod, light]) { k.translate(-tx, 0, -tz); }
+    for (const k of [cn, pod, light]) { k.translate(-tx, Q, -tz); }
     // the tower's own frame is the condo's: turn it the same way as the blocks (x_scene = -z, z_scene = x)
     for (const k of [cn, pod, light]) k.rotateY(0, 0, -Math.PI / 2);
-    return [piece(walls.out(), M('towerDay'), { tint: true }), piece(tops.out(), M('towerTopDay')), piece(cn.out(), M('cnShaftDay')), piece(pod.out(), M('cnPodDay')), piece(light.out(), M('cnLight'), { smooth: true })];
+    return [piece(quay.out(), M('concrete'), { metres: 'xz' }), piece(walls.out(), M('towerDay'), { tint: true }), piece(tops.out(), M('towerTopDay')), piece(cn.out(), M('cnShaftDay')), piece(pod.out(), M('cnPodDay')), piece(light.out(), M('cnLight'), { smooth: true })];
   },
   /**
    * Downtown Halifax across the harbour, as from Dartmouth: the real footprints and heights (halifax.json, the flight's
@@ -826,7 +830,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
    * waterfront toward the viewer), real north toward -z.
    */
   halifaxDay: () => {
-    const walls = new Sink(), roofs = new Sink(), rnd = rng(23);
+    const walls = new Sink(), roofs = new Sink(), quay = new Sink(), rnd = rng(23);
+    const Q = 3, box = [Infinity, Infinity, -Infinity, -Infinity];
     const C: [number, number] = [1171, -223]; // the Maritime Centre in the aircraft's frame (heading 340)
     const a = [Math.sin((340 * Math.PI) / 180), Math.cos((340 * Math.PI) / 180)], r = [Math.cos((340 * Math.PI) / 180), -Math.sin((340 * Math.PI) / 180)];
     const map = (x: number, z: number): [number, number] => {
@@ -840,13 +845,15 @@ export const BUILT: Record<string, () => BuiltPart> = {
       const c = raw.reduce((s2, q) => [s2[0] + q[0] / raw.length, s2[1] + q[1] / raw.length], [0, 0]);
       if (Math.hypot(c[0] - C[0], c[1] - C[1]) > 700) continue;
       const ring = raw.map(([x, z]) => map(x, z));
+      for (const [x, z] of ring) { box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], z); box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], z); }
       const g = 0.6 + rnd() * 0.3;
       walls.color(hex3(b.k === 2 ? [0.64, 0.6, 0.52] : [g, g * 0.97, g * 0.92]));
-      const box = b.k ? undefined : obb(ring);
-      if (box && b.h <= 9 && box.fill > 0.74 && box.d > 5 && box.d < 22) { roofs.color(hex3([0.22, 0.19, 0.18])); walls.extrude(ring, 0, b.h - 2, { u0: 0, v0: 0, perU: 1, perV: 1 }, roofs); hipRoof(roofs, box, b.h - 2, 0.62, 3.4, 0.35); }
-      else { roofs.color(hex3([0.3, 0.3, 0.31])); walls.extrude(ring, 0, b.h, { u0: 0, v0: 0, perU: 1, perV: 1 }, roofs); }
+      const ob = b.k ? undefined : obb(ring);
+      if (ob && b.h <= 9 && ob.fill > 0.74 && ob.d > 5 && ob.d < 22) { roofs.color(hex3([0.22, 0.19, 0.18])); walls.extrude(ring, Q, b.h - 2, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, roofs); hipRoof(roofs, ob, Q + b.h - 2, 0.62, 3.4, 0.35); }
+      else { roofs.color(hex3([0.3, 0.3, 0.31])); walls.extrude(ring, Q, b.h, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, roofs); }
     }
-    return [piece(walls.out(), M('halifaxWall'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true })];
+    quay.box((box[0] + box[2]) / 2, Q / 2, (box[1] + box[3]) / 2, box[2] - box[0] + 80, Q, box[3] - box[1] + 80); // the land, a quay 3 m over the harbour
+    return [piece(quay.out(), M('concrete'), { metres: 'xz' }), piece(walls.out(), M('towerDay'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true })];
   },
   /** The organisations' marks on boards, 2 by 1.2 m in a thin frame, the face toward +z: one builder a logo. */
   logoWebSummit: () => logoBoard(0, false),
