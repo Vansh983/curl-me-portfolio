@@ -192,27 +192,26 @@ export const SETS: StageSet[] = [
       ],
     },
     props: [
-      // the west wall: the window (the shell cuts it), the television on its stand with the Xbox beside it, both facing the pouf
-      { model: 'tv_stand', at: [-8.93, 0.0, 6.55], rot: [0, 90, 0], scale: 0.85 },
-      { model: 'television_02', at: [-8.9, 0.42, 6.35], rot: [0, 90, 0], scale: 1.6, live: 'tv', cap: 'Call of Duty: World at War, Nazi Zombies. Every evening.', href: 'https://www.youtube.com/results?search_query=nazi+zombies+world+at+war' },
-      { build: 'xbox360', at: [-8.9, 0.42, 6.95], rot: [0, 90, 0], cap: 'The Xbox 360. White, standing, always on.' },
-      { build: 'rug', at: [-8.1, 0.002, 6.55] },
-      { build: 'pouf', at: [-7.7, 0.0, 6.55] },
-      { model: 'xbox_controller', at: [-7.7, 0.375, 6.55], rot: [0, 75, 0], cap: 'The pad. Zombies until the power cut.' },
-      // the north wall: the bookshelf in the corner, the bed under the poster, the clock between them
+      // the west wall: the window (the shell cuts it), then the PC desk, the school lab's kind of machine: the 19 inch LCD with the
+      // Xbox 360 standing beside it and the game on the glass, the beige keyboard and mouse, the tower underneath, the chair at it
+      { model: 'wooden_table_02', at: [-8.75, 0.0, 6.5], rot: [0, 90, 0], scale: [1.4, 1, 1], cap: 'The desk. One screen for everything.' },
+      { build: 'bedroomMonitor', at: [-8.85, 0.8, 6.35], rot: [0, 90, 0], live: 'tv', cap: 'Call of Duty: World at War, Nazi Zombies. Every evening.', href: 'https://www.youtube.com/results?search_query=nazi+zombies+world+at+war' },
+      { build: 'keyboard', at: [-8.55, 0.8, 6.35], rot: [0, 90, 0] },
+      { build: 'mouse', at: [-8.55, 0.8, 6.02], rot: [0, 90, 0] },
+      { build: 'xbox360', at: [-8.85, 0.8, 6.85], rot: [0, 90, 0], cap: 'The Xbox 360. White, standing, always on.' },
+      { model: 'xbox_controller', at: [-8.6, 0.8, 6.85], rot: [0, 60, 0], cap: 'The pad. Zombies until the power cut.' },
+      { build: 'pcTower', at: [-8.85, 0.0, 7.05], rot: [0, 90, 0] },
+      { model: 'alarm_clock_01', at: [-8.95, 0.8, 5.85], rot: [0, 90, 0] },
+      { model: 'painted_wooden_chair_01', at: [-7.95, 0.0, 6.35], rot: [0, -90, 0] },
+      { build: 'rug', at: [-8.2, 0.002, 6.5] },
+      // the north wall: the bookshelf in the corner, the poster, the clock by the door
       { model: 'wooden_bookshelf_worn', at: [-8.55, 0.0, 7.64], rot: [0, 180, 0], scale: 0.8 },
       { model: 'book_encyclopedia_set_01', at: [-8.85, 0.99, 7.55], rot: [0, 180, 0], scale: 0.55 },
       { build: 'figures', at: [-8.55, 0.74, 7.55], rot: [0, 180, 0], cap: 'The shelf. Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta.' },
       { build: 'figures', at: [-8.55, 0.51, 7.55], rot: [0, 172, 0] },
-      { model: 'bed_single', at: [-6.1, 0.0, 7.48], cap: 'The bed. Spider-Man when the power came back.' },
-      { model: 'throw_pillows_01', at: [-6.8, 0.5, 7.5] },
       { build: 'jobsPoster', at: [-6.3, 1.72, 7.885], rot: [0, 180, 0], cap: "Here's to the crazy ones. Think different, 1997: the whole of it." },
       { model: 'wall_clock', at: [-5.15, 1.9, 7.88], rot: [0, 180, 0] }, // in the corner by the door out, where the turn looks
-      { model: 'football', at: [-7.35, 0.11, 7.25], rot: [0, 50, 0], cap: 'Barcelona. Messi.' },
-      // the study table under the window, the chair at it: homework
-      { model: 'wooden_table_02', at: [-8.8, 0.0, 5.0], rot: [0, 90, 0] },
-      { model: 'painted_wooden_chair_01', at: [-8.05, 0.0, 5.0], rot: [0, -90, 0] },
-      { model: 'alarm_clock_01', at: [-8.85, 0.8, 4.65], rot: [0, 90, 0] },
+      { model: 'football', at: [-7.4, 0.11, 7.3], rot: [0, 50, 0], cap: 'Barcelona. Messi.' },
       { model: 'ceiling_fan', at: [-7.05, 2.7, 6.1], rot: [0, 90, 0], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
       { build: 'curtains', at: [-9.07, 2.45, 5.0], rot: [0, 90, 0], live: 'curtain' },
       { build: 'skyline', at: [-9.5, 1.6, 5.0], rot: [0, 90, 0] },

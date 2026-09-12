@@ -27,7 +27,7 @@ const APPROACH: DollyKey[] = [
   // 2010: in through the south door, up the east side of the room, the television and the Xbox on the floor
   // to the left, the shelf and the poster on the far wall, then right, east, out to the lab
   { q: 0.22, cam: [-5.45, 1.58, 4.9], look: [-7.6, 0.9, 6.7], fov: 64, set: 1 }, // into the room: the rug, the pouf, the television beyond
-  { q: 0.253, cam: [-5.45, 1.58, 5.6], look: [-8.8, 0.7, 6.9], fov: 62, set: 1 }, // the television, the Xbox
+  { q: 0.253, cam: [-5.45, 1.58, 5.6], look: [-8.8, 0.85, 6.5], fov: 62, set: 1 }, // the desk: the screen, the Xbox beside it
   { q: 0.285, cam: [-5.45, 1.58, 5.9], look: [-8.4, 1.0, 7.7], fov: 62, set: 1 }, // the bookshelf: the figures, the encyclopedias
   { q: 0.312, cam: [-5.45, 1.58, 6.3], look: [-6.2, 1.62, 8.3], fov: 62, set: 1 }, // the poster over the bed, the clock at its side
   { q: 0.338, cam: [-5.4, 1.58, 6.5], look: [-4.25, 1.4, 8.14], fov: 64, set: 1 }, // turning right

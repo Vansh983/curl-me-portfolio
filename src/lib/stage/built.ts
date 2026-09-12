@@ -1019,6 +1019,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** A mouse, 0.11 long along z. */
   mouse: () => [piece(new Sink().rbox(0, 0.018, 0, 0.06, 0.036, 0.11, 0.016, 2).out(), M('keys'), { smooth: true })],
   /** A 19 inch LCD of 2013: a slim black bezel on a round steel foot, the screen towards +z. */
+  /** The bedroom's 19 inch LCD, the Xbox on it: the game on the glass. */
+  bedroomMonitor: lcd('video'),
   labMonitor: lcd('screen:2'),
   labMonitorNotepad: lcd('screen:1'),
   /** A 32 inch flat television of 2010 on its stand; the glass is the video. */
