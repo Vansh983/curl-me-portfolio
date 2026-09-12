@@ -8,7 +8,7 @@ import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycas
 test('the cabin has open rounded windows, a complete ring round each and an inward-facing crown', () => {
   const parts = BUILT.aircraftCabin();
   const meshes = parts.map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
-  const glass = meshes[8]; // panel, dado, floor, runner, bins, psu, lights, reveal, glass, metal, lav
+  const glass = meshes[6]; // panel, dado, floor, runner, lights, reveal, glass
   const hits = (origin: number[], direction: number[]) => new Raycaster(new Vector3(...origin), new Vector3(...direction), 0, 2).intersectObjects(meshes);
   const throughWindow = hits([-4.0, 0.95, -5.56], [-1, 0, 0]); // a little off the pane's centre, where its fan's triangles meet
   assert.equal(throughWindow.length, 1, `only the pane in the way: ${throughWindow.map((h) => meshes.indexOf(h.object as (typeof meshes)[number])).join(',')}`);

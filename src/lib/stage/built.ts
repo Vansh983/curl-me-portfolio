@@ -171,9 +171,9 @@ const CABIN_SECTION: Array<[number, number]> = [[1.15, 0], [1.32, 0.12], [1.37, 
 export const BUILT: Record<string, () => BuiltPart> = {
   // ---- 2022: the crossing. Cabin in world coordinates; seats are local reusable assemblies.
   aircraftCabin: () => {
-    const { cx, z: [z0, z1], windowZ, win, rows, seatsX, door } = CABIN, sec = CABIN_SECTION;
+    const { cx, z: [z0, z1], windowZ, win, door } = CABIN, sec = CABIN_SECTION;
     cabinSkinSink = null; // rebuilt below, taken by aircraftSkin
-    const panel = new Sink(), dado = new Sink(), floor = new Sink(), runner = new Sink(), bins = new Sink(), psu = new Sink(), lights = new Sink(), reveal = new Sink(), glass = new Sink(), metal = new Sink(), lav = new Sink();
+    const panel = new Sink(), dado = new Sink(), floor = new Sink(), runner = new Sink(), lights = new Sink(), reveal = new Sink(), glass = new Sink();
     const X = (side: number, off: number) => cx + side * off;
     const halfAt = (y: number) => { for (let i = 0; i + 1 < sec.length; i++) { const [w0, y0] = sec[i], [w1, y1] = sec[i + 1]; if (y >= y0 && y <= y1) return w0 + ((w1 - w0) * (y - y0)) / (y1 - y0 || 1); } return 0; };
     // a strip of sidewall or crown between two heights over a length of the cabin, its face turned to the aisle
@@ -247,46 +247,27 @@ export const BUILT: Record<string, () => BuiltPart> = {
     outerCap(z1 + SKIN, 1, [cx - door.w / 2, cx + door.w / 2, door.h]);
     skin.quad([cx - sec[0][0] - SKIN, -0.02, z0 - SKIN], [cx + sec[0][0] + SKIN, -0.02, z0 - SKIN], [cx + sec[0][0] + SKIN, -0.02, z1 + SKIN], [cx - sec[0][0] - SKIN, -0.02, z1 + SKIN]);
     for (const side of [-1, 1]) { const a: V3 = [X(side, sec[0][0]), 0, z0 - SKIN], b: V3 = [X(side, sec[0][0] + SKIN), -0.02, z0 - SKIN], c: V3 = [X(side, sec[0][0] + SKIN), -0.02, z1 + SKIN], d: V3 = [X(side, sec[0][0]), 0, z1 + SKIN]; if (side < 0) skin.quad(a, b, c, d); else skin.quad(a, d, c, b); }
-    // the lavatory door on the rear wall, right of the way in: its outline and latch
-    for (const [x, y, w, h] of [[cx + 0.8, 0.02, 0.62, 0.03], [cx + 0.8, 1.82, 0.62, 0.03], [cx + 0.5, 0.92, 0.03, 1.8], [cx + 1.1, 0.92, 0.03, 1.8]] as const) lav.box(x, y, z1 - 0.012, w, h, 0.02);
-    metal.rbox(cx + 1.02, 1.0, z1 - 0.02, 0.06, 0.02, 0.03, 0.006, 2);
     // the floor and the aisle's runner
     const f0 = sec[0][0];
     floor.quad([cx - f0, 0, z1], [cx + f0, 0, z1], [cx + f0, 0, z0], [cx - f0, 0, z0]);
     runner.quad([cx - 0.27, 0.004, z1], [cx + 0.27, 0.004, z1], [cx + 0.27, 0.004, z0], [cx - 0.27, 0.004, z0]);
-    // the bins: a door a row, a latch on each; the service units under them with a reading light and a vent a seat; the ceiling's strips
-    const pitch = rows[0] - rows[1];
-    for (const side of [-1, 1]) {
-      for (const z of rows) { bins.rbox(X(side, 1.02), 1.71, z + 0.04, 0.7, 0.32, pitch - 0.03, 0.03, 3); metal.rbox(X(side, 0.66), 1.6, z + 0.04, 0.02, 0.025, 0.14, 0.005, 2); }
-      psu.box(X(side, 0.825), 1.52, (z0 + z1) / 2, 0.85, 0.05, z1 - z0 - 0.1);
-      for (const z of rows) for (const x of seatsX.filter((v) => Math.sign(v - cx) === side)) { metal.cylinder(x, 1.49, z - 0.05, 0.022, 0.012, 16); psu.box(x, 1.49, z + 0.12, 0.06, 0.012, 0.03); }
-      lights.box(X(side, 0.58), 1.975, (z0 + z1) / 2, 0.12, 0.012, z1 - z0 - 0.2);
-      lights.box(X(side, 1.2), 1.493, (z0 + z1) / 2, 0.08, 0.008, z1 - z0 - 0.2); // the wash along the sidewall from under the units, so the wall under the bins is not a cave
-    }
+    // the ceiling's two strips: the cabin's only light, nothing else on the walls or the crown
+    for (const side of [-1, 1]) lights.box(X(side, 0.58), 1.975, (z0 + z1) / 2, 0.12, 0.012, z1 - z0 - 0.2);
     return [piece(panel.out(), M('cabinPanel'), { smooth: true }), piece(dado.out(), M('cabinDado'), { smooth: true }), piece(floor.out(), M('cabinFloor'), { metres: 'xz' }), piece(runner.out(), M('cabinRunner'), { metres: 'xz' }),
-      piece(bins.out(), M('cabinBin'), { smooth: true }), piece(psu.out(), M('cabinDado')), piece(lights.out(), M('cabinStrip')), piece(reveal.out(), M('skirting'), { smooth: true }), piece(glass.out(), M('cabinGlass')),
-      piece(metal.out(), M('aluminium'), { smooth: true }), piece(lav.out(), M('skirting'))];
+      piece(lights.out(), M('cabinStrip')), piece(reveal.out(), M('skirting'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
   },
   /** The fuselage's skin round the cabin, with the window holes: what keeps the sun outside. In Blender for the shadow, not baked; lit live. */
   aircraftSkin: () => [piece(cabinSkin().out(), M('wingSkin'), { smooth: true })],
-  /**
-   * An E175 seat: dark blue leather over a light shell, the headrest in a white cover, the tray table and the literature
-   * pocket with its safety card on the back, the armrests, the belt on the cushion. The passenger faces -z; origin on the floor.
-   */
+  /** An E175 seat, plain: dark blue leather over a light shell, the armrests, the legs, the belt on the cushion. The passenger faces -z; origin on the floor. */
   aircraftSeat: () => {
     const leather = new Sink().rbox(0, 0.45, 0, 0.44, 0.12, 0.46, 0.05, 4).rbox(0, 0.86, 0.2, 0.44, 0.72, 0.1, 0.05, 4).rbox(0, 1.3, 0.19, 0.4, 0.22, 0.11, 0.05, 4);
-    const cover = new Sink().box(0, 1.3, 0.128, 0.36, 0.2, 0.004);
-    const shell = new Sink().rbox(0, 0.9, 0.27, 0.46, 0.85, 0.04, 0.02, 2).rbox(0, 0.75, 0.3, 0.36, 0.3, 0.02, 0.01, 2);
-    const pocket = new Sink().rbox(0, 0.5, 0.3, 0.38, 0.22, 0.03, 0.01, 2);
-    const card = new Sink().box(0, 0.6, 0.322, 0.14, 0.2, 0.003);
+    const shell = new Sink().rbox(0, 0.9, 0.27, 0.46, 0.85, 0.04, 0.02, 2);
     const dark = new Sink().box(0, 0.02, 0.05, 0.4, 0.04, 0.08);
     for (const x of [-0.24, 0.24]) { dark.rbox(x, 0.66, 0.02, 0.05, 0.05, 0.42, 0.02, 3); dark.box(x, 0.58, 0.1, 0.03, 0.12, 0.05); }
     for (const x of [-0.15, 0.15]) dark.box(x, 0.2, 0.05, 0.04, 0.4, 0.06);
     const belt = new Sink().box(-0.11, 0.512, 0, 0.19, 0.008, 0.038).box(0.11, 0.512, 0, 0.19, 0.008, 0.038);
     const buckle = new Sink().rbox(0, 0.518, 0, 0.055, 0.012, 0.044, 0.004, 2);
-    const latch = new Sink().box(0, 0.92, 0.315, 0.06, 0.02, 0.01);
-    return [piece(leather.out(), M('seatLeather'), { smooth: true }), piece(cover.out(), M('headrestCloth'), { metres: 'xy' }), piece(shell.out(), M('cabinBin'), { smooth: true }),
-      piece(pocket.out(), M('cabinDado'), { smooth: true }), piece(card.out(), M('skirting')), piece(dark.out(), M('chairBase'), { smooth: true }), piece(belt.out(), M('bezel')), piece(buckle.out(), M('chrome'), { smooth: true }), piece(latch.out(), M('aluminium'))];
+    return [piece(leather.out(), M('seatLeather'), { smooth: true }), piece(shell.out(), M('cabinBin'), { smooth: true }), piece(dark.out(), M('chairBase'), { smooth: true }), piece(belt.out(), M('bezel')), piece(buckle.out(), M('chrome'), { smooth: true })];
   },
   /**
    * The port wing, seen from the third-row window: the leading edge just behind it, swept back 25 degrees to a
