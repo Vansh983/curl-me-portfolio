@@ -29,6 +29,12 @@ export interface Mat {
 
 export const MATS: Record<string, Mat> = {
   cabinWall: { color: '#E3E1D8', rough: 0.42, clearcoat: 0.22, tile: 1 },
+  cabinPanel: { color: '#D6D8D6', rough: 0.5, clearcoat: 0.15, clearcoatRough: 0.4, tile: 1 }, // the E175's sidewalls and crown: light grey panels
+  cabinDado: { color: '#8C9096', rough: 0.6, tile: 1 }, // the dado, the PSU strip, the seat pockets
+  cabinBin: { color: '#EAEAE6', rough: 0.45, clearcoat: 0.2, clearcoatRough: 0.35, tile: 1 }, // the bins and the seat shells
+  cabinRunner: { color: '#26313F', rough: 1, tex: 'dirty_carpet', amp: 0.5, tile: 0.6 }, // the aisle runner
+  seatLeather: { color: '#1F2B3F', rough: 0.55, clearcoat: 0.25, clearcoatRough: 0.5, tile: 1 }, // dark blue leather
+  headrestCloth: { color: '#F4F2EC', rough: 0.95, tex: 'cotton_jersey', amp: 0.4, tile: 0.2 }, // the headrest covers
   cabinSeat: { color: '#233E59', rough: 0.88, tex: 'wool_boucle', amp: 0.4, sheen: 0.6, tile: 0.35 },
   cabinFloor: { color: '#303D49', rough: 1, tex: 'dirty_carpet', amp: 0.6, tile: 0.6 },
   lectureWall: { color: '#E8E2D6', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 },
@@ -96,6 +102,7 @@ export const MATS: Record<string, Mat> = {
   condoBrick: { color: '#4A4644', rough: 0.95, tex: 'dark_brick_wall', amp: 0.9, tile: 1.05 },
   skirting: { color: '#E6E3DC', rough: 0.45, clearcoat: 0.3, clearcoatRough: 0.3, tile: 1 },
   ledStrip: { color: '#FFE2B8', rough: 0.5, emissive: '#FFD9A0', emissivePower: 3, tile: 1 },
+  cabinStrip: { color: '#F2F5FA', rough: 0.5, emissive: '#EEF3FF', emissivePower: 2.2, tile: 1 }, // the cabin's ceiling light: cool white, the way an E-Jet's is
   bathTile: { color: '#E3E5E2', rough: 0.22, paint: 'tiles', tile: 0.3, clearcoat: 0.5, clearcoatRough: 0.2 },
   chrome: { color: '#DADCE0', rough: 0.12, metal: 1, tile: 1 },
   doorPaint: { color: '#EDEAE3', rough: 0.4, clearcoat: 0.25, clearcoatRough: 0.3, tile: 1 },

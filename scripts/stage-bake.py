@@ -30,7 +30,7 @@ EMIT = {"paint:screenCode": 4.0, "paint:screenFloqer": 4.0, "paint:screenBoard":
         "mat:tubeGlass": 6.0, "mat:bulb": 5.0, "mat:ledStrip": 40.0, "mat:powerLed": 4.0, "mat:xboxGreen": 2.0, "mat:lampGlobe": 6.0}
 LIVE_SURFACE = {"mat:tubeGlass", "mat:bulb", "mat:curtain", "mat:cabinGlass", "mat:handrail"}  # runtime keeps building these pieces
 # in the scene for shadow and bounce, not baked, not exported: the wide ground, the leafy models (bake.ts CONTEXT_*)
-CONTEXT_PROP = {"plazaFloor", "road"}
+CONTEXT_PROP = {"plazaFloor", "road", "aircraftSkin", "aircraftWing"}
 CONTEXT_MODEL = {"palm_medium", "island_tree_01"}
 
 

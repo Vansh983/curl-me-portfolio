@@ -74,20 +74,20 @@ const aisle = (z: number, dy = 0): V3 => [AUDITORIUM.aisleX, aisleHeight(z) + 1.
 export const DOLLY: DollyKey[] = [
   ...APPROACH.map((k) => ({ ...k, q: k.q * APPROACH_SCALE })),
   // 2022, leaving: west out of the Delhi room into the passage, left down the jet bridge, through the cabin door,
-  // up the aisle and into the port window seat of the third row
+  // one step up the aisle and into the port window seat of the row by the door
   { q: ch(4.081), cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 }, // mid passage, the bridge opening on the left
-  { q: ch(4.221), cam: [-3.35, 1.58, -0.5], look: [-3.4, 1.5, -4.0], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
-  { q: ch(4.34), cam: [-3.4, 1.58, -2.6], look: [-3.6, 1.5, -6.2], fov: 72, set: 5 },
-  { q: ch(4.466), cam: [-3.4, 1.58, -5.0], look: [-4.6, 1.45, -7.8], fov: 74, set: 5 }, // in the door: the rows, the window seat
-  { q: ch(4.564), cam: [-3.45, 1.58, -6.7], look: [-4.7, 1.45, -9.2], fov: 74, set: 5 }, // down the aisle to the front
-  { q: ch(4.648), cam: [-3.5, 1.55, -8.1], look: [-5.6, 1.4, -9.0], fov: 74, set: 5 }, // at the front row, turning right
-  { q: ch(4.697), cam: [-4.2, 1.45, -8.6], look: [-6.9, 1.2, -9.1], fov: 74, set: 5 }, // into the row, sitting; the descent begins
-  // the descent: out and down over the Arm, the cloud deck, the campus abeam; the wing and the engine behind the shoulder
-  { q: ch(4.746), cam: WINDOW_VIEW.cam, look: [-7.1, 0.95, -9.5], fov: 74, set: 5 }, // seated: the cloud tops ahead
-  { q: ch(4.788), cam: WINDOW_VIEW.cam, look: [-7.5, 0.9, -9.3], fov: 74, set: 5 }, // down toward the deck
-  { q: ch(4.837), cam: [-4.8, 1.4, -8.52], look: [-7.75, 0.72, -8.45], fov: 74, set: 5 }, // leaning to the glass through the deck
-  { q: ch(4.942), cam: [-4.78, 1.41, -8.51], look: [-7.7, 0.74, -9.0], fov: 74, set: 5 }, // clear air: the Arm, the peninsula, the campus sliding in from ahead
-  { q: FLIGHT.end, cam: WINDOW_VIEW.cam, look: [-7.72, 0.66, -8.6], fov: 74, set: 5 }, // the campus abeam: the Hicks tower, the Killam, the quad
+  { q: ch(4.221), cam: [-3.35, 1.58, -0.7], look: [-3.4, 1.5, -4.2], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
+  { q: ch(4.34), cam: [-3.4, 1.58, -2.9], look: [-3.6, 1.5, -6.4], fov: 72, set: 5 },
+  { q: ch(4.466), cam: [-3.4, 1.58, -4.9], look: [-4.5, 1.4, -7.1], fov: 74, set: 5 }, // in the door: the rows ahead, the pair beside the door
+  { q: ch(4.564), cam: [-3.45, 1.55, -5.5], look: [-4.9, 1.3, -6.5], fov: 74, set: 5 }, // one step: the first row, turning to it
+  { q: ch(4.648), cam: [-3.75, 1.5, -5.5], look: [-5.3, 1.25, -6.1], fov: 74, set: 5 }, // into the row
+  { q: ch(4.697), cam: [-4.15, 1.32, -5.5], look: [-6.4, 0.9, -6.3], fov: 74, set: 5 }, // sitting; the descent begins
+  // the descent: out and down over the Arm, the cloud deck, the campus abeam; the wing's leading edge behind the shoulder
+  { q: ch(4.746), cam: WINDOW_VIEW.cam, look: [-6.8, 0.85, -6.6], fov: 74, set: 5 }, // seated: the cloud tops ahead
+  { q: ch(4.788), cam: WINDOW_VIEW.cam, look: [-7.2, 0.8, -6.4], fov: 74, set: 5 }, // down toward the deck
+  { q: ch(4.837), cam: [-4.5, 1.22, -5.55], look: [-7.4, 0.6, -5.5], fov: 74, set: 5 }, // leaning to the glass through the deck
+  { q: ch(4.942), cam: [-4.48, 1.23, -5.54], look: [-7.35, 0.62, -6.05], fov: 74, set: 5 }, // clear air: the Arm, the peninsula, the campus sliding in from ahead
+  { q: FLIGHT.end, cam: WINDOW_VIEW.cam, look: [-7.4, 0.55, -5.65], fov: 74, set: 5 }, // the campus abeam: the Hicks tower, the Killam, the quad
   { q: PHONE.framed, ...WINDOW_VIEW, set: 5 },
   { q: ch(5.152), ...WINDOW_VIEW, set: 5, blend: 0 },
   { q: PHONE.transfer, ...CLASSROOM_VIEW, set: 6, blend: 1, portal: true },

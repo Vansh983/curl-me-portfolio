@@ -91,6 +91,17 @@ export const TOP_ROW = LECTURE_ROWS[LECTURE_ROWS.length - 1];
 export const HALIFAX_CAMPUS: [number, number] = HALIFAX.campus;
 /** The cloud deck's height over Halifax, metres; flight.ts crosses it on the way down. */
 export const FLIGHT_DECK = 300;
+/**
+ * The cabin: an Embraer 175, the regional jet on the Toronto to Halifax leg, 2 + 2 across a 0.5 m aisle, 31 inch pitch, the
+ * interior 2.74 m wide and 2.0 m high at the crown. The aisle's centre at x -3.4; the door on the rear wall at z -4.8 where
+ * the bridge meets it; four rows ahead of it, the front bulkhead at z -8.7. Windows every 0.52 m, 0.28 by 0.40 with rounded
+ * corners, the sill at 0.8, the seated eye above it. He sits in the row by the door, the port window seat, the wing behind him.
+ */
+export const CABIN = {
+  cx: -3.4, z: [-8.7, -4.8] as [number, number], half: 1.37, height: 2.08,
+  windowZ: [-5.08, -5.6, -6.12, -6.64, -7.16, -7.68, -8.2], win: { y0: 0.8, y1: 1.2, w: 0.28, r: 0.09, slot: 0.26 }, // low, at the seated shoulder, the way the E-Jet's are
+  rows: [-5.5, -6.29, -7.08, -7.87], seatsX: [-4.4, -3.9, -2.9, -2.4], door: { w: 0.86, h: 1.85 },
+} as const;
 /** The lecturer's dais across the front, and the lectern on it, right of centre so the screen stays clear. */
 export const DAIS = { x: 4.9, z: [-17.3, -14.7] as [number, number], height: 0.3, lectern: [5.6, -15.95] as [number, number] };
 /** The floor of the central aisle at z: two 0.18 m steps per tier, the rear landing at the top, the flat floor at the front. */
@@ -355,17 +366,18 @@ export const SETS: StageSet[] = [
   {
     // 2022, the crossing: the jet bridge, the cabin, the port window seat; Halifax 400 m down in afternoon sun, hazed with distance
     id: 'flight', env: 'studio', baked: true,
-    tint: { sky: '#D8E8F2', ground: '#A7A59E', power: 0.4 }, exposure: 0.8, envPower: 0.5,
-    sun: { dir: [0.55, 0.7, 0.45], color: '#FFF3DF', power: 2.4, shadow: 0.7 },
+    tint: { sky: '#D8E8F2', ground: '#B8BCC0', power: 0.4 }, exposure: 0.8, envPower: 0.5,
+    sun: { dir: [0.55, 0.7, 0.45], color: '#FFF8EE', power: 2.4, shadow: 0.7 },
     fog: { color: '#C9D9E4', near: 700, far: 5200 },
     props: [
       { build: 'boardingPassage', at: [0, 0, 0] },
       { build: 'aircraftCabin', at: [0, 0, 0] },
-      ...[-8.5, -7.45, -6.4, -5.35].flatMap((z) => [-4.7, -4.13, -2.67, -2.1].map((x): Placement => ({ build: 'aircraftSeat', at: [x, 0, z] }))),
+      { build: 'aircraftSkin', at: [0, 0, 0], shadow: false },
+      ...CABIN.rows.flatMap((z) => CABIN.seatsX.map((x): Placement => ({ build: 'aircraftSeat', at: [x, 0, z] }))),
       // the moving map on the back of every seat that has a row behind it, and on the front bulkhead
-      ...[-8.5, -7.45, -6.4].flatMap((z) => [-4.7, -4.13, -2.67, -2.1].map((x): Placement => ({ build: 'seatScreen', at: [x, 1.0, z + 0.34], live: 'screen' }))),
-      { build: 'bulkheadScreen', at: [-3.4, 1.55, -10.17], live: 'screen', cap: 'Delhi to Halifax, 2022. The descent over the peninsula.' },
-      { build: 'aircraftWing', at: [0, 0, 0] },
+      ...CABIN.rows.slice(1).flatMap((z) => CABIN.seatsX.map((x): Placement => ({ build: 'seatScreen', at: [x, 1.06, z + 0.34], live: 'screen' }))),
+      { build: 'bulkheadScreen', at: [CABIN.cx, 1.45, CABIN.z[0] + 0.03], live: 'screen', cap: 'Delhi to Halifax, 2022. The descent over the peninsula.' },
+      { build: 'aircraftWing', at: [0.43, 0, 6.4] }, // the root at the new wall, the wing and its engine behind the door: the rows are ahead of it, as an E175's front rows are
       { build: 'flightSky', at: [0, 0, 0], live: 'flight', shadow: false },
       // the world under the aircraft: it sinks and slides with the descent (flight.ts), rolls with the bank
       { build: 'halifax', at: [0, 0, 0], live: 'flight', cap: 'Halifax. The peninsula, the Northwest Arm, the harbour, from OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
@@ -373,7 +385,7 @@ export const SETS: StageSet[] = [
       { model: 'dalhousie_campus', at: [HALIFAX_CAMPUS[0], 0, HALIFAX_CAMPUS[1]], rot: [0, 90, 0], live: 'flight', cap: 'The Goldberg Computer Science Building.', href: '/assets/stage/FLIGHT-CREDITS.md' },
       { build: 'cloudField', at: [0, 0, 0], live: 'flight', shadow: false },
       { build: 'halifaxSign', at: [-2.735, 2.0, -3.6], rot: [0, -90, 0], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
-      ...[-8.7, -6.6, -1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, z < -4.8 ? 2.6 : 2.4, z], live: 'pendant', scale: 0.65 })),
+      ...[-1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, 2.4, z], live: 'pendant', scale: 0.65 })), // the bridge's two; the cabin's light is its own strips
       { build: 'discLight', at: [-3.3, 2.4, 1.6], live: 'pendant', scale: 0.65 }, // the first section of the bridge, by the Delhi door
     ],
   },

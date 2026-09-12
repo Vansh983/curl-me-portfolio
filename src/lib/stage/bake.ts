@@ -11,7 +11,7 @@ export const LIVE_SURFACE = new Set(['mat:tubeGlass', 'mat:bulb', 'mat:curtain',
 /** Props that never enter the bake: the backdrops and the far things the fog softens anyway. */
 export const DROP_PROP = new Set(['clouds', 'bridge', 'boats', 'piers', 'nightSky', 'sky', 'city', 'water', 'flightSky', 'campusView', 'sydneyHarbour', 'harbourWater', 'bennelongPoint', 'harbourAround', 'canadaPlaceSails', 'cnTowerFar', 'macdonaldBridge', 'northShore', 'torontoDay', 'halifaxDay']);
 /** Things that stand in the Blender scene for shadow and bounce but are not baked: the wide ground that would eat the atlas, and leafy models whose alpha cards do not survive the round trip. The runtime builds them and lights them live. */
-export const CONTEXT_PROP = new Set(['plazaFloor', 'road']);
+export const CONTEXT_PROP = new Set(['plazaFloor', 'road', 'aircraftSkin', 'aircraftWing']); // the fuselage and the wing: outside, in the sun, only there to keep it out of the cabin
 export const CONTEXT_MODEL = new Set(['palm_medium', 'island_tree_01']);
 
 /** `surface` is `mat:<name>` or `paint:<name>`; `live` is the placement's live flag or ''. */

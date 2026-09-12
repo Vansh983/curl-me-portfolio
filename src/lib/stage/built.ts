@@ -9,7 +9,7 @@ import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE, CABIN } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -161,75 +161,132 @@ const car = (mat: string) => (): BuiltPart => {
 };
 
 /** The cabin's windows along z: one at every row and one between. */
-const CABIN_WINDOWS = [-8.5, -7.95, -7.45, -6.9, -6.4, -5.85, -5.35];
+let cabinSkinSink: Sink | null = null;
+/** The fuselage skin as the last aircraftCabin build left it; built once if the skin is asked for first. */
+const cabinSkin = (): Sink => { if (!cabinSkinSink) BUILT.aircraftCabin(); return cabinSkinSink as Sink; };
+/** The E175's section: half-width from the aisle's centre at each height, the floor's edge to the crown. */
+const CABIN_SECTION: Array<[number, number]> = [[1.15, 0], [1.32, 0.12], [1.37, 0.35], [1.37, 0.8], [1.35, 1.2], [1.3, 1.5], [1.2, 1.7], [1.0, 1.88], [0.72, 2.0], [0.4, 2.06], [0, 2.08]];
 
 
 export const BUILT: Record<string, () => BuiltPart> = {
   // ---- 2022: the crossing. Cabin in world coordinates; seats are local reusable assemblies.
   aircraftCabin: () => {
-    const sh = buildShell({ x: [-5.2, -1.6], z: [-10.2, -4.8], h: 1.95,
-      floor: 'cabinFloor', wall: 'cabinWall', openings: [
-        { wall: 'z+', at: -3.4, w: 1.1, h: 1.95 },
-        { wall: 'x+', at: -9.45, w: 1.1, h: 1.95 },
-        ...CABIN_WINDOWS.flatMap((z) => (['x-', 'x+'] as const).map((wall) => ({ wall, at: z, w: 0.42, h: 0.6, sill: 1.02 }))),
-      ] });
-    const roof = new Sink(), rims = new Sink(), bins = new Sink(), details = new Sink(), glass = new Sink();
-    // A continuous curved crown, not a rectangular room with airplane seats in it.
-    for (let i = 0; i < 40; i++) {
-      const a = Math.PI * i / 40, b = Math.PI * (i + 1) / 40;
-      const p = (t: number, z: number): V3 => [-3.4 + 1.8 * Math.cos(t), 1.95 + 0.69 * Math.sin(t), z];
-      roof.quad(p(a, -4.8), p(b, -4.8), p(b, -10.2), p(a, -10.2));
-      // End caps above the two bulkheads.
-      roof.tri([-3.4, 1.95, -10.2], p(a, -10.2), p(b, -10.2));
-      roof.tri([-3.4, 1.95, -4.8], p(b, -4.8), p(a, -4.8));
+    const { cx, z: [z0, z1], windowZ, win, rows, seatsX, door } = CABIN, sec = CABIN_SECTION;
+    cabinSkinSink = null; // rebuilt below, taken by aircraftSkin
+    const panel = new Sink(), dado = new Sink(), floor = new Sink(), runner = new Sink(), bins = new Sink(), psu = new Sink(), lights = new Sink(), reveal = new Sink(), glass = new Sink(), metal = new Sink(), lav = new Sink();
+    const X = (side: number, off: number) => cx + side * off;
+    const halfAt = (y: number) => { for (let i = 0; i + 1 < sec.length; i++) { const [w0, y0] = sec[i], [w1, y1] = sec[i + 1]; if (y >= y0 && y <= y1) return w0 + ((w1 - w0) * (y - y0)) / (y1 - y0 || 1); } return 0; };
+    // a strip of sidewall or crown between two heights over a length of the cabin, its face turned to the aisle
+    const SKIN = 0.1; // the fuselage's skin outside the panels: the sun and the sky stay outside, and come in only through the windows
+    const strip = (sink: Sink, side: number, ya: number, yb: number, za: number, zb: number, out = 0) => {
+      const a: V3 = [X(side, halfAt(ya) + out), ya, za], b: V3 = [X(side, halfAt(ya) + out), ya, zb], c: V3 = [X(side, halfAt(yb) + out), yb, zb], d: V3 = [X(side, halfAt(yb) + out), yb, za];
+      if ((side < 0) !== (out > 0)) sink.quad(a, d, c, b); else sink.quad(a, b, c, d);
+    };
+    const skin = (cabinSkinSink = new Sink()); // the fuselage skin: built here, returned by aircraftSkin (a context prop: in Blender for the shadow, never in the atlas)
+    const bands: number[] = [z0, ...windowZ.slice().sort((p, q) => q - p).flatMap((z) => [z + win.slot, z - win.slot]).filter((z) => z > z0 && z < z1), z1].sort((p, q) => p - q);
+    const isWindowBand = (za: number, zb: number) => windowZ.some((z) => Math.abs((za + zb) / 2 - z) < 0.01);
+    for (let i = 0; i + 1 < bands.length; i++) {
+      const za = bands[i], zb = bands[i + 1];
+      if (zb - za < 1e-4) continue;
+      for (const side of [-1, 1]) for (let k = 0; k + 1 < sec.length; k++) {
+        const ya = sec[k][1], yb = sec[k + 1][1];
+        if (isWindowBand(za, zb) && ya >= win.y0 - 1e-6 && yb <= win.y1 + 1e-6) continue; // the window's own band: the ring below
+        strip(ya < 0.35 ? dado : panel, side, ya, yb, za, zb);
+        strip(skin, side, ya, yb, za, zb, SKIN);
+      }
     }
-    for (const side of [-1, 1]) for (const z of CABIN_WINDOWS) {
-      const x = -3.4 + side * 1.8;
-      // Fill the rectangular shell aperture around an oval; reveal thickness catches bounced light.
-      const corner = Math.atan2(0.3, 0.21);
-      const angles = [...Array.from({ length: 40 }, (_, i) => Math.PI * 2 * i / 40), corner, Math.PI - corner, Math.PI + corner, Math.PI * 2 - corner].sort((a, b) => a - b);
+    // the windows: a rounded rectangle in the band, the wall round it as a ring, a reveal 0.07 deep, the pane at the back of it
+    const hw = win.w / 2, hh = (win.y1 - win.y0) / 2, cy = (win.y0 + win.y1) / 2, N = 32;
+    const onRound = (a: number) => { // the rounded rectangle's boundary along a ray from the centre
+      const d = [Math.cos(a), Math.sin(a)]; let lo = 0, hi = 0.5;
+      for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2, pz = d[0] * m, py = d[1] * m; const qz = Math.max(-(hw - win.r), Math.min(hw - win.r, pz)), qy = Math.max(-(hh - win.r), Math.min(hh - win.r, py)); if (Math.hypot(pz - qz, py - qy) < win.r) lo = m; else hi = m; }
+      return [d[0] * (lo + hi) / 2, d[1] * (lo + hi) / 2];
+    };
+    const onSlot = (a: number) => { const c = Math.cos(a), sn = Math.sin(a); const t = Math.min(win.slot / Math.max(1e-9, Math.abs(c)), hh / Math.max(1e-9, Math.abs(sn))); return [c * t, sn * t]; };
+    for (const side of [-1, 1]) for (const wz of windowZ) {
+      const q4 = (sink: Sink, a: V3, b: V3, c: V3, d: V3) => side < 0 ? sink.quad(a, d, c, b) : sink.quad(a, b, c, d);
+      // the slot's four corners join the angles, or the ring's chords would cut them and leave a gap at each
+      const corner = Math.atan2(hh, win.slot);
+      const angles = [...Array.from({ length: N }, (_, i) => (i / N) * Math.PI * 2), corner, Math.PI - corner, Math.PI + corner, Math.PI * 2 - corner].sort((p, q) => p - q);
       for (let i = 0; i < angles.length; i++) {
-        const point = (n: number, outer: boolean, depth: number): V3 => {
-          const a = angles[n % angles.length], c = Math.cos(a), s = Math.sin(a);
-          const r = outer ? Math.min(0.21 / Math.max(1e-9, Math.abs(c)), 0.3 / Math.max(1e-9, Math.abs(s))) : 1;
-          return [x - side * depth, 1.32 + s * (outer ? r : 0.25), z + c * (outer ? r : 0.17)];
-        };
-        const quad = (a: V3, b: V3, c: V3, d: V3) => side === -1 ? rims.quad(a, d, c, b) : rims.quad(a, b, c, d);
-        quad(point(i, true, 0.01), point(i + 1, true, 0.01), point(i + 1, false, 0.01), point(i, false, 0.01));
-        quad(point(i, false, 0.01), point(i + 1, false, 0.01), point(i + 1, false, -0.11), point(i, false, -0.11));
-      }
-      // the pane, set back in the reveal, a fan of triangles facing the passenger
-      const px = x - side * 0.09;
-      for (let i = 0; i < 40; i++) {
-        const a = (i / 40) * Math.PI * 2, b = ((i + 1) / 40) * Math.PI * 2;
-        const pt = (t: number): V3 => [px, 1.32 + Math.sin(t) * 0.25, z + Math.cos(t) * 0.17];
-        if (side === -1) glass.tri([px, 1.32, z], pt(b), pt(a)); else glass.tri([px, 1.32, z], pt(a), pt(b));
+        const a0 = angles[i], a1 = angles[(i + 1) % angles.length];
+        const r0 = onRound(a0), r1 = onRound(a1), s0 = onSlot(a0), s1 = onSlot(a1);
+        const P = (zz: number, yy: number, depth: number): V3 => [X(side, halfAt(cy + yy) - depth), cy + yy, wz + zz];
+        q4(panel, P(s0[0], s0[1], 0), P(s1[0], s1[1], 0), P(r1[0], r1[1], 0), P(r0[0], r0[1], 0)); // the ring
+        q4(skin, P(r0[0], r0[1], -SKIN), P(r1[0], r1[1], -SKIN), P(s1[0], s1[1], -SKIN), P(s0[0], s0[1], -SKIN)); // the skin's ring outside, turned out
+        q4(reveal, P(r0[0], r0[1], 0), P(r1[0], r1[1], 0), P(r1[0], r1[1], -SKIN), P(r0[0], r0[1], -SKIN)); // the reveal, out through the skin
+        const g0: V3 = P(r0[0], r0[1], -0.09), g1: V3 = P(r1[0], r1[1], -0.09), gc: V3 = P(0, 0, -0.09);
+        if (side < 0) glass.tri(gc, g1, g0); else glass.tri(gc, g0, g1); // the pane
       }
     }
-    for (const z of [-8.5, -7.45, -6.4, -5.35]) for (const side of [-1, 1]) {
-      bins.rbox(-3.4 + side * 1.28, 2.13, z, 0.8, 0.37, 1.025, 0.12, 5);
-      details.rbox(-3.4 + side * 0.95, 1.98, z, 0.035, 0.018, 0.17, 0.007, 2);
-      for (const dz of [-0.12, 0.12]) details.cylinder(-3.4 + side * 1.12, 1.925, z + dz, 0.026, 0.01, 16);
+    // the end walls: the bulkhead ahead, the rear wall with the door cut where the bridge meets it
+    const cap = (zc: number, into: number, hole: [number, number, number] | null) => { // hole: x0, x1, top
+      const ys = sec.map((k) => k[1]); if (hole) ys.push(hole[2]); ys.sort((p, q) => p - q);
+      for (let k = 0; k + 1 < ys.length; k++) {
+        const ya = ys[k], yb = ys[k + 1]; if (yb - ya < 1e-4) continue;
+        const spans: Array<[number, number, number, number]> = hole && yb <= hole[2] + 1e-6 ? [[cx - halfAt(ya), cx - halfAt(yb), hole[0], hole[0]], [hole[1], hole[1], cx + halfAt(ya), cx + halfAt(yb)]] : [[cx - halfAt(ya), cx - halfAt(yb), cx + halfAt(ya), cx + halfAt(yb)]];
+        for (const [la, lb, ra, rb] of spans) {
+          const a: V3 = [la, ya, zc], b: V3 = [ra, ya, zc], c: V3 = [rb, yb, zc], d: V3 = [lb, yb, zc];
+          if (into > 0) panel.quad(a, b, c, d); else panel.quad(a, d, c, b);
+        }
+      }
+    };
+    cap(z0, 1, null);
+    cap(z1, -1, [cx - door.w / 2, cx + door.w / 2, door.h]);
+    // the skin's ends and its belly: the bulkhead's outside, the rear wall's outside round the door, a plate under the floor
+    const outerCap = (zc: number, into: number, hole: [number, number, number] | null) => {
+      const ys = sec.map((k) => k[1]); if (hole) ys.push(hole[2]); ys.sort((p, q) => p - q);
+      for (let k = 0; k + 1 < ys.length; k++) {
+        const ya = ys[k], yb = ys[k + 1]; if (yb - ya < 1e-4) continue;
+        const L = (y: number) => cx - halfAt(y) - SKIN, R = (y: number) => cx + halfAt(y) + SKIN;
+        const spans: Array<[number, number, number, number]> = hole && yb <= hole[2] + 1e-6 ? [[L(ya), L(yb), hole[0], hole[0]], [hole[1], hole[1], R(ya), R(yb)]] : [[L(ya), L(yb), R(ya), R(yb)]];
+        for (const [la, lb, ra, rb] of spans) { const a: V3 = [la, ya, zc], b: V3 = [ra, ya, zc], c: V3 = [rb, yb, zc], d: V3 = [lb, yb, zc]; if (into > 0) skin.quad(a, b, c, d); else skin.quad(a, d, c, b); }
+      }
+    };
+    outerCap(z0 - SKIN, -1, null);
+    outerCap(z1 + SKIN, 1, [cx - door.w / 2, cx + door.w / 2, door.h]);
+    skin.quad([cx - sec[0][0] - SKIN, -0.02, z0 - SKIN], [cx + sec[0][0] + SKIN, -0.02, z0 - SKIN], [cx + sec[0][0] + SKIN, -0.02, z1 + SKIN], [cx - sec[0][0] - SKIN, -0.02, z1 + SKIN]);
+    for (const side of [-1, 1]) { const a: V3 = [X(side, sec[0][0]), 0, z0 - SKIN], b: V3 = [X(side, sec[0][0] + SKIN), -0.02, z0 - SKIN], c: V3 = [X(side, sec[0][0] + SKIN), -0.02, z1 + SKIN], d: V3 = [X(side, sec[0][0]), 0, z1 + SKIN]; if (side < 0) skin.quad(a, b, c, d); else skin.quad(a, d, c, b); }
+    // the lavatory door on the rear wall, right of the way in: its outline and latch
+    for (const [x, y, w, h] of [[cx + 0.8, 0.02, 0.62, 0.03], [cx + 0.8, 1.82, 0.62, 0.03], [cx + 0.5, 0.92, 0.03, 1.8], [cx + 1.1, 0.92, 0.03, 1.8]] as const) lav.box(x, y, z1 - 0.012, w, h, 0.02);
+    metal.rbox(cx + 1.02, 1.0, z1 - 0.02, 0.06, 0.02, 0.03, 0.006, 2);
+    // the floor and the aisle's runner
+    const f0 = sec[0][0];
+    floor.quad([cx - f0, 0, z1], [cx + f0, 0, z1], [cx + f0, 0, z0], [cx - f0, 0, z0]);
+    runner.quad([cx - 0.27, 0.004, z1], [cx + 0.27, 0.004, z1], [cx + 0.27, 0.004, z0], [cx - 0.27, 0.004, z0]);
+    // the bins: a door a row, a latch on each; the service units under them with a reading light and a vent a seat; the ceiling's strips
+    const pitch = rows[0] - rows[1];
+    for (const side of [-1, 1]) {
+      for (const z of rows) { bins.rbox(X(side, 1.02), 1.71, z + 0.04, 0.7, 0.32, pitch - 0.03, 0.03, 3); metal.rbox(X(side, 0.66), 1.6, z + 0.04, 0.02, 0.025, 0.14, 0.005, 2); }
+      psu.box(X(side, 0.825), 1.52, (z0 + z1) / 2, 0.85, 0.05, z1 - z0 - 0.1);
+      for (const z of rows) for (const x of seatsX.filter((v) => Math.sign(v - cx) === side)) { metal.cylinder(x, 1.49, z - 0.05, 0.022, 0.012, 16); psu.box(x, 1.49, z + 0.12, 0.06, 0.012, 0.03); }
+      lights.box(X(side, 0.58), 1.975, (z0 + z1) / 2, 0.12, 0.012, z1 - z0 - 0.2);
+      lights.box(X(side, 1.2), 1.493, (z0 + z1) / 2, 0.08, 0.008, z1 - z0 - 0.2); // the wash along the sidewall from under the units, so the wall under the bins is not a cave
     }
-    return [{ ...sh.floor, surface: M('cabinFloor') }, { ...sh.walls, surface: M('cabinWall') },
-      piece(roof.out(), M('cabinWall'), { smooth: true }), piece(rims.out(), M('skirting'), { smooth: true }),
-      piece(bins.out(), M('cabinWall'), { smooth: true }), piece(details.out(), M('aluminium'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
+    return [piece(panel.out(), M('cabinPanel'), { smooth: true }), piece(dado.out(), M('cabinDado'), { smooth: true }), piece(floor.out(), M('cabinFloor'), { metres: 'xz' }), piece(runner.out(), M('cabinRunner'), { metres: 'xz' }),
+      piece(bins.out(), M('cabinBin'), { smooth: true }), piece(psu.out(), M('cabinDado')), piece(lights.out(), M('cabinStrip')), piece(reveal.out(), M('skirting'), { smooth: true }), piece(glass.out(), M('cabinGlass')),
+      piece(metal.out(), M('aluminium'), { smooth: true }), piece(lav.out(), M('skirting'))];
   },
+  /** The fuselage's skin round the cabin, with the window holes: what keeps the sun outside. In Blender for the shadow, not baked; lit live. */
+  aircraftSkin: () => [piece(cabinSkin().out(), M('wingSkin'), { smooth: true })],
+  /**
+   * An E175 seat: dark blue leather over a light shell, the headrest in a white cover, the tray table and the literature
+   * pocket with its safety card on the back, the armrests, the belt on the cushion. The passenger faces -z; origin on the floor.
+   */
   aircraftSeat: () => {
-    const cloth = new Sink().rbox(0, 0.47, 0, 0.46, 0.13, 0.48, 0.065, 5)
-      .rbox(0, 0.91, 0.19, 0.46, 0.8, 0.12, 0.06, 5).rbox(0, 1.26, 0.17, 0.37, 0.25, 0.14, 0.065, 5);
-    const shell = new Sink().rbox(0, 0.86, 0.27, 0.47, 0.66, 0.065, 0.03, 3);
-    const trim = new Sink().rbox(0, 0.83, 0.309, 0.36, 0.26, 0.028, 0.025, 3)
-      .rbox(0, 0.985, 0.32, 0.09, 0.025, 0.02, 0.007, 2);
-    for (const x of [-0.26, 0.26]) {
-      trim.rbox(x, 0.67, 0.025, 0.055, 0.055, 0.45, 0.02, 3);
-      shell.box(x, 0.52, 0.16, 0.025, 0.25, 0.04);
-    }
-    for (const x of [-0.16, 0.16]) shell.box(x, 0.22, 0.1, 0.045, 0.4, 0.05);
-    const belt = new Sink().box(-0.11, 0.541, 0, 0.19, 0.008, 0.038).box(0.11, 0.541, 0, 0.19, 0.008, 0.038);
-    const buckle = new Sink().rbox(0, 0.547, 0, 0.055, 0.012, 0.044, 0.004, 2);
-    return [piece(cloth.out(), M('cabinSeat'), { smooth: true }), piece(shell.out(), M('cabinWall'), { smooth: true }),
-      piece(trim.out(), M('chairBase'), { smooth: true }), piece(belt.out(), M('bezel')), piece(buckle.out(), M('chrome'), { smooth: true })];
+    const leather = new Sink().rbox(0, 0.45, 0, 0.44, 0.12, 0.46, 0.05, 4).rbox(0, 0.86, 0.2, 0.44, 0.72, 0.1, 0.05, 4).rbox(0, 1.3, 0.19, 0.4, 0.22, 0.11, 0.05, 4);
+    const cover = new Sink().box(0, 1.3, 0.128, 0.36, 0.2, 0.004);
+    const shell = new Sink().rbox(0, 0.9, 0.27, 0.46, 0.85, 0.04, 0.02, 2).rbox(0, 0.75, 0.3, 0.36, 0.3, 0.02, 0.01, 2);
+    const pocket = new Sink().rbox(0, 0.5, 0.3, 0.38, 0.22, 0.03, 0.01, 2);
+    const card = new Sink().box(0, 0.6, 0.322, 0.14, 0.2, 0.003);
+    const dark = new Sink().box(0, 0.02, 0.05, 0.4, 0.04, 0.08);
+    for (const x of [-0.24, 0.24]) { dark.rbox(x, 0.66, 0.02, 0.05, 0.05, 0.42, 0.02, 3); dark.box(x, 0.58, 0.1, 0.03, 0.12, 0.05); }
+    for (const x of [-0.15, 0.15]) dark.box(x, 0.2, 0.05, 0.04, 0.4, 0.06);
+    const belt = new Sink().box(-0.11, 0.512, 0, 0.19, 0.008, 0.038).box(0.11, 0.512, 0, 0.19, 0.008, 0.038);
+    const buckle = new Sink().rbox(0, 0.518, 0, 0.055, 0.012, 0.044, 0.004, 2);
+    const latch = new Sink().box(0, 0.92, 0.315, 0.06, 0.02, 0.01);
+    return [piece(leather.out(), M('seatLeather'), { smooth: true }), piece(cover.out(), M('headrestCloth'), { metres: 'xy' }), piece(shell.out(), M('cabinBin'), { smooth: true }),
+      piece(pocket.out(), M('cabinDado'), { smooth: true }), piece(card.out(), M('skirting')), piece(dark.out(), M('chairBase'), { smooth: true }), piece(belt.out(), M('bezel')), piece(buckle.out(), M('chrome'), { smooth: true }), piece(latch.out(), M('aluminium'))];
   },
   /**
    * The port wing, seen from the third-row window: the leading edge just behind it, swept back 25 degrees to a
@@ -408,7 +465,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     return [piece(timber.out(), M('auditoriumOak'), { metres: 'xy', smooth: true }),
       piece(dark.out(), M('acousticPanel'), { metres: 'xy', smooth: true }), piece(trim.out(), M('aluminium')),
-      piece(lights.out(), M('ledStrip'))];
+      piece(lights.out(), M('cabinStrip'))];
   },
   /**
    * The lectern: a timber podium on a plinth, 1.15 m to its sloped top with a reading light and a mic on a gooseneck,

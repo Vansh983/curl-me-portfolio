@@ -21,8 +21,8 @@ export const PHONE = { raise: ch(5.012), framed: ch(5.075), zoom: ch(5.103), fil
 export const DEGREE = { raise: ch(11.56), held: ch(11.7) } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
-/** The window seat, the front row, well ahead of the wing: eye at the oval, looking out and a little down at the city. */
-export const WINDOW_VIEW = { cam: [-4.72, 1.42, -8.5] as [number, number, number], look: [-7.72, 0.62, -8.7] as [number, number, number], fov: 74 };
+/** The window seat in the row by the door, the wing's leading edge behind the shoulder: eye at the window, looking out and a little down at the city. */
+export const WINDOW_VIEW = { cam: [-4.4, 1.22, -5.5] as [number, number, number], look: [-7.4, 0.5, -5.7] as [number, number, number], fov: 74 };
 
 export function phoneAt(progress: number, reducedMotion = false) {
   const q = Number.isFinite(progress) ? progress : 0;

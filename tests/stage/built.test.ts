@@ -5,16 +5,18 @@ import { MATS } from '../../src/lib/stage/materials.ts';
 import { LECTURE_ROWS, SETS } from '../../src/lib/stage/sets.ts';
 import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
 
-test('the cabin has open oval windows, complete corner trim and an inward-facing curved roof', () => {
+test('the cabin has open rounded windows, a complete ring round each and an inward-facing crown', () => {
   const parts = BUILT.aircraftCabin();
   const meshes = parts.map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
-  const glass = meshes[meshes.length - 1];
+  const glass = meshes[8]; // panel, dado, floor, runner, bins, psu, lights, reveal, glass, metal, lav
   const hits = (origin: number[], direction: number[]) => new Raycaster(new Vector3(...origin), new Vector3(...direction), 0, 2).intersectObjects(meshes);
-  const throughWindow = hits([-4.3, 1.42, -6.4], [-1, 0, 0]);
-  assert.equal(throughWindow.length, 1, 'only the pane in the way');
+  const throughWindow = hits([-4.0, 0.95, -5.56], [-1, 0, 0]); // a little off the pane's centre, where its fan's triangles meet
+  assert.equal(throughWindow.length, 1, `only the pane in the way: ${throughWindow.map((h) => meshes.indexOf(h.object as (typeof meshes)[number])).join(',')}`);
   assert.equal(throughWindow[0].object, glass);
-  assert.ok(hits([-4.3, 1.83, -6.11], [-1, 0, 0]).length > 0, 'no triangular crack outside the oval');
-  assert.ok(hits([-3.4, 1.6, -7], [0, 1, 0]).length > 0, 'ceiling must face the passenger');
+  assert.ok(hits([-4.0, 1.17, -5.36], [-1, 0, 0]).length > 0, 'no crack in the ring outside the window');
+  assert.ok(hits([-4.0, 0.98, -5.86], [-1, 0, 0]).length > 0, 'wall between the windows');
+  assert.ok(hits([-3.4, 1.6, -7], [0, 1, 0]).length > 0, 'the crown must face the passenger');
+  assert.ok(hits([-3.4, 1.0, -8.0], [0, 0, -1]).length > 0, 'the bulkhead faces the cabin');
   meshes.forEach((m) => { m.geometry.dispose(); m.material.dispose(); });
 });
 

@@ -14,6 +14,6 @@ execFileSync(blender, ['-b', '-P', 'scripts/stage-bake.py', '--', set, samples, 
 execFileSync('npx', ['gltf-transform', 'optimize', `.cache/bake/set${set}_baked.glb`, `${out}/set${set}.glb`,
   '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', tex, '--simplify', String(simplify > 0), '--simplify-error', String(simplify), '--instance', 'false', '--palette', 'false', '--join', 'false', '--flatten', 'false',
   '--prune-attributes', 'false'], { stdio: 'inherit' }); // the lightmap uv (TEXCOORD_1) has no texture in the file: keep it
-await sharp(`.cache/bake/set${set}_lm.png`).webp({ quality: 88 }).toFile(`${out}/set${set}_lm.webp`);
+await sharp(`.cache/bake/set${set}_lm.png`).webp({ quality: 90, smartSubsample: true }).toFile(`${out}/set${set}_lm.webp`); // smart chroma: plain 4:2:0 left colour blotches on dark walls
 const kb = (f) => (statSync(f).size / 1024).toFixed(0);
 console.log(`set ${set}: ${kb(`${out}/set${set}.glb`)} KB glb, ${kb(`${out}/set${set}_lm.webp`)} KB lightmap`);
