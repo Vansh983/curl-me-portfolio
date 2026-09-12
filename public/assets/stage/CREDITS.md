@@ -52,3 +52,7 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 The Toronto skyline out of the condo window and Halifax under the aircraft are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).
 
 `bean-logo.png` is the Bean logo from [beanmeals.com](https://www.beanmeals.com), the company the site's author co-founded, used on the Sydney set's sign, whiteboard and screens.
+
+## Logos on the tour
+
+The marks along the terrace and on the stage are the organisations' own, fetched from their sites for the record of his part in them (not licensed assets, not altered): Web Summit Vancouver (vancouver.websummit.com), Elevate Festival (elevatefestival.ca), Volta (voltaeffect.com), Invest Nova Scotia (investnovascotia.ca), Product Hunt (producthunt.com), Dalhousie University (dal.ca). Bean's own logo from beanmeals.com.

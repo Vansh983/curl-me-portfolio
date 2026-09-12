@@ -110,3 +110,15 @@ He reported a black sky and glitches; the headless captures had not shown them. 
 - **The terrace blew out white.** The house's wall was `sydneyWall` (near white) under the baked sun, and the booth pure white: `terraceWall` (a shade darker) and `boothOff` now, the tour's exposure 0.72.
 - **A white pool on the stage.** Not the lightmap (the floor's texels average 12/255): the veneer's roughness map is glossy, and the studio environment map reflected as a broad streak in a dark hall. The stage boards are `stageOak` (plank_flooring_02, rough 0.9), the hall's `envPower` 0.05, the stage lit by three downlights in the bake, the crowd's cut-outs a little self-lit (`emissiveMap`).
 - Frame times in his Chrome were fine once the two earlier faults were fixed; the 18 fps in the footer widget is the site's own ASCII field, not the stage.
+
+## The Bean fame walk (2026-09-12)
+
+He wanted mountains for Vancouver, the city for Toronto, then Halifax, and the real marks of the things he did along the way: Volta, Invest NS, "all those things". Research, not invention:
+
+- **The North Shore** (`northShore`, northshore.ts, `scripts/stage-northshore.mjs`): real elevation from Mapzen Terrarium tiles (AWS open data, SRTM) over Cypress, Grouse and Seymour, 220 by 90 samples about the Convention Centre, built at 1:6 so the range fits the sky dome (now 2,400 m), coloured by height: forest, rock, snow on the tops. Across the water to the right of the terrace, the sails in front of it.
+- **Downtown Toronto by day** (`torontoDay`): the condo's OpenStreetMap footprints and heights (toronto.json) within 1.1 km of the CN Tower, turned so the skyline reads as from the lake (real north away over the water, east to the right), the tower as city.ts builds it, in a day window tile (`windowsDay`); only the far shore. Across the water in Toronto's chapter.
+- **Downtown Halifax** (`halifaxDay`): the flight's OpenStreetMap buildings (halifax.json) within 700 m of the Maritime Centre, turned so the waterfront faces the viewer as from Dartmouth, with the Macdonald Bridge.
+- **The marks** (`logo*` boards, paint `logo` frames, `public/assets/stage/logos/`): the organisations' own logos fetched from their sites (Web Summit Vancouver, Elevate Festival, Volta, Invest Nova Scotia, Product Hunt, Dalhousie), each on a board in a thin frame between the windows of the house: Web Summit by the booth in Vancouver, Elevate in Toronto, Volta, Invest NS and Product Hunt along Halifax, Dalhousie on the drape behind the stage. Credited in CREDITS.md.
+- **The terrace from the window**: the terrace, its wall and the cliff now live in Vancouver's set (baked there) so Sydney's window looks across them, with a glass balustrade on steel posts instead of the solid parapet (the harbour and the Opera House stay in view); Halifax keeps set 8 in view with a new `also` field on the set. No pop at the door any more.
+- Vite: `optimizeDeps.include` carries the GLTFExporter so the bake's export no longer answers 504 (Outdated Optimize Dep).
+- Frames: `.cache/fame/sheet.png`, `.cache/v.png`, `.cache/v2.png`.

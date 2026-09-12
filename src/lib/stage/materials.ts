@@ -10,7 +10,7 @@ export interface Mat {
   metal?: number;
   grain?: Kind; // a faint normal map, tiled every `tile` metres
   amp?: number; // normal strength, 0..1 (default 0.25)
-  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky' | 'facade' | 'pitch'; // a painted colour map, tiled every `tile` metres
+  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky' | 'facade' | 'pitch' | 'windowsDay'; // a painted colour map, tiled every `tile` metres
   tex?: string; // a scanned surface from assets.ts: its relief and roughness, and its colour when it ships one; tiled every `tile` metres
   sheen?: number; // cloth: the soft rim light of fibres, 0..1
   clearcoat?: number; // lacquer, car paint, glossy plastic: a clear layer over the colour, 0..1
@@ -59,6 +59,12 @@ export const MATS: Record<string, Mat> = {
   stageOak: { color: '#8B6A45', rough: 0.9, tex: 'plank_flooring_02', amp: 0.4, tile: 1.98 }, // the stage floor: matte boards (the veneer's roughness map is glossy and threw the room back as a white streak)
   terraceWall: { color: '#D3CABA', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 }, // the house from outside: rendered, a shade under the sun so it never blooms
   boothOff: { color: '#DAD8D0', rough: 0.6, clearcoat: 0.1, tile: 1 }, // the booth's white in daylight
+  terrain: { color: '#FFFFFF', rough: 1, tile: 1, tint: true }, // the North Shore: its colours by height in the vertices
+  towerDay: { color: '#FFFFFF', rough: 0.7, paint: 'windowsDay', tile: 1, tint: true }, // downtown Toronto by day, across the water
+  towerTopDay: { color: '#8E9096', rough: 0.9, tile: 1 },
+  handrail: { color: '#9EA3A8', rough: 0.35, metal: 0.8, tile: 1 }, // the terrace balustrade's steel
+  logoBoard: { color: '#F4F3EF', rough: 0.55, tile: 1 },
+  logoBoardDark: { color: '#15161A', rough: 0.55, tile: 1 },
   bridgeGreen: { color: '#3E6B4F', rough: 0.55, metal: 0.4, tile: 1 }, // the Macdonald's painted steel
   parchment: { color: '#F1E9D6', rough: 0.85, grain: 'weave', amp: 0.15, tile: 0.1 },
   ribbonGold: { color: '#C9A227', rough: 0.45, metal: 0.3, tile: 1 },

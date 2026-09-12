@@ -4,7 +4,7 @@
 export type Ctx = CanvasRenderingContext2D;
 export type Painter = (x: Ctx, w: number, h: number) => void;
 export interface Paint { w: number; h: number; frames: Painter[] }
-export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null }
+export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
   const c = document.createElement('canvas');
@@ -202,6 +202,18 @@ export const SURFACE_PAINT: Record<string, Paint> = {
     x.fillStyle = '#4E5E6C'; x.fillRect(78, 62, 100, 128); // the glass
     x.fillStyle = '#7D8C98'; x.fillRect(84, 68, 40, 54); // a lit pane, the sky in it
     x.fillStyle = '#EDEDEA'; x.fillRect(72, 190, 112, 8); // the sill
+  }] },
+  /** A storey of a downtown tower by day, the night tile's grid: pale glass in a light frame, the slab line between floors. */
+  windowsDay: { w: 1024, h: 896, frames: [(x, w, h) => {
+    x.fillStyle = '#C6CBD2'; x.fillRect(0, 0, w, h);
+    const cols = 24, rows = 20, bw = w / cols, bh = h / rows;
+    let seed = 5;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const v = 0.52 + rnd() * 0.18;
+      x.fillStyle = `rgb(${Math.round(255 * v * 0.86)}, ${Math.round(255 * v * 0.93)}, ${Math.round(255 * v)})`;
+      x.fillRect(c * bw + 4, r * bh + 5, bw - 8, bh - 12);
+    }
   }] },
   /** A football pitch for Wickwire Field, uv 0..1 across the whole field: turf in mown stripes with white lines. */
   pitch: { w: 1024, h: 640, frames: [(x, w, h) => {
@@ -711,6 +723,18 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
       x.fillStyle = `rgba(20, 16, 14, 0.55)`; x.beginPath(); x.arc(cx, shoulder - 0.15 * scale, headR, Math.PI * 0.6, Math.PI * 1.6); x.fill(); // hair, shadow side
       if (gown && r() < 0.8) { x.fillStyle = '#111114'; x.fillRect(cx - 0.16 * scale, shoulder - 0.27 * scale, 0.32 * scale, 0.03 * scale); } // the mortarboard
     }
+  }) },
+  /**
+   * The marks of the tour on boards along the terrace and on the stage: each frame one organisation's own logo, drawn
+   * from its site's file once it has loaded (stage-run repaints), centred with a margin. White logos sit on a dark board.
+   */
+  logo: { w: 1000, h: 600, frames: (['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const).map((key) => (x: Ctx, w: number, h: number) => {
+    const dark = key === 'elevate' || key === 'volta' || key === 'investns';
+    x.fillStyle = dark ? (key === 'volta' ? '#101A2E' : key === 'investns' ? '#0E2A4A' : '#141416') : '#F7F6F2'; x.fillRect(0, 0, w, h);
+    const img = images[key];
+    if (!img) return;
+    const pad = 90, sw = w - 2 * pad, sh = h - 2 * pad, k = Math.min(sw / img.width, sh / img.height), dw = img.width * k, dh = img.height * k;
+    x.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
   }) },
   /** Toronto's whiteboard, in his words from the trip: churn instead of the meetings. */
   whiteboardChurn: { w: 1024, h: 640, frames: [(x, w, h) => {

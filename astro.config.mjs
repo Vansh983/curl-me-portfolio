@@ -14,6 +14,8 @@ export default defineConfig({
     // animation shorthand, which browsers reject (parcel-bundler/lightningcss#1283).
     // esbuild leaves the longhands alone.
     build: { cssMinify: 'esbuild' },
+    // the bake's exporter is imported on demand: pre-bundle it, or Vite re-optimises mid-session and answers 504 (Outdated Optimize Dep)
+    optimizeDeps: { include: ['three/examples/jsm/exporters/GLTFExporter.js'] },
   },
   markdown: {
     // css-variables keeps code blocks on the brand tokens in both themes.

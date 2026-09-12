@@ -3,9 +3,10 @@
 // the fog softens anyway. Every part is a list of pieces, one per material, built at the origin
 // (a Placement moves it). Materials come from materials.ts; uv is in metres, painted faces 0..1.
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
-import { cityBlocks, cnTower, CITY } from './city.ts';
-import { halifaxCity } from './halifax.ts';
-import { dalhousieCampus, rng, treeBlob } from './dalhousie.ts';
+import { cityBlocks, cnTower, CITY, ringOf } from './city.ts';
+import { northShore } from './northshore.ts';
+import { HALIFAX, halifaxCity } from './halifax.ts';
+import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
 import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE } from './sets.ts';
@@ -67,6 +68,13 @@ function inward(sink: Sink, x0: number, x1: number, y0: number, y1: number, z0: 
   sink.quad([x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z0]); // the z0 wall faces +z
   sink.quad([x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [x0, y0, z1]); // the x0 wall faces +x
   sink.quad([x1, y0, z1], [x1, y1, z1], [x1, y1, z0], [x1, y0, z0]); // the x1 wall faces -x
+}
+
+const hex3 = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(1, v)) ** (1 / 2.2) * 255).toString(16).padStart(2, '0')).join('');
+/** A logo board: the painted face on a board in a thin frame, its face toward +z, centred at the origin. */
+function logoBoard(frame: number, dark: boolean, w = 2.0, h = 1.2): BuiltPart {
+  const board = new Sink().rbox(0, 0, -0.03, w + 0.08, h + 0.08, 0.05, 0.01, 2);
+  return [piece(board.out(), M(dark ? 'logoBoardDark' : 'logoBoard'), { smooth: true }), piece(face(w, h, 0.0), { paint: `logo:${frame}` })];
 }
 
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
@@ -648,13 +656,18 @@ export const BUILT: Record<string, () => BuiltPart> = {
   terrace: () => {
     const [x0, x1] = TERRACE.x, [z0, z1] = TERRACE.z, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
     const paving = new Sink().box(cx, -0.02, cz, x1 - x0, 0.08, z1 - z0).box((x0 - 1.4) / 2, -0.02, (z0 - 18.2) / 2, -1.4 - x0, 0.08, 2.8); // the walk and the leg along the south wall, its top 2 cm proud of the headland
-    const wall = new Sink().rbox(x0 + 0.15, 0.55, cz, 0.3, 1.1, z1 - z0, 0.02, 2).rbox(x0 + 0.15, 1.12, cz, 0.42, 0.06, z1 - z0 + 0.12, 0.015, 2) // the parapet along the water
-      .rbox((x0 - 1.4) / 2, 0.55, z0 + 0.15, -1.4 - x0, 1.1, 0.3, 0.02, 2).rbox((x0 - 1.4) / 2, 1.12, z0 + 0.15, -1.4 - x0 + 0.12, 0.06, 0.42, 0.015, 2); // and along the south leg
+    // along the water a glass balustrade on steel posts under a handrail (the harbour and the Opera House stay in the room's
+    // window, which looks across this terrace); along the south leg a low parapet
+    const wall = new Sink().rbox(x0 + 0.15, 0.08, cz, 0.3, 0.16, z1 - z0, 0.02, 2)
+      .rbox((x0 - 1.4) / 2, 0.55, z0 + 0.15, -1.4 - x0, 1.1, 0.3, 0.02, 2).rbox((x0 - 1.4) / 2, 1.12, z0 + 0.15, -1.4 - x0 + 0.12, 0.06, 0.42, 0.015, 2);
+    const rail = new Sink().box(x0 + 0.15, 1.12, cz, 0.06, 0.05, z1 - z0);
+    for (let z = z0 + 0.3; z < z1; z += 2.0) rail.box(x0 + 0.15, 0.62, z, 0.05, 0.94, 0.05);
+    const glass = new Sink().box(x0 + 0.15, 0.62, cz, 0.012, 0.9, z1 - z0);
     const cliff = new Sink().box(cx + 12, -16.05, cz + 3, x1 - x0 + 24, 32, z1 - z0 + 6); // the headland under the house and the terrace, its top 5 cm under the paving, down to the water
     const planter = new Sink(), hedge = new Sink();
     for (const z of [-14.0, -1.0, 6.0, 13.0, 20.0]) { planter.rbox(x1 - 0.5, 0.24, z, 0.7, 0.48, 1.6, 0.02, 2); hedge.rbox(x1 - 0.5, 0.75, z, 0.6, 0.55, 1.5, 0.12, 3); }
     return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(cliff.out(), M('quayStone'), { metres: 'xz' }),
-      piece(planter.out(), M('concrete'), { metres: 'xy' }), piece(hedge.out(), M('hedge'), { smooth: true })];
+      piece(planter.out(), M('concrete'), { metres: 'xy' }), piece(hedge.out(), M('hedge'), { smooth: true }), piece(rail.out(), M('handrail'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
   },
   /**
    * The house from the terrace: its west wall carried north of the room for 37 m, 3.2 m tall, with a window every 4.2 m
@@ -725,6 +738,69 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     return out;
   },
+  /** The North Shore mountains from real elevation data (northshore.ts), across the water from the terrace at 1:6. */
+  northShore: () => { const t = new Sink(); northShore(t); return [piece(t.out(), M('terrain'), { tint: true, smooth: true })]; },
+  /**
+   * Downtown Toronto by day across the water: the real footprints and heights from OpenStreetMap (city.ts, the condo's
+   * data) within 1.1 km of the CN Tower, pulled up in the day tile, the tower itself as the condo has it. The tower at
+   * the origin; real north toward -x (away over the water), real east toward -z, so the skyline reads as from the lake.
+   */
+  torontoDay: () => {
+    const [tx, tz] = CITY.cn, walls = new Sink(), tops = new Sink();
+    let seed = 31;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    const map = (x: number, z: number): [number, number] => [-(z - tz), x - tx]; // condo frame: x west, z north
+    for (const b of CITY.buildings) {
+      const ring = ringOf(b.p).map(([x, z]) => map(x, z));
+      if (ring.length < 3) continue;
+      const c = ring.reduce((a, q) => [a[0] + q[0] / ring.length, a[1] + q[1] / ring.length], [0, 0]);
+      if (Math.hypot(c[0], c[1]) > 1100 || b.h < 12 || c[0] > -260) continue; // the far shore only: nothing this side of the water
+      const g = 0.62 + rnd() * 0.3, cool = rnd() < 0.6;
+      walls.color(hex3(cool ? [g * 0.9, g * 0.95, g] : [g, g * 0.96, g * 0.9]));
+      walls.extrude(ring, b.min, b.h, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, tops);
+    }
+    const cn = new Sink(), pod = new Sink(), light = new Sink();
+    cnTower(cn, pod, light);
+    for (const k of [cn, pod, light]) { k.translate(-tx, 0, -tz); }
+    // the tower's own frame is the condo's: turn it the same way as the blocks (x_scene = -z, z_scene = x)
+    for (const k of [cn, pod, light]) k.rotateY(0, 0, -Math.PI / 2);
+    return [piece(walls.out(), M('towerDay'), { tint: true }), piece(tops.out(), M('towerTopDay')), piece(cn.out(), M('cnShaftDay')), piece(pod.out(), M('cnPodDay')), piece(light.out(), M('cnLight'), { smooth: true })];
+  },
+  /**
+   * Downtown Halifax across the harbour, as from Dartmouth: the real footprints and heights (halifax.json, the flight's
+   * data) within 700 m of the Maritime Centre, walls in the facade tile, houses under hips. Real east toward +x (the
+   * waterfront toward the viewer), real north toward -z.
+   */
+  halifaxDay: () => {
+    const walls = new Sink(), roofs = new Sink(), rnd = rng(23);
+    const C: [number, number] = [1171, -223]; // the Maritime Centre in the aircraft's frame (heading 340)
+    const a = [Math.sin((340 * Math.PI) / 180), Math.cos((340 * Math.PI) / 180)], r = [Math.cos((340 * Math.PI) / 180), -Math.sin((340 * Math.PI) / 180)];
+    const map = (x: number, z: number): [number, number] => {
+      const E = x * r[0] + -z * a[0], N = x * r[1] + -z * a[1];
+      const E0 = C[0] * r[0] + -C[1] * a[0], N0 = C[0] * r[1] + -C[1] * a[1];
+      return [E - E0, -(N - N0)];
+    };
+    for (const b of HALIFAX.buildings) {
+      const raw = ringOf(b.p);
+      if (raw.length < 3) continue;
+      const c = raw.reduce((s2, q) => [s2[0] + q[0] / raw.length, s2[1] + q[1] / raw.length], [0, 0]);
+      if (Math.hypot(c[0] - C[0], c[1] - C[1]) > 700) continue;
+      const ring = raw.map(([x, z]) => map(x, z));
+      const g = 0.6 + rnd() * 0.3;
+      walls.color(hex3(b.k === 2 ? [0.64, 0.6, 0.52] : [g, g * 0.97, g * 0.92]));
+      const box = b.k ? undefined : obb(ring);
+      if (box && b.h <= 9 && box.fill > 0.74 && box.d > 5 && box.d < 22) { roofs.color(hex3([0.22, 0.19, 0.18])); walls.extrude(ring, 0, b.h - 2, { u0: 0, v0: 0, perU: 1, perV: 1 }, roofs); hipRoof(roofs, box, b.h - 2, 0.62, 3.4, 0.35); }
+      else { roofs.color(hex3([0.3, 0.3, 0.31])); walls.extrude(ring, 0, b.h, { u0: 0, v0: 0, perU: 1, perV: 1 }, roofs); }
+    }
+    return [piece(walls.out(), M('halifaxWall'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true })];
+  },
+  /** The organisations' marks on boards, 2 by 1.2 m in a thin frame, the face toward +z: one builder a logo. */
+  logoWebSummit: () => logoBoard(0, false),
+  logoElevate: () => logoBoard(1, true),
+  logoVolta: () => logoBoard(2, true),
+  logoInvestNS: () => logoBoard(3, true),
+  logoProductHunt: () => logoBoard(4, false),
+  logoDalhousie: () => logoBoard(5, false, 5.0, 3.0),
   /**
    * Canada Place: the pier at its real size, 400 by 100 m and 12 m over the water, and the five white sails over the
    * cruise terminal along its length, masts 24 m over the deck. The long axis along x. Authored to the footprint.

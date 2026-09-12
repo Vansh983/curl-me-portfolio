@@ -39,7 +39,7 @@ import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress, STAGE_SPAN } from '../lib/stage/shot.ts';
 import { loadAllSets, showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
-import { painters, loadImage, canvas2d, tourLive, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, beanPaint, type Paint } from './stage-paint.ts';
+import { painters, loadImage, canvas2d, tourLive, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, beanPaint, type Paint, type Images } from './stage-paint.ts';
 
 const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
@@ -111,13 +111,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const studioEnv = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   // the sky is a designed gradient, deep blue overhead to a pale haze at the horizon, and the
   // ground half is the pale warm of the pavers, so the environment lights the plaza the same way
-  const skyGeo = new SphereGeometry(800, 32, 24); // inside the camera far plane
+  const skyGeo = new SphereGeometry(2400, 32, 24); // inside the camera far plane; the North Shore stands 1.7 km off at its scale
   const top = new Color('#3F87D2'), horizon = new Color('#D3E3F0'), ground = new Color('#CFC9BF');
   const pos = skyGeo.getAttribute('position');
   const col: number[] = [];
   const c = new Color();
   for (let i = 0; i < pos.count; i++) {
-    const y = pos.getY(i) / 800;
+    const y = pos.getY(i) / 2400;
     if (y >= 0) c.copy(horizon).lerp(top, Math.pow(Math.min(1, y * 2.2), 0.6));
     else c.copy(horizon).lerp(ground, Math.min(1, -y * 6));
     col.push(c.r, c.g, c.b);
@@ -173,7 +173,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const video = document.createElement('video');
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
-  const images = { jobs: null as HTMLImageElement | null, xbox: null as HTMLImageElement | null, clan: null as HTMLImageElement | null, dalhousie: null as HTMLImageElement | null, bean: null as HTMLImageElement | null };
+  const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null };
   const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...beanPaint(images) };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
@@ -737,6 +737,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
   loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'boothMontreal', 'screenTour', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'certificateInvestNS']); });
+  for (const key of ['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const) loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
   const dolly = makeDolly(DOLLY);
@@ -821,7 +822,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // pops: the plaza's daylight shows through the lab's south door before the walk reaches it
     groups.forEach((g, k) => {
       const d = Math.min(Math.abs(k - i), groups.length - Math.abs(k - i));
-      g.visible = d <= 1;
+      g.visible = d <= 1 || (SETS[i].also ?? []).includes(k); // `also`: a set that keeps a farther one in view (the terrace, two doors long)
     });
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion

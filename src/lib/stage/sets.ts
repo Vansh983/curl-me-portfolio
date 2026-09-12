@@ -69,6 +69,7 @@ export interface StageSet {
   props: Placement[];
   baked?: boolean; // the set was lit in Blender: public/assets/stage/baked/set<i>.glb and its lightmap (scripts/stage-bake.mjs)
   outdoor?: true; // no walls of its own: shown only from the set before it and itself, or its ground and road would stand outside the windows of the rooms
+  also?: number[]; // sets kept in view beyond the neighbours: the terrace stands in set 8 and is walked through set 10
 }
 
 
@@ -464,37 +465,47 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2025, Vancouver: out of the hacker house's south door onto the terrace, Web Summit week: Canada Place's sails out on
-    // the water on the left, the Bean booth against the wall on the right. Laptop in hand.
+    // 2025, Vancouver: out of the hacker house's south door onto the terrace, Web Summit week: the North Shore mountains
+    // across the water (real elevation data), Canada Place's sails on it, the Bean booth and the Web Summit mark against
+    // the wall. The terrace, its wall and the cliff live here and show from Sydney's window, Toronto and Halifax.
     id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, baked: true,
     sun: { dir: [0.45, 0.62, 0.55], color: '#FFF3DC', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 300, far: 1500 },
+    fog: { color: '#C9D7E3', near: 700, far: 6000 },
     props: [
       water(),
+      { build: 'terrace', at: [0, 0, 0], cap: 'The terrace along the harbour side of the hacker house, 30 m over the water, a glass balustrade at its edge.' },
+      { build: 'terraceWall', at: [0, 0, 0], cap: 'The house from outside: its windows along the terrace, the door at the end.' },
+      { build: 'northShore', at: [0, TERRACE.water, 0], live: 'city', shadow: false, cap: 'The North Shore: Cypress, Grouse and Seymour over Burrard Inlet, from real elevation data.' },
       { build: 'canadaPlaceSails', at: [-190, TERRACE.water, 230], rot: [0, 90, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier. Web Summit, May 2025.' },
       { build: 'beanBooth', at: [-8.55, 0, -8.5], rot: [0, 90, 0], cap: 'The Bean booth. One day at Web Summit: 500 conversations, 120 signups, an investor MOU.' },
+      { build: 'logoWebSummit', at: [-7.44, 1.9, -7.7], rot: [0, -90, 0], cap: 'Web Summit Vancouver, May 2025: Bean on the floor.' },
     ],
   },
   {
-    // 2025, Toronto: the same terrace, Elevate week with the Startup Atlantic delegation: the CN Tower across the water.
-    id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, baked: true,
+    // 2025, Toronto: the same terrace, Elevate week with the Startup Atlantic delegation: downtown Toronto across the water
+    // as from the lake (real footprints, the CN Tower), the Elevate mark on the wall.
+    id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true,
     sun: { dir: [-0.5, 0.6, 0.45], color: '#FFEFD6', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 400, far: 2400 },
+    fog: { color: '#C9D7E3', near: 500, far: 3200 },
     props: [
       water(),
-      { build: 'terrace', at: [0, 0, 0], cap: 'The terrace along the harbour side of the hacker house, 30 m over the water.' },
-      { build: 'terraceWall', at: [0, 0, 0], cap: 'The house from outside: its windows along the terrace, the door at the end.' },
-      { build: 'cnTowerFar', at: [-300, TERRACE.water, 560], live: 'city', shadow: false, cap: 'The CN Tower across the water, 640 m off. Elevate, October 2025.' },
+      { build: 'torontoDay', at: [-520, TERRACE.water, 300], live: 'city', shadow: false, cap: 'Downtown Toronto across the water: the real blocks and the CN Tower. Elevate, October 2025.' },
+      { build: 'logoElevate', at: [-7.44, 1.9, 0.7], rot: [0, -90, 0], cap: 'Elevate Festival, Toronto, October 2025: the Startup Atlantic delegation.' },
     ],
   },
   {
-    // 2025 to 2026, Halifax: the Macdonald Bridge across the harbour ahead. The walk ends at the door back into the house.
-    id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true,
+    // 2025 to 2026, Halifax: downtown Halifax across the harbour as from Dartmouth (real footprints) with the Macdonald
+    // Bridge, and on the wall the marks of Volta, Invest Nova Scotia and Product Hunt. The walk ends at the door back in.
+    id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, also: [8],
     sun: { dir: [-0.55, 0.6, 0.5], color: '#FFEBD0', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 400, far: 2400 },
+    fog: { color: '#C9D7E3', near: 500, far: 3200 },
     props: [
       water(),
-      { build: 'macdonaldBridge', at: [-330, TERRACE.water, 360], rot: [0, 8, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour. Halifax, Volta, 2025 to 2026.' },
+      { build: 'halifaxDay', at: [-560, TERRACE.water, 240], live: 'city', shadow: false, cap: 'Downtown Halifax across the harbour: the real blocks from the flight data.' },
+      { build: 'macdonaldBridge', at: [-330, TERRACE.water, 520], rot: [0, 8, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
+      { build: 'logoVolta', at: [-7.44, 1.9, 9.1], rot: [0, -90, 0], cap: 'Volta, Halifax: Collect. every Thursday; Demo Day, February 2026.' },
+      { build: 'logoInvestNS', at: [-7.44, 1.9, 13.3], rot: [0, -90, 0], cap: 'Invest Nova Scotia Accelerate: one of twelve, October 2025.' },
+      { build: 'logoProductHunt', at: [-7.44, 1.9, 17.5], rot: [0, -90, 0], cap: 'Bean at #4 on Product Hunt, December 2025.' },
       { build: 'doorLeafWide', at: [TERRACE.walkX + 0.6, 0, TERRACE.door], rot: [0, -90, 0], live: 'door', door: [ch(10.78), ch(10.92)], cap: 'The door back into the house at the end of the terrace.' },
     ],
   },
@@ -511,6 +522,7 @@ export const SETS: StageSet[] = [
       { build: 'stageHall', at: [0, 0, 0], cap: 'The hall: the stage a metre up, the drapes behind it in black and gold, the house beyond the proscenium.' },
       { build: 'crowdRows', at: [0, 0, 0], cap: 'The crowd on its feet.' },
       { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], cap: 'The lectern.' },
+      { build: 'logoDalhousie', at: [STAGE.x[0] + 0.72, STAGE.height + 4.4, STAGE.centre], rot: [0, 90, 0], cap: 'Dalhousie University. Convocation.' },
       ...Array.from({ length: 6 }, (_, i) => ({ build: 'hallChair', at: [STAGE.x[0] + 1.3, STAGE.height, STAGE.z[0] + 2.0 + i * 1.6 + (i > 2 ? 1.4 : 0)] as V3, rot: [0, 90, 0] as V3 })),
       { build: 'downlight', at: [STAGE.x[1] - 3.5, STAGE.height + 8.8, STAGE.centre], live: 'downlight' },
       { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 8.8, STAGE.centre - 5.5], live: 'downlight' },
