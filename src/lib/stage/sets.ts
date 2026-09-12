@@ -37,10 +37,16 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight' | 'person';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
+/** What a person wears, by bone: skin, top, legs, shoes; long sleeves put the top on the forearms. */
+export interface Wear { skin: string; top: string; legs: string; shoes: string; sleeves: 'long' | 'short' }
+/** A person: the rigged base character dressed and given an idle loop, started `phase` seconds in so no two move together. */
+export interface Person { wear: Wear; hair: string; clip: 'idle' | 'talk' | 'sit' | 'sitTalk'; phase: number }
+
 export interface Placement {
+  person?: Person; // live 'person'
   screen?: string; // optional painted content for a model's fitted display
   door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
   drop?: [number, number, number]; // live 'drop': the stage progress over which the thing lowers, and by how many metres (the projection screen)
@@ -121,6 +127,34 @@ export const aisleHeight = (z: number): number => {
  */
 export const TERRACE = { x: [-13.6, -7.4] as [number, number], z: [-21.0, 24.0] as [number, number], walkX: -10.5, door: 24.0, water: -30.6 } as const;
 /** The stage beyond the terrace's north door: entered from its wing at the south end, the audience to the east. World metres. */
+/**
+ * The people in the hall on its feet: graduates in black gowns among their families, standing on the house's tiers facing the
+ * stage, each dressed and started differently from a fixed seed so the crowd is the same every time. The character faces -z
+ * in its own frame; turned 90 degrees it faces the stage across -x.
+ */
+export function crowdPeople(): Placement[] {
+  let seed = 977;
+  const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+  const pick = <T,>(a: readonly T[]): T => a[Math.floor(rnd() * a.length)];
+  const skins = ['#F1C9A5', '#D9A57E', '#C68E6A', '#9C6B48', '#6E4A31', '#4A3122'] as const;
+  const tops = ['#1E2A44', '#5A1F2A', '#F2F0EA', '#3B4A3F', '#7C7F86', '#2B2B30', '#B8875A', '#6B3F7A'] as const;
+  const legs = ['#1F2430', '#2E3A55', '#6B6F78', '#3A2E26', '#111114'] as const;
+  const hairs = ['#15151A', '#2A1B12', '#4A3221', '#6B4A2B', '#8A8A8A', '#B8925A'] as const;
+  const out: Placement[] = [];
+  const [h0] = STAGE.hall, [hz0, hz1] = STAGE.hallZ;
+  for (let i = 0; i < 8; i++) {
+    const x = h0 + 3.2 + i * 2.35, y = Math.floor(Math.max(0, (x - h0 - 5.4) / 2.7) + 1) * 0.18 * (x > h0 + 5.4 ? 1 : 0);
+    const n = 9, span = hz1 - hz0 - 3;
+    for (let j = 0; j < n; j++) {
+      const z = hz0 + 1.5 + (span * (j + 0.5)) / n + (rnd() - 0.5) * 1.2;
+      const gown = rnd() < 0.45;
+      const wear: Wear = gown ? { skin: pick(skins), top: '#121214', legs: '#121214', shoes: '#141416', sleeves: 'long' } : { skin: pick(skins), top: pick(tops), legs: pick(legs), shoes: pick(['#141416', '#3A2E26', '#EDEDEA'] as const), sleeves: rnd() < 0.6 ? 'long' : 'short' };
+      out.push({ model: 'base_character', at: [x + (rnd() - 0.5) * 0.6, y, z], rot: [0, 90 + (rnd() - 0.5) * 24, 0], live: 'person', person: { wear, hair: pick(hairs), clip: rnd() < 0.35 ? 'talk' : 'idle', phase: rnd() * 6 } });
+    }
+  }
+  return out;
+}
+
 export const STAGE = { wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [24.5, 46.5] as [number, number] } as const;
 export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
 /**
@@ -547,7 +581,7 @@ export const SETS: StageSet[] = [
       { build: 'downlight', at: [TERRACE.walkX, 3.1, STAGE.wing[0] + 1.4], live: 'downlight' },
       { build: 'downlight', at: [TERRACE.walkX, 3.1, STAGE.wing[1] - 0.6], live: 'downlight' },
       { build: 'stageHall', at: [0, 0, 0], cap: 'The hall: the stage a metre up, the drapes behind it in black and gold, the house beyond the proscenium.' },
-      { build: 'crowdRows', at: [0, 0, 0], cap: 'The crowd on its feet.' },
+      ...crowdPeople(), // the crowd on its feet: 72 people, each a rigged figure dressed by bone
       { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], cap: 'The lectern.' },
       { build: 'logoDalhousie', at: [STAGE.x[0] + 0.72, STAGE.height + 4.4, STAGE.centre], rot: [0, 90, 0], cap: 'Dalhousie University. Convocation.' },
       ...Array.from({ length: 6 }, (_, i) => ({ build: 'hallChair', at: [STAGE.x[0] + 1.3, STAGE.height, STAGE.z[0] + 2.0 + i * 1.6 + (i > 2 ? 1.4 : 0)] as V3, rot: [0, 90, 0] as V3 })),

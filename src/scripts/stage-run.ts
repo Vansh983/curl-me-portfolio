@@ -6,7 +6,7 @@
 // Everything here touches the DOM or the renderer. The world (sets.ts), the camera path (dolly.ts),
 // the shells (shell.ts), the props (built.ts) and the materials (materials.ts) are pure and tested.
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, Group, Object3D, ShaderMaterial, UniformsUtils, UniformsLib,
+  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, SkinnedMesh, Group, Quaternion, Matrix4, Object3D, ShaderMaterial, UniformsUtils, UniformsLib,
   BufferGeometry,
   Points,
   PointsMaterial,
@@ -16,6 +16,7 @@ import {
   AnimationMixer, AnimationClip, Box3, ShaderChunk, WebGLRenderTarget,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { clone as cloneRig } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -25,7 +26,7 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { N8AOPass } from 'n8ao';
-import { SETS, HALIFAX_CAMPUS, type Placement, type StageSet, type Live } from '../lib/stage/sets.ts';
+import { SETS, HALIFAX_CAMPUS, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
 import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
@@ -529,9 +530,78 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return g;
   };
 
+  /** The colour a bone's vertices take under a person's clothes: skin on the head, neck and hands; the top, the legs, the shoes. */
+  const wearOf = (bone: string, w: Wear): string => {
+    if (/^DEF-(head|neck|hand|f_|thumb)/.test(bone)) return w.skin;
+    if (/^DEF-forearm/.test(bone)) return w.sleeves === 'long' ? w.top : w.skin;
+    if (/^DEF-(spine|shoulder|upper_arm)/.test(bone)) return w.top;
+    if (/^DEF-(hips|thigh|shin)/.test(bone)) return w.legs;
+    if (/^DEF-(foot|toe)/.test(bone)) return w.shoes;
+    return w.top;
+  };
+  const PERSON_CLIP = { idle: /Idle_Loop$/, talk: /Idle_Talking_Loop$/, sit: /Sitting_Idle_Loop$/, sitTalk: /Sitting_Talking_Loop$/ } as const;
+  /**
+   * A person: the rig cloned with its own skeleton, every vertex coloured by the bone that moves it most, a little self-lit
+   * so faces read in a dark hall; the chosen idle loop started `phase` seconds in.
+   */
+  const dressPerson = (loaded: Loaded, p: Placement): Object3D => {
+    const root = cloneRig(loaded.scene) as Group, person = p.person!;
+    root.traverse((o) => {
+      if (!(o instanceof SkinnedMesh)) return;
+      o.frustumCulled = false;
+      const bones = o.skeleton.bones, colors = bones.map((b) => new Color(wearOf(b.name, person.wear)));
+      const mat = new MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.85, metalness: 0, envMapIntensity: 0.6 });
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uBone = { value: colors };
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', `#include <common>\nuniform vec3 uBone[${bones.length}];\nvarying vec3 vBody;`)
+          .replace('#include <skinbase_vertex>', '#include <skinbase_vertex>\n vBody = uBone[int(skinIndex.x)];');
+        sh.fragmentShader = sh.fragmentShader
+          .replace('#include <common>', '#include <common>\nvarying vec3 vBody;')
+          .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb = vBody;')
+          .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vBody * 0.3;');
+      };
+      mat.customProgramCacheKey = () => `person${bones.length}`;
+      o.material = mat;
+      o.castShadow = p.shadow ?? true;
+      o.receiveShadow = true;
+    });
+    const clip = loaded.animations.find((a) => PERSON_CLIP[person.clip].test(a.name)) ?? loaded.animations[0];
+    if (clip) { const mixer = new AnimationMixer(root); const action = mixer.clipAction(clip); action.play(); action.time = person.phase % clip.duration; mixer.update(0); live.mixers.push(mixer); }
+    return root;
+  };
+  /**
+   * Hair for a person: a cap sized from the skull in the head bone's own space (the bind pose of the vertices the head bone
+   * moves, taken through the mesh's bind matrix and the bone's inverse bind), so no world matrix and no unit of the rig is
+   * involved; the cap is a child of the bone in the bone's units and rides the loop with it.
+   */
+  const attachHair = (root: Object3D, person: NonNullable<Placement['person']>) => {
+    const box = new Box3(), v = new Vector3(), m4 = new Matrix4();
+    let head: Object3D | undefined;
+    root.traverse((m) => {
+      if (!(m instanceof SkinnedMesh)) return;
+      const hi = m.skeleton.bones.findIndex((b) => b.name === 'DEF-head');
+      if (hi < 0) return;
+      head = m.skeleton.bones[hi];
+      m4.copy(m.skeleton.boneInverses[hi]).multiply(m.bindMatrix); // mesh bind space to the bone's space
+      const pos = m.geometry.getAttribute('position'), idx = m.geometry.getAttribute('skinIndex');
+      for (let i = 0; i < pos.count; i++) { if (idx.getX(i) !== hi) continue; v.fromBufferAttribute(pos, i).applyMatrix4(m4); box.expandByPoint(v); }
+    });
+    if (!head || box.isEmpty()) return;
+    const c = box.getCenter(new Vector3()), size = box.getSize(new Vector3());
+    // the box holds the neck too: the skull is its upper part, the cap sits over that, open at the face and the nape
+    const cap = new Mesh(new SphereGeometry(1, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.6), new MeshStandardMaterial({ color: person.hair, roughness: 0.75, metalness: 0, emissive: person.hair, emissiveIntensity: 0.3 }));
+    cap.name = 'm|base_character|hair|person';
+    cap.position.set(c.x, c.y + size.y * 0.14, c.z);
+    cap.scale.set(size.x * 0.52, size.y * 0.42, size.z * 0.54);
+    head.add(cap);
+  };
   const place = async (p: Placement, set: number, baked = false): Promise<void> => {
     let obj: Object3D;
-    if (p.model && baked && (p.live === 'tv' || p.live === 'monitor')) {
+    if (p.model && p.live === 'person' && p.person) {
+      obj = dressPerson(await loadModel(p.model), p);
+      obj.traverse((o) => { if (o instanceof Mesh) o.name = `m|${p.model}|${o.name}|person`; });
+    } else if (p.model && baked && (p.live === 'tv' || p.live === 'monitor')) {
       // the set is baked: only the glass is live, on an empty where the model stands
       obj = new Group();
       addScreen(obj, p, p.live === 'tv' ? videoTex : paintTex(p.screen ?? 'screen', p.screen ? 0 : 1), true);
@@ -574,6 +644,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       else flightWorld.add(obj);
       if (!flightRoll.parent) groups[set].add(flightRoll);
     } else groups[set].add(obj);
+    if (p.live === 'person' && p.person) attachHair(obj, p.person);
     if (p.cap) hot.push({ root: obj, p, set });
     if (DEBUG) {
       obj.updateWorldMatrix(true, true);

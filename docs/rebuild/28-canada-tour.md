@@ -169,3 +169,12 @@ He did not like the cities as backdrops: too far, too much water, nothing define
 
 - **The plane** is back to the cabin, its windows, the seats, the screens and two strips of light (commit 1e5e47d).
 - **Toronto** stands 500 m off the terrace now (`[-140, 500]` turned 100°, the CN Tower at 14° right and 518 m, the waterfront blocks kept, only the water side of the tower dropped), **Halifax** 300 to 450 m off (`[-480, 900]` turned 320°, the bridge at `[-820, 420]`). Both cities stand on a quay 3 m over the water (`quay` in `torontoDay` and `halifaxDay`, 40 m beyond the outermost block) so there is a shore, not blocks rising out of the sea; Halifax's walls take the day window tile Toronto's had, so every block reads as a building. Bearings from `.cache/cityaim4.mjs`. Frames: `.cache/fame2/cities.png`.
+
+## The hall's people (2026-09-12, night)
+
+"Starting with the people in the auditorium: they need to be defined and not be 2D." The crowd on its feet was nine painted cut-out rows. Now it is 72 people, each Quaternius's Animated Base Character (CC-BY 3.0, via Poly Pizza, `base_character` in the manifest with four idle loops kept), a rigged human of real proportions:
+
+- `crowdPeople()` in sets.ts lays them on the house's tiers from a fixed seed: 45 percent in black gowns, the rest in eight tops and five trousers, six skin tones, six hair colours, each turned within 12 degrees of the stage, each on the idle or the talking loop started at its own phase.
+- `dressPerson` in stage-run.ts clones the rig with its own skeleton (`SkeletonUtils.clone`), colours every vertex by the bone that moves it most (skin on head, neck, hands; the top; the legs; the shoes), adds a little self-light so faces read in the dark hall, and starts the loop. `attachHair` sizes a cap from the skull in the head bone's own bind space (no world matrix, no unit of the rig involved) and hands it to the bone.
+- The bake leaves them out (`person` is a live kind in bake.ts and stage-bake.py); at 2x DPR the hall runs at 60 fps, 17 ms worst, with all 72 moving (`.cache/perf.mjs 0.93 1.0 8`).
+- Frames: `.cache/fame2/crowd.png`, `.cache/fame2/hall.png`. The lecture hall's seats are still empty: a seated loop is in the file if he wants students there.

@@ -55,7 +55,7 @@ def is_live(info):
         return True  # a painted face is a thin quad on a board: the runtime draws it, lit live
     if info["surface"] in LIVE_SURFACE:
         return True
-    if info["live"] in ("fan", "door", "drop"):
+    if info["live"] in ("fan", "door", "drop", "person"):
         return True  # things the runtime moves: the fan turns, a door swings open, the projection screen comes down
     return False
 
