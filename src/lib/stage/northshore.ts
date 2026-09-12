@@ -11,7 +11,8 @@ export const NORTHSHORE = northshore as Grid;
 const hex = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(1, v)) ** (1 / 2.2) * 255).toString(16).padStart(2, '0')).join('');
 
 /** The range as one mesh: forest below the tree line, rock above it, snow on the tops, the flats at the shore left out. */
-export function northShore(sink: Sink, scale = 1 / 6, nearest = 150): void {
+export function northShore(sink: Sink, scale = 1 / 6, nearest = 150, rise = 1.35): void {
+  const Y = (h: number) => h * scale * rise; // the range stood up a little, the way haze and distance make it read from the shore
   const { n, m, x: [x0, x1], z: [z0, z1], heights } = NORTHSHORE;
   const X = (j: number) => (x1 + ((x0 - x1) * j) / (m - 1)) * scale; // row 0 is the south edge (the near shore, x1), the last row the far north (x0)
   const Z = (i: number) => -(z0 + ((z1 - z0) * i) / (n - 1)) * scale; // real east toward -z
@@ -29,8 +30,8 @@ export function northShore(sink: Sink, scale = 1 / 6, nearest = 150): void {
       if (Math.max(Math.abs(xa), Math.abs(xb)) < nearest) continue;
       const slope = Math.abs(h10 - h00) + Math.abs(h01 - h00);
       sink.color(hex(colour((h00 + h10 + h01 + h11) / 4, Math.min(1, slope / 120))));
-      sink.tri([xa, h00 * scale, za], [xa, h10 * scale, zb], [xb, h11 * scale, zb]);
-      sink.tri([xa, h00 * scale, za], [xb, h11 * scale, zb], [xb, h01 * scale, za]);
+      sink.tri([xa, Y(h00), za], [xa, Y(h10), zb], [xb, Y(h11), zb]);
+      sink.tri([xa, Y(h00), za], [xb, Y(h11), zb], [xb, Y(h01), za]);
     }
   }
 }

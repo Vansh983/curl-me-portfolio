@@ -110,7 +110,7 @@ export const aisleHeight = (z: number): number => {
  */
 export const TERRACE = { x: [-13.6, -7.4] as [number, number], z: [-21.0, 24.0] as [number, number], walkX: -10.5, door: 24.0, water: -30.6 } as const;
 /** The stage beyond the terrace's north door: entered from its wing at the south end, the audience to the east. World metres. */
-export const STAGE = { wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [22.0, 46.0] as [number, number] } as const;
+export const STAGE = { wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [24.5, 46.5] as [number, number] } as const;
 export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
 /**
  * The water round the headland, 30 m down: every tour set holds its own (this set only). The terrace itself, the cliff
@@ -470,7 +470,7 @@ export const SETS: StageSet[] = [
     // the wall. The terrace, its wall and the cliff live here and show from Sydney's window, Toronto and Halifax.
     id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, baked: true,
     sun: { dir: [0.45, 0.62, 0.55], color: '#FFF3DC', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 700, far: 6000 },
+    fog: { color: '#C9D7E3', near: 500, far: 4000 },
     props: [
       water(),
       { build: 'terrace', at: [0, 0, 0], cap: 'The terrace along the harbour side of the hacker house, 30 m over the water, a glass balustrade at its edge.' },
@@ -486,10 +486,10 @@ export const SETS: StageSet[] = [
     // as from the lake (real footprints, the CN Tower), the Elevate mark on the wall.
     id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true,
     sun: { dir: [-0.5, 0.6, 0.45], color: '#FFEFD6', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 500, far: 3200 },
+    fog: { color: '#C9D7E3', near: 800, far: 5000 },
     props: [
       water(),
-      { build: 'torontoDay', at: [-520, TERRACE.water, 300], live: 'city', shadow: false, cap: 'Downtown Toronto across the water: the real blocks and the CN Tower. Elevate, October 2025.' },
+      { build: 'torontoDay', at: [-450, TERRACE.water, 1000], rot: [0, 120, 0], live: 'city', shadow: false, cap: 'Downtown Toronto across the water: the real blocks and the CN Tower. Elevate, October 2025.' },
       { build: 'logoElevate', at: [-7.44, 1.9, 0.7], rot: [0, -90, 0], cap: 'Elevate Festival, Toronto, October 2025: the Startup Atlantic delegation.' },
     ],
   },
@@ -498,11 +498,12 @@ export const SETS: StageSet[] = [
     // Bridge, and on the wall the marks of Volta, Invest Nova Scotia and Product Hunt. The walk ends at the door back in.
     id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, also: [8],
     sun: { dir: [-0.55, 0.6, 0.5], color: '#FFEBD0', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 500, far: 3200 },
+    fog: { color: '#C9D7E3', near: 800, far: 5000 },
     props: [
       water(),
-      { build: 'halifaxDay', at: [-560, TERRACE.water, 240], live: 'city', shadow: false, cap: 'Downtown Halifax across the harbour: the real blocks from the flight data.' },
-      { build: 'macdonaldBridge', at: [-330, TERRACE.water, 520], rot: [0, 8, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
+      { build: 'hallShell', at: [0, 0, 0] }, // the hall's outside over the wing: from the terrace a plain block, nothing of the inward room shows
+      { build: 'halifaxDay', at: [-650, TERRACE.water, 1350], rot: [0, 330, 0], live: 'city', shadow: false, cap: 'Downtown Halifax across the harbour: the real blocks from the flight data.' },
+      { build: 'macdonaldBridge', at: [-950, TERRACE.water, 650], rot: [0, -70, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
       { build: 'logoVolta', at: [-7.44, 1.9, 9.1], rot: [0, -90, 0], cap: 'Volta, Halifax: Collect. every Thursday; Demo Day, February 2026.' },
       { build: 'logoInvestNS', at: [-7.44, 1.9, 13.3], rot: [0, -90, 0], cap: 'Invest Nova Scotia Accelerate: one of twelve, October 2025.' },
       { build: 'logoProductHunt', at: [-7.44, 1.9, 17.5], rot: [0, -90, 0], cap: 'Bean at #4 on Product Hunt, December 2025.' },
