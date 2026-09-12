@@ -94,24 +94,11 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
     window: {
       w: 512, h: 512,
       frames: [(x, w, h) => {
-        // a Delhi afternoon: haze, flat roofs with parapets and black water tanks, a neem crown; no sun disc.
-        // The window shows the middle of this quad (x 138..374, y 90..422 of 512), so the roofs sit low and small
-        const sky = x.createLinearGradient(0, 0, 0, h * 0.8); sky.addColorStop(0, '#C6B69E'); sky.addColorStop(0.7, '#E6D5BB'); sky.addColorStop(1, '#F0E2C9');
+        // the haze of a Delhi afternoon, far behind the neighbour's house and the neem: sky to a warm horizon, nothing drawn on it
+        const sky = x.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, '#A9BCCF'); sky.addColorStop(0.45, '#D5D4C8'); sky.addColorStop(0.7, '#E8DCC6'); sky.addColorStop(1, '#D8CDB9');
         x.fillStyle = sky; x.fillRect(0, 0, w, h);
-        const glow = x.createRadialGradient(200, 250, 10, 200, 250, 260); glow.addColorStop(0, 'rgba(255,238,205,0.6)'); glow.addColorStop(1, 'rgba(255,238,205,0)');
+        const glow = x.createRadialGradient(w * 0.35, h * 0.62, 10, w * 0.35, h * 0.62, w * 0.5); glow.addColorStop(0, 'rgba(255,240,210,0.5)'); glow.addColorStop(1, 'rgba(255,240,210,0)');
         x.fillStyle = glow; x.fillRect(0, 0, w, h);
-        x.fillStyle = '#C9BBA9'; // the far roofs, hazed to almost the sky
-        for (const [rx, rw, rh] of [[60, 70, 22], [140, 50, 14], [200, 90, 30], [300, 60, 18], [370, 80, 26], [460, 60, 16]] as const) x.fillRect(rx, 332 - rh, rw, rh + 30);
-        x.fillStyle = '#4A5E45'; // the neem, among the roofs
-        for (const [cx, cy, r] of [[352, 292, 34], [330, 312, 28], [378, 316, 30], [356, 268, 22]] as const) { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); }
-        x.fillStyle = '#56704F';
-        for (const [cx, cy, r] of [[346, 296, 20], [372, 288, 16]] as const) { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); }
-        x.fillStyle = '#A0917F'; // the nearer roofs: parapets and stair heads
-        for (const [rx, rw, rh] of [[0, 150, 40], [170, 120, 52], [310, 100, 44], [430, w - 430, 48]] as const) x.fillRect(rx, 400 - rh, rw, rh + 40);
-        x.fillRect(40, 340, 34, 22); x.fillRect(230, 328, 30, 22);
-        x.fillStyle = '#242424'; // the water tanks
-        for (const [tx, ty] of [[110, 340], [280, 330], [350, 342], [470, 336]] as const) { x.fillRect(tx, ty, 16, 20); x.fillRect(tx - 2, ty - 3, 20, 3); }
-        x.fillStyle = '#7C7165'; x.fillRect(0, 430, w, h - 430); // the sill's own parapet
       }, (x, w, h) => {
         x.fillStyle = '#CFE7F5'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#E8F3FA'; x.fillRect(0, 0, w, h * 0.3);
@@ -119,6 +106,32 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
         for (const [cx, r] of [[60, 70], [170, 90], [300, 60], [420, 85]] as const) { x.beginPath(); x.arc(cx, h * 0.78, r, 0, Math.PI * 2); x.fill(); }
         x.fillStyle = '#B9C4C9'; x.fillRect(230, h * 0.55, 90, h * 0.45); x.fillRect(360, h * 0.62, 60, h * 0.38);
         x.fillStyle = '#7F9A80'; x.fillRect(0, h * 0.9, w, h * 0.1);
+      }],
+    },
+    // the Jobs print in the bedroom's frame, portrait: the photograph in black and white over the top, fading to black, the
+    // whole of Apple's text under it in a serif, "Think different." at the foot. A tribute print, the kind sold after 2011.
+    jobsPoster: {
+      w: 1000, h: 1480,
+      frames: [(x, w, h) => {
+        x.fillStyle = '#0B0B0B'; x.fillRect(0, 0, w, h);
+        const ph = h * 0.58;
+        if (images.jobs) {
+          const iw = images.jobs.naturalWidth, ih = images.jobs.naturalHeight, s = Math.max(w / iw, ph / ih);
+          x.save(); x.beginPath(); x.rect(0, 0, w, ph); x.clip(); x.filter = 'grayscale(1) contrast(1.05)';
+          x.drawImage(images.jobs, (w - iw * s) / 2, (ph - ih * s) / 2 - ih * s * 0.04, iw * s, ih * s); x.restore();
+        }
+        const fade = x.createLinearGradient(0, ph * 0.6, 0, ph + 2); fade.addColorStop(0, 'rgba(11,11,11,0)'); fade.addColorStop(1, 'rgba(11,11,11,1)');
+        x.fillStyle = fade; x.fillRect(0, ph * 0.6, w, ph * 0.4 + 2);
+        const serif = 'Georgia, "Iowan Old Style", "Times New Roman", serif', left = 80, width = w - 160; let y = ph + 24;
+        x.fillStyle = '#F2F2F2'; x.font = `400 46px ${serif}`; x.fillText("Here's to the crazy ones.", left, y); y += 62;
+        x.fillStyle = '#D6D6D6'; x.font = `400 29px ${serif}`;
+        let line = '';
+        for (const word of JOBS_QUOTE.split(' ')) {
+          const t = line ? `${line} ${word}` : word;
+          if (x.measureText(t).width > width) { x.fillText(line, left, y); y += 40; line = word; } else line = t;
+        }
+        if (line) x.fillText(line, left, y);
+        x.fillStyle = '#F2F2F2'; x.font = `400 44px ${serif}`; x.fillText('Think different.', left, h - 72);
       }],
     },
     // the poster: the portrait on the left, the quote on the right, four drawing pins; then the Converge Clan team photo

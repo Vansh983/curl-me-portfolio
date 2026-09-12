@@ -1108,16 +1108,17 @@ export const BUILT: Record<string, () => BuiltPart> = {
       ['figOrange', 'figOrange', 'hairYellow', 1.0], ['figOrange', 'figBlue', 'hairBlack', 1.05], ['figRed', 'figBlue', 'hairBlack', 0.95],
       ['figBlack', 'figBlack', 'hairOrange', 1.0], ['figYellow', 'figYellow', null, 0.95], ['figGreen', 'figWhite', 'hairBlack', 0.9], ['figBlue', 'figBlue', 'hairBlack', 1.05],
     ];
+    // each a turned figure: a disc base, two legs, a waisted torso, arms at the sides, a head, the hair as its own lathe
     cast.forEach(([top, legs, hair, k], i) => {
-      const x = -0.3 + i * 0.1, s = 0.13 * k;
-      at('figBase').cylinder(x, 0.005, 0, 0.032, 0.01, 16);
-      at(legs).box(x - 0.011, 0.01 + s * 0.22, 0, 0.016, s * 0.44, 0.02).box(x + 0.011, 0.01 + s * 0.22, 0, 0.016, s * 0.44, 0.02);
-      at(top).box(x, 0.01 + s * 0.62, 0, 0.05, s * 0.36, 0.026);
-      at('figSkin').box(x - 0.034, 0.01 + s * 0.6, 0, 0.012, s * 0.32, 0.014).box(x + 0.034, 0.01 + s * 0.6, 0, 0.012, s * 0.32, 0.014);
-      at('figSkin').sphere(x, 0.01 + s * 0.9, 0, s * 0.11, s * 0.11, s * 0.1, 14, 10);
-      if (hair) at(hair).lathe([[s * 0.115, 0], [s * 0.12, s * 0.06], [s * 0.05, s * 0.17], [s * 0.01, s * 0.24]], x, 0.01 + s * 0.9, 0, 1, 1, 0, 12);
+      const x = -0.3 + i * 0.1, s = 0.13 * k, y0 = 0.01;
+      at('figBase').cylinder(x, 0.005, 0, 0.034, 0.01, 20);
+      for (const dx of [-1, 1]) at(legs).cylinder(x + dx * 0.018 * k, y0 + s * 0.22, 0, 0.013 * k, s * 0.44, 10);
+      at(top).lathe([[0.024, 0], [0.034, 0.06], [0.04, 0.2], [0.036, 0.32], [0.022, 0.38]].map(([r, y]) => [r * k, y * s] as [number, number]), x, y0 + s * 0.42, 0, 1, 1, 0, 14);
+      for (const dx of [-1, 1]) at('figSkin').cylinder(x + dx * 0.058 * k, y0 + s * 0.6, 0, 0.011 * k, s * 0.3, 8);
+      at('figSkin').sphere(x, y0 + s * 0.9, 0, s * 0.1, s * 0.11, s * 0.095, 16, 12);
+      if (hair) at(hair).lathe([[s * 0.115, 0], [s * 0.12, s * 0.06], [s * 0.05, s * 0.17], [s * 0.01, s * 0.24]], x, y0 + s * 0.9, 0, 1, 1, 0, 14);
     });
-    return [...sinks.entries()].map(([m, k]) => piece(k.out(), M(m), { smooth: m === 'figSkin' }));
+    return [...sinks.entries()].map(([m, k]) => piece(k.out(), M(m), { smooth: true }));
   },
   /** The original white Xbox 360, standing: 8 wide, 31 tall, 26 deep; the green ring and the tray on the front (+z). */
   xbox360: () => {
@@ -1137,14 +1138,16 @@ export const BUILT: Record<string, () => BuiltPart> = {
   rug: () => [piece(new Sink().box(0, 0.006, 0, 1.8, 0.012, 1.3).out(), M('rug'), { metres: 'xz' })],
   /** Two curtain panels hanging from a rod at the origin, each 0.55 wide and 1.7 long, folded. */
   curtains: () => {
-    const cloth = new Sink(), cols = 14, w = 0.55, h = 1.7;
+    const cloth = new Sink(), cols = 24, w = 0.55, h = 1.7;
     for (const side of [-1, 1]) {
       const x0 = side * 0.55 - (side > 0 ? 0 : w); // panels hang left and right of the window edge
       for (let c = 0; c < cols; c++) {
         const xa = x0 + (w * c) / cols, xb = x0 + (w * (c + 1)) / cols;
-        const za = 0.03 * Math.sin(c * 1.9), zb = 0.03 * Math.sin((c + 1) * 1.9);
+        const za = 0.06 * Math.sin(c * 1.31), zb = 0.06 * Math.sin((c + 1) * 1.31); // deep folds, gathered on the rod
         cloth.quad([xa, -h, za], [xb, -h, zb], [xb, 0, zb], [xa, 0, za]);
+        cloth.quad([xa, -h, za - 0.012], [xa, -h, za], [xb, -h, zb], [xb, -h, zb - 0.012]); // the hem's thickness
       }
+      for (let c = 0; c <= cols; c += 3) cloth.cylinder(x0 + (w * c) / cols, 0.02, 0, 0.022, 0.014, 12).rotateZ(x0 + (w * c) / cols, 0.02, Math.PI / 2, cloth.count - 0); // rings on the rod
     }
     const rod = new Sink().cylinder(0, 0.02, 0, 0.015, 1.9, 8).rotateZ(0, 0.02, Math.PI / 2);
     return [piece(cloth.out(), M('curtain'), { metres: 'xy' }), piece(rod.out(), M('rod'), { smooth: true })];
@@ -1180,8 +1183,42 @@ export const BUILT: Record<string, () => BuiltPart> = {
   whiteboard: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboard' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
   /** The Converge Clan banner, 2.2 × 0.5, painted. */
   banner: () => [piece(face(2.2, 0.5, 0.01), { paint: 'banner' })],
-  /** The Jobs poster, 1.2 × 0.67, painted (frame 0 of `poster`), in a thin black frame. */
-  jobsPoster: () => [piece(face(1.5, 0.833, 0.005), { paint: 'poster:0' }), piece(frame(1.5, 0.833, 0.02, 0.01).out(), M('frameBlack'))],
+  /** The Jobs print, 0.5 by 0.74, painted (`jobsPoster`), pressed to the front of the Poly Haven frame it hangs in. */
+  jobsPrint: () => [piece(face(0.5, 0.74, 0.0115), { paint: 'jobsPoster' })],
+  /**
+   * The bedroom window, 1.2 by 1.3, sill at the origin, the room toward +z: an aluminium frame 6 cm wide through the wall,
+   * two sliding sashes on their two tracks with the glass in each, the latch on the inner sash, the flat-bar safety grille
+   * outside the way every Delhi window has one, and a marble sill standing proud into the room.
+   */
+  bedroomWindow: () => {
+    const W = 1.2, H = 1.3, alu = new Sink(), glass = new Sink(), grille = new Sink(), sill = new Sink(), dark = new Sink();
+    for (const [cx, cy, w, h] of [[0, H - 0.03, W, 0.06], [0, 0.03, W, 0.06], [-W / 2 + 0.03, H / 2, 0.06, H], [W / 2 - 0.03, H / 2, 0.06, H]] as const) alu.box(cx, cy, 0, w, h, 0.09);
+    alu.box(0, 0.06, 0, W - 0.12, 0.012, 0.07).box(0, H - 0.06, 0, W - 0.12, 0.012, 0.07); // the tracks
+    for (const [sx, sz] of [[-0.3, 0.022], [0.3, -0.022]] as const) {
+      const sw = 0.6, sh = H - 0.12;
+      for (const [cx, cy, w, h] of [[sx, H - 0.06 - 0.018, sw, 0.036], [sx, 0.06 + 0.018, sw, 0.036], [sx - sw / 2 + 0.018, H / 2, 0.036, sh], [sx + sw / 2 - 0.018, H / 2, 0.036, sh]] as const) alu.box(cx, cy, sz, w, h, 0.028);
+      glass.quad([sx - sw / 2 + 0.036, 0.096, sz], [sx + sw / 2 - 0.036, 0.096, sz], [sx + sw / 2 - 0.036, H - 0.096, sz], [sx - sw / 2 + 0.036, H - 0.096, sz]);
+    }
+    dark.rbox(-0.03, H / 2, 0.045, 0.018, 0.11, 0.016, 0.004, 2); // the latch
+    for (let x = -W / 2 + 0.12; x < W / 2 - 0.06; x += 0.12) grille.box(x, H / 2, -0.085, 0.012, H - 0.06, 0.022); // the flat bars
+    for (const y of [0.2, H / 2, H - 0.2]) grille.box(0, y, -0.085, W - 0.04, 0.022, 0.012); // the rails
+    for (const [cx, cy, w, h] of [[-W / 2 + 0.02, H / 2, 0.025, H], [W / 2 - 0.02, H / 2, 0.025, H], [0, 0.02, W, 0.025], [0, H - 0.02, W, 0.025]] as const) grille.box(cx, cy, -0.085, w, h, 0.025); // its frame
+    sill.box(0, -0.015, 0.07, W + 0.14, 0.03, 0.22);
+    return [piece(alu.out(), M('aluminium'), { smooth: true }), piece(glass.out(), M('cabinGlass')), piece(grille.out(), M('chairBase')), piece(sill.out(), M('skirting'), { smooth: true }), piece(dark.out(), M('chairBase'), { smooth: true })];
+  },
+  /**
+   * Across the lane from the bedroom window: the neighbour's house, three floors of plaster with a parapet and a black
+   * water tank on the roof, its windows dark; the lane's ground three metres down (the bedroom is on the first floor).
+   * World coordinates, west of the room.
+   */
+  neighbourHouse: () => {
+    const wall = new Sink(), dark = new Sink(), frame = new Sink(), tank = new Sink(), ground = new Sink();
+    wall.box(-23, 1.65, 5.5, 6, 9.7, 11).box(-23, 6.65, 5.5, 6.2, 0.3, 11.2); // the block and its parapet
+    for (const z of [1.6, 4.1, 6.9, 9.4]) for (const y of [-1.9, 1.3, 4.3]) { dark.box(-19.97, y, z, 0.03, 1.2, 1.0); frame.box(-19.985, y, z, 0.03, 1.32, 1.12); frame.box(-19.9, y - 0.68, z, 0.2, 0.05, 1.2); } // dark windows in their frames, a sill under each
+    tank.box(-22.2, 7.3, 3.0, 1.0, 1.0, 1.0).box(-22.2, 7.85, 3.0, 1.1, 0.1, 1.1);
+    ground.quad([-40, -3.2, 25], [-9, -3.2, 25], [-9, -3.2, -10], [-40, -3.2, -10]);
+    return [piece(wall.out(), M('terraceWall'), { metres: 'xy' }), piece(dark.out(), M('tvGlass')), piece(frame.out(), M('windowFrame')), piece(tank.out(), M('chairBase')), piece(ground.out(), M('concrete'), { metres: 'xz' })];
+  },
   /** The team photo, 1.0 × 0.7, painted, in a wooden frame. */
   teamPhoto: () => [piece(face(1.0, 0.7, 0.005), { paint: 'poster:1' }), piece(frame(1.0, 0.7, 0.03, 0.01).out(), M('frameWood'))],
   /** A tube light: the tube in a tray, 1.2 m, along x, hanging below the origin. */

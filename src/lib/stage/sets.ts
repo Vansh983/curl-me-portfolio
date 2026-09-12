@@ -220,12 +220,18 @@ export const SETS: StageSet[] = [
       { model: 'book_encyclopedia_set_01', at: [-8.85, 0.99, 7.55], rot: [0, 180, 0], scale: 0.55 },
       { build: 'figures', at: [-8.55, 0.74, 7.55], rot: [0, 180, 0], cap: 'The shelf. Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta.' },
       { build: 'figures', at: [-8.55, 0.51, 7.55], rot: [0, 172, 0] },
-      { build: 'jobsPoster', at: [-6.3, 1.72, 7.885], rot: [0, 180, 0], cap: "Here's to the crazy ones. Think different, 1997: the whole of it." },
+      { model: 'hanging_picture_frame_01', at: [-6.3, 1.72, 7.885], rot: [0, 180, 0] }, // a framed print, 59 by 84
+      { build: 'jobsPrint', at: [-6.3, 1.72, 7.885], rot: [0, 180, 0], cap: "Here's to the crazy ones. Think different, 1997: the whole of it." },
       { model: 'wall_clock', at: [-5.15, 1.9, 7.88], rot: [0, 180, 0] }, // in the corner by the door out, where the turn looks
       { model: 'football', at: [-7.4, 0.11, 7.3], rot: [0, 50, 0], cap: 'Barcelona. Messi.' },
       { model: 'ceiling_fan', at: [-7.05, 2.7, 6.1], rot: [0, 90, 0], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
+      // the window: an aluminium two-track slider in the wall with the safety grille outside and a marble sill inside; the
+      // curtains on their rod; outside, the neighbour's house across the lane, a neem, and the haze of a Delhi afternoon
+      { build: 'bedroomWindow', at: [-9.15, 0.95, 5.0], rot: [0, 90, 0], cap: 'The window. The grille, the slider, the sill.' },
       { build: 'curtains', at: [-9.07, 2.45, 5.0], rot: [0, 90, 0], live: 'curtain' },
-      { build: 'skyline', at: [-9.5, 1.6, 5.0], rot: [0, 90, 0] },
+      { build: 'neighbourHouse', at: [0, 0, 0], shadow: false },
+      { model: 'island_tree_01', at: [-13.4, -3.2, 7.6], rot: [0, 40, 0], scale: 1.15, shadow: false },
+      { build: 'skyline', at: [-30, 6, 5.0], rot: [0, 90, 0], scale: 10 },
       { build: 'passage', at: [-4.95, 0, 6.0], scale: [0.6, 1, 1], live: 'bulb' }, // east, 1.8 m, to the lab
     ],
   },

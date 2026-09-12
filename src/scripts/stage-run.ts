@@ -734,7 +734,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   if (DEBUG) (window as unknown as { __stage: unknown }).__stage = { yFor, renderer, composer, ao, bloom, scene, camera, Raycaster, Vector3 }; // the classes too, for a probe script to cast rays
 
   // assets that arrive later repaint what uses them
-  loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster']); });
+  loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster', 'jobsPoster']); });
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
   loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'boothMontreal', 'screenTour', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'certificateInvestNS']); });
   for (const key of ['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const) loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo']); });

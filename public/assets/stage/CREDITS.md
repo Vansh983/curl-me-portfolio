@@ -4,6 +4,7 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 
 - `dalhousie_campus` (model), Project-authored in Blender. the dimensional Goldberg campus seen while airborne. See [flight credits](./FLIGHT-CREDITS.md).
 - `sydney_opera_house` (model) by Nick Reinhardt (Sketchfab), CC-BY-4.0, https://sketchfab.com/3d-models/sydney-opera-house-317b2d540f0a4f7e8d87dd3b0372712d. the Opera House across the water from the Sydney window.
+- `hanging_picture_frame_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/hanging_picture_frame_01. the frame of the poster in the bedroom.
 - `wooden_bookshelf_worn` (model) by Ulan Cabanilla, CC0, https://polyhaven.com/a/wooden_bookshelf_worn. the bookshelf in the bedroom: the figures and the encyclopedias.
 - `wooden_table_02` (model) by Serhii Khromov, CC0, https://polyhaven.com/a/wooden_table_02. the study table in the bedroom.
 - `painted_wooden_chair_01` (model) by Kuutti Siitonen, CC0, https://polyhaven.com/a/painted_wooden_chair_01. the chair at the study table.

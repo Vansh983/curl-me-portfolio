@@ -39,6 +39,7 @@ export const ASSETS: Asset[] = [
     skin: { FINS: { color: '#EDE7DA', map: false, emissive: false, rough: 0.45 }, STONE: { color: '#B9AE9A', map: false, emissive: false, rough: 0.85 }, GLASS: { color: '#3C4A56', map: false, rough: 0.2 }, BRONZE: { color: '#8A6A3F', rough: 0.5, metal: 0.6 }, LIGHT: { emissive: false }, LIGHTPOLE: { color: '#4A4A4A', map: false } } },
   // now, Toronto
   // 2010, the Delhi bedroom
+  model('hanging_picture_frame_01', 'James Ray Cock', 'the frame of the poster in the bedroom', 256, 0.004),
   model('wooden_bookshelf_worn', 'Ulan Cabanilla', 'the bookshelf in the bedroom: the figures and the encyclopedias', 256, 0.004),
   model('wooden_table_02', 'Serhii Khromov', 'the study table in the bedroom', 256, 0.004),
   model('painted_wooden_chair_01', 'Kuutti Siitonen', 'the chair at the study table', 256, 0.004),
