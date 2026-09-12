@@ -4,6 +4,9 @@
 export type Ctx = CanvasRenderingContext2D;
 export type Painter = (x: Ctx, w: number, h: number) => void;
 export interface Paint { w: number; h: number; frames: Painter[] }
+/** Apple's "Think different" text, 1997, as printed on the poster: the first sentence is the title, the rest the body. */
+const JOBS_QUOTE = "The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They're not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can't do is ignore them. Because they change things. They push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.";
+
 export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
@@ -91,22 +94,24 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
     window: {
       w: 512, h: 512,
       frames: [(x, w, h) => {
-        x.fillStyle = '#F7B267'; x.fillRect(0, 0, w, h);
-        x.fillStyle = '#E9A15E'; x.fillRect(0, 0, w, h * 0.43);
-        x.fillStyle = '#C98352'; x.fillRect(0, 0, w, h * 0.23);
-        for (const [cx, cy, rx, ry, a] of [[90, 150, 52, 14, 0.62], [130, 147, 34, 11, 0.62], [400, 85, 66, 16, 0.48]] as const) {
-          x.fillStyle = `rgba(249,215,176,${a})`; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); x.fill();
-        }
-        x.fillStyle = '#F2575D'; x.beginPath(); x.arc(w * 0.34, h * 0.55, 62, 0, Math.PI * 2); x.fill();
-        // rooftops with water tanks and a Delhi minar
-        x.fillStyle = '#33535F';
-        x.beginPath();
-        x.moveTo(0, h * 0.68); x.lineTo(60, h * 0.68); x.lineTo(60, h * 0.6); x.lineTo(150, h * 0.6); x.lineTo(150, h * 0.65); x.lineTo(210, h * 0.65);
-        x.lineTo(210, h * 0.55); x.lineTo(255, h * 0.55); x.lineTo(255, h * 0.69); x.lineTo(330, h * 0.69); x.lineTo(330, h * 0.63); x.lineTo(390, h * 0.63);
-        x.lineTo(390, h * 0.7); x.lineTo(435, h * 0.7); x.lineTo(435, h * 0.52); x.lineTo(453, h * 0.52); x.lineTo(453, h * 0.36); x.lineTo(462, h * 0.32); x.lineTo(471, h * 0.36);
-        x.lineTo(471, h * 0.52); x.lineTo(489, h * 0.52); x.lineTo(489, h * 0.7); x.lineTo(w, h * 0.7); x.lineTo(w, h); x.lineTo(0, h); x.closePath(); x.fill();
-        x.fillStyle = '#2A4550';
-        x.fillRect(84, h * 0.53, 36, 36); x.fillRect(300, h * 0.56, 33, 36); x.fillRect(0, h * 0.86, w, h * 0.14);
+        // a Delhi afternoon: haze, flat roofs with parapets and black water tanks, a neem crown; no sun disc.
+        // The window shows the middle of this quad (x 138..374, y 90..422 of 512), so the roofs sit low and small
+        const sky = x.createLinearGradient(0, 0, 0, h * 0.8); sky.addColorStop(0, '#C6B69E'); sky.addColorStop(0.7, '#E6D5BB'); sky.addColorStop(1, '#F0E2C9');
+        x.fillStyle = sky; x.fillRect(0, 0, w, h);
+        const glow = x.createRadialGradient(200, 250, 10, 200, 250, 260); glow.addColorStop(0, 'rgba(255,238,205,0.6)'); glow.addColorStop(1, 'rgba(255,238,205,0)');
+        x.fillStyle = glow; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#C9BBA9'; // the far roofs, hazed to almost the sky
+        for (const [rx, rw, rh] of [[60, 70, 22], [140, 50, 14], [200, 90, 30], [300, 60, 18], [370, 80, 26], [460, 60, 16]] as const) x.fillRect(rx, 332 - rh, rw, rh + 30);
+        x.fillStyle = '#4A5E45'; // the neem, among the roofs
+        for (const [cx, cy, r] of [[352, 292, 34], [330, 312, 28], [378, 316, 30], [356, 268, 22]] as const) { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); }
+        x.fillStyle = '#56704F';
+        for (const [cx, cy, r] of [[346, 296, 20], [372, 288, 16]] as const) { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); }
+        x.fillStyle = '#A0917F'; // the nearer roofs: parapets and stair heads
+        for (const [rx, rw, rh] of [[0, 150, 40], [170, 120, 52], [310, 100, 44], [430, w - 430, 48]] as const) x.fillRect(rx, 400 - rh, rw, rh + 40);
+        x.fillRect(40, 340, 34, 22); x.fillRect(230, 328, 30, 22);
+        x.fillStyle = '#242424'; // the water tanks
+        for (const [tx, ty] of [[110, 340], [280, 330], [350, 342], [470, 336]] as const) { x.fillRect(tx, ty, 16, 20); x.fillRect(tx - 2, ty - 3, 20, 3); }
+        x.fillStyle = '#7C7165'; x.fillRect(0, 430, w, h - 430); // the sill's own parapet
       }, (x, w, h) => {
         x.fillStyle = '#CFE7F5'; x.fillRect(0, 0, w, h);
         x.fillStyle = '#E8F3FA'; x.fillRect(0, 0, w, h * 0.3);
@@ -118,21 +123,30 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
     },
     // the poster: the portrait on the left, the quote on the right, four drawing pins; then the Converge Clan team photo
     poster: {
-      w: 800, h: 444,
+      w: 1600, h: 888,
       frames: [(x, w, h) => {
-        x.fillStyle = '#111111'; x.fillRect(0, 0, w, h);
-        x.save(); x.translate(0, (h - 340) / 2);
+        x.fillStyle = '#0E0E0E'; x.fillRect(0, 0, w, h);
+        // the portrait on the left, black and white
+        const px = 44, py = 44, pw = 520, ph = h - 88;
         if (images.jobs) {
-          const iw = images.jobs.naturalWidth, ih = images.jobs.naturalHeight, s = Math.max(240 / iw, 292 / ih);
-          x.save(); x.beginPath(); x.rect(24, 24, 240, 292); x.clip();
-          x.drawImage(images.jobs, 24 + (240 - iw * s) / 2, 24 + (292 - ih * s) / 2, iw * s, ih * s); x.restore();
-        } else { x.fillStyle = '#2B2B2B'; x.fillRect(24, 24, 240, 292); }
-        x.fillStyle = '#3B3B3B'; x.fillRect(296, 56, 3, 228);
-        x.fillStyle = '#F5F5F5'; x.font = '600 44px Inter, system-ui, sans-serif';
-        x.fillText("Here's to the", 340, 152); x.fillText('crazy ones.', 340, 212);
-        x.restore();
+          const iw = images.jobs.naturalWidth, ih = images.jobs.naturalHeight, s = Math.max(pw / iw, ph / ih);
+          x.save(); x.beginPath(); x.rect(px, py, pw, ph); x.clip(); x.filter = 'grayscale(1)';
+          x.drawImage(images.jobs, px + (pw - iw * s) / 2, py + (ph - ih * s) / 2, iw * s, ih * s); x.restore();
+        } else { x.fillStyle = '#2B2B2B'; x.fillRect(px, py, pw, ph); }
+        x.fillStyle = '#3A3A3A'; x.fillRect(612, 60, 2, h - 120);
+        // the whole text, wrapped to the column
+        const left = 660, width = w - left - 60; let y = 118;
+        x.fillStyle = '#F5F5F5'; x.font = '600 50px Inter, system-ui, sans-serif'; x.fillText("Here's to the crazy ones.", left, y); y += 66;
+        x.fillStyle = '#E4E4E4'; x.font = '400 29px Inter, system-ui, sans-serif';
+        let line = '';
+        for (const word of JOBS_QUOTE.split(' ')) {
+          const t = line ? `${line} ${word}` : word;
+          if (x.measureText(t).width > width) { x.fillText(line, left, y); y += 40; line = word; } else line = t;
+        }
+        if (line) x.fillText(line, left, y);
+        x.fillStyle = '#F5F5F5'; x.font = '600 44px Inter, system-ui, sans-serif'; x.fillText('Think different.', left, h - 70);
         x.fillStyle = '#F7D44C';
-        for (const [px, py] of [[20, 20], [780, 20], [20, h - 20], [780, h - 20]] as const) { x.beginPath(); x.arc(px, py, 10, 0, Math.PI * 2); x.fill(); }
+        for (const [qx, qy] of [[22, 22], [w - 22, 22], [22, h - 22], [w - 22, h - 22]] as const) { x.beginPath(); x.arc(qx, qy, 12, 0, Math.PI * 2); x.fill(); }
       }, (x, w, h) => {
         x.fillStyle = '#F4F4F2'; x.fillRect(0, 0, w, h);
         if (images.clan) {

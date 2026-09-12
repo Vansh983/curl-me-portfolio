@@ -1074,15 +1074,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
     for (let i = 0; i < 5; i++) s.rbox(0, 0.06 + i * 0.46, 0, 1.18, 0.02, 0.3, 0.004, 1);
     return [piece(s.out(), M('shelfWood'), { metres: 'xy' })];
   },
-  /** The rug: a 24-sided disc, r 1.3. */
-  rug: () => {
-    const s = new Sink(), n = 24;
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2, b = ((i + 1) / n) * Math.PI * 2;
-      s.tri([0, 0, 0], [1.3 * Math.cos(b), 0, 1.3 * Math.sin(b)], [1.3 * Math.cos(a), 0, 1.3 * Math.sin(a)]);
-    }
-    return [piece(s.out(), M('rug'), { metres: 'xz' })];
-  },
+  /** The rug: 1.8 by 1.3 m, under the pouf in front of the television. */
+  rug: () => [piece(new Sink().box(0, 0.006, 0, 1.8, 0.012, 1.3).out(), M('rug'), { metres: 'xz' })],
   /** Two curtain panels hanging from a rod at the origin, each 0.55 wide and 1.7 long, folded. */
   curtains: () => {
     const cloth = new Sink(), cols = 14, w = 0.55, h = 1.7;
@@ -1129,7 +1122,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** The Converge Clan banner, 2.2 × 0.5, painted. */
   banner: () => [piece(face(2.2, 0.5, 0.01), { paint: 'banner' })],
   /** The Jobs poster, 1.2 × 0.67, painted (frame 0 of `poster`), in a thin black frame. */
-  jobsPoster: () => [piece(face(1.2, 0.67, 0.005), { paint: 'poster:0' }), piece(frame(1.2, 0.67, 0.02, 0.01).out(), M('frameBlack'))],
+  jobsPoster: () => [piece(face(1.5, 0.833, 0.005), { paint: 'poster:0' }), piece(frame(1.5, 0.833, 0.02, 0.01).out(), M('frameBlack'))],
   /** The team photo, 1.0 × 0.7, painted, in a wooden frame. */
   teamPhoto: () => [piece(face(1.0, 0.7, 0.005), { paint: 'poster:1' }), piece(frame(1.0, 0.7, 0.03, 0.01).out(), M('frameWood'))],
   /** A tube light: the tube in a tray, 1.2 m, along x, hanging below the origin. */

@@ -133,3 +133,13 @@ Scrolled in his Chrome after the fame walk landed: the mountains read, but Toron
 - **The mountains** stand 1.35× (`rise` in northShore) with fog 500/4000, so they read as a range, not a hill.
 - Baked again: set 8 (the terrace) and set 11 (the hall). The bake takes the set's index, not its id (`npm run stage:bake -- 11 128 2048 512 0`); a stray second dev server had to be stopped (`astro dev stop`) for the export to answer.
 - Frame times at 2× DPR through the terrace, the door and the stage: 60 fps, worst frame 19 ms (`.cache/perf.mjs 0.62 1.0 40`). Frames: `.cache/fame2/sheet.png`, `sheet3.png`, `sheet4.png`, `sheet6.png`; his Chrome scrolled end to end (dark mode).
+
+## The 2010 bedroom, rebuilt (2026-09-12)
+
+He called the Xbox room broken and misaligned against the condo and the Webcube studio, and asked for it compact, simple, everything shown, the whole Steve Jobs text, real models, facts checked. What was there: no bed, a 40 cm television on the floor in a corner, a giant red disc of a rug, a cropped poster, blank walls, a cartoon window; the walk looked at bare wall for a third of its length.
+
+- **Assets, not primitives** (Poly Haven, CC0, through the manifest and `npm run stage:assets`): `wooden_bookshelf_worn` for the figures and the encyclopedias, `wooden_table_02` and `painted_wooden_chair_01` under the window for homework, `alarm_clock_01` on it, `wall_clock` by the door; the bed is `bed_single` (BlenderKit) with the throw pillows; the television sits on `tv_stand` with the white Xbox 360 beside it (2005 model, right for 2010; the black 360 S came that June). Sizes measured from the files (`.cache/bounds.mjs`), shelf planks from the vertex heights (`.cache/yhist.mjs`).
+- **Layout**: bed along the north wall under the poster, bookshelf in the north-west corner, television and Xbox on the west wall facing the pouf on a 1.8 by 1.3 m rug, the table under the window, the fan over the middle. The walk's four looks go rug, television, bookshelf, poster (`dolly.ts`), head turns under the 8° limit (the first look had to stay within 48° of straight ahead or the spline overshot).
+- **The poster** carries Apple's 1997 "Think different" text in full, the portrait in black and white, painted at 1600 by 888 so the body reads at 1.5 m wide (`JOBS_QUOTE` in stage-paint.ts); credited to Apple in CREDITS.md.
+- **The window** is a Delhi afternoon: haze, low flat roofs with water tanks, a neem crown, painted for the crop the window actually shows.
+- Baked in Blender (`npm run stage:bake -- 1 128 2048 512`), 1.37 MB with the models' textures (the bookshelf's capped at 256 px). Frames: `.cache/room2/walk3.png`, `.cache/room2/q1.31.png`; checked in his Chrome.

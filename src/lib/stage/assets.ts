@@ -38,6 +38,11 @@ export const ASSETS: Asset[] = [
     // modelled for a night scene: the shells and the podium take daylight colours here, and nothing glows
     skin: { FINS: { color: '#EDE7DA', map: false, emissive: false, rough: 0.45 }, STONE: { color: '#B9AE9A', map: false, emissive: false, rough: 0.85 }, GLASS: { color: '#3C4A56', map: false, rough: 0.2 }, BRONZE: { color: '#8A6A3F', rough: 0.5, metal: 0.6 }, LIGHT: { emissive: false }, LIGHTPOLE: { color: '#4A4A4A', map: false } } },
   // now, Toronto
+  // 2010, the Delhi bedroom
+  model('wooden_bookshelf_worn', 'Ulan Cabanilla', 'the bookshelf in the bedroom: the figures and the encyclopedias', 256, 0.004),
+  model('wooden_table_02', 'Serhii Khromov', 'the study table in the bedroom', 256, 0.004),
+  model('painted_wooden_chair_01', 'Kuutti Siitonen', 'the chair at the study table', 256, 0.004),
+  model('alarm_clock_01', 'Yann Kervran, James Ray Cock', 'the alarm clock on the study table', 256, 0.004),
   model('desk_lamp_arm_01', 'Yann Kervran', 'the desk lamp, and the bedside lamp', 256, 0.004),
   model('steel_frame_shelves_01', 'James Ray Cock', 'the shelves behind the desk'),
   model('potted_plant_01', 'Rico Cilliers', 'the plant by the window', 256, 0.004),

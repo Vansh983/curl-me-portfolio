@@ -4,6 +4,10 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 
 - `dalhousie_campus` (model), Project-authored in Blender. the dimensional Goldberg campus seen while airborne. See [flight credits](./FLIGHT-CREDITS.md).
 - `sydney_opera_house` (model) by Nick Reinhardt (Sketchfab), CC-BY-4.0, https://sketchfab.com/3d-models/sydney-opera-house-317b2d540f0a4f7e8d87dd3b0372712d. the Opera House across the water from the Sydney window.
+- `wooden_bookshelf_worn` (model) by Ulan Cabanilla, CC0, https://polyhaven.com/a/wooden_bookshelf_worn. the bookshelf in the bedroom: the figures and the encyclopedias.
+- `wooden_table_02` (model) by Serhii Khromov, CC0, https://polyhaven.com/a/wooden_table_02. the study table in the bedroom.
+- `painted_wooden_chair_01` (model) by Kuutti Siitonen, CC0, https://polyhaven.com/a/painted_wooden_chair_01. the chair at the study table.
+- `alarm_clock_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/alarm_clock_01. the alarm clock on the study table.
 - `desk_lamp_arm_01` (model) by Yann Kervran, CC0, https://polyhaven.com/a/desk_lamp_arm_01. the desk lamp, and the bedside lamp.
 - `steel_frame_shelves_01` (model) by James Ray Cock, CC0, https://polyhaven.com/a/steel_frame_shelves_01. the shelves behind the desk.
 - `potted_plant_01` (model) by Rico Cilliers, CC0, https://polyhaven.com/a/potted_plant_01. the plant by the window.
@@ -53,6 +57,5 @@ The Toronto skyline out of the condo window and Halifax under the aircraft are b
 
 `bean-logo.png` is the Bean logo from [beanmeals.com](https://www.beanmeals.com), the company the site's author co-founded, used on the Sydney set's sign, whiteboard and screens.
 
-## Logos on the tour
 
-The marks along the terrace and on the stage are the organisations' own, fetched from their sites for the record of his part in them (not licensed assets, not altered): Web Summit Vancouver (vancouver.websummit.com), Elevate Festival (elevatefestival.ca), Volta (voltaeffect.com), Invest Nova Scotia (investnovascotia.ca), Product Hunt (producthunt.com), Dalhousie University (dal.ca). Bean's own logo from beanmeals.com.
+The poster in the 2010 bedroom carries the text of Apple's 1997 "Think different" campaign ("Here's to the crazy ones"), © Apple Inc., painted at runtime (src/scripts/stage-paint.ts); the portrait is `assets/scenes/jobs.jpg`.

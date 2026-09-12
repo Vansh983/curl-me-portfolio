@@ -26,10 +26,10 @@ const APPROACH: DollyKey[] = [
   { q: 0.192, cam: [-5.45, 1.58, 3.35], look: [-5.45, 1.5, 5.5], fov: 68, set: 1, blend: 1 }, // mid passage
   // 2010: in through the south door, up the east side of the room, the television and the Xbox on the floor
   // to the left, the shelf and the poster on the far wall, then right, east, out to the lab
-  { q: 0.22, cam: [-5.45, 1.58, 4.9], look: [-7.5, 1.0, 6.8], fov: 64, set: 1 }, // into the room: the TV on the floor, the Xbox
-  { q: 0.253, cam: [-5.45, 1.58, 5.6], look: [-8.6, 0.7, 6.9], fov: 62, set: 1 },
-  { q: 0.285, cam: [-5.45, 1.58, 5.9], look: [-7.35, 1.1, 8.2], fov: 62, set: 1 }, // the shelf of figures, the poster
-  { q: 0.312, cam: [-5.45, 1.58, 6.3], look: [-5.63, 1.3, 8.3], fov: 62, set: 1 }, // the far wall
+  { q: 0.22, cam: [-5.45, 1.58, 4.9], look: [-7.6, 0.9, 6.7], fov: 64, set: 1 }, // into the room: the rug, the pouf, the television beyond
+  { q: 0.253, cam: [-5.45, 1.58, 5.6], look: [-8.8, 0.7, 6.9], fov: 62, set: 1 }, // the television, the Xbox
+  { q: 0.285, cam: [-5.45, 1.58, 5.9], look: [-8.4, 1.0, 7.7], fov: 62, set: 1 }, // the bookshelf: the figures, the encyclopedias
+  { q: 0.312, cam: [-5.45, 1.58, 6.3], look: [-6.2, 1.62, 8.3], fov: 62, set: 1 }, // the poster over the bed, the clock at its side
   { q: 0.338, cam: [-5.4, 1.58, 6.5], look: [-4.25, 1.4, 8.14], fov: 64, set: 1 }, // turning right
   { q: 0.361, cam: [-5.2, 1.58, 6.6], look: [-3.3, 1.45, 7.28], fov: 64, set: 1 }, // the door east
   { q: 0.39, cam: [-4.85, 1.58, 6.6], look: [-3.0, 1.5, 6.6], fov: 68, set: 1, blend: 0 }, // door jamb, heading east
