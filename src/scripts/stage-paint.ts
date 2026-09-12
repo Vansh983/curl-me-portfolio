@@ -7,7 +7,7 @@ export interface Paint { w: number; h: number; frames: Painter[] }
 /** Apple's "Think different" text, 1997, as printed on the poster: the first sentence is the title, the rest the body. */
 const JOBS_QUOTE = "The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They're not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can't do is ignore them. Because they change things. They push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.";
 
-export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null }
+export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null; floqer: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
   const c = document.createElement('canvas');
@@ -755,6 +755,13 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
    * The marks of the tour on boards along the terrace and on the stage: each frame one organisation's own logo, drawn
    * from its site's file once it has loaded (stage-run repaints), centred with a margin. White logos sit on a dark board.
    */
+  // Floqer's mark and wordmark on clear, for the brick wall of the office: the file as the site serves it, the word in white
+  floqer: { w: 1600, h: 500, frames: [(x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    if (!images.floqer) return;
+    const iw = images.floqer.naturalWidth, ih = images.floqer.naturalHeight, k = Math.min((w - 80) / iw, (h - 80) / ih);
+    x.drawImage(images.floqer, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k);
+  }] },
   logo: { w: 1000, h: 600, frames: (['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const).map((key) => (x: Ctx, w: number, h: number) => {
     const dark = key === 'elevate' || key === 'volta' || key === 'investns';
     x.fillStyle = dark ? (key === 'volta' ? '#101A2E' : key === 'investns' ? '#0E2A4A' : '#141416') : '#F7F6F2'; x.fillRect(0, 0, w, h);

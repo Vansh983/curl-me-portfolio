@@ -219,7 +219,7 @@ if shell:
             continue  # a door: the next room lights it
         # a window: an area light just outside, the size of the opening, the sky's colour
         w, h = op["w"], op["h"]
-        cy = (op.get("sill", 0) + h / 2)
+        cy = shell.get("y", 0) + (op.get("sill", 0) + h / 2)
         if op["wall"] in ("z-", "z+"):
             z = (z0 - 0.05) if op["wall"] == "z-" else (z1 + 0.05)
             pos = Vector((op["at"], -z, cy))

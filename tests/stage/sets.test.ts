@@ -28,8 +28,8 @@ test('96 fixed auditorium seats follow eight tiers with clear central and side a
   assert.ok(theatre.shell!.z[1] - theatre.shell!.z[0] > 15);
 });
 
-test('twelve sets, each lit and finite', () => {
-  assert.equal(SETS.length, 12);
+test('thirteen sets, each lit and finite', () => {
+  assert.equal(SETS.length, 13);
   for (const s of SETS) {
     assert.ok(s.env === 'studio' || s.env === 'sky');
     assert.ok(s.tint.power >= 0);

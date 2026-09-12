@@ -54,16 +54,16 @@ function cut(u0: number, u1: number, h: number, holes: Rect[]): Rect[] {
 interface Wall { id: Opening['wall']; o: P3; a: P3; n: P3; len: number; from: number }
 
 export function buildShell(s: Shell): { floor: Slab; walls: Slab; ceiling: Slab } {
-  const [x0, x1] = s.x, [z0, z1] = s.z, h = s.h, tf = 1, tw = 1;
+  const [x0, x1] = s.x, [z0, z1] = s.z, h = s.h, y0 = s.y ?? 0, tf = 1, tw = 1;
   const floor = new Bag(), ceiling = new Bag(), walls = new Bag();
-  floor.rect([x0, 0, z0], [x1 - x0, 0, 0], [0, 0, z1 - z0], [0, 1, 0], [x0 / tf, z0 / tf], (x1 - x0) / tf, (z1 - z0) / tf);
-  ceiling.rect([x0, h, z1], [x1 - x0, 0, 0], [0, 0, z0 - z1], [0, -1, 0], [x0 / tf, z1 / tf], (x1 - x0) / tf, (z0 - z1) / tf);
+  floor.rect([x0, y0, z0], [x1 - x0, 0, 0], [0, 0, z1 - z0], [0, 1, 0], [x0 / tf, z0 / tf], (x1 - x0) / tf, (z1 - z0) / tf);
+  ceiling.rect([x0, y0 + h, z1], [x1 - x0, 0, 0], [0, 0, z0 - z1], [0, -1, 0], [x0 / tf, z1 / tf], (x1 - x0) / tf, (z0 - z1) / tf);
   // each wall: an origin, a unit vector along it, its inward normal; u runs along the wall in metres
   const WALLS: Wall[] = [
-    { id: 'z-', o: [x0, 0, z0], a: [1, 0, 0], n: [0, 0, 1], len: x1 - x0, from: x0 },
-    { id: 'x+', o: [x1, 0, z0], a: [0, 0, 1], n: [-1, 0, 0], len: z1 - z0, from: z0 },
-    { id: 'z+', o: [x1, 0, z1], a: [-1, 0, 0], n: [0, 0, -1], len: x1 - x0, from: x1 },
-    { id: 'x-', o: [x0, 0, z1], a: [0, 0, -1], n: [1, 0, 0], len: z1 - z0, from: z1 },
+    { id: 'z-', o: [x0, y0, z0], a: [1, 0, 0], n: [0, 0, 1], len: x1 - x0, from: x0 },
+    { id: 'x+', o: [x1, y0, z0], a: [0, 0, 1], n: [-1, 0, 0], len: z1 - z0, from: z0 },
+    { id: 'z+', o: [x1, y0, z1], a: [-1, 0, 0], n: [0, 0, -1], len: x1 - x0, from: x1 },
+    { id: 'x-', o: [x0, y0, z1], a: [0, 0, -1], n: [1, 0, 0], len: z1 - z0, from: z1 },
   ];
   for (const w of WALLS) {
     const sign = w.a[0] + w.a[2]; // +1 when u grows with the world axis, -1 otherwise

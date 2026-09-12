@@ -26,6 +26,7 @@ export interface InnerWall { from: [number, number]; to: [number, number]; t?: n
 
 /** A room: floor, four walls, ceiling, each a designed material (materials.ts). uv is in metres. */
 export interface Shell {
+  y?: number; // the floor's height, when the room stands above the ground (Floqer's office is up the hall's rake)
   x: [number, number];
   z: [number, number];
   h: number;
@@ -143,10 +144,11 @@ export function crowdPeople(): Placement[] {
   const out: Placement[] = [];
   const [h0] = STAGE.hall, [hz0, hz1] = STAGE.hallZ;
   for (let i = 0; i < 8; i++) {
-    const x = h0 + 3.2 + i * 2.35, y = Math.floor(Math.max(0, (x - h0 - 5.4) / 2.7) + 1) * 0.18 * (x > h0 + 5.4 ? 1 : 0);
+    const x = h0 + 3.2 + i * 2.35, y = houseFloorY(x);
     const n = 9, span = hz1 - hz0 - 3;
     for (let j = 0; j < n; j++) {
-      const z = hz0 + 1.5 + (span * (j + 0.5)) / n + (rnd() - 0.5) * 1.2;
+      let z = hz0 + 1.5 + (span * (j + 0.5)) / n + (rnd() - 0.5) * 1.2;
+      if (Math.abs(z - STAGE.door.z) < 1.3) z = STAGE.door.z + Math.sign(z - STAGE.door.z || 1) * (1.3 + rnd() * 0.3); // the aisle up the middle stays clear: the walk goes up it
       const gown = rnd() < 0.45;
       const wear: Wear = gown ? { skin: pick(skins), top: '#121214', legs: '#121214', shoes: '#141416', sleeves: 'long' } : { skin: pick(skins), top: pick(tops), legs: pick(legs), shoes: pick(['#141416', '#3A2E26', '#EDEDEA'] as const), sleeves: rnd() < 0.6 ? 'long' : 'short' };
       out.push({ model: 'base_character', at: [x + (rnd() - 0.5) * 0.6, y, z], rot: [0, 90 + (rnd() - 0.5) * 24, 0], live: 'person', person: { wear, hair: pick(hairs), clip: rnd() < 0.35 ? 'talk' : 'idle', phase: rnd() * 6 } });
@@ -155,7 +157,14 @@ export function crowdPeople(): Placement[] {
   return out;
 }
 
-export const STAGE = { wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [24.5, 46.5] as [number, number] } as const;
+export const STAGE = {
+  wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [24.5, 46.5] as [number, number],
+  door: { z: 33.5, w: 1.6, h: 2.4, floor: 1.6 }, // the door out of the back of the house, at the top of the rake, on the stage's centre line
+} as const;
+/** The house's raked floor: ten tiers of 0.16 m every 2.7 m from 5.4 m past the stage's front to the back wall. */
+export const houseFloorY = (x: number): number => (x <= STAGE.hall[0] + 5.4 ? 0 : 0.16 * Math.min(10, Math.floor((x - STAGE.hall[0] - 5.4) / 2.7) + 1));
+/** Floqer's office: a hacker house up the rake from the hall, its floor at the top tier, 18 by 20 m, the windows on Toronto to the east. */
+export const FLOQER = { x: [26, 38] as [number, number], z: [28, 40] as [number, number], floor: STAGE.door.floor, h: 3.6, tables: [[29.6, 31.0], [32.8, 31.0], [29.6, 37.0], [32.8, 37.0]] as ReadonlyArray<readonly [number, number]> } as const;
 export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
 /**
  * The water round the headland, 30 m down: every tour set holds its own (this set only). The terrace itself, the cliff
@@ -590,6 +599,60 @@ export const SETS: StageSet[] = [
       { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 8.8, STAGE.centre + 5.5], live: 'downlight' },
       { build: 'downlight', at: [STAGE.hall[0] + 6, 8.2, STAGE.centre], live: 'downlight' },
       { build: 'downlight', at: [STAGE.hall[0] + 14, 8.2, STAGE.centre], live: 'downlight' },
+      { build: 'passage', at: [STAGE.hall[1], STAGE.door.floor, STAGE.door.z - 0.6], scale: [0.667, 1, 1], live: 'bulb' }, // east, 2 m, out of the back of the house to Floqer's office
+    ],
+  },
+  {
+    // 2025 to now, Toronto: Floqer's office, a hacker house downtown, up the rake and through the back of the hall, 12 by 12 m. Bigger than
+    // the Bean one: two rows of tables with the monitors back to back, the mattresses, the mark on the brick, and downtown
+    // Toronto right outside the windows. Nothing else: what was asked for.
+    id: 'floqer', env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 0.5, baked: true,
+    sun: { dir: [0.75, 0.55, 0.3], color: '#FFE4BE', power: 2.0, shadow: 0.85 },
+    fog: { color: '#C9D7E3', near: 60, far: 900 },
+    shell: {
+      x: FLOQER.x, z: FLOQER.z, h: FLOQER.h, y: FLOQER.floor,
+      floor: 'condoFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
+      openings: [
+        { wall: 'x-', at: STAGE.door.z, w: STAGE.door.w, h: STAGE.door.h }, // in from the hall's passage, heading east
+        ...[30.5, 34.0, 37.5].map((z) => ({ wall: 'x+' as const, at: z, w: 3.2, h: 1.55, sill: 0.75 })), // the windows on the street
+      ],
+    },
+    props: [
+      ...(() => {
+        const F = FLOQER.floor, out: Placement[] = [];
+        // downtown Toronto right outside: the tower 100 m off, the blocks north of it on the street's level
+        out.push({ build: 'torontoDay', at: [FLOQER.x[1] + 100, F - 3, 34], rot: [0, 180, 0], live: 'city', shadow: false, cap: 'Downtown Toronto, outside the window.' });
+        for (const z of [30.5, 34.0, 37.5]) out.push({ build: 'sydneyWindow', at: [FLOQER.x[1], F + 0.75, z], rot: [0, 90, 0], scale: [0.8, 1, 1] });
+        // the north wall in brick, the mark on it
+        out.push({ build: 'brickWall', at: [32, F, FLOQER.z[1] - 0.05], scale: [0.667, 1, 1] });
+        out.push({ build: 'floqerSign', at: [32, F + 2.25, FLOQER.z[1] - 0.1], rot: [0, 180, 0], live: 'screen', cap: 'Floqer. The orchestration engine behind enterprise go to market automation.' });
+        // the tables: monitors back to back down the middle, keyboards, chairs, a laptop at the ends, the wires, mugs and papers
+        const screens = ['monitorApp', 'monitor', 'monitorBoard', 'monitor'] as const;
+        FLOQER.tables.forEach(([cx, cz], t) => {
+          out.push({ build: 'hackerTable', at: [cx, F, cz], cap: t === 0 ? 'The tables. Floqer is built here.' : undefined });
+          for (const [k, dx] of [-0.75, 0.75].entries()) {
+            out.push({ build: screens[(t * 2 + k) % 4], at: [cx + dx, F + 0.74, cz + 0.15], rot: [0, (k ? -3 : 3), 0], live: 'screen' });
+            out.push({ build: screens[(t * 2 + k + 1) % 4], at: [cx - dx, F + 0.74, cz - 0.15], rot: [0, 180 + (k ? 4 : -2), 0], live: 'screen' });
+            out.push({ model: 'keyboard_mouse_black', at: [cx + dx, F + 0.74, cz + 0.55] });
+            out.push({ model: 'keyboard_mouse_black', at: [cx - dx, F + 0.74, cz - 0.55], rot: [0, 180, 0] });
+            out.push({ model: 'office_chair_black', at: [cx + dx, F, cz + 1.25], rot: [0, 180 + (k ? 10 : -6), 0] });
+            out.push({ model: 'office_chair_black', at: [cx - dx, F, cz - 1.25], rot: [0, (k ? -8 : 5), 0] });
+          }
+          out.push({ build: 'wires', at: [cx, F, cz] });
+          out.push({ model: 'coffee_mug', at: [cx + 1.3, F + 0.74, cz + 0.5], rot: [0, 40 + t * 70, 0] });
+        });
+        out.push({ build: 'laptop', at: [28.3, F + 0.74, 31.3], rot: [0, 100, 0], live: 'screen' });
+        out.push({ model: 'laptop_14_aluminium', at: [34.2, F + 0.74, 36.7], rot: [0, -80, 0] });
+        out.push({ build: 'papers', at: [31.2, F + 0.74, 30.4], rot: [0, -12, 0] });
+        out.push({ build: 'papers', at: [31.7, F + 0.74, 37.6], rot: [0, 8, 0] });
+        // the lights over the tables
+        for (const [cx, cz] of FLOQER.tables) out.push({ model: 'pendant_tense', at: [cx, F + 1.86, cz], live: 'pendant' });
+        // the mattresses at the back, as the Bean house had them: you sleep where you ship
+        out.push({ build: 'airMattress', at: [36.4, F, 38.7], rot: [0, 90, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' });
+        out.push({ build: 'airMattress', at: [36.4, F, 36.3], rot: [0, 88, 0] });
+        out.push({ model: 'throw_pillows_01', at: [37.4, F, 38.9], rot: [0, 120, 0], scale: 0.7 });
+        return out;
+      })(),
     ],
   },
 ];

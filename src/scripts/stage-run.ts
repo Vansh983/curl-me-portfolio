@@ -37,7 +37,7 @@ import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE } from '../lib/stage/flight.ts
 import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
-import { stageProgress, STAGE_SPAN } from '../lib/stage/shot.ts';
+import { stageProgress, STAGE_SPAN, LAST_SPAN } from '../lib/stage/shot.ts';
 import { loadAllSets, showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
 import { painters, loadImage, canvas2d, tourLive, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, beanPaint, type Paint, type Images } from './stage-paint.ts';
@@ -174,7 +174,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const video = document.createElement('video');
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
-  const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null };
+  const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null, floqer: null };
   const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...beanPaint(images) };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
@@ -369,6 +369,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const backdrop = name === 'toronto' || name === 'sydney' || name.startsWith('campus'); // a view out of a window: unlit, beyond the fog
       if (name.startsWith('screen') || backdrop) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: !backdrop });
       if (name === 'cloudPuffs') return cloudMaterial(paintTex(name, 0)); // the cloud field: every quad turned to the camera, sized by its vertex colour
+      if (name === 'floqer') { const map = paintTex(name, 0); return new MeshStandardMaterial({ map, transparent: true, alphaTest: 0.4, emissive: '#FFFFFF', emissiveMap: map, emissiveIntensity: 0.45, roughness: 0.6, metalness: 0, envMapIntensity: 0.4 }); } // the sign on the brick: its own light, the wall through the clear
       if (name === 'crowd') { const map = paintTex(name, Number(frame ?? 0)); return new MeshStandardMaterial({ map, emissive: '#FFFFFF', emissiveMap: map, emissiveIntensity: 0.32, roughness: 0.9, metalness: 0, envMapIntensity: 0.5, transparent: true, alphaTest: 0.5, side: DoubleSide }); } // a cut-out row of people, a little lit from the stage
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
@@ -809,6 +810,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
   loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'boothMontreal', 'screenTour', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'certificateInvestNS']); });
   for (const key of ['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const) loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo']); });
+  loadImage('/assets/stage/logos/floqer.png').then((i) => { images.floqer = i; repaint(['floqer']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
   const dolly = makeDolly(DOLLY);
@@ -865,19 +867,25 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const articles = [...root.querySelectorAll<HTMLElement>('.ch')];
   /** The document scroll that puts the stage at progress q: the audit scripts use it (window.__stage.yFor). */
   function yFor(q: number): number { // hoisted: __stage takes it before this line runs
-    const c = Math.min(1, Math.max(0, q)) * STAGE_SPAN, i = Math.min(articles.length - 2, Math.floor(c));
+    const c = Math.min(1, Math.max(0, q)) * STAGE_SPAN, last = articles.length - 1;
     const tops = articles.map((a) => a.offsetTop), base = root.getBoundingClientRect().top + scrollY;
+    if (c >= last) return base + tops[last] + (c - last) * (tops[last] - tops[last - 1]); // the last card runs LAST_SPAN chapter lengths down its own height (it is a viewport taller than that, so the stage stays pinned to its end)
+    const i = Math.min(last - 1, Math.floor(c));
     return base + tops[i] + (c - i) * (tops[i + 1] - tops[i]);
   }
   const progress = () => {
     if (articles.length < 2) return 0;
     const y = -root.getBoundingClientRect().top;
-    const tops = articles.map((a) => a.offsetTop);
-    let i = 0;
-    while (i < tops.length - 2 && y >= tops[i + 1]) i++;
-    const span = Math.max(1, tops[i + 1] - tops[i]);
-    const c = i + Math.min(1, Math.max(0, (y - tops[i]) / span));
-    return Math.min(1, Math.max(0, c / (chapters - 1)));
+    const tops = articles.map((a) => a.offsetTop), last = tops.length - 1;
+    let c: number;
+    if (y >= tops[last]) c = last + Math.min(LAST_SPAN, Math.max(0, (y - tops[last]) / Math.max(1, tops[last] - tops[last - 1]))); // the last card: LAST_SPAN chapter lengths down its own height
+    else {
+      let i = 0;
+      while (i < last - 1 && y >= tops[i + 1]) i++;
+      const span = Math.max(1, tops[i + 1] - tops[i]);
+      c = i + Math.min(1, Math.max(0, (y - tops[i]) / span));
+    }
+    return Math.max(0, c / (chapters - 1)); // above 1 inside the last card; stageProgress measures it against the span
   };
 
   /** Switches the light to a set: environment, tint, exposure, fog. Called while the frame is in a doorway. */

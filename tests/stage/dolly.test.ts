@@ -36,18 +36,18 @@ test('the Delhi desk views keep the full awards shelf in frame on a laptop', () 
   }
 });
 
-test('keys are ordered in q from 0 to 1 and land on the twelve sets', () => {
+test('keys are ordered in q from 0 to 1 and land on the thirteen sets', () => {
   assert.equal(DOLLY[0].q, 0);
   assert.equal(DOLLY[DOLLY.length - 1].q, 1);
   for (let k = 1; k < DOLLY.length; k++) assert.ok(DOLLY[k].q > DOLLY[k - 1].q);
-  assert.deepEqual([...new Set(DOLLY.map((k) => k.set))], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  assert.deepEqual([...new Set(DOLLY.map((k) => k.set))], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 });
 
 test('blend windows come in pairs, 0 then 1, and the set flips inside them', () => {
   const dolly = makeDolly(DOLLY);
   const zeros = DOLLY.filter((k) => k.blend === 0), ones = DOLLY.filter((k) => k.blend === 1);
-  assert.equal(zeros.length, 11);
-  assert.equal(ones.length, 11);
+  assert.equal(zeros.length, 12);
+  assert.equal(ones.length, 12);
   for (let w = 0; w < zeros.length; w++) {
     const a = zeros[w], b = ones[w];
     assert.ok(b.q > a.q);
@@ -105,8 +105,9 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[7], -6.85, -17.95), `${jambs[7].cam}`); // the hacker house's south door beside the window, out to Vancouver
   assert.ok(at(jambs[8], -10.5, -10.8) && at(jambs[9], -10.5, 4.4), `the thresholds along the terrace: ${jambs[8].cam} ${jambs[9].cam}`);
   assert.ok(at(jambs[10], -10.5, 23.4), `the door back into the house at the terrace's end: ${jambs[10].cam}`);
+  assert.ok(at(jambs[11], 23.4, 33.5), `the door out of the back of the hall, at the top of the rake: ${jambs[11].cam}`);
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
-  assert.equal(dolly(1).set, 11);
+  assert.equal(dolly(1).set, 12);
   assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);
   // heading north through the south door, the desk on the far wall dead ahead
   const inRoom = dolly(jambs[3].q + 0.02);

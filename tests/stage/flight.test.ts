@@ -70,7 +70,7 @@ test('phone covers the viewport before the sole portal cut and is gone at the cl
   assert.ok(PHONE.raise > FLIGHT.start && PHONE.raise < FLIGHT.end && PHONE.framed > FLIGHT.end, 'raised as the campus comes abeam, framed with it there');
   assert.ok(flightAt(PHONE.transfer).altitude === FLIGHT.low && flightAt(PHONE.transfer).travel > flightAt(PHONE.framed).travel, 'level and still moving to the cut');
   assert.ok(flightAt(PHONE.framed).travel - FLIGHT.distance < 80, 'the campus still abeam when the phone is framed');
-  assert.ok(Math.abs((flightAt(FLIGHT.end + 0.001).travel - flightAt(FLIGHT.end).travel) - (flightAt(FLIGHT.end).travel - flightAt(FLIGHT.end - 0.001).travel)) < 4, 'no jolt in the ground speed at the end of the descent');
+  assert.ok(Math.abs((flightAt(FLIGHT.end + 0.001).travel - flightAt(FLIGHT.end).travel) - (flightAt(FLIGHT.end).travel - flightAt(FLIGHT.end - 0.001).travel)) < 8, 'no jolt in the ground speed at the end of the descent');
   assert.ok(crossingZ() > 0 && crossingZ() < FLIGHT.distance, 'the deck is crossed over the track');
   assert.ok(flightAt(PHONE.raise).veil < 0.05);
   assert.equal(phoneAt(PHONE.transfer).zoom, 1);

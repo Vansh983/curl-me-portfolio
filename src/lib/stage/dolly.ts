@@ -6,7 +6,7 @@
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
 import { CatmullRomCurve3, Vector3 } from 'three';
-import { TERRACE, STAGE, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3 } from './sets.ts';
+import { TERRACE, STAGE, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3, houseFloorY } from './sets.ts';
 import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
 import { ch } from './shot.ts';
 
@@ -167,6 +167,19 @@ function walk(): DollyKey[] {
   keys.push(K(11.78, [X, 1.6 + S, STAGE.centre], [X + 2.0, 1.45 + S, STAGE.centre + 3.5], 11));
   keys.push(K(11.9, [X, 1.6 + S, STAGE.centre], [X + 3.6, 1.5 + S, STAGE.centre + 1.8], 11));
   keys.push(K(12.0, [X, 1.6 + S, STAGE.centre], [X + 4, 1.55 + S, STAGE.centre], 11)); // facing the crowd
+  // out: straight ahead across the stage, down its front steps, up the aisle through the crowd on the rake, out of the
+  // back door and along the passage into Floqer's office (the last card runs three chapters for it)
+  const Z = STAGE.centre, up = (x: number) => 1.6 + houseFloorY(x);
+  keys.push(K(12.14, [-8.7, 1.6 + S, Z], [-4.7, 2.3, Z], 11));
+  keys.push(K(12.28, [-7.5, 1.55 + S, Z], [-3.5, 2.0, Z], 11)); // the front edge
+  keys.push(K(12.4, [-6.75, 1.95, Z], [-2.75, 1.65, Z], 11)); // the steps
+  keys.push(K(12.52, [-5.6, 1.6, Z], [-1.6, 1.6, Z], 11)); // the floor
+  for (const [c, x] of [[12.7, -3.0], [12.9, -0.3], [13.1, 2.4], [13.3, 5.1], [13.5, 7.8], [13.7, 10.5], [13.9, 13.2], [14.1, 15.9], [14.3, 18.6]] as const) keys.push(K(c, [x, up(x), Z], [x + 4, up(x + 2.7) + 0.05, Z], 11)); // the aisle up the rake
+  keys.push(K(14.5, [21.3, up(21.3), Z], [25.3, up(23.4) + 0.05, Z], 11)); // the door ahead
+  keys.push(K(14.62, [23.4, up(23.4), Z], [27.4, 3.15, Z], 11, { blend: 0 })); // the jamb
+  keys.push(K(14.72, [25.2, 3.2, Z], [29.2, 3.1, Z], 12, { blend: 1 })); // the passage
+  keys.push(K(14.85, [27.4, 3.2, Z], [31.4, 3.0, Z + 0.5], 12)); // in: the tables ahead
+  keys.push(K(15.0, [29.0, 3.2, Z], [32.6, 3.3, 39.5], 12)); // the room: across the tables to the mark on the brick
   return keys;
 }
 
