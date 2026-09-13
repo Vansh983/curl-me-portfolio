@@ -87,6 +87,15 @@ export class Sink {
     this.uv.push(u[0], u[1]);
     this.col.push(this.c[0], this.c[1], this.c[2]);
   }
+  /** A triangle with its own colour at each corner (linear rgb): terrain shaded by vertex, not by face. */
+  tric(a: V3, b: V3, c: V3, ca: V3, cb: V3, cc: V3): this {
+    const keep = this.c;
+    this.c = ca; this.push(a, WHITE);
+    this.c = cb; this.push(b, WHITE);
+    this.c = cc; this.push(c, WHITE);
+    this.c = keep;
+    return this;
+  }
   tri(a: V3, b: V3, c: V3, uv: [UV, UV, UV] = [WHITE, WHITE, WHITE]): this {
     this.push(a, uv[0]);
     this.push(b, uv[1]);
