@@ -46,8 +46,8 @@ test('keys are ordered in q from 0 to 1 and land on the thirteen sets', () => {
 test('blend windows come in pairs, 0 then 1, and the set flips inside them', () => {
   const dolly = makeDolly(DOLLY);
   const zeros = DOLLY.filter((k) => k.blend === 0), ones = DOLLY.filter((k) => k.blend === 1);
-  assert.equal(zeros.length, 12);
-  assert.equal(ones.length, 12);
+  assert.equal(zeros.length, 13);
+  assert.equal(ones.length, 13);
   for (let w = 0; w < zeros.length; w++) {
     const a = zeros[w], b = ones[w];
     assert.ok(b.q > a.q);
@@ -66,7 +66,7 @@ test('blend windows come in pairs, 0 then 1, and the set flips inside them', () 
   }
 });
 
-test('equal scroll increments keep bounded walking and head turns; only the covered phone portal cuts', () => {
+test('equal scroll increments keep bounded walking and head turns; only the two covered portals cut', () => {
   // the stage runs over STAGE_SPAN chapters of scroll, so a thousandth of q is a fixed number of pixels per chapter: the bounds scale with the span
   const dolly = makeDolly(DOLLY);
   const dir = (f: { cam: number[]; look: number[] }) => {
@@ -80,8 +80,8 @@ test('equal scroll increments keep bounded walking and head turns; only the cove
     const d = Math.hypot(f.cam[0] - prev.cam[0], f.cam[1] - prev.cam[1], f.cam[2] - prev.cam[2]);
     const a = dir(prev), b = dir(f);
     const deg = (Math.acos(Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])) * 180) / Math.PI;
-    const portal = (i - 1) / 1000 < PHONE.transfer && i / 1000 >= PHONE.transfer;
-    if (portal) { assert.equal(phoneAt(i / 1000).zoom, 1); prev = f; continue; }
+    const portal = DOLLY.find((k) => k.portal && (i - 1) / 1000 < k.q && i / 1000 >= k.q); // the two cuts: the phone's, covered by its screen; the door home, covered by the door
+    if (portal) { if (portal.q === PHONE.transfer) assert.equal(phoneAt(i / 1000).zoom, 1); prev = f; continue; }
     assert.ok(d < 0.02 * STAGE_SPAN, `cam step ${d} at ${i}`);
     assert.ok(deg < 0.67 * STAGE_SPAN, `turn ${deg} degrees at ${i}`);
     assert.ok(f.fov >= 55 && f.fov <= 80, `fov ${f.fov}`); // the horizontal field: a laptop shows the room
@@ -105,9 +105,10 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[7], -6.85, -17.95), `${jambs[7].cam}`); // the hacker house's south door beside the window, out to Vancouver
   assert.ok(at(jambs[8], -10.5, -10.8) && at(jambs[9], -10.5, 4.4), `the thresholds along the terrace: ${jambs[8].cam} ${jambs[9].cam}`);
   assert.ok(at(jambs[10], -10.5, 23.4), `the door back into the house at the terrace's end: ${jambs[10].cam}`);
-  assert.ok(at(jambs[11], 23.4, 33.5), `the door out of the back of the hall, at the top of the rake: ${jambs[11].cam}`);
+  assert.ok(at(jambs[11], -10.5, 47.4), `the door out of the back of the hall, behind the stage: ${jambs[11].cam}`);
+  assert.ok(at(jambs[12], -5.5, 61.3), `the door at the top of the hacker house's stair: ${jambs[12].cam}`);
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
-  assert.equal(dolly(1).set, 12);
+  assert.equal(dolly(1).set, 0); // home
   assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);
   // heading north through the south door, the desk on the far wall dead ahead
   const inRoom = dolly(jambs[3].q + 0.02);

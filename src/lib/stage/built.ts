@@ -9,7 +9,7 @@ import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE, CABIN } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE, CABIN, FLOQER } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -61,13 +61,13 @@ function auditoriumSeat(study = false): BuiltPart {
 }
 
 /** A room's six faces turned inward (a hall seen only from inside): invisible from outside, since faces are single-sided. */
-function inward(sink: Sink, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, skipX1 = false): void {
+function inward(sink: Sink, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, skipZ1 = false): void {
   sink.quad([x0, y0, z0], [x0, y0, z1], [x1, y0, z1], [x1, y0, z0]); // the floor faces up
   sink.quad([x0, y1, z1], [x0, y1, z0], [x1, y1, z0], [x1, y1, z1]); // the ceiling faces down
-  sink.quad([x0, y0, z1], [x0, y1, z1], [x1, y1, z1], [x1, y0, z1]); // the z1 wall faces -z
+  if (!skipZ1) sink.quad([x0, y0, z1], [x0, y1, z1], [x1, y1, z1], [x1, y0, z1]); // the z1 wall faces -z
   sink.quad([x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z0]); // the z0 wall faces +z
   sink.quad([x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [x0, y0, z1]); // the x0 wall faces +x
-  if (!skipX1) sink.quad([x1, y0, z1], [x1, y1, z1], [x1, y1, z0], [x1, y0, z0]); // the x1 wall faces -x
+  sink.quad([x1, y0, z1], [x1, y1, z1], [x1, y1, z0], [x1, y0, z0]); // the x1 wall faces -x
 }
 
 const hex3 = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(1, v)) ** (1 / 2.2) * 255).toString(16).padStart(2, '0')).join('');
@@ -758,12 +758,11 @@ export const BUILT: Record<string, () => BuiltPart> = {
     for (const z of [z0 + 0.6, z1 - 0.6]) drape.box((x0 + lane) / 2, S + 4.3, z, lane - x0, 8.6, 0.6); // the wings' legs
     // the room round it all, its faces turned inward so nothing shows from the terrace outside: floor, ceiling, four walls
     inward(dark, x0 - 0.2, h1, 0, H, hz0 - 0.5, hz1 + 1.5, true); // the south wall on the door line: nothing of the room south of the terrace's end
-    // the back wall, with the door out at the top of the rake: three faces round it, turned into the hall
-    { const { z: dz, w: dw, h: dh, floor: df } = STAGE.door, za = hz0 - 0.5, zb = hz1 + 1.5;
-      const q = (zz0: number, zz1: number, yy0: number, yy1: number) => dark.quad([h1, yy0, zz1], [h1, yy1, zz1], [h1, yy1, zz0], [h1, yy0, zz0]);
-      q(za, dz - dw / 2, 0, H); q(dz + dw / 2, zb, 0, H); q(dz - dw / 2, dz + dw / 2, 0, df); q(dz - dw / 2, dz + dw / 2, df + dh, H); }
-    // the steps down off the front of the stage, at its centre: two treads, then the floor
-    for (let k = 0; k < 2; k++) oak.box(x1 + 0.17 + 0.34 * k, (S * (2 - k)) / 6, (z0 + z1) / 2, 0.34, (S * (2 - k)) / 3, 2.4);
+    // the north wall, with the door out behind the stage: three faces round it, turned into the hall
+    { const { x: dx, w: dw, h: dh, floor: df } = STAGE.door, zb = hz1 + 1.5, xa = x0 - 0.2;
+      const q = (xx0: number, xx1: number, yy0: number, yy1: number) => dark.quad([xx0, yy0, zb], [xx0, yy1, zb], [xx1, yy1, zb], [xx1, yy0, zb]);
+      q(xa, dx - dw / 2, 0, H); q(dx + dw / 2, h1, 0, H); q(dx - dw / 2, dx + dw / 2, 0, df); q(dx - dw / 2, dx + dw / 2, df + dh, H); }
+    oak.box((x0 + x1) / 2, S / 2, (z1 + hz1 + 1.5) / 2, x1 - x0, S, hz1 + 1.5 - z1); // backstage: the stage's boards run on to the door
     // the proscenium: the wall at the stage's front edge with the opening over the stage, faced both ways
     for (const [za, zb] of [[hz0 - 0.5, z0], [z1, hz1 + 1.5]]) dark.box(x1, H / 2, (za + zb) / 2, 0.4, H, zb - za);
     dark.box(x1, (H + 8.6) / 2, (z0 + z1) / 2, 0.4, H - 8.6, z1 - z0);
@@ -786,11 +785,29 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const wall = new Sink();
     wall.box((x0 + dx - 0.7) / 2, H / 2, zS, dx - 0.7 - x0, H, 0.1).box((dx + 0.7 + x1) / 2, H / 2, zS, x1 - dx - 0.7, H, 0.1).box(dx, (2.2 + H) / 2, zS, 1.4, H - 2.2, 0.1); // the south face round the doorway
     wall.box(x0 + 0.05, H / 2, (zS + zN) / 2, 0.1, H, zN - zS); // west
-    { const { z: dz, w: dw, h: dh, floor: df } = STAGE.door; // east, round the door to the passage
-      wall.box(x1 - 0.05, H / 2, (zS + dz - dw / 2) / 2, 0.1, H, dz - dw / 2 - zS).box(x1 - 0.05, H / 2, (dz + dw / 2 + zN) / 2, 0.1, H, zN - dz - dw / 2);
-      wall.box(x1 - 0.05, df / 2, dz, 0.1, df, dw).box(x1 - 0.05, (df + dh + H) / 2, dz, 0.1, H - df - dh, dw); }
-    wall.box((x0 + x1) / 2, H - 0.05, (zS + zN) / 2, x1 - x0, 0.1, zN - zS).box((x0 + x1) / 2, H / 2, zN - 0.05, x1 - x0, H, 0.1); // the roof and the north
+    wall.box(x1 - 0.05, H / 2, (zS + zN) / 2, 0.1, H, zN - zS); // east
+    wall.box((x0 + x1) / 2, H - 0.05, (zS + zN) / 2, x1 - x0, 0.1, zN - zS); // the roof
+    { const { x: dx, w: dw, h: dh, floor: df } = STAGE.door; // the north, round the door to the passage
+      wall.box((x0 + dx - dw / 2) / 2, H / 2, zN - 0.05, dx - dw / 2 - x0, H, 0.1).box((dx + dw / 2 + x1) / 2, H / 2, zN - 0.05, x1 - dx - dw / 2, H, 0.1);
+      wall.box(dx, df / 2, zN - 0.05, dw, df, 0.1).box(dx, (df + dh + H) / 2, zN - 0.05, dw, H - df - dh, 0.1); }
     return [piece(wall.out(), M('terraceWall'), { metres: 'xy' })];
+  },
+  /** The two whiteboards in the hacker house, 2.4 by 1.2 in aluminium frames, painted (`whiteboardFloqer`). Face +z. */
+  whiteboardFloqerA: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardFloqer:0' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
+  whiteboardFloqerB: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardFloqer:1' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
+  /**
+   * The stair up the east wall of the hacker house: FLOQER.stair steps of rise and run along +z from the origin (its foot at the
+   * floor), closed under, a landing on to the wall at the top, a rail on the open side. Origin at the foot's outer edge.
+   */
+  stairFlight: () => {
+    const { n, rise, run, w } = FLOQER.stair, treads = new Sink(), rail = new Sink(), post = new Sink();
+    for (let k = 0; k < n; k++) treads.box(0, ((k + 1) * rise) / 2, k * run + run / 2, w, (k + 1) * rise, run); // each step closed to the floor
+    const top = n * rise, zTop = n * run, zEnd = FLOQER.z[1] - FLOQER.stair.z0;
+    treads.box(0, top / 2, (zTop + zEnd) / 2, w, top, zEnd - zTop); // the landing
+    for (let k = 0; k <= n; k += 2) post.box(-w / 2 + 0.03, k * rise + 0.45, k * run + 0.02, 0.03, 0.9, 0.03); // the balusters
+    rail.box(-w / 2 + 0.03, 0, 0, 0.04, 0.04, Math.hypot(zTop, top)).rotateX(0, 0, -Math.atan2(top, zTop)).translate(0, 0.92, 0); // the rail, along the slope
+    rail.box(-w / 2 + 0.03, top + 0.92, (zTop + zEnd) / 2, 0.04, 0.04, zEnd - zTop);
+    return [piece(treads.out(), M('stageOak'), { metres: 'xz' }), piece(rail.out(), M('rod'), { smooth: true }), piece(post.out(), M('chairBase'))];
   },
   /** Floqer's sign, 4 by 1.25, painted on clear (`floqer`): the orange mark and the word in white, for the brick. Faces +z. */
   floqerSign: () => [piece(face(4.0, 1.25, 0.012), { paint: 'floqer' })],

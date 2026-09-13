@@ -755,6 +755,31 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
    * The marks of the tour on boards along the terrace and on the stage: each frame one organisation's own logo, drawn
    * from its site's file once it has loaded (stage-run repaints), centred with a margin. White logos sit on a dark board.
    */
+  // the hacker house's whiteboards: the engine and who runs on it; the year and Disrupt. Every word from his own card.
+  whiteboardFloqer: { w: 1024, h: 512, frames: [(x, w, h) => {
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h); x.fillStyle = '#B8BFC4'; x.fillRect(0, h - 22, w, 22);
+    const marker = (c: string, size = 26) => { x.strokeStyle = c; x.fillStyle = c; x.lineWidth = 4; x.font = `600 ${size}px "Comic Sans MS", "Chalkboard SE", cursive`; };
+    marker('#1B4FBF', 34); x.fillText('orchestration engine', 60, 66);
+    marker('#1B4FBF', 24); x.strokeRect(60, 110, 220, 90); x.fillText('CRM', 100, 162); x.strokeRect(400, 100, 260, 110); x.fillText('the engine', 440, 162); x.strokeRect(780, 110, 200, 90); x.fillText('outbound', 812, 162);
+    for (const [ax, bx] of [[280, 400], [660, 780]] as const) { x.beginPath(); x.moveTo(ax, 155); x.lineTo(bx, 155); x.lineTo(bx - 10, 147); x.moveTo(bx, 155); x.lineTo(bx - 10, 163); x.stroke(); }
+    for (const [bx, by] of [[430, 240], [530, 240], [630, 240]] as const) { x.strokeRect(bx, by, 80, 50); x.beginPath(); x.moveTo(bx + 40, 240); x.lineTo(bx + 40, 212); x.stroke(); }
+    marker('#5B6670', 20); x.fillText('enterprise GTM automation', 400, 330);
+    marker('#2E7D32', 28); x.fillText('Wise', 60, 380); x.fillText('Perplexity', 60, 424); x.fillText('AngelList', 60, 468);
+    marker('#C0392B', 26); x.fillText('small team, hard problems', 560, 440);
+    x.strokeStyle = '#C0392B'; x.lineWidth = 3; x.beginPath(); x.moveTo(556, 450); x.lineTo(900, 452); x.stroke();
+  }, (x, w, h) => {
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h); x.fillStyle = '#B8BFC4'; x.fillRect(0, h - 22, w, 22);
+    const marker = (c: string, size = 26) => { x.strokeStyle = c; x.fillStyle = c; x.lineWidth = 4; x.font = `600 ${size}px "Comic Sans MS", "Chalkboard SE", cursive`; };
+    marker('#1B4FBF', 30); x.fillText('Oct 2025', 60, 70); x.fillText('Apr 2026', 420, 70); x.fillText('Disrupt 2026', 760, 70);
+    marker('#1B4FBF', 22); x.fillText('founding engineer', 60, 104); x.fillText('head of engineering', 420, 104); x.fillText('Startup Battlefield', 760, 104);
+    x.lineWidth = 4; x.beginPath(); x.moveTo(60, 130); x.lineTo(980, 130); x.stroke(); for (const px of [70, 430, 770]) { x.beginPath(); x.arc(px, 130, 8, 0, Math.PI * 2); x.fill(); }
+    marker('#2E7D32', 30); x.fillText('$2M pre seed', 60, 200);
+    // sticky notes, no words on them
+    const notes: Array<[number, number, string, number]> = [[60, 250, '#FFE066', -4], [190, 246, '#FF9F80', 3], [320, 254, '#9EE2A8', -2], [450, 248, '#FFE066', 5], [60, 380, '#9ED0FF', 2], [190, 376, '#FFE066', -5], [320, 384, '#FF9F80', 4]];
+    for (const [nx, ny, c, r] of notes) { x.save(); x.translate(nx + 55, ny + 55); x.rotate((r * Math.PI) / 180); x.fillStyle = c; x.fillRect(-55, -55, 110, 110); x.strokeStyle = 'rgba(0,0,0,0.25)'; x.lineWidth = 2; for (let l = 0; l < 3; l++) { x.beginPath(); x.moveTo(-40, -20 + l * 22); x.lineTo(20 + (l * 13) % 25, -20 + l * 22); x.stroke(); } x.restore(); }
+    marker('#C0392B', 26); x.fillText('hacker house, downtown Toronto', 600, 300);
+    marker('#5B6670', 22); x.fillText('Wise  ·  Perplexity  ·  AngelList', 600, 344);
+  }] },
   // Floqer's mark and wordmark on clear, for the brick wall of the office: the file as the site serves it, the word in white
   floqer: { w: 1600, h: 500, frames: [(x, w, h) => {
     x.clearRect(0, 0, w, h);

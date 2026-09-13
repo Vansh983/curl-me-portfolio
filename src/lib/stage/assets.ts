@@ -45,6 +45,11 @@ export const ASSETS: Asset[] = [
     res: '1k', licence: 'CC-BY-3.0', author: 'Quaternius', use: 'the people in the hall (Animated Base Character, via Poly Pizza)', maxTex: 256,
     anims: ['Rig|Idle_Loop', 'Rig|Idle_Talking_Loop', 'Rig|Sitting_Idle_Loop', 'Rig|Sitting_Talking_Loop'],
   },
+  // Floqer's hacker house: the mess of a rented place people ship from
+  model('cardboard_box_01', 'Rahul Chaudhary', 'moving boxes in the hacker house', 256, 0.004),
+  model('vintage_suitcase', 'Maximilian Schuster', 'a suitcase in the hacker house', 256, 0.004),
+  model('trashbag', 'Benny Weimer', 'a bin bag in the hacker house', 256, 0.004),
+  model('plastic_crate_01', 'PierreB3D', 'a crate in the hacker house', 256, 0.004),
   // 2010, the Delhi bedroom
   model('hanging_picture_frame_01', 'James Ray Cock', 'the frame of the poster in the bedroom', 256, 0.004),
   model('wooden_bookshelf_worn', 'Ulan Cabanilla', 'the bookshelf in the bedroom: the figures and the encyclopedias', 256, 0.004),

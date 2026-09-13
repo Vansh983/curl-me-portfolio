@@ -6,7 +6,7 @@
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
 import { CatmullRomCurve3, Vector3 } from 'three';
-import { TERRACE, STAGE, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3, houseFloorY } from './sets.ts';
+import { TERRACE, STAGE, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3, houseFloorY, FLOQER, stairY } from './sets.ts';
 import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
 import { ch } from './shot.ts';
 
@@ -167,19 +167,30 @@ function walk(): DollyKey[] {
   keys.push(K(11.78, [X, 1.6 + S, STAGE.centre], [X + 2.0, 1.45 + S, STAGE.centre + 3.5], 11));
   keys.push(K(11.9, [X, 1.6 + S, STAGE.centre], [X + 3.6, 1.5 + S, STAGE.centre + 1.8], 11));
   keys.push(K(12.0, [X, 1.6 + S, STAGE.centre], [X + 4, 1.55 + S, STAGE.centre], 11)); // facing the crowd
-  // out: straight ahead across the stage, down its front steps, up the aisle through the crowd on the rake, out of the
-  // back door and along the passage into Floqer's office (the last card runs three chapters for it)
-  const Z = STAGE.centre, up = (x: number) => 1.6 + houseFloorY(x);
-  keys.push(K(12.14, [-8.7, 1.6 + S, Z], [-4.7, 2.3, Z], 11));
-  keys.push(K(12.28, [-7.5, 1.55 + S, Z], [-3.5, 2.0, Z], 11)); // the front edge
-  keys.push(K(12.4, [-6.75, 1.95, Z], [-2.75, 1.65, Z], 11)); // the steps
-  keys.push(K(12.52, [-5.6, 1.6, Z], [-1.6, 1.6, Z], 11)); // the floor
-  for (const [c, x] of [[12.7, -3.0], [12.9, -0.3], [13.1, 2.4], [13.3, 5.1], [13.5, 7.8], [13.7, 10.5], [13.9, 13.2], [14.1, 15.9], [14.3, 18.6]] as const) keys.push(K(c, [x, up(x), Z], [x + 4, up(x + 2.7) + 0.05, Z], 11)); // the aisle up the rake
-  keys.push(K(14.5, [21.3, up(21.3), Z], [25.3, up(23.4) + 0.05, Z], 11)); // the door ahead
-  keys.push(K(14.62, [23.4, up(23.4), Z], [27.4, 3.15, Z], 11, { blend: 0 })); // the jamb
-  keys.push(K(14.72, [25.2, 3.2, Z], [29.2, 3.1, Z], 12, { blend: 1 })); // the passage
-  keys.push(K(14.85, [27.4, 3.2, Z], [31.4, 3.0, Z + 0.5], 12)); // in: the tables ahead
-  keys.push(K(15.0, [29.0, 3.2, Z], [32.6, 3.3, 39.5], 12)); // the room: across the tables to the mark on the brick
+  // out: straight on along the stage, past the leg, backstage to the door in the north wall, along the passage into Floqer's
+  // hacker house; through it to the stair on the left, up it, through the door at the top, and home: his apartment, the
+  // first room, the way he left it (a cut at the door, like the phone's). The last card runs three chapters for it.
+  const D = STAGE.door, ST = FLOQER.stair, SY = (z: number) => 1.6 + stairY(z);
+  keys.push(K(12.14, [X, 1.6 + S, 34.3], [X + 2.0, 1.5 + S, 37.8], 11)); // turning back to the stage's length
+  keys.push(K(12.28, [X, 1.6 + S, 35.8], [X + 0.2, 1.4 + S, 39.8], 11));
+  keys.push(K(12.45, [X, 1.6 + S, 38.2], [X, 1.4 + S, 42.2], 11));
+  keys.push(K(12.62, [X, 1.6 + S, 40.6], [X, 1.4 + S, 44.6], 11)); // past the leg, backstage
+  keys.push(K(12.8, [X, 1.6 + S, 43.0], [X, 1.4 + S, 47.0], 11));
+  keys.push(K(13.0, [X, 1.6 + S, 45.6], [X, 1.4 + S, 49.6], 11)); // the door ahead
+  keys.push(K(13.12, [X, 1.6 + S, D.z - 0.6], [X, 1.4 + S, D.z + 3.4], 11, { blend: 0 })); // the jamb
+  keys.push(K(13.24, [X, 1.6 + S, 49.0], [X, 1.4 + S, 53.0], 12, { blend: 1 })); // the passage
+  keys.push(K(13.4, [-10.4, 2.6, 51.0], [-9.6, 2.35, 55.0], 12)); // in: the T ahead, the team at it
+  keys.push(K(13.6, [-9.6, 2.6, 52.8], [-9.0, 2.3, 56.8], 12));
+  keys.push(K(13.8, [-8.8, 2.6, 54.4], [-7.6, 2.4, 58.0], 12)); // past the bar's end
+  keys.push(K(14.0, [-7.6, 2.6, 55.4], [ST.x, 2.6, 58.4], 12)); // turning left to the stair
+  keys.push(K(14.15, [-6.0, 2.6, 55.9], [ST.x, 3.1, 59.0], 12)); // its foot
+  keys.push(K(14.3, [ST.x, SY(57.1), 57.1], [ST.x, SY(57.1) + 1.0, 60.5], 12)); // climbing
+  keys.push(K(14.45, [ST.x, SY(58.4), 58.4], [ST.x, SY(58.4) + 0.7, 61.6], 12));
+  keys.push(K(14.6, [ST.x, SY(59.6), 59.6], [-5.5, SY(59.6) - 0.2, 62.4], 12)); // the landing: the door
+  keys.push(K(14.75, [-5.5, SY(60.8), 60.8], [-5.5, SY(60.8) - 0.15, 62.6], 12)); // the door opening
+  keys.push(K(14.88, [-5.5, SY(61.3), 61.3], [-5.5, SY(61.3) - 0.1, 63.0], 12, { blend: 0 })); // the jamb: the cut
+  keys.push(K(14.94, [-5.45, 1.58, 1.9], [-7.4, 1.35, -0.6], 0, { blend: 1, portal: true })); // home: in through his own front door
+  keys.push(K(15.0, [-6.3, 1.58, 1.2], [-8.6, 1.3, -1.5], 0)); // the room, the way he left it
   return keys;
 }
 
