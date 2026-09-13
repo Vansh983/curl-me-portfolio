@@ -77,7 +77,7 @@ test('phone covers the viewport before the sole portal cut and is gone at the cl
   assert.equal(phoneAt(PHONE.transfer).visible, true);
   assert.equal(phoneAt(PHONE.reveal).visible, false);
   assert.equal(phoneAt(PHONE.framed, true).visible, false);
-  assert.equal(DOLLY.filter((k) => k.portal).length, 2); // the phone's, and the door home at the end
+  assert.equal(DOLLY.filter((k) => k.portal).length, 3); // the balcony to Delhi, the phone's, and the door home at the end
   const dolly = makeDolly(DOLLY);
   assert.equal(dolly(PHONE.transfer - 1e-6).set, 5);
   assert.equal(dolly(PHONE.transfer).set, 6);

@@ -44,19 +44,18 @@ const APPROACH: DollyKey[] = [
   { q: 0.559, cam: [0.9, 1.58, 5.6], look: [1.4, 1.3, 3.6], fov: 64, set: 2 }, // the door south
   { q: 0.578, cam: [1.4, 1.58, 4.75], look: [1.4, 1.5, 2.8], fov: 68, set: 2, blend: 0 }, // door jamb, heading south
   { q: 0.597, cam: [1.4, 1.6, 3.65], look: [1.4, 1.5, 1.4], fov: 68, set: 3, blend: 1 }, // mid passage, daylight ahead
-  // 2018: out onto the Embarcadero heading south, the sign and the trophy ahead, the bridge over the bay to
-  // the left; then right, west, along the front of the dark block, and right again, north, to its door
-  { q: 0.619, cam: [1.45, 1.6, 2.0], look: [2.45, 1.5, 0.27], fov: 68, set: 3 }, // just outside
-  { q: 0.642, cam: [1.8, 1.62, 0.7], look: [2.78, 1.4, -1.6], fov: 64, set: 3 }, // the sign comes round
-  { q: 0.665, cam: [2.0, 1.62, -0.4], look: [2.35, 1.55, -2.37], fov: 68, set: 3 }, // the sign, the trophy, the road and the bridge behind
-  { q: 0.694, cam: [1.7, 1.6, -1.3], look: [0.168, 1.5, -2.586], fov: 66, set: 3 }, // turning right, west
-  { q: 0.722, cam: [0.9, 1.6, -1.8], look: [-0.954, 1.5, -1.051], fov: 66, set: 3 }, // the entrance comes into view as we round the corner
-  { q: 0.746, cam: [-0.1, 1.6, -1.65], look: [-0.784, 1.5, 0.229], fov: 66, set: 3 }, // follow the door, clear of the blank brick face
-  { q: 0.768, cam: [-0.66, 1.6, -1.05], look: [-0.7, 1.5, 0.9], fov: 68, set: 3 }, // north, the door ahead, the desk inside
-  { q: 0.788, cam: [-0.7, 1.58, -0.1], look: [-0.75, 1.45, 1.9], fov: 68, set: 3, blend: 0 }, // door jamb, heading north
-  { q: 0.808, cam: [-0.7, 1.58, 0.55], look: [-0.9, 1.35, 2.6], fov: 68, set: 4, blend: 1 }, // through the frame: the room, night
-  // 2020: in from the south, the wide desk dead ahead with its screens and the shelves of books and awards over it,
-  // the bed on the right, the mess underfoot; then left, west, into the passage to the brick door
+  // 2019: into the boardroom, the table and the glass wall ahead with the bridge beyond; to the table's corner, where the
+  // trophy comes up into the hands; a look down the table at the screen; then south through the open slider onto the
+  // balcony: the bridge, the trophy in hand. That frame holds, and the story cuts to the dark 2020 room.
+  { q: 0.62, cam: [1.4, 1.6, 2.0], look: [3.0, 1.2, -0.6], fov: 68, set: 3 }, // in: the table and the trophy on its corner, the glass beyond
+  { q: 0.645, cam: [2.2, 1.6, 0.7], look: [4.4, 0.75, -0.3], fov: 66, set: 3 }, // the table's corner: the trophy, on the way to the screen
+  { q: 0.662, cam: [2.2, 1.6, -0.2], look: [7.9, 1.55, -1.5], fov: 66, set: 3 }, // down the table: the screen
+  { q: 0.686, cam: [2.0, 1.6, -1.4], look: [4.2, 1.3, -4.6], fov: 68, set: 3 }, // turning back to the south
+  { q: 0.71, cam: [1.8, 1.6, -2.6], look: [1.6, 1.25, -6.6], fov: 68, set: 3 }, // round to the south: the slider, the balcony
+  { q: 0.74, cam: [1.6, 1.6, -4.6], look: [1.5, 1.05, -9.0], fov: 70, set: 3 },
+  { q: 0.765, cam: [1.6, 1.6, -6.4], look: [1.4, 0.7, -11.6], fov: 72, set: 3 }, // on the balcony: the bridge, the trophy in hand
+  { q: 0.782, cam: [1.6, 1.6, -7.0], look: [1.2, 0.55, -12.4], fov: 72, set: 3, blend: 0 }, // the frame holds
+  { q: 0.808, cam: [-0.7, 1.58, 0.55], look: [-0.9, 1.35, 2.6], fov: 68, set: 4, blend: 1, portal: true }, // the cut: the 2020 room, night
   { q: 0.838, cam: [-0.75, 1.58, 0.75], look: [-1.05, 1.45, 3.2], fov: 74, set: 4 }, // the desk and both shelves, with the bed alongside
   { q: 0.866, cam: [-0.85, 1.58, 1.1], look: [-1.1, 1.5, 3.45], fov: 74, set: 4 }, // closer, keeping the tallest awards in frame
   { q: 0.89, cam: [-1.0, 1.58, 1.95], look: [-2.15, 1.45, 3.05], fov: 64, set: 4 }, // turning left over the desk's end, the lamp

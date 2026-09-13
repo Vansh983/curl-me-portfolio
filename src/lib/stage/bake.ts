@@ -9,7 +9,7 @@ export const LM_SCALE = 4;
 /** Built pieces by material that keep moving or glowing on their own clock. */
 export const LIVE_SURFACE = new Set(['mat:tubeGlass', 'mat:bulb', 'mat:curtain', 'mat:cabinGlass', 'mat:handrail']);
 /** Props that never enter the bake: the backdrops and the far things the fog softens anyway. */
-export const DROP_PROP = new Set(['clouds', 'bridge', 'boats', 'piers', 'nightSky', 'sky', 'city', 'water', 'flightSky', 'campusView', 'sydneyHarbour', 'harbourWater', 'bennelongPoint', 'harbourAround', 'canadaPlaceSails', 'cnTowerFar', 'macdonaldBridge', 'northShore', 'torontoDay', 'halifaxDay']);
+export const DROP_PROP = new Set(['clouds', 'bridge', 'boats', 'piers', 'nightSky', 'sky', 'city', 'water', 'flightSky', 'campusView', 'sydneyHarbour', 'harbourWater', 'bennelongPoint', 'harbourAround', 'canadaPlaceSails', 'cnTowerFar', 'macdonaldBridge', 'northShore', 'torontoDay', 'halifaxDay', 'goldenGate', 'marinHills']);
 /** Things that stand in the Blender scene for shadow and bounce but are not baked: the wide ground that would eat the atlas, and leafy models whose alpha cards do not survive the round trip. The runtime builds them and lights them live. */
 export const CONTEXT_PROP = new Set(['plazaFloor', 'road', 'aircraftSkin', 'aircraftWing']); // the fuselage and the wing: outside, in the sun, only there to keep it out of the cabin
 export const CONTEXT_MODEL = new Set(['palm_medium', 'island_tree_01']);
@@ -25,7 +25,7 @@ export function pieceIsLive(surface: string, live: string): boolean {
 export function placementIsLive(p: Placement): boolean {
   if (p.build && (DROP_PROP.has(p.build) || CONTEXT_PROP.has(p.build))) return true;
   if (p.model && CONTEXT_MODEL.has(p.model)) return true;
-  if (p.live === 'city' || p.live === 'sky' || p.live === 'water' || p.live === 'fan' || p.live === 'door' || p.live === 'drop' || p.live === 'flight' || p.live === 'person') return true;
+  if (p.live === 'city' || p.live === 'sky' || p.live === 'water' || p.live === 'fan' || p.live === 'door' || p.live === 'drop' || p.live === 'award' || p.live === 'flight' || p.live === 'person') return true;
   if (p.live === 'tv' || p.live === 'monitor' || p.live === 'screen' || p.live === 'tube' || p.live === 'bulb' || p.live === 'curtain') return true;
   return false;
 }

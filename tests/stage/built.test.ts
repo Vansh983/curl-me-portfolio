@@ -60,19 +60,6 @@ test('the rear exit has a level landing across the entire door before its stairs
   mesh.geometry.dispose(); mesh.material.dispose();
 });
 
-test('plaza paving stops at indoor floors while covering the route to Delhi', () => {
-  const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(BUILT.plazaFloor()[0].pos, 3));
-  const paving = new Mesh(geometry, new MeshBasicMaterial());
-  paving.position.set(...SETS[3].props.find((p) => p.build === 'plazaFloor')!.at);
-  paving.updateMatrixWorld();
-  const covered = (x: number, z: number) => new Raycaster(new Vector3(x, 1, z), new Vector3(0, -1, 0)).intersectObject(paving).length > 0;
-  for (const [x, z] of [[-0.75, 0.75], [-1.1, 3.2], [-3, 1.6], [1.4, 3.6]])
-    assert.ok(!covered(x, z), `paving overlaps an indoor floor at ${x}, ${z}`);
-  for (const [x, z] of [[-0.7, -0.3], [1.4, 2], [0, 4]])
-    assert.ok(covered(x, z), `missing paving outside at ${x}, ${z}`);
-  geometry.dispose();
-  paving.material.dispose();
-});
 
 test('the exterior facade sits beyond Delhi interior walls without coplanar faces', () => {
   const parts = BUILT.facade().map((part) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(part.pos, 3)), new MeshBasicMaterial()));
@@ -84,7 +71,7 @@ test('the exterior facade sits beyond Delhi interior walls without coplanar face
   parts.forEach((part) => { part.geometry.dispose(); part.material.dispose(); });
 });
 
-const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'jobsPoster', 'floqer', 'whiteboardFloqer', 'sign', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto', 'sydney', 'whiteboardBean', 'screenBeanApp', 'screenBeanCode', 'screenProductHunt', 'screenBeanPhone', 'beanPoster', 'beanSign', 'bannerWebSummit', 'boothFront', 'boothBack', 'screenTour', 'bannerAllIn', 'bannerElevate', 'boothMontreal', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'whiteboardChurn', 'whiteboardCollect', 'certificateInvestNS', 'screenAllIn', 'crowd', 'logo', 'windowsDay']; // video: the live television
+const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'jobsPoster', 'floqer', 'whiteboardFloqer', 'sign', 'googleAward', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto', 'sydney', 'whiteboardBean', 'screenBeanApp', 'screenBeanCode', 'screenProductHunt', 'screenBeanPhone', 'beanPoster', 'beanSign', 'bannerWebSummit', 'boothFront', 'boothBack', 'screenTour', 'bannerAllIn', 'bannerElevate', 'boothMontreal', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'whiteboardChurn', 'whiteboardCollect', 'certificateInvestNS', 'screenAllIn', 'crowd', 'logo', 'windowsDay']; // video: the live television
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {

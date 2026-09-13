@@ -9,18 +9,18 @@ import { PHONE, phoneAt, WINDOW_VIEW, CLASSROOM_VIEW } from '../../src/lib/stage
 
 const cameraAt = (q: number) => {
   const f = makeDolly(DOLLY)(q), aspect = 1440 / 900;
-  const camera = new PerspectiveCamera(2 * Math.atan(Math.tan(f.fov * Math.PI / 360) / aspect) * 180 / Math.PI, aspect, 0.05, 100);
+  const camera = new PerspectiveCamera(2 * Math.atan(Math.tan(f.fov * Math.PI / 360) / aspect) * 180 / Math.PI, aspect, 0.05, 2600); // the stage's own range: the Golden Gate stands 900 m off
   camera.position.set(...f.cam);
   camera.lookAt(new Vector3(...f.look));
   camera.updateMatrixWorld();
   return camera;
 };
 
-test('the Delhi entrance stays in view on the final plaza approach', () => {
-  const shell = SETS[4].shell!, door = shell.openings.find((o) => o.wall === 'z-')!;
-  for (const q of [0.722, 0.746, 0.768]) {
-    const p = new Vector3(door.at, Math.min(1.5, door.h), shell.z[0]).project(cameraAt(q * APPROACH_SCALE));
-    assert.ok(Math.abs(p.x) < 0.85 && Math.abs(p.y) < 0.85 && p.z < 1, `door out of frame at ${q}: ${p.toArray()}`);
+test('the balcony frames the Golden Gate before the cut to Delhi', () => {
+  const bridge = SETS[3].props.find((p) => p.build === 'goldenGate')!;
+  for (const q of [0.76, 0.782]) {
+    const p = new Vector3(bridge.at[0], bridge.at[1] + 227 * 0.5, bridge.at[2]).project(cameraAt(q * APPROACH_SCALE)); // a tower's top, from the balcony
+    assert.ok(Math.abs(p.x) < 0.6 && Math.abs(p.y) < 0.8 && p.z < 1, `the bridge out of frame at ${q}: ${p.toArray()}`);
   }
 });
 
@@ -98,7 +98,7 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[0], -5.45, 2.3), `${jambs[0].cam}`);
   assert.ok(at(jambs[1], -4.85, 6.6), `${jambs[1].cam}`);
   assert.ok(at(jambs[2], 1.4, 4.75), `${jambs[2].cam}`);
-  assert.ok(at(jambs[3], -0.7, -0.1), `${jambs[3].cam}`); // the 2020 room's south door
+  assert.ok(at(jambs[3], 1.6, -7.0), `${jambs[3].cam}`); // the balcony over the bay: the cut to the 2020 room
   assert.ok(at(jambs[4], -2.35, 1.6), `${jambs[4].cam}`); // its west door, into the passage to the brick door
   assert.ok(at(jambs[5], WINDOW_VIEW.cam[0], WINDOW_VIEW.cam[2]), `${jambs[5].cam}`);
   assert.ok(at(jambs[6], -1.3, -15.8), `${jambs[6].cam}`); // the auditorium's front west door, out to Sydney

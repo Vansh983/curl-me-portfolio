@@ -194,6 +194,8 @@ export const MATS: Record<string, Mat> = {
   gold: { color: '#D4AF37', rough: 0.34, metal: 1, tile: 1 },
   water: { color: '#2F6E93', rough: 0.5, grain: 'ripple', amp: 0.35, tile: 6 },
   bridge: { color: '#8F959C', rough: 0.55, metal: 0.4, tile: 1 }, // the Bay Bridge: grey steel
+  goldenGate: { color: '#C0362C', rough: 0.6, metal: 0.1, tile: 1 }, // international orange, the bridge's own
+  tableWhite: { color: '#F3F2EE', rough: 0.35, clearcoat: 0.3, clearcoatRough: 0.2, tile: 1 }, // the boardroom table's laminate
   // the Embarcadero in front of Google San Francisco
   concrete: { color: '#B9B6AE', rough: 0.9, grain: 'plaster', amp: 0.15, tile: 1.5 },
   hedge: { color: '#3B6A36', rough: 0.95, grain: 'pebble', amp: 0.5, tile: 0.4 },

@@ -5,6 +5,7 @@
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
 import { cityBlocks, cnTower, CITY, ringOf } from './city.ts';
 import { northShore } from './northshore.ts';
+import { marinHills } from './marin.ts';
 import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
@@ -1388,6 +1389,77 @@ export const BUILT: Record<string, () => BuiltPart> = {
       for (let x = x0 + 1.5; x < x0 + len - 1; x += 2.2) { glass.box(x, 2.2, -7.05, 1.2, 1.8, 0.05); glass.box(x, 5.8, -7.05, 1.2, 1.6, 0.05); }
     }
     return [piece(walls.out(), M('pier')), piece(roof.out(), M('pierRoof')), piece(glass.out(), M('pierGlass'))];
+  },
+  // ---- 2019, Google: the boardroom in Sunnyvale and the balcony over the Golden Gate (docs/rebuild/29-google.md)
+  /** The land round the Golden Gate at 1:2 (marin.ts), sea level at the origin, the balcony's point at the origin. */
+  marinHills: () => { const t = new Sink(); marinHills(t); return [piece(t.out(), M('terrain'), { tint: true, smooth: true })]; },
+  /**
+   * The Golden Gate Bridge at real size, its middle at the origin, the deck along x, the water at y 0: towers 227 m,
+   * 27.4 m between the legs, the main span 1,280 m, the side spans 343 m, the deck 67 m up, the approaches on piers to
+   * the shores. The cables are drawn thick (2 m) and the suspenders every third (46 m) so they still read from a kilometre
+   * off at 1:2; the portal struts between the legs are the four above the deck and one below. International orange.
+   */
+  goldenGate: () => {
+    const s = new Sink(), TX = 640, TOP = 227, DECK = 67, HALF = 13.7, ANCH = 983, SOUTH = -1330, NORTH = 1240;
+    s.box((SOUTH + NORTH) / 2, DECK - 3.8, 0, NORTH - SOUTH, 7.6, 27.4); // the deck and its truss
+    for (const tx of [-TX, TX]) {
+      for (const leg of [-1, 1]) s.box(tx, TOP / 2, leg * HALF, 9.8, TOP, 8); // the legs, from the pier to the top
+      s.box(tx, 22, 0, 12, 44, 2 * HALF + 8); // the pier and the strut under the deck
+      for (const y of [100, 138, 174, 208]) s.box(tx, y, 0, 9.8, 12, 2 * HALF); // the portal struts
+    }
+    for (let x = SOUTH + 30; x < -ANCH; x += 60) s.box(x, DECK / 2 - 4, 0, 5, DECK - 8, 8); // the piers of the approaches
+    for (let x = ANCH + 40; x < NORTH; x += 60) s.box(x, DECK / 2 - 4, 0, 5, DECK - 8, 8);
+    const mainY = (t: number) => TOP - (TOP - DECK - 8) * (1 - (2 * t - 1) ** 2), sideY = (t: number) => DECK + 3 + (TOP - DECK - 3) * t * t; // t along the span; t from the anchorage to the tower
+    const N = 32, Ms = 10, R = 1.0;
+    for (const side of [-1, 1]) {
+      const cz = side * HALF;
+      for (let i = 0; i < N; i++) s.bone([-TX + (2 * TX * i) / N, mainY(i / N), cz], [-TX + (2 * TX * (i + 1)) / N, mainY((i + 1) / N), cz], R, R);
+      for (let i = 0; i < Ms; i++) {
+        const a = (ANCH - TX) * (i / Ms), b = (ANCH - TX) * ((i + 1) / Ms);
+        s.bone([-ANCH + a, sideY(i / Ms), cz], [-ANCH + b, sideY((i + 1) / Ms), cz], R, R);
+        s.bone([ANCH - a, sideY(i / Ms), cz], [ANCH - b, sideY((i + 1) / Ms), cz], R, R);
+      }
+      for (let x = -TX + 46; x < TX; x += 46) s.bone([x, mainY((x + TX) / (2 * TX)), cz], [x, DECK, cz], 0.5, 0.5); // the suspenders
+      for (let x = TX + 46; x < ANCH; x += 46) { const t = (ANCH - x) / (ANCH - TX); s.bone([x, sideY(t), cz], [x, DECK, cz], 0.5, 0.5); s.bone([-x, sideY(t), cz], [-x, DECK, cz], 0.5, 0.5); }
+    }
+    return [piece(s.out(), M('goldenGate'))];
+  },
+  /** The boardroom table: 1.4 by 4.0, its top at 0.74, white laminate on two pedestals; along z at the origin. */
+  boardTable: () => {
+    const top = new Sink().rbox(0, 0.72, 0, 1.4, 0.04, 4.0, 0.008, 2), legs = new Sink();
+    for (const z of [-1.3, 1.3]) legs.box(0, 0.35, z, 0.7, 0.7, 0.08).box(0, 0.02, z, 0.8, 0.04, 0.5);
+    return [piece(top.out(), M('tableWhite'), { smooth: true }), piece(legs.out(), M('deskLeg'))];
+  },
+  /** The wall screen at the end of the boardroom: 2.4 by 1.35 in a thin black bezel, painted (`googleAward`). Faces +z. */
+  awardScreen: () => [piece(face(2.4, 1.35, 0.012), { paint: 'googleAward' }), piece(frame(2.44, 1.39, 0.03, 0.02).out(), M('bezel'))],
+  /**
+   * The boardroom's south wall in glass, floor to ceiling, W by H along x from the origin, mullions every 1.2 m, the first
+   * bay (x 0..1.2) open: the slider, where the walk passes. The panes are cabinGlass, live.
+   */
+  glassWall: () => {
+    const W = 7.2, H = 2.98, B = 1.2, m = new Sink(), g = new Sink();
+    m.box(W / 2, 0.04, 0, W, 0.08, 0.1).box(W / 2, H - 0.04, 0, W, 0.08, 0.1);
+    for (let x = 0; x <= W + 1e-6; x += B) m.box(x, H / 2, 0, 0.06, H, 0.1);
+    for (let x = B; x < W - 1e-6; x += B) g.quad([x, 0.08, 0.012], [x + B, 0.08, 0.012], [x + B, H - 0.08, 0.012], [x, H - 0.08, 0.012]).quad([x + B, 0.08, -0.012], [x, 0.08, -0.012], [x, H - 0.08, -0.012], [x + B, H - 0.08, -0.012]);
+    m.box(B - 0.03, H / 2, 0.12, 0.05, H, 0.05).box(0.03, H / 2, 0.12, 0.05, H, 0.05); // the slider's stiles, slid open against the wall end
+    return [piece(m.out(), M('windowFrame')), piece(g.out(), M('cabinGlass'))];
+  },
+  /**
+   * The balcony beyond the glass: a slab W by D from the origin toward -z, its top at y 0, a glass balustrade on steel
+   * posts under a handrail along its far edge and its two ends, 1.1 m high; and the building under it, down to the water 12 m below.
+   */
+  balcony: () => {
+    const W = 7.2, D = 3.0, slab = new Sink(), post = new Sink(), rail = new Sink(), glass = new Sink(), under = new Sink();
+    slab.box(W / 2, -0.15, -D / 2, W, 0.3, D);
+    under.box(W / 2, -6.15, (2.6 + 0.4 - D) / 2 - 0.4, W, 11.7, 2.6 + 0.4 + D); // the floor below, x 0.8..8, z -8.2..2.6 in the room's frame
+    const edge: Array<[V3, V3]> = [[[0, 0, -D], [W, 0, -D]], [[0, 0, 0], [0, 0, -D]], [[W, 0, -D], [W, 0, 0]]];
+    for (const [a, b] of edge) {
+      const len = Math.hypot(b[0] - a[0], b[2] - a[2]), n = Math.max(1, Math.round(len / 1.2)), ux = (b[0] - a[0]) / len, uz = (b[2] - a[2]) / len;
+      for (let k = 0; k <= n; k++) post.box(a[0] + ux * (len * k) / n, 0.55, a[2] + uz * (len * k) / n, 0.05, 1.1, 0.05);
+      rail.box(a[0] + ux * len / 2, 1.12, a[2] + uz * len / 2, Math.abs(ux) * len + 0.05, 0.05, Math.abs(uz) * len + 0.05);
+      glass.quad([a[0], 0.06, a[2]], [b[0], 0.06, b[2]], [b[0], 1.08, b[2]], [a[0], 1.08, a[2]]).quad([b[0], 0.06, b[2]], [a[0], 0.06, a[2]], [a[0], 1.08, a[2]], [b[0], 1.08, b[2]]);
+    }
+    return [piece(slab.out(), M('campusPaving'), { metres: 'xz' }), piece(under.out(), M('facadeDark'), { metres: 'xy' }), piece(post.out(), M('handrail')), piece(rail.out(), M('handrail')), piece(glass.out(), M('cabinGlass'))];
   },
   /** Clouds: a few flattened white puffs, far up and far off, unlit. */
   clouds: () => {

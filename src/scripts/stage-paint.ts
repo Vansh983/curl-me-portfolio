@@ -202,6 +202,20 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
         for (const [cx2, c] of [[900, '#2B2B2B'], [940, '#245EDC'], [980, '#D62828']] as const) { x.fillStyle = c; x.fillRect(cx2 - 14, h - 22, 28, 12); }
       }],
     },
+    // the boardroom's screen: the award, in the words that are true
+    googleAward: {
+      w: 1200, h: 675,
+      frames: [(x, w, h) => {
+        white(x, w, h);
+        x.textAlign = 'center';
+        x.font = '700 150px "Product Sans", "Google Sans", Arial, sans-serif';
+        googleWord(x, w / 2, 250, 150);
+        x.fillStyle = '#5F6368'; x.font = '500 60px Inter, system-ui, sans-serif'; x.fillText('Code-in 2018', w / 2, 340);
+        x.fillStyle = '#202124'; x.font = '700 78px Inter, system-ui, sans-serif'; x.fillText('Grand Prize Winner', w / 2, 470);
+        x.fillStyle = '#3C4043'; x.font = '500 56px Inter, system-ui, sans-serif'; x.fillText('Vansh Sood', w / 2, 570);
+        x.textAlign = 'left';
+      }],
+    },
     // the Google San Francisco sign
     sign: {
       w: 1024, h: 490,

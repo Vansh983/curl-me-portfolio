@@ -5,7 +5,7 @@
 //   Passage        x -4.85..     z  2.2..4.3           north, 2.1 m, to the 2010 room
 //   Set 1 ROOM     x -9.15..-4.95 z 4.3..7.9   h 2.7   2010, Delhi; in from the south at x -5.45, out east at z 6.6
 //   Set 2 LAB      x -3.15..2.05 z  4.7..9.7   h 3.0   2013; in from the west at z 6.6, out south at x 1.4
-//   Set 3 PLAZA    x -4.14..     z < 4.6               2018, the Embarcadero, outdoors; south, then round west and north to the 2020 room's door
+//   Set 3 GOOGLE   x 0.8..8.0    z -5.2..2.6           2019, the Sunnyvale boardroom and the balcony over the Golden Gate; a cut to the 2020 room's door
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
@@ -38,7 +38,7 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight' | 'person';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight' | 'person' | 'award';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 /** What a person wears, by bone: skin, top, legs, shoes; long sleeves put the top on the forearms. */
@@ -51,6 +51,7 @@ export interface Placement {
   screen?: string; // optional painted content for a model's fitted display
   door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
   drop?: [number, number, number]; // live 'drop': the stage progress over which the thing lowers, and by how many metres (the projection screen)
+  pick?: number; // live 'award': the stage progress at which it leaves its place for the hands (the trophy)
   model?: string;
   build?: string;
   at: V3;
@@ -168,6 +169,8 @@ export const FLOQER = (() => {
   return { x: [-16, -4] as [number, number], z, floor: STAGE.door.floor, h: 3.6, stair: { ...stair, z0: z[1] - 0.9 - stair.n * stair.run }, door: { x: stair.x, w: 1.0, h: 2.1 } } as const; // the flight ends 0.9 short of the north wall: a landing, then the door, on the stair's line
 })();
 /** The height of the office's stair at z, from its foot to the landing. */
+/** Google's boardroom (set 3): x 0.8..8.0 east of the 2020 room, z -5.2..2.6 south of the lab's passage, 3.0 high; the balcony beyond its south wall; the bay 12 m below. */
+export const GOOGLE = { x: [0.8, 8.0] as [number, number], z: [-5.2, 2.6] as [number, number], h: 3.0, water: -12 } as const;
 const WINDOW_Z = [FLOQER.z[0] + 2.5, FLOQER.z[0] + 7.5]; // the two windows on the street, along the west wall
 export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stair.n, Math.max(0, (z - FLOQER.stair.z0) / FLOQER.stair.run)) * FLOQER.stair.rise;
 export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
@@ -326,40 +329,33 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    id: 'plaza', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.25 }, exposure: 0.8, envPower: 0.7, baked: true, outdoor: true,
-    sun: { dir: [0.35, 0.55, -0.75], color: '#FFF1D6', power: 2.6, shadow: 1 },
-    fog: { color: '#C6D8E6', near: 200, far: 900 },
-    // the Embarcadero outside Google San Francisco, June 2019, from his photo. Entered from the lab's
-    // south door at (1.4, 2.6) heading south: the planter and the white sign ahead facing the camera,
-    // the hedge and the brown rail, the trophy on the wall; palms behind; the road, the lamp posts,
-    // the cars and the piers on the left, east; the Bay Bridge ahead and left over the bay. Then a
-    // right turn, west, then north through the Delhi room's entrance. Outdoors: shown only while in the plaza.
+    // 2019: Google. Out of the lab's south passage straight into a boardroom in the Sunnyvale office, the trophy on the
+    // table, the screen at the far end; the south wall in glass, one slider open, a balcony over the bay with the Golden
+    // Gate a kilometre off (a postcard composite, his choice; docs/rebuild/29-google.md). A June morning, the sun behind
+    // the viewer. The story cuts from the balcony to the dark 2020 room.
+    id: 'google', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.3 }, exposure: 0.95, envPower: 0.7, baked: true,
+    sun: { dir: [0.7, 0.5, 0.5], color: '#FFF3DC', power: 2.6, shadow: 1 },
+    fog: { color: '#C6D8E6', near: 300, far: 2200 },
+    shell: {
+      x: GOOGLE.x, z: GOOGLE.z, h: GOOGLE.h,
+      floor: 'expoCarpet', wall: 'labWall', ceiling: 'labCeiling',
+      openings: [
+        { wall: 'z+', at: 1.4, w: 1.2, h: 2.4 }, // in from the lab's passage, heading south
+        { wall: 'z-', at: (GOOGLE.x[0] + GOOGLE.x[1]) / 2, w: GOOGLE.x[1] - GOOGLE.x[0] - 0.2, h: GOOGLE.h - 0.02 }, // the glass wall: the bake lights it as sky
+      ],
+    },
     props: [
-      { build: 'plazaFloor', at: [4, 0, 2.6] },
-      { build: 'facade', at: [0, 0, 0] }, // the outside of the rooms we came through, seen only from here
-      { build: 'kerb', at: [10.1, 0, -17.2], rot: [0, 270, 0] },
-      { build: 'road', at: [24.25, 0.02, -17.2], rot: [0, 270, 0] },
-      { build: 'piers', at: [51, 0, -25.2], rot: [0, 90, 0] },
-      { build: 'planter', at: [3.5, 0, -7.2], rot: [0, 0, 0] },
-      { build: 'sign', at: [2.4, 2.4, -7.6], rot: [0, 0, 0], cap: 'Google San Francisco, the Embarcadero. June 2019, the Code-in trip.', href: 'https://codein.withgoogle.com/archive/2018/' },
-      { build: 'trophy', at: [5.3, 0.92, -6.5], rot: [0, 270, 0], cap: 'Grand prize. One of 52 winners, out of thousands.' },
-      { model: 'palm_medium', at: [0.4, 0, -10.2], rot: [0, 270, 0], scale: 0.55 },
-      { model: 'palm_medium', at: [5.5, 0, -11.7], scale: 0.5, rot: [0, 150, 0] },
-      { model: 'palm_medium', at: [8.4, 0, -10], scale: 0.6, rot: [0, 30, 0] },
-      { model: 'island_tree_01', at: [-3, 0, -15.2], rot: [0, 270, 0], scale: 1.0 },
-      { build: 'lampPost', at: [9.3, 0, -0.8], rot: [0, 270, 0] },
-      { build: 'lampPost', at: [9.3, 0, -10.2], rot: [0, 270, 0] },
-      { build: 'lampPost', at: [9.3, 0, -19.6], rot: [0, 270, 0] },
-      { build: 'carSilver', at: [13.2, 0, -6.2], rot: [0, 90, 0] },
-      { build: 'carRed', at: [13.6, 0, -16.2], rot: [0, 270, 0] },
-      { build: 'carWhite', at: [20.6, 0, -26.2], rot: [0, 270, 0] },
-      { build: 'water', at: [114, -0.2, -25.2], rot: [0, 270, 0], live: 'water', cap: 'The bay.' },
-      { build: 'water', at: [114, -0.2, 134.8], rot: [0, 270, 0], live: 'water' },
-      { build: 'water', at: [234, -0.2, -25.2], rot: [0, 270, 0], live: 'water' },
-      { build: 'water', at: [234, -0.2, 134.8], rot: [0, 270, 0], live: 'water' },
-      { build: 'bridge', at: [244, -0.2, -315.2], rot: [0, 235, 0], scale: 4 }, // its near tower 170 m off, left of the sign, rising out of frame
-      { build: 'boats', at: [64, -0.2, 4.8], rot: [0, 270, 0] },
-      { build: 'clouds', at: [4, 0, 10.8], rot: [0, 270, 0], live: 'sky', shadow: false }, // 400 m up and out: scoped, or they drift into the Toronto window
+      { build: 'glassWall', at: [GOOGLE.x[0], 0, GOOGLE.z[0]], cap: 'The glass, the slider open.' },
+      { build: 'balcony', at: [GOOGLE.x[0], 0, GOOGLE.z[0]], cap: 'The balcony over the bay.' },
+      { build: 'boardTable', at: [3.8, 0, -1.4], cap: 'The boardroom, Google Sunnyvale. June 2019, the Code-in trip.' },
+      ...([[2.9, -2.6, 90], [2.9, -1.4, 90], [2.9, -0.2, 90], [4.7, -2.6, -90], [4.7, -1.4, -90], [4.7, -0.2, -90], [3.8, -3.6, 0], [3.8, 0.8, 180]] as const).map(([x, z, r]): Placement => ({ model: 'office_chair_black', at: [x, 0, z], rot: [0, r, 0] })),
+      { build: 'trophy', at: [3.2, 0.74, 0.3], live: 'award', pick: ch(2.72), cap: 'Google Code-in 2018. Grand prize.', href: 'https://codein.withgoogle.com/archive/2018/' },
+      { build: 'awardScreen', at: [GOOGLE.x[1] - 0.05, 1.7, -1.4], rot: [0, -90, 0], live: 'screen', cap: 'Google Code-in 2018, grand prize winner.' },
+      ...[-3.4, -1.4, 0.6].map((z): Placement => ({ build: 'discLight', at: [4.4, GOOGLE.h - 0.02, z], live: 'pendant' })), // three ceiling lights down the room
+      { build: 'harbourAround', at: [1.6, GOOGLE.water, -7.0], live: 'water', shadow: false, cap: 'The bay.' },
+      { build: 'marinHills', at: [1.6, GOOGLE.water, -7.0], live: 'city', shadow: false, cap: 'The Marin Headlands and the Presidio, from real elevation.' },
+      { build: 'goldenGate', at: [1.6, GOOGLE.water, -7.0 - 883], rot: [0, 62.4, 0], scale: 0.5, live: 'city', shadow: false, cap: 'The Golden Gate Bridge.' },
+      { build: 'clouds', at: [1.6, 0, -7.0], rot: [0, 90, 0], live: 'sky', shadow: false },
     ],
   },
   {

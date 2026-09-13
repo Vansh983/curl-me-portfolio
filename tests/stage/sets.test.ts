@@ -51,8 +51,8 @@ test('every placement names a model in the manifest or a code-built prop, and si
 });
 
 test('shells use designed materials and open where the dolly passes', () => {
-  const [now, room, lab, plaza, delhi, , halifax] = SETS;
-  for (const s of [now, room, lab, delhi, halifax]) {
+  const [now, room, lab, google, delhi, , halifax] = SETS;
+  for (const s of [now, room, lab, google, delhi, halifax]) {
     assert.ok(s.shell);
     assert.ok(MATS[s.shell!.floor] && MATS[s.shell!.wall] && MATS[s.shell!.ceiling ?? s.shell!.wall], `${s.id} materials`);
     assert.ok(s.shell!.openings.some((o) => o.h > 1.9 && (o.sill ?? 0) === 0), `${s.id} has a door`);
@@ -63,7 +63,7 @@ test('shells use designed materials and open where the dolly passes', () => {
   assert.ok(door(now, 'z+') && door(now, 'x+'));
   assert.ok(door(room, 'z-') && door(room, 'x+'));
   assert.ok(door(lab, 'x-') && door(lab, 'z-'));
-  assert.ok(plaza.outdoor && !plaza.shell);
+  assert.ok(door(google, 'z+') && google.shell!.openings.some((o) => o.wall === 'z-' && o.w > 6), 'the boardroom: in from the lab, the glass wall south');
   assert.equal(delhi.id, 'delhi');
   assert.ok(door(delhi, 'z-') && door(delhi, 'x-'));
   assert.ok(!delhi.shell!.openings.some((o) => (o.sill ?? 0) > 0), 'no window: the curtain is drawn');

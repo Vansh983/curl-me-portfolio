@@ -33,7 +33,7 @@ import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
 import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
-import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE } from '../lib/stage/flight.ts';
+import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE, TROPHY } from '../lib/stage/flight.ts';
 import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
@@ -90,6 +90,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   heldDegree.name = 'heldDegree';
   heldDegree.visible = false;
   camera.add(heldDegree);
+  const heldTrophy = new Group(); // the Code-in trophy, from the boardroom table into the hands
+  heldTrophy.name = 'heldTrophy';
+  heldTrophy.visible = false;
+  camera.add(heldTrophy);
   // the laptop's screen is live: a canvas repainted a dozen times a second with code running, the editor, the app, the numbers
   const tourCanvas = canvas2d(768, 480);
   const tourTex = new CanvasTexture(tourCanvas);
@@ -406,7 +410,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     mixers: [] as AnimationMixer[],
     backdrops: [] as SetScoped<Object3D>[],
     flight: [] as Array<{ obj: Object3D; base: [number, number, number] }>,
-    drops: [] as Array<{ obj: Object3D; from: number; to: number; by: number; base: number }>, // things that lower with the stage progress: the projection screen
+    drops: [] as Array<{ obj: Object3D; from: number; to: number; by: number; base: number }>,
+    picks: [] as Array<{ obj: Object3D; at: number }>, // things that leave their place for the hands at a stage progress (the trophy) // things that lower with the stage progress: the projection screen
   };
   // the world under the aircraft: `flightRoll` at the cabin rolls with the bank (the sky with it, so the horizon tilts);
   // inside it `flightWorld` sinks with the altitude and slides aft with the ground track
@@ -519,6 +524,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (name === 'city') g.add(streetLightPoints()); // the streets below, a light every 28 m
     if (p.live === 'door' && p.door) live.doors.push({ obj: g, from: p.door[0], to: p.door[1], base: (p.rot?.[1] ?? 0) * D });
     if (p.drop) live.drops.push({ obj: g, from: p.drop[0], to: p.drop[1], by: p.drop[2], base: p.at[1] });
+    if (p.live === 'award' && p.pick !== undefined) live.picks.push({ obj: g, at: p.pick });
     if (name === 'downlight' && p.live === 'downlight' && !baked) {
       const light = new PointLight('#FFF0DC', 28, 14, 1.6); // a recessed can six metres up: a pool on the tier below
       light.position.set(0, -0.15, 0);
@@ -1099,6 +1105,16 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (showLaptop && !heldLaptop.visible) tourShown = now;
     heldLaptop.visible = showLaptop;
     heldLaptop.position.y = -0.45 * (1 - lift * lift * (3 - 2 * lift));
+    for (const k of live.picks) k.obj.visible = mainFrame.q < k.at;
+    { // the trophy: from the table's corner up into the hands, held out to the balcony
+      const t = Math.max(0, Math.min(1, (mainFrame.q - TROPHY.raise) / (TROPHY.held - TROPHY.raise)));
+      heldTrophy.visible = mainFrame.set === 3 && t > 0;
+      if (heldTrophy.visible && heldTrophy.children.length === 0) heldTrophy.add(placeBuilt('trophy', { build: 'trophy', at: [0, 0, 0] }));
+      const e = t * t * (3 - 2 * t);
+      heldTrophy.position.set(0.27, -0.52 + 0.1 * e, -0.9); // low in the right of the frame, an arm's length out, tipped so the cup shows
+      heldTrophy.rotation.set(0.5 - 0.2 * e, -0.5, 0.12);
+      heldTrophy.scale.setScalar(0.8);
+    }
     { // the degree: raised into the frame over the last steps to the dais
       const t = Math.max(0, Math.min(1, (mainFrame.q - DEGREE.raise) / (DEGREE.held - DEGREE.raise)));
       heldDegree.visible = mainFrame.set === 11 && t > 0;
