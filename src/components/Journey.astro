@@ -114,6 +114,9 @@ const n = chapters.length;
     padding-top: 72svh;
   }
   /* the last card runs three chapter lengths: the walk out of the hall and into Floqer's office happens under it (LAST_SPAN in shot.ts) */
+  .ch[data-i='3'] {
+    min-height: 210svh; /* two chapter lengths: out to the plaza, up through Google's block, the balcony */
+  }
   .ch[data-i='12'] {
     min-height: 410svh; /* LAST_SPAN chapter lengths of walk (a chapter is a card, a little over a viewport) and a viewport more, so the stage stays pinned to the end of it */
   }

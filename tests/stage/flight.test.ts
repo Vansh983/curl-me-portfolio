@@ -20,11 +20,11 @@ test('the descent: high and level at the start, low and level at the end, a bank
   for (const q of [PHONE.raise, PHONE.transfer]) assert.ok(flightAt(q).altitude >= FLIGHT.low);
   const dolly = makeDolly(DOLLY);
   assert.equal(dolly(PHONE.raise).set, 5);
-  assert.equal(dolly(ch(5.95)).set, 6);
-  assert.equal(dolly(ch(6.64)).set, 6);
-  assert.equal(dolly(ch(7.3)).set, 7, 'Sydney on the 2024 chapter');
-  assert.equal(dolly(ch(8.5)).set, 8, 'Vancouver on its chapter');
-  assert.equal(dolly(ch(9.3)).set, 9); assert.equal(dolly(ch(10.3)).set, 10); assert.equal(dolly(ch(11.5)).set, 11, 'the Cohn on the degree chapter');
+  assert.equal(dolly(ch(6.95)).set, 6);
+  assert.equal(dolly(ch(7.64)).set, 6);
+  assert.equal(dolly(ch(8.3)).set, 7, 'Sydney on the 2024 chapter');
+  assert.equal(dolly(ch(9.5)).set, 8, 'Vancouver on its chapter');
+  assert.equal(dolly(ch(10.3)).set, 9); assert.equal(dolly(ch(11.3)).set, 10); assert.equal(dolly(ch(12.5)).set, 11, 'the Cohn on the degree chapter');
 });
 
 test('flight motion is finite, monotonic, continuous and held at the end under reduced motion', () => {
@@ -62,7 +62,7 @@ test('moving scenery stays live; the cabin has a wing, seat-back screens and no 
   assert.ok(props.filter((p) => p.live === 'downlight').length >= 12, 'downlights over the tiers');
   assert.ok(props.some((p) => p.model === 'laptop_14_aluminium'));
   const screen = props.find((p) => p.build === 'projectorScreen')!;
-  assert.ok(screen.drop && screen.drop[0] >= PHONE.reveal && screen.drop[1] <= ch(6.65), 'the screen comes down during the walk');
+  assert.ok(screen.drop && screen.drop[0] >= PHONE.reveal && screen.drop[1] <= ch(7.65), 'the screen comes down during the walk');
 });
 
 test('phone covers the viewport before the sole portal cut and is gone at the classroom reveal', () => {
@@ -77,7 +77,7 @@ test('phone covers the viewport before the sole portal cut and is gone at the cl
   assert.equal(phoneAt(PHONE.transfer).visible, true);
   assert.equal(phoneAt(PHONE.reveal).visible, false);
   assert.equal(phoneAt(PHONE.framed, true).visible, false);
-  assert.equal(DOLLY.filter((k) => k.portal).length, 3); // the balcony to Delhi, the phone's, and the door home at the end
+  assert.equal(DOLLY.filter((k) => k.portal).length, 2); // the phone's, and the door home at the end
   const dolly = makeDolly(DOLLY);
   assert.equal(dolly(PHONE.transfer - 1e-6).set, 5);
   assert.equal(dolly(PHONE.transfer).set, 6);
@@ -99,7 +99,7 @@ test('the phone has viewport coverage and a pixel-aligned destination crop on de
 
 test('arrival is seated in the highest row, then the walk down the aisle ends behind the lectern facing the hall', () => {
   const dolly=makeDolly(DOLLY);
-  for(let q=PHONE.transfer;q<=ch(5.33);q+=.001) assert.deepEqual(dolly(q).cam,CLASSROOM_VIEW.cam);
+  for(let q=PHONE.transfer;q<=ch(6.33);q+=.001) assert.deepEqual(dolly(q).cam,CLASSROOM_VIEW.cam);
   assert.ok(Math.abs(CLASSROOM_VIEW.cam[1]-TOP_ROW.height-1.28)<1e-9);
   assert.equal(CLASSROOM_VIEW.cam[0], AUDITORIUM.studyX);
   assert.ok(CLASSROOM_VIEW.cam[2]>TOP_ROW.front && CLASSROOM_VIEW.cam[2]<TOP_ROW.back);
@@ -108,13 +108,13 @@ test('arrival is seated in the highest row, then the walk down the aisle ends be
   assert.equal(aisleHeight(AUDITORIUM.rear - 1), TOP_ROW.height);
   assert.equal(aisleHeight(LECTURE_ROWS[0].front - 0.5), 0);
   assert.ok(Math.abs(aisleHeight(LECTURE_ROWS[3].front + 0.3) - (LECTURE_ROWS[3].height - 0.18)) < 1e-9);
-  for (let q = ch(5.62); q <= ch(6.19); q += 0.002) {
+  for (let q = ch(6.62); q <= ch(7.19); q += 0.002) {
     const f = dolly(q);
     assert.ok(Math.abs(f.cam[0] - AUDITORIUM.aisleX) < 0.35, `in the aisle at ${q}: ${f.cam}`);
     assert.ok(f.cam[1] > aisleHeight(f.cam[2]) + 1.2, `above the steps at ${q}`);
     assert.ok(f.look[2] < f.cam[2], `facing the front at ${q}`);
   }
-  const end = dolly(ch(6.64));
+  const end = dolly(ch(7.64));
   assert.ok(Math.abs(end.cam[0] - DAIS.lectern[0]) < 0.2 && end.cam[2] < DAIS.lectern[1] && end.cam[2] > DAIS.z[0], 'behind the lectern');
   assert.ok(Math.abs(end.cam[1] - (DAIS.height + 1.6)) < 1e-9);
   assert.ok(end.look[2] > end.cam[2] + 5, 'facing the hall');
@@ -124,13 +124,13 @@ test('arrival is seated in the highest row, then the walk down the aisle ends be
 test('the podium hold keeps the lectern top and its laptop in the bottom of the frame, and the walk up never passes through the lectern', () => {
   const dolly = makeDolly(DOLLY);
   const [lx, lz] = DAIS.lectern;
-  for (let q = ch(6.2); q <= ch(6.64); q += 0.001) {
+  for (let q = ch(7.2); q <= ch(7.64); q += 0.001) {
     const c = dolly(q).cam;
     assert.ok(!(Math.abs(c[0] - lx) < 0.42 && Math.abs(c[2] - lz) < 0.34), `through the lectern at ${q.toFixed(3)}: ${c}`);
   }
   const laptop = { keys: [lx, DAIS.height + 1.12 + 0.02, lz - 0.05], screenTop: [lx, DAIS.height + 1.12 + 0.2, lz - 0.03] };
   const pitch = (from: number[], to: number[]) => Math.asin((to[1] - from[1]) / Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]));
-  for (const q of [ch(6.52), ch(6.58), ch(6.64)]) {
+  for (const q of [ch(7.52), ch(7.58), ch(7.64)]) {
     const f = dolly(q);
     const axis = pitch(f.cam, f.look), half = (f.fov / 2) * Math.PI / 180;
     for (const [name, at] of Object.entries(laptop)) assert.ok(axis - pitch(f.cam, at) < half - 0.06, `${name} below the frame at ${q}`);

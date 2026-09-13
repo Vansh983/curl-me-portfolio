@@ -15,7 +15,7 @@
 //   Set 10 MONTREAL x 24..38     z -30..-18.2        2025, ALL IN: the booth outside a plain front
 //   Set 11 HALIFAX  x 38..52     z -30..-18.2        2025 to 26, Volta's front; the walk ends
 import { HALIFAX } from './halifax.ts';
-import { ch } from './shot.ts';
+import { ch, approach } from './shot.ts';
 
 export type V3 = [number, number, number];
 
@@ -38,7 +38,7 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight' | 'person' | 'award';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight' | 'person';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 /** What a person wears, by bone: skin, top, legs, shoes; long sleeves put the top on the forearms. */
@@ -51,7 +51,6 @@ export interface Placement {
   screen?: string; // optional painted content for a model's fitted display
   door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
   drop?: [number, number, number]; // live 'drop': the stage progress over which the thing lowers, and by how many metres (the projection screen)
-  pick?: number; // live 'award': the stage progress at which it leaves its place for the hands (the trophy)
   model?: string;
   build?: string;
   at: V3;
@@ -169,8 +168,20 @@ export const FLOQER = (() => {
   return { x: [-16, -4] as [number, number], z, floor: STAGE.door.floor, h: 3.6, stair: { ...stair, z0: z[1] - 0.9 - stair.n * stair.run }, door: { x: stair.x, w: 1.0, h: 2.1 } } as const; // the flight ends 0.9 short of the north wall: a landing, then the door, on the stair's line
 })();
 /** The height of the office's stair at z, from its foot to the landing. */
-/** Google's boardroom (set 3): x 0.8..8.0 east of the 2020 room, z -5.2..2.6 south of the lab's passage, 3.0 high; the balcony beyond its south wall; the bay 12 m below. */
-export const GOOGLE = { x: [0.8, 8.0] as [number, number], z: [-5.2, 2.6] as [number, number], h: 3.0, water: -12 } as const;
+/**
+ * Google, 2019 (set 3): the Embarcadero plaza a storey below the rooms, Google's block beside it (x -4.0..2.6, z -9.0..-3.0)
+ * with its entrance on the east face and a stair inside up to a door in its north wall; the balcony at the rooms' level
+ * runs along the block's north face and ends at the 2020 room's door.
+ */
+export const GOOGLE = {
+  plaza: -3.0, // the plaza's level, a storey down; the bay 0.2 below it
+  steps: { n: 17, rise: 3.0 / 17, run: 0.25, w: 1.2 }, // the flight down from the lab's passage, and the flight up inside
+  block: { x: [-4.0, 2.6] as [number, number], z: [-9.0, -3.0] as [number, number], top: 3.0 },
+  entrance: { z: -3.6, w: 2.0, h: 2.6 }, // in the block's east face, at the plaza's level
+  door: { x: -3.0, w: 1.0, h: 2.1 }, // out onto the balcony, in the block's north wall, at the rooms' level
+  balcony: { x: [-4.0, 2.6] as [number, number], z: [-3.0, -0.4] as [number, number] }, // along the block's north face, over the ground between it and the 2020 room
+  view: [-0.9, -3.2, -1.1] as V3, // the award's spot on the balcony, at the water's level: the postcard is laid out from here, looking east
+} as const;
 const WINDOW_Z = [FLOQER.z[0] + 2.5, FLOQER.z[0] + 7.5]; // the two windows on the street, along the west wall
 export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stair.n, Math.max(0, (z - FLOQER.stair.z0) / FLOQER.stair.run)) * FLOQER.stair.rise;
 export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
@@ -237,7 +248,7 @@ export const SETS: StageSet[] = [
       { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
       { build: 'passage', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room
       { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the return from Halifax
-      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [ch(6.727), ch(6.895)] }, // the return from Halifax; opens into the studio
+      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [ch(7.727), ch(7.895)] }, // the return from Halifax; opens into the studio
     ],
   },
   {
@@ -329,33 +340,58 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2019: Google. Out of the lab's south passage straight into a boardroom in the Sunnyvale office, the trophy on the
-    // table, the screen at the far end; the south wall in glass, one slider open, a balcony over the bay with the Golden
-    // Gate a kilometre off (a postcard composite, his choice; docs/rebuild/29-google.md). A June morning, the sun behind
-    // the viewer. The story cuts from the balcony to the dark 2020 room.
-    id: 'google', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.3 }, exposure: 0.95, envPower: 0.7, baked: true,
-    sun: { dir: [0.7, 0.5, 0.5], color: '#FFF3DC', power: 2.6, shadow: 1 },
+    // 2019: Google. Out of the lab's passage and down a flight onto the Embarcadero: the Google San Francisco sign from
+    // his photo, the road, the piers, the bay; right, into Google's block, up the stair inside to a door onto the balcony
+    // over the plaza, where the trophy comes up into the hands with the bay and the Golden Gate behind (a postcard
+    // composite, his choice: docs/rebuild/29-google.md); along the balcony to the 2020 room's door. One June morning.
+    id: 'google', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.3 }, exposure: 0.9, envPower: 0.7, baked: true,
+    sun: { dir: [0.4, 0.6, -0.6], color: '#FFF3DC', power: 2.6, shadow: 1 }, // a June morning, the sun south-east: the bridge lit across, the plaza in it
     fog: { color: '#C6D8E6', near: 300, far: 2200 },
-    shell: {
-      x: GOOGLE.x, z: GOOGLE.z, h: GOOGLE.h,
-      floor: 'expoCarpet', wall: 'labWall', ceiling: 'labCeiling',
+    shell: { // the lobby: one tall room, the stair up its middle to the door in its north wall
+      x: GOOGLE.block.x, z: GOOGLE.block.z, h: GOOGLE.block.top - GOOGLE.plaza, y: GOOGLE.plaza,
+      floor: 'labFloor', wall: 'labWall', ceiling: 'labCeiling',
       openings: [
-        { wall: 'z+', at: 1.4, w: 1.2, h: 2.4 }, // in from the lab's passage, heading south
-        { wall: 'z-', at: (GOOGLE.x[0] + GOOGLE.x[1]) / 2, w: GOOGLE.x[1] - GOOGLE.x[0] - 0.2, h: GOOGLE.h - 0.02 }, // the glass wall: the bake lights it as sky
+        { wall: 'x+', at: GOOGLE.entrance.z, w: GOOGLE.entrance.w, h: GOOGLE.entrance.h }, // the entrance, open: the bake lights it as day
+        { wall: 'z+', at: GOOGLE.door.x, w: GOOGLE.door.w, h: GOOGLE.door.h, sill: -GOOGLE.plaza, door: true }, // out onto the balcony, at the rooms' level
       ],
     },
     props: [
-      { build: 'glassWall', at: [GOOGLE.x[0], 0, GOOGLE.z[0]], cap: 'The glass, the slider open.' },
-      { build: 'balcony', at: [GOOGLE.x[0], 0, GOOGLE.z[0]], cap: 'The balcony over the bay.' },
-      { build: 'boardTable', at: [3.8, 0, -1.4], cap: 'The boardroom, Google Sunnyvale. June 2019, the Code-in trip.' },
-      ...([[2.9, -2.6, 90], [2.9, -1.4, 90], [2.9, -0.2, 90], [4.7, -2.6, -90], [4.7, -1.4, -90], [4.7, -0.2, -90], [3.8, -3.6, 0], [3.8, 0.8, 180]] as const).map(([x, z, r]): Placement => ({ model: 'office_chair_black', at: [x, 0, z], rot: [0, r, 0] })),
-      { build: 'trophy', at: [3.2, 0.74, 0.3], live: 'award', pick: ch(2.72), cap: 'Google Code-in 2018. Grand prize.', href: 'https://codein.withgoogle.com/archive/2018/' },
-      { build: 'awardScreen', at: [GOOGLE.x[1] - 0.05, 1.7, -1.4], rot: [0, -90, 0], live: 'screen', cap: 'Google Code-in 2018, grand prize winner.' },
-      ...[-3.4, -1.4, 0.6].map((z): Placement => ({ build: 'discLight', at: [4.4, GOOGLE.h - 0.02, z], live: 'pendant' })), // three ceiling lights down the room
-      { build: 'harbourAround', at: [1.6, GOOGLE.water, -7.0], live: 'water', shadow: false, cap: 'The bay.' },
-      { build: 'marinHills', at: [1.6, GOOGLE.water, -7.0], live: 'city', shadow: false, cap: 'The Marin Headlands and the Presidio, from real elevation.' },
-      { build: 'goldenGate', at: [1.6, GOOGLE.water, -7.0 - 883], rot: [0, 62.4, 0], scale: 0.5, live: 'city', shadow: false, cap: 'The Golden Gate Bridge.' },
-      { build: 'clouds', at: [1.6, 0, -7.0], rot: [0, 90, 0], live: 'sky', shadow: false },
+      ...(() => {
+        const P = GOOGLE.plaza, O = GOOGLE.view, out: Placement[] = [];
+        const az = (20 * Math.PI) / 180, dir = [Math.cos(az), Math.sin(az)] as const; // the postcard's line of sight from the balcony: 20 degrees north of east, over the plaza and the road to the bay
+        out.push({ build: 'plazaFloor', at: [18, P, -17.7] });
+        out.push({ build: 'facade', at: [0, 0, 0] }); // the outside of the rooms we came through
+        out.push({ build: 'plazaSteps', at: [2.0 + GOOGLE.steps.n * GOOGLE.steps.run, P, 2.0], rot: [0, -90, 0], cap: 'Out, and down to the Embarcadero.' }); // rising west to the passage's mouth
+        out.push({ build: 'googleBlock', at: [0, 0, 0], cap: 'Google San Francisco.' });
+        out.push({ build: 'lobbyStair', at: [1.8, P, GOOGLE.entrance.z], rot: [0, -90, 0] });
+        out.push({ build: 'googleSign', at: [GOOGLE.block.x[1] + 0.16, P + GOOGLE.entrance.h + 0.55, GOOGLE.entrance.z], rot: [0, 90, 0], live: 'screen', cap: 'Google.' }); // over the entrance
+        out.push({ build: 'awardScreen', at: [GOOGLE.block.x[0] + 0.05, 2.3, GOOGLE.entrance.z], rot: [0, 90, 0], live: 'screen', cap: 'Google Code-in 2018, grand prize winner.' }); // on the west wall, over the stair's head
+        for (const [x, z] of [[-1.7, -7.4], [-1.7, -4.6], [0.8, -6.0]]) out.push({ build: 'discLight', at: [x, GOOGLE.block.top - 0.02, z], live: 'pendant' }); // three ceiling lights in the lobby
+        out.push({ build: 'doorLeaf', at: [GOOGLE.door.x - GOOGLE.door.w / 2, 0, GOOGLE.block.z[1]], rot: [0, 90, 0], live: 'door', door: [approach(0.742), approach(0.756)] }); // hinged on the west jamb, it swings into the lobby, clear of the balcony's frames (approach: the first rooms' keys)
+        out.push({ build: 'plazaBalcony', at: [0, 0, 0], cap: 'The balcony over the plaza.' });
+        out.push({ build: 'delhiFace', at: [0, 0, 0] });
+        // the Embarcadero from his photo: the sign on its planter with the hedge and the brown rail, palms, the lamp posts, the kerb and the road, the cars, the pier sheds up the shore
+        out.push({ build: 'planter', at: [10.4, P, -4.4], cap: 'Google San Francisco, the Embarcadero. June 2019, the Code-in trip.', href: 'https://codein.withgoogle.com/archive/2018/' });
+        out.push({ build: 'sign', at: [9.3, P + 2.4, -4.8], cap: 'The sign, from his photo.' });
+        out.push({ model: 'palm_medium', at: [7.2, P, -7.8], rot: [0, 270, 0], scale: 0.55 });
+        out.push({ model: 'palm_medium', at: [11.4, P, -8.6], scale: 0.5, rot: [0, 150, 0] });
+        out.push({ model: 'palm_medium', at: [13.6, P, -6.0], scale: 0.6, rot: [0, 30, 0] });
+        out.push({ model: 'island_tree_01', at: [11.0, P, -10.5], rot: [0, 270, 0], scale: 1.0 });
+        for (const z of [-4.0, -13.4, -22.8]) out.push({ build: 'lampPost', at: [14.6, P, z], rot: [0, 270, 0] });
+        out.push({ build: 'kerb', at: [15.4, P, -12], rot: [0, 270, 0] });
+        out.push({ build: 'road', at: [29.55, P + 0.02, -12], rot: [0, 270, 0] });
+        out.push({ build: 'carSilver', at: [18.5, P, -2.2], rot: [0, 90, 0] });
+        out.push({ build: 'carRed', at: [18.9, P, -12.2], rot: [0, 270, 0] });
+        out.push({ build: 'carWhite', at: [25.9, P, -22.2], rot: [0, 270, 0] });
+        out.push({ build: 'piers', at: [54, P, -34], rot: [0, 90, 0], cap: 'The pier sheds down the Embarcadero.' });
+        out.push({ build: 'boats', at: [67, P - 0.2, -14], rot: [0, 270, 0] });
+        // the bay and the postcard behind it: the water to the horizon, the Marin Headlands from real elevation, the Golden Gate a kilometre off
+        out.push({ build: 'harbourAround', at: [O[0], O[1], O[2]], live: 'water', shadow: false, cap: 'The bay.' });
+        out.push({ build: 'marinHills', at: [O[0], O[1], O[2]], rot: [0, -110, 0], live: 'city', shadow: false, cap: 'The Marin Headlands and the shores of the Golden Gate, from real elevation.' });
+        out.push({ build: 'goldenGate', at: [O[0] + 883 * dir[0], O[1], O[2] + 883 * dir[1]], rot: [0, -47.6, 0], scale: 0.5, live: 'city', shadow: false, cap: 'The Golden Gate Bridge.' });
+        out.push({ build: 'clouds', at: [O[0], 0, O[2]], rot: [0, -20, 0], live: 'sky', shadow: false });
+        return out;
+      })(),
     ],
   },
   {
@@ -410,7 +446,7 @@ export const SETS: StageSet[] = [
       { model: 'coffee_mug', at: [0.1, 0, 2.55], rot: [0, 110, 0] },
       { model: 'ceiling_fan', at: [-0.85, 2.7, 1.8], live: 'fan' },
       { build: 'discLight', at: [-0.85, 2.7, 2.6], live: 'pendant' },
-      { build: 'doorLeaf', at: [-2.4, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [ch(3.745), ch(3.92)] }, // the west door: hinged on the north jamb, it swings open into the bridge as the walk turns to it, well before the jamb at chapter 3.99
+      { build: 'doorLeaf', at: [-2.4, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [ch(4.745), ch(4.92)] }, // the west door: hinged on the north jamb, it swings open into the bridge as the walk turns to it, well before the jamb at chapter 3.99
     ],
   },
   {
@@ -454,7 +490,7 @@ export const SETS: StageSet[] = [
     props: [
       { build: 'lectureBoard', at: [4.9, 2.45, -17.22], scale: 1.55, live: 'screen', cap: 'Computer science at Dalhousie University. Halifax, Nova Scotia.' },
       { build: 'dalhousieSign', at: [4.9, 4.34, -17.2], scale: 1.3, live: 'screen' },
-      { build: 'projectorScreen', at: [4.9, 6.3, -16.85], live: 'drop', drop: [ch(5.53), ch(6.06), 2.2], cap: 'Generative AI. The lecture: transformers, attention, what a model is and is not.' },
+      { build: 'projectorScreen', at: [4.9, 6.3, -16.85], live: 'drop', drop: [ch(6.53), ch(7.06), 2.2], cap: 'Generative AI. The lecture: transformers, attention, what a model is and is not.' },
       { build: 'lectureTiers', at: [0, 0, 0] },
       { build: 'auditoriumInterior', at: [0, 0, 0] },
       { build: 'lectern', at: [DAIS.lectern[0], DAIS.height, DAIS.lectern[1]], cap: 'The lectern. ShiftKey Labs: curriculums, certificates in hundreds of hands.' },
@@ -468,7 +504,7 @@ export const SETS: StageSet[] = [
       { model: 'laptop_14_aluminium', at: [AUDITORIUM.studyX, TOP_ROW.height + AUDITORIUM.tabletHeight, TOP_ROW.seat - 0.47], live: 'monitor', screen: 'studyScreen', cap: 'Seated at the very back of a 96-seat Dalhousie computer science auditorium.' },
       { build: 'studyNotes', at: [AUDITORIUM.studyX + 0.16, TOP_ROW.height + AUDITORIUM.tabletHeight + 0.015, TOP_ROW.seat - 0.32], scale: 0.35, live: 'screen', rot: [0, 6, 0] },
       { model: 'wall_clock', at: [10.85, 3.35, -17.22] },
-      { build: 'doorLeafWide', at: [-1.4, 0, -15.2], rot: [0, 180, 0], live: 'door', door: [ch(6.86), ch(7.0)] }, // the front west door: hinged on the north jamb, it swings into Sydney ahead of the walk
+      { build: 'doorLeafWide', at: [-1.4, 0, -15.2], rot: [0, 180, 0], live: 'door', door: [ch(7.86), ch(8)] }, // the front west door: hinged on the north jamb, it swings into Sydney ahead of the walk
       ...[-15.3, -11.6, -7.9, -4.2].flatMap((z) => [1.4, 4.9, 8.4].map((x): Placement => ({ build: 'tube', at: [x, 6.48, z], scale: 1.5, live: 'tube' }))),
       { build: 'halifaxSign', at: [-1.37, 2.68, -15.8], rot: [0, 90, 0], live: 'screen' },
     ],
@@ -526,7 +562,7 @@ export const SETS: StageSet[] = [
       { build: 'airMattress', at: [-3.4, 0, -13.66], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' },
       { build: 'airMattress', at: [-3.2, 0, -17.7], rot: [0, 4, 0] },
       { model: 'throw_pillows_01', at: [-1.9, 0.0, -17.3], rot: [0, 30, 0], scale: 0.7 },
-      { build: 'doorLeaf', at: [-6.4, 0, -18.2], rot: [0, -90, 0], live: 'door', door: [ch(7.56), ch(7.7)] }, // the south door beside the window: hinged on the east jamb, it swings into the room, clear of the walk down the west side // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
+      { build: 'doorLeaf', at: [-6.4, 0, -18.2], rot: [0, -90, 0], live: 'door', door: [ch(8.56), ch(8.7)] }, // the south door beside the window: hinged on the east jamb, it swings into the room, clear of the walk down the west side // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
       { build: 'bin', at: [-1.85, 0, -14.7] },
       // the walls
       { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.' },
@@ -577,7 +613,7 @@ export const SETS: StageSet[] = [
       { build: 'logoVolta', at: [-7.44, 1.9, 9.1], rot: [0, -90, 0], cap: 'Volta, Halifax: Collect. every Thursday; Demo Day, February 2026.' },
       { build: 'logoInvestNS', at: [-7.44, 1.9, 13.3], rot: [0, -90, 0], cap: 'Invest Nova Scotia Accelerate: one of twelve, October 2025.' },
       { build: 'logoProductHunt', at: [-7.44, 1.9, 17.5], rot: [0, -90, 0], cap: 'Bean at #4 on Product Hunt, December 2025.' },
-      { build: 'doorLeafWide', at: [TERRACE.walkX + 0.6, 0, TERRACE.door], rot: [0, -90, 0], live: 'door', door: [ch(10.78), ch(10.92)], cap: 'The door back into the house at the end of the terrace.' },
+      { build: 'doorLeafWide', at: [TERRACE.walkX + 0.6, 0, TERRACE.door], rot: [0, -90, 0], live: 'door', door: [ch(11.78), ch(11.92)], cap: 'The door back into the house at the end of the terrace.' },
     ],
   },
   {
@@ -626,7 +662,7 @@ export const SETS: StageSet[] = [
         out.push({ build: 'torontoDay', at: [FLOQER.x[0] - 100, F - 3 - 0.35, Z + 5], live: 'city', shadow: false, cap: 'Downtown Toronto, outside the window.' });
         for (const z of WINDOW_Z) out.push({ build: 'sydneyWindow', at: [FLOQER.x[0], F + 0.75, z], rot: [0, 90, 0], scale: [0.8, 1, 1] });
         // the door in from the stage: the hall's door leaf, hinged on its east jamb, swinging into the house as he reaches it; the reveal between the two walls
-        out.push({ build: 'doorLeaf', at: [STAGE.door.x + STAGE.door.w / 2, F, STAGE.door.z + 0.15], rot: [0, -90, 0], live: 'door', door: [ch(12.94), ch(13.1)], cap: 'The door out of the hall: Floqer.' });
+        out.push({ build: 'doorLeaf', at: [STAGE.door.x + STAGE.door.w / 2, F, STAGE.door.z + 0.15], rot: [0, -90, 0], live: 'door', door: [ch(13.94), ch(14.1)], cap: 'The door out of the hall: Floqer.' });
         out.push({ build: 'doorReveal', at: [STAGE.door.x, F, STAGE.door.z] });
         out.push({ build: 'brickWall', at: [(FLOQER.x[0] + FLOQER.x[1]) / 2, F, FLOQER.z[1] - 0.05] });
         out.push({ build: 'floqerSign', at: [-11.2, F + 2.3, FLOQER.z[1] - 0.1], rot: [0, 180, 0], live: 'screen', cap: 'Floqer. The orchestration engine behind enterprise go to market automation.' });
@@ -662,7 +698,7 @@ export const SETS: StageSet[] = [
         // the stair up the east wall, straight at the door in the north wall, its rail on the open side, a light over it; the landing behind the door
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
         out.push({ build: 'landing', at: [FLOQER.door.x + 0.6, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], scale: [0.667, 1, 1], live: 'bulb' }); // behind the door: a closed landing, 2 m, so the door opens onto it and not the sky
-        out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(14.2), ch(14.36)] }); // hinged on the east jamb, swinging away onto the landing
+        out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(15.2), ch(15.36)] }); // hinged on the east jamb, swinging away onto the landing
         out.push({ build: 'discLight', at: [FLOQER.stair.x, F + 3.6, FLOQER.stair.z0 + 1.2], live: 'pendant' });
         // the mess of a rented place: boxes still packed, a suitcase, a bin bag, a crate, the mattresses and pillows, the shoes by the door
         out.push({ model: 'cardboard_box_01', at: [-15.2, F, Z + 0.9], rot: [0, 12, 0] });

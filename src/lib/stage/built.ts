@@ -10,7 +10,7 @@ import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE, CABIN, FLOQER } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, TERRACE, STAGE, CABIN, FLOQER, GOOGLE } from './sets.ts';
 
 export type BuiltSurface =
   | { mat: string } // a designed material from materials.ts
@@ -185,6 +185,39 @@ function corridor(through: boolean): BuiltPart {
     piece(bulb, M('bulb'), { smooth: true }),
   ];
   return out;
+}
+
+/**
+ * A straight flight of `n` steps of `rise` and `run`, `w` wide, rising along +z from the origin (its foot), closed below
+ * to the floor it stands on, each tread a board with a nosing; a closed string on each open side, a rail on square posts
+ * along the sides asked for; a landing `land` long on from the top step.
+ */
+function flight(o: { n: number; rise: number; run: number; w: number; land: number; rails: 'left' | 'right' | 'both'; landRails?: 'left' | 'right' | 'both' | 'none'; tread: string; rail: string }): BuiltPart {
+  const { n, rise, run, w, land } = o, carcass = new Sink(), treads = new Sink(), rail = new Sink(), post = new Sink();
+  const top = n * rise, zTop = n * run, zEnd = zTop + land, t = 0.035, nose = 0.03;
+  for (let k = 0; k < n; k++) {
+    const y = (k + 1) * rise, z = k * run;
+    carcass.box(0, (y - t) / 2, z + run / 2, w, y - t, run);
+    treads.rbox(0, y - t / 2, z + run / 2 - nose / 2, w, t, run + nose, 0.006, 2);
+  }
+  if (land > 0) { carcass.box(0, top / 2, (zTop + zEnd) / 2, w, top, land); treads.rbox(0, top - t / 2, (zTop + zEnd) / 2 - nose / 2, w, t, land + nose, 0.006, 2); }
+  const L = Math.hypot(zTop, top), slope = Math.atan2(top, zTop);
+  const of = (r: string | undefined) => (r === 'both' ? [-1, 1] : r === 'left' ? [-1] : r === 'right' ? [1] : []);
+  const sides = of(o.rails), landSides = of(o.landRails ?? o.rails);
+  for (const side of sides) {
+    const x = side * (w / 2 - 0.03), from = carcass.pos.length / 3;
+    carcass.box(side * (w / 2 + 0.02), 0, 0, 0.04, 0.34, L + 0.3).rotateX(0, 0, -slope, from).translate(0, top / 2 + 0.12, zTop / 2, from); // the string
+    for (let k = 0; k <= n; k += 2) post.box(x, k * rise + 0.45, k * run + 0.03, 0.03, 0.9, 0.03);
+    const r0 = rail.pos.length / 3;
+    rail.box(x, 0, 0, 0.04, 0.04, L).rotateX(0, 0, -slope, r0).translate(0, 0.92 + top / 2, zTop / 2, r0);
+  }
+  for (const side of land > 0 ? landSides : []) {
+    const x = side * (w / 2 - 0.03);
+    carcass.box(side * (w / 2 + 0.02), top / 2 + 0.06, (zTop + zEnd) / 2, 0.04, top + 0.12, land);
+    post.box(x, top + 0.45, zEnd - 0.03, 0.03, 0.9, 0.03);
+    rail.box(x, top + 0.92, (zTop + zEnd) / 2, 0.04, 0.04, land);
+  }
+  return [piece(carcass.out(), M(o.tread), { metres: 'xz' }), piece(treads.out(), M(o.tread), { smooth: true, metres: 'xz' }), piece(rail.out(), M(o.rail), { smooth: true }), piece(post.out(), M('chairBase'))];
 }
 
 export const BUILT: Record<string, () => BuiltPart> = {
@@ -814,32 +847,9 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** The two whiteboards in the hacker house, 2.4 by 1.2 in aluminium frames, painted (`whiteboardFloqer`). Face +z. */
   whiteboardFloqerA: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardFloqer:0' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
   whiteboardFloqerB: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardFloqer:1' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
-  /**
-   * The stair up the east wall of the hacker house: FLOQER.stair steps of rise and run along +z from the origin (its foot at the
-   * origin, the wall side at +x), closed below, each tread a board with a nosing; a closed string on the open side, the rail
-   * on posts along it; the landing on from the top step to the north wall, the door on the stair's line.
-   */
-  stairFlight: () => {
-    const { n, rise, run, w } = FLOQER.stair, carcass = new Sink(), treads = new Sink(), rail = new Sink(), post = new Sink();
-    const top = n * rise, zTop = n * run, zEnd = FLOQER.z[1] - FLOQER.stair.z0, t = 0.035, nose = 0.03, open = -w / 2;
-    for (let k = 0; k < n; k++) { // the riser and the block under each step, to the floor
-      const y = (k + 1) * rise, z = k * run;
-      carcass.box(0, (y - t) / 2, z + run / 2, w, y - t, run);
-      treads.rbox(0, y - t / 2, z + run / 2 - nose / 2, w, t, run + nose, 0.006, 2);
-    }
-    carcass.box(0, top / 2, (zTop + zEnd) / 2, w, top, zEnd - zTop); // the landing
-    treads.rbox(0, top - t / 2, (zTop + zEnd) / 2 - nose / 2, w, t, zEnd - zTop + nose, 0.006, 2);
-    // the string: a board along the slope on the open side, its top a hand above the nosings, its foot on the floor
-    const L = Math.hypot(zTop, top), slope = Math.atan2(top, zTop);
-    carcass.box(open - 0.02, 0, 0, 0.04, 0.34, L + 0.3).rotateX(0, 0, -slope, carcass.pos.length / 3 - 24).translate(0, top / 2 + 0.12, zTop / 2, carcass.pos.length / 3 - 24);
-    carcass.box(open - 0.02, top / 2 + 0.06, (zTop + zEnd) / 2, 0.04, top + 0.12, zEnd - zTop); // the landing's fascia
-    // the rail on square posts, every second step and at the landing's end
-    for (let k = 0; k <= n; k += 2) post.box(open + 0.03, k * rise + 0.45, k * run + 0.03, 0.03, 0.9, 0.03);
-    post.box(open + 0.03, top + 0.45, zEnd - 0.03, 0.03, 0.9, 0.03);
-    rail.box(open + 0.03, 0, 0, 0.04, 0.04, L).rotateX(0, 0, -slope).translate(0, 0.92 + top / 2, zTop / 2);
-    rail.box(open + 0.03, top + 0.92, (zTop + zEnd) / 2, 0.04, 0.04, zEnd - zTop);
-    return [piece(carcass.out(), M('stageOak'), { metres: 'xz' }), piece(treads.out(), M('stageOak'), { smooth: true, metres: 'xz' }), piece(rail.out(), M('rod'), { smooth: true }), piece(post.out(), M('chairBase'))];
-  },
+  /** The stair up the east wall of the hacker house: FLOQER.stair steps of rise and run along +z from the origin, its landing to the north wall, the rail on the open (west) side. */
+  stairFlight: () => flight({ ...FLOQER.stair, land: FLOQER.z[1] - FLOQER.stair.z0 - FLOQER.stair.n * FLOQER.stair.run, rails: 'left', tread: 'stageOak', rail: 'rod' }),
+
   /** The reveal of the door between the hall and the house: two jambs and a lintel filling the 0.3 m between the two walls, from the hall's wall at the origin toward +z. */
   doorReveal: () => {
     const { w, h } = STAGE.door, d = 0.3, t = 0.06, s = new Sink();
@@ -1283,14 +1293,9 @@ export const BUILT: Record<string, () => BuiltPart> = {
     return [piece(tray.out(), M('tray')), piece(tube.out(), M('tubeGlass'), { smooth: true })];
   },
   /** Paving around the Delhi room and lab passage, never beneath their coplanar indoor floors. Placed at (4, 0, 2.6). */
-  plazaFloor: () => {
-    const s = new Sink();
-    // World x0, x1, z0, z1: the open plaza, its east side, the gaps beside the lab passage, and the west pavement.
-    for (const [x0, x1, z0, z1] of [[-4.14, 10.2, -37.4, 0], [0.7, 10.2, 0, 2.6], [2, 10.2, 2.6, 4.6], [-4.14, 0.8, 3.6, 4.6], [0.7, 0.8, 2.6, 3.6], [-8, -4.14, -37.4, -3.9]])
-      s.quad([x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0]);
-    s.translate(-4, 0, -2.6);
-    return [piece(s.out(), M('pavers'), { metres: 'xz' })];
-  },
+  /** The Embarcadero's paving: 48 by 45 m, its middle at the origin; placed one flight below the rooms (CONTEXT: in the bake for shadow, drawn live). */
+  plazaFloor: () => [piece(slab(48, 45), M('pavers'), { metres: 'xz' })],
+
   /**
    * The outside of the rooms, as the plaza sees them: the apartment's east side in brick with the passage to the
    * lab, the lab's block in dark render with the passage out, and the 2020 room's block in front of the brick with
@@ -1298,28 +1303,31 @@ export const BUILT: Record<string, () => BuiltPart> = {
    * placed at the origin.
    */
   facade: () => {
-    const brick = new Sink(), dark = new Sink(), t = 0.06, H = 14;
+    const brick = new Sink(), dark = new Sink(), t = 0.06, H = 14, P = GOOGLE.plaza;
     // the apartment's east face just behind the studio's wall and the jet bridge's end (x -4.2), z -3.5..8.0, round the passage east (z 6.0..7.2);
     // the brick door is walled up: the ring leaves through the flight now
-    for (const [z0, z1, y0] of [[-3.5, 6.0, 0], [7.2, 8.0, 0], [6.0, 7.2, 2.4]] as Array<[number, number, number]>)
+    for (const [z0, z1, y0] of [[-3.5, 6.0, P], [7.2, 8.0, P], [6.0, 7.2, 2.4]] as Array<[number, number, number]>)
       brick.box(-4.205 - t / 2, (y0 + H) / 2, (z0 + z1) / 2, t, H - y0, z1 - z0);
-    dark.box(-6.82, H / 2, 8.0 + t / 2, 5.36, H, t); // the studio block's north face, x -9.5..-4.14
-    dark.box(-9.5 - t / 2, H / 2, 2.25, t, H, 11.5); // its west face, z -3.5..8.0
+    dark.box(-6.82, (P + H) / 2, 8.0 + t / 2, 5.36, H - P, t); // the studio block's north face, x -9.5..-4.14
+    dark.box(-9.5 - t / 2, (P + H) / 2, 2.25, t, H - P, 11.5); // its west face, z -3.5..8.0
     // the lab's block: x -4.14..2.25, z 4.6..9.9; its south face round the passage south (x 0.8..2.0)
-    for (const [x0, x1, y0] of [[-4.14, 0.8, 0], [2.0, 2.25, 0], [0.8, 2.0, 2.4]] as Array<[number, number, number]>)
+    for (const [x0, x1, y0] of [[-4.14, 0.8, P], [2.0, 2.25, P], [0.8, 2.0, 2.4]] as Array<[number, number, number]>)
       dark.box((x0 + x1) / 2, (y0 + H) / 2, 4.6 - t / 2, x1 - x0, H - y0, t);
-    dark.box(2.25 + t / 2, H / 2, 7.25, t, H, 5.3); // east
-    dark.box(-0.945, H / 2, 9.9 + t / 2, 6.39, H, t); // north
-    dark.box(-4.14 - t / 2, H / 2, 8.95, t, H, 1.9); // the west sliver north of the apartment block
-    // the 2020 room's block: x -4.14..0.7, z 0..3.6, over the passage from the brick door too; its south face round the door (x -1.15..-0.25)
-    for (const [x0, x1, y0] of [[-4.14, -1.15, 0], [-0.25, 0.7, 0], [-1.15, -0.25, 2.05]] as Array<[number, number, number]>)
-      dark.box((x0 + x1) / 2, (y0 + H) / 2, -0.01 - t / 2, x1 - x0, H - y0, t);
+    dark.box(2.25 + t / 2, (P + H) / 2, 7.25, t, H - P, 5.3); // east
+    dark.box(-0.945, (P + H) / 2, 9.9 + t / 2, 6.39, H - P, t); // north
+    dark.box(-4.14 - t / 2, (P + H) / 2, 8.95, t, H - P, 1.9); // the west sliver north of the apartment block
+    // the 2020 room's block: x -4.14..0.7, z 0..3.6, over the passage from the brick door too; its south face round the door (x -1.15..-0.25), the reveal in front of it (delhiFace);
+    // in pale render, since Google's balcony stands against it
+    const pale = new Sink();
+    for (const [x0, x1, y0] of [[-4.14, -1.15, P], [-0.25, 0.7, P], [-1.15, -0.25, 2.05]] as Array<[number, number, number]>)
+      pale.box((x0 + x1) / 2, (y0 + H) / 2, -0.01 - t / 2, x1 - x0, H - y0, t);
     // A centimetre outside the interior shell: coplanar faces otherwise turn the room black from the plaza.
-    dark.box(0.71 + t / 2, H / 2, 1.8, t, H, 3.6); // east
-    dark.box(-1.72, H / 2, 3.61 + t / 2, 4.84, H, t); // north, facing the lab block across a metre
+    pale.box(0.71 + t / 2, (P + H) / 2, 1.8, t, H - P, 3.6); // east, a hand's breadth from Google's block
+    dark.box(-1.72, (P + H) / 2, 3.61 + t / 2, 4.84, H - P, t); // north, facing the lab block across a metre
     dark.box(-3.6, H + t / 2, 3.2, 11.9, t, 13.4); // one roof over all
-    return [piece(brick.out(), M('condoBrick')), piece(dark.out(), M('facadeDark'))];
+    return [piece(brick.out(), M('condoBrick'), { metres: 'xy' }), piece(dark.out(), M('facadeDark'), { metres: 'xy' }), piece(pale.out(), M('terraceWall'), { metres: 'xy' })];
   },
+
   /** The green counter under the sign, 3.6 × 0.9 × 0.6. */
   counter: () => [piece(new Sink().rbox(0, 0.45, 0, 3.6, 0.9, 0.6, 0.02, 2).out(), M('counter'), { smooth: true })],
   /** The Google sign: a painted 3.6 × 1.5 face on a white slab, facing +z. */
@@ -1392,7 +1400,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   // ---- 2019, Google: the boardroom in Sunnyvale and the balcony over the Golden Gate (docs/rebuild/29-google.md)
   /** The land round the Golden Gate at 1:2 (marin.ts), sea level at the origin, the balcony's point at the origin. */
-  marinHills: () => { const t = new Sink(); marinHills(t); return [piece(t.out(), M('terrain'), { tint: true, smooth: true })]; },
+  marinHills: () => { const t = new Sink(); marinHills(t, 0.5, 900); return [piece(t.out(), M('terrain'), { tint: true, smooth: true })]; },
   /**
    * The Golden Gate Bridge at real size, its middle at the origin, the deck along x, the water at y 0: towers 227 m,
    * 27.4 m between the legs, the main span 1,280 m, the side spans 343 m, the deck 67 m up, the approaches on piers to
@@ -1424,42 +1432,64 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     return [piece(s.out(), M('goldenGate'))];
   },
-  /** The boardroom table: 1.4 by 4.0, its top at 0.74, white laminate on two pedestals; along z at the origin. */
-  boardTable: () => {
-    const top = new Sink().rbox(0, 0.72, 0, 1.4, 0.04, 4.0, 0.008, 2), legs = new Sink();
-    for (const z of [-1.3, 1.3]) legs.box(0, 0.35, z, 0.7, 0.7, 0.08).box(0, 0.02, z, 0.8, 0.04, 0.5);
-    return [piece(top.out(), M('tableWhite'), { smooth: true }), piece(legs.out(), M('deskLeg'))];
+  /**
+   * The flight down from the lab's passage to the plaza: GOOGLE.steps steps, rising along +z from the origin at the
+   * plaza's level, solid to the ground, a steel handrail each side; the landing at the top meets the passage's mouth.
+   */
+  plazaSteps: () => flight({ ...GOOGLE.steps, land: 1.2, rails: 'both', landRails: 'left', tread: 'pavement', rail: 'handrail' }), // the landing spans the passage's mouth: its rail on the south side only
+  /** The stair up the lobby to the balcony door: the same flight in oak, rising west from the entrance's line, its rail on the open (south) side, the landing on to the west wall under the door. */
+  lobbyStair: () => flight({ ...GOOGLE.steps, land: 1.8 - GOOGLE.block.x[0] - GOOGLE.steps.n * GOOGLE.steps.run, rails: 'left', landRails: 'left', tread: 'stageOak', rail: 'rod' }),
+  /**
+   * Google's block from outside, world coordinates: the walls from the plaza to the roof round the lobby's shell, the
+   * entrance cut in the east face with a steel frame, the balcony door cut in the north face, the wordmark over the
+   * entrance, the roof. White render, like the office on the Embarcadero.
+   */
+  googleBlock: () => {
+    const { x: [x0, x1], z: [z0, z1], top } = GOOGLE.block, P = GOOGLE.plaza, t = 0.12, g = 0.01, wall = new Sink(), steel = new Sink(); // g: a centimetre outside the lobby's shell, or coplanar faces bake its walls black
+    const E = GOOGLE.entrance, D = GOOGLE.door;
+    wall.box((x0 + x1) / 2, (P + top) / 2, z0 - g - t / 2, x1 - x0 + 2 * (g + t), top - P, t); // south
+    wall.box(x0 - g - t / 2, (P + top) / 2, (z0 + z1) / 2, t, top - P, z1 - z0); // west
+    // east, round the entrance
+    for (const [za, zb, ya, yb] of [[z0, E.z - E.w / 2, P, top], [E.z + E.w / 2, z1, P, top], [E.z - E.w / 2, E.z + E.w / 2, P + E.h, top]] as Array<[number, number, number, number]>)
+      wall.box(x1 + g + t / 2, (ya + yb) / 2, (za + zb) / 2, t, yb - ya, zb - za);
+    // north, round the balcony door (at the rooms' level, 0)
+    for (const [xa, xb, ya, yb] of [[x0 - g - t, D.x - D.w / 2, P, top], [D.x + D.w / 2, x1 + g + t, P, top], [D.x - D.w / 2, D.x + D.w / 2, P, 0], [D.x - D.w / 2, D.x + D.w / 2, D.h, top]] as Array<[number, number, number, number]>)
+      wall.box((xa + xb) / 2, (ya + yb) / 2, z1 + g + t / 2, xb - xa, yb - ya, t);
+    wall.box((x0 + x1) / 2, top + g + 0.1, (z0 + z1) / 2, x1 - x0 + 2 * (g + t), 0.2, z1 - z0 + 2 * (g + t)); // the roof
+    steel.box(x1 + 0.03, P + E.h + 0.04, E.z, 0.16, 0.08, E.w + 0.16).box(x1 + 0.03, (P + P + E.h) / 2, E.z - E.w / 2 - 0.04, 0.16, E.h, 0.08).box(x1 + 0.03, (P + P + E.h) / 2, E.z + E.w / 2 + 0.04, 0.16, E.h, 0.08); // the entrance's frame
+    return [piece(wall.out(), M('boothWhite'), { metres: 'xy' }), piece(steel.out(), M('windowFrame'))];
   },
-  /** The wall screen at the end of the boardroom: 2.4 by 1.35 in a thin black bezel, painted (`googleAward`). Faces +z. */
+  /** The screen in the lobby: 2.4 by 1.35 in a thin black bezel, painted (`googleAward`). Faces +z. */
   awardScreen: () => [piece(face(2.4, 1.35, 0.012), { paint: 'googleAward' }), piece(frame(2.44, 1.39, 0.03, 0.02).out(), M('bezel'))],
+  /** The wordmark over the entrance: a board 2.4 by 0.7, painted (`googleWordmark`). Faces +z. */
+  googleSign: () => [piece(face(2.4, 0.7, 0.03), { paint: 'googleWordmark' }), piece(new Sink().rbox(0, 0, 0, 2.5, 0.8, 0.06, 0.015, 2).out(), M('board'), { smooth: true })],
   /**
-   * The boardroom's south wall in glass, floor to ceiling, W by H along x from the origin, mullions every 1.2 m, the first
-   * bay (x 0..1.2) open: the slider, where the walk passes. The panes are cabinGlass, live.
+   * The balcony at the rooms' level, world coordinates: along the block's north face (GOOGLE.balcony), a slab 0.3 thick,
+   * a glass balustrade on steel posts under a handrail along its open edges, posts down to the ground under its outer edge.
    */
-  glassWall: () => {
-    const W = 7.2, H = 2.98, B = 1.2, m = new Sink(), g = new Sink();
-    m.box(W / 2, 0.04, 0, W, 0.08, 0.1).box(W / 2, H - 0.04, 0, W, 0.08, 0.1);
-    for (let x = 0; x <= W + 1e-6; x += B) m.box(x, H / 2, 0, 0.06, H, 0.1);
-    for (let x = B; x < W - 1e-6; x += B) g.quad([x, 0.08, 0.012], [x + B, 0.08, 0.012], [x + B, H - 0.08, 0.012], [x, H - 0.08, 0.012]).quad([x + B, 0.08, -0.012], [x, 0.08, -0.012], [x, H - 0.08, -0.012], [x + B, H - 0.08, -0.012]);
-    m.box(B - 0.03, H / 2, 0.12, 0.05, H, 0.05).box(0.03, H / 2, 0.12, 0.05, H, 0.05); // the slider's stiles, slid open against the wall end
-    return [piece(m.out(), M('windowFrame')), piece(g.out(), M('cabinGlass'))];
-  },
-  /**
-   * The balcony beyond the glass: a slab W by D from the origin toward -z, its top at y 0, a glass balustrade on steel
-   * posts under a handrail along its far edge and its two ends, 1.1 m high; and the building under it, down to the water 12 m below.
-   */
-  balcony: () => {
-    const W = 7.2, D = 3.0, slab = new Sink(), post = new Sink(), rail = new Sink(), glass = new Sink(), under = new Sink();
-    slab.box(W / 2, -0.15, -D / 2, W, 0.3, D);
-    under.box(W / 2, -6.15, (2.6 + 0.4 - D) / 2 - 0.4, W, 11.7, 2.6 + 0.4 + D); // the floor below, x 0.8..8, z -8.2..2.6 in the room's frame
-    const edge: Array<[V3, V3]> = [[[0, 0, -D], [W, 0, -D]], [[0, 0, 0], [0, 0, -D]], [[W, 0, -D], [W, 0, 0]]];
-    for (const [a, b] of edge) {
+  plazaBalcony: () => {
+    const { x: [x0, x1], z: [z0, z1] } = GOOGLE.balcony, P = GOOGLE.plaza, slab = new Sink(), post = new Sink(), rail = new Sink(), glass = new Sink(), pier = new Sink();
+    slab.box((x0 + x1) / 2, -0.15, (z0 + z1) / 2, x1 - x0, 0.3, z1 - z0);
+    const edges: Array<[V3, V3]> = [
+      [[x0, 0, z0], [x0, 0, z1]], // the west end
+      [[0.8, 0, z1], [x1, 0, z1]], // the north edge east of the 2020 room's face
+      [[x1, 0, z1], [x1, 0, z0]], // the east end
+    ];
+    for (const [a, b] of edges) {
       const len = Math.hypot(b[0] - a[0], b[2] - a[2]), n = Math.max(1, Math.round(len / 1.2)), ux = (b[0] - a[0]) / len, uz = (b[2] - a[2]) / len;
       for (let k = 0; k <= n; k++) post.box(a[0] + ux * (len * k) / n, 0.55, a[2] + uz * (len * k) / n, 0.05, 1.1, 0.05);
       rail.box(a[0] + ux * len / 2, 1.12, a[2] + uz * len / 2, Math.abs(ux) * len + 0.05, 0.05, Math.abs(uz) * len + 0.05);
       glass.quad([a[0], 0.06, a[2]], [b[0], 0.06, b[2]], [b[0], 1.08, b[2]], [a[0], 1.08, a[2]]).quad([b[0], 0.06, b[2]], [a[0], 0.06, a[2]], [a[0], 1.08, a[2]], [b[0], 1.08, b[2]]);
     }
-    return [piece(slab.out(), M('campusPaving'), { metres: 'xz' }), piece(under.out(), M('facadeDark'), { metres: 'xy' }), piece(post.out(), M('handrail')), piece(rail.out(), M('handrail')), piece(glass.out(), M('cabinGlass'))];
+    for (const x of [x0 + 0.2, -1.7, 0.4, x1 - 0.2]) pier.box(x, (P - 0.3) / 2, z1 - 0.2, 0.3, -P - 0.3, 0.3); // the posts down to the ground under its outer edge
+    return [piece(slab.out(), M('campusPaving'), { metres: 'xz' }), piece(pier.out(), M('boothWhite')), piece(post.out(), M('handrail')), piece(rail.out(), M('handrail')), piece(glass.out(), M('cabinGlass'))];
+  },
+  /** The 2020 room's block from the balcony: its south face from the plaza to its roof, the door cut in it at x -0.7 with a reveal 0.4 deep. World coordinates. */
+  delhiFace: () => {
+    const P = GOOGLE.plaza, s = new Sink(), x0 = -2.5, x1 = 0.8, top = 3.0, d = 0.4, dw = 0.9, dh = 2.05, dx = -0.7;
+    for (const [xa, xb, ya, yb] of [[x0, dx - dw / 2, 0, top], [dx + dw / 2, x1, 0, top], [dx - dw / 2, dx + dw / 2, dh, top], [x0, x1, P, 0]] as Array<[number, number, number, number]>)
+      s.box((xa + xb) / 2, (ya + yb) / 2, -d / 2, xb - xa, yb - ya, d);
+    return [piece(s.out(), M('terraceWall'), { metres: 'xy' })];
   },
   /** Clouds: a few flattened white puffs, far up and far off, unlit. */
   clouds: () => {

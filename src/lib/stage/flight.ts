@@ -2,7 +2,7 @@
 // The aircraft never moves: the world under it does (stage-run.ts: the flight group), sinking as the
 // altitude falls, sliding aft as the ground track runs, rolling for the bank onto the approach.
 import { AUDITORIUM, TOP_ROW, FLIGHT_DECK } from './sets.ts';
-import { ch } from './shot.ts';
+import { ch, approach } from './shot.ts';
 const ease = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
@@ -13,14 +13,14 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
  * At `end` the Studley campus is abeam, 250 to 900 m off the wing and `low` metres down; after it the aircraft holds
  * height and the ground keeps sliding at `cruise` metres per unit of progress (the speed the descent ended at).
  */
-const DESCENT = { start: ch(4.704), end: ch(5.047), distance: 1450 };
+const DESCENT = { start: ch(5.704), end: ch(6.047), distance: 1450 };
 export const FLIGHT = { ...DESCENT, top: 385, low: 130, deck: FLIGHT_DECK, bank: 7, cruise: (0.35 * DESCENT.distance) / (DESCENT.end - DESCENT.start) } as const; // cruise: the ground speed the descent ends at, per unit of progress
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
-export const PHONE = { raise: ch(5.012), framed: ch(5.075), zoom: ch(5.103), filled: ch(5.194), transfer: ch(5.215), reveal: ch(5.264) } as const;
+export const PHONE = { raise: ch(6.012), framed: ch(6.075), zoom: ch(6.103), filled: ch(6.194), transfer: ch(6.215), reveal: ch(6.264) } as const;
 /** The degree: raised into the hand over the last steps onto the stage, held from there. */
-export const DEGREE = { raise: ch(11.56), held: ch(11.7) } as const;
-/** The Code-in trophy: it leaves the table and rises into the hands at the table's corner (APPROACH q 0.645 to 0.67 of 4.2 chapters). */
-export const TROPHY = { raise: ch(0.645 * 4.2), held: ch(0.67 * 4.2) } as const;
+export const DEGREE = { raise: ch(12.56), held: ch(12.7) } as const;
+/** The Code-in trophy: it rises into the hands on the balcony, the bay and the bridge behind (approach keys 0.774 to 0.788). */
+export const TROPHY = { raise: approach(0.774), held: approach(0.788) } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
 /** The window seat in the row by the door, the wing's leading edge behind the shoulder: eye at the window, looking out and a little down at the city. */

@@ -8,7 +8,7 @@
 import { CatmullRomCurve3, Vector3 } from 'three';
 import { TERRACE, STAGE, AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, aisleHeight, type V3, houseFloorY, FLOQER, stairY } from './sets.ts';
 import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
-import { ch } from './shot.ts';
+import { ch, approach } from './shot.ts';
 
 export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1; portal?: true; soft?: true } // soft: an open-air threshold, the light crossfades without the doorway's dip
 /** `from` and `into` are the sets a doorway joins; outside a doorway both equal `set`. */
@@ -43,19 +43,30 @@ const APPROACH: DollyKey[] = [
   { q: 0.532, cam: [-0.3, 1.58, 6.85], look: [1.6, 1.25, 6.2], fov: 62, set: 2 }, // turning right
   { q: 0.559, cam: [0.9, 1.58, 5.6], look: [1.4, 1.3, 3.6], fov: 64, set: 2 }, // the door south
   { q: 0.578, cam: [1.4, 1.58, 4.75], look: [1.4, 1.5, 2.8], fov: 68, set: 2, blend: 0 }, // door jamb, heading south
-  { q: 0.597, cam: [1.4, 1.6, 3.65], look: [1.4, 1.5, 1.4], fov: 68, set: 3, blend: 1 }, // mid passage, daylight ahead
-  // 2019: into the boardroom, the table and the glass wall ahead with the bridge beyond; to the table's corner, where the
-  // trophy comes up into the hands; a look down the table at the screen; then south through the open slider onto the
-  // balcony: the bridge, the trophy in hand. That frame holds, and the story cuts to the dark 2020 room.
-  { q: 0.62, cam: [1.4, 1.6, 2.0], look: [3.0, 1.2, -0.6], fov: 68, set: 3 }, // in: the table and the trophy on its corner, the glass beyond
-  { q: 0.645, cam: [2.2, 1.6, 0.7], look: [4.4, 0.75, -0.3], fov: 66, set: 3 }, // the table's corner: the trophy, on the way to the screen
-  { q: 0.662, cam: [2.2, 1.6, -0.2], look: [7.9, 1.55, -1.5], fov: 66, set: 3 }, // down the table: the screen
-  { q: 0.686, cam: [2.0, 1.6, -1.4], look: [4.2, 1.3, -4.6], fov: 68, set: 3 }, // turning back to the south
-  { q: 0.71, cam: [1.8, 1.6, -2.6], look: [1.6, 1.25, -6.6], fov: 68, set: 3 }, // round to the south: the slider, the balcony
-  { q: 0.74, cam: [1.6, 1.6, -4.6], look: [1.5, 1.05, -9.0], fov: 70, set: 3 },
-  { q: 0.765, cam: [1.6, 1.6, -6.4], look: [1.4, 0.7, -11.6], fov: 72, set: 3 }, // on the balcony: the bridge, the trophy in hand
-  { q: 0.782, cam: [1.6, 1.6, -7.0], look: [1.2, 0.55, -12.4], fov: 72, set: 3, blend: 0 }, // the frame holds
-  { q: 0.808, cam: [-0.7, 1.58, 0.55], look: [-0.9, 1.35, 2.6], fov: 68, set: 4, blend: 1, portal: true }, // the cut: the 2020 room, night
+  { q: 0.588, cam: [1.4, 1.6, 3.5], look: [3.0, 1.2, 0.2], fov: 68, set: 3, blend: 1 }, // mid passage: daylight, already turning to the steps
+  // 2019: out onto the landing and left, down the flight onto the Embarcadero, the sign and the bay ahead; to the sign;
+  // right, into Google's block under the wordmark; up the stair inside past the screen to the door in the north wall;
+  // out onto the balcony, turned to the bay and the bridge over the plaza as the trophy comes up; along the balcony
+  // and left through the 2020 room's door (Google's card runs two chapter lengths: shot.ts `approach`)
+  { q: 0.597, cam: [1.6, 1.6, 2.35], look: [4.8, 0.5, 1.0], fov: 68, set: 3 }, // the landing: the steps down
+  { q: 0.609, cam: [3.0, 0.9, 2.0], look: [7.5, -1.6, 0.0], fov: 68, set: 3 }, // on the steps: the plaza, the bay
+  { q: 0.626, cam: [4.8, -0.38, 2.0], look: [8.5, -2.4, -2.0], fov: 68, set: 3 }, // the sign coming round
+  { q: 0.64, cam: [6.25, -1.4, 2.0], look: [8.8, -1.8, -2.6], fov: 68, set: 3 }, // the foot: the sign ahead
+  { q: 0.655, cam: [6.8, -1.4, 0.2], look: [8.6, -1.6, -4.6], fov: 66, set: 3 }, // Google San Francisco
+  { q: 0.667, cam: [6.6, -1.4, -1.6], look: [5.6, -1.5, -5.4], fov: 66, set: 3 }, // turning right
+  { q: 0.678, cam: [5.6, -1.4, -3.0], look: [2.6, -1.3, -5.6], fov: 66, set: 3 }, // the entrance, the wordmark over it
+  { q: 0.689, cam: [4.2, -1.4, -3.6], look: [-1.0, -0.9, -3.6], fov: 68, set: 3 }, // the lobby ahead, the screen in it
+  { q: 0.699, cam: [2.9, -1.4, -3.6], look: [-3.9, 0.2, -3.6], fov: 68, set: 3 }, // in
+  { q: 0.707, cam: [1.8, -1.4, -3.6], look: [-3.9, 1.0, -3.6], fov: 68, set: 3 }, // the foot of the stair: the screen over it
+  { q: 0.724, cam: [0.0, -0.13, -3.6], look: [-3.9, 1.6, -3.4], fov: 68, set: 3 }, // up
+  { q: 0.748, cam: [-2.45, 1.6, -3.6], look: [-3.2, 1.4, -0.6], fov: 68, set: 3 }, // the top, turned to the door, open
+  { q: 0.755, cam: [-3.0, 1.6, -3.6], look: [-3.3, 1.4, -0.6], fov: 70, set: 3 }, // through it: the balcony, the 2020 room's face
+  { q: 0.766, cam: [-2.7, 1.6, -2.2], look: [-0.6, 1.2, 1.4], fov: 72, set: 3 }, // out, turning to the bay over the balcony's end
+  { q: 0.78, cam: [-1.4, 1.6, -1.2], look: [3.5, 0.9, 0.1], fov: 72, set: 3 }, // east over the balustrade: the plaza below, the road, the bay, the bridge: the trophy comes up
+  { q: 0.792, cam: [-0.5, 1.6, -1.0], look: [2.8, 1.1, 1.6], fov: 72, set: 3 }, // in hand, San Francisco behind; the balcony's end, turning back
+  { q: 0.802, cam: [-0.6, 1.6, -0.5], look: [0.7, 1.4, 3.7], fov: 70, set: 3 }, // left: the door
+  { q: 0.808, cam: [-0.7, 1.58, -0.1], look: [0.3, 1.45, 4.9], fov: 68, set: 3, blend: 0 }, // door jamb, heading north, the eye still coming round
+  { q: 0.822, cam: [-0.7, 1.58, 0.55], look: [-0.9, 1.35, 2.6], fov: 68, set: 4, blend: 1 }, // through the frame: the room, night
   { q: 0.838, cam: [-0.75, 1.58, 0.75], look: [-1.05, 1.45, 3.2], fov: 74, set: 4 }, // the desk and both shelves, with the bed alongside
   { q: 0.866, cam: [-0.85, 1.58, 1.1], look: [-1.1, 1.5, 3.45], fov: 74, set: 4 }, // closer, keeping the tallest awards in frame
   { q: 0.89, cam: [-1.0, 1.58, 1.95], look: [-2.15, 1.45, 3.05], fov: 64, set: 4 }, // turning left over the desk's end, the lamp
@@ -64,68 +75,68 @@ const APPROACH: DollyKey[] = [
   { q: 0.951, cam: [-2.35, 1.58, 1.6], look: [-4.5, 1.5, 0.9], fov: 68, set: 4, blend: 0 }, // door jamb, beginning the turn into the boarding passage
 ];
 
-/** The first five rooms keep their choreography over the first 4.2 chapters; the ring was cut at the brick door for the flight. */
-export const APPROACH_SCALE = ch(4.2);
+/** The first five rooms keep their choreography over the first 4.2 chapters (shot.ts `approach`: the Google walk runs two chapter lengths); the ring was cut at the brick door for the flight. */
+export const APPROACH_SCALE = ch(5.2);
 
 /** Standing in the central aisle at z, eye 1.6 m over its steps. */
 const aisle = (z: number, dy = 0): V3 => [AUDITORIUM.aisleX, aisleHeight(z) + 1.6 + dy, z];
 
 export const DOLLY: DollyKey[] = [
-  ...APPROACH.map((k) => ({ ...k, q: k.q * APPROACH_SCALE })),
+  ...APPROACH.map((k) => ({ ...k, q: approach(k.q) })),
   // 2022, leaving: west out of the Delhi room into the passage, left down the jet bridge, through the cabin door,
   // one step up the aisle and into the port window seat of the row by the door
-  { q: ch(4.081), cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 }, // mid passage, the bridge opening on the left
-  { q: ch(4.221), cam: [-3.35, 1.58, -0.7], look: [-3.4, 1.5, -4.2], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
-  { q: ch(4.34), cam: [-3.4, 1.58, -2.9], look: [-3.6, 1.5, -6.4], fov: 72, set: 5 },
-  { q: ch(4.466), cam: [-3.4, 1.58, -4.9], look: [-4.5, 1.4, -7.1], fov: 74, set: 5 }, // in the door: the rows ahead, the pair beside the door
-  { q: ch(4.564), cam: [-3.45, 1.55, -5.5], look: [-4.9, 1.3, -6.5], fov: 74, set: 5 }, // one step: the first row, turning to it
-  { q: ch(4.648), cam: [-3.75, 1.5, -5.5], look: [-5.3, 1.25, -6.1], fov: 74, set: 5 }, // into the row
-  { q: ch(4.697), cam: [-4.15, 1.32, -5.5], look: [-6.4, 0.9, -6.3], fov: 74, set: 5 }, // sitting; the descent begins
+  { q: ch(5.081), cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 }, // mid passage, the bridge opening on the left
+  { q: ch(5.221), cam: [-3.35, 1.58, -0.7], look: [-3.4, 1.5, -4.2], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
+  { q: ch(5.34), cam: [-3.4, 1.58, -2.9], look: [-3.6, 1.5, -6.4], fov: 72, set: 5 },
+  { q: ch(5.466), cam: [-3.4, 1.58, -4.9], look: [-4.5, 1.4, -7.1], fov: 74, set: 5 }, // in the door: the rows ahead, the pair beside the door
+  { q: ch(5.564), cam: [-3.45, 1.55, -5.5], look: [-4.9, 1.3, -6.5], fov: 74, set: 5 }, // one step: the first row, turning to it
+  { q: ch(5.648), cam: [-3.75, 1.5, -5.5], look: [-5.3, 1.25, -6.1], fov: 74, set: 5 }, // into the row
+  { q: ch(5.697), cam: [-4.15, 1.32, -5.5], look: [-6.4, 0.9, -6.3], fov: 74, set: 5 }, // sitting; the descent begins
   // the descent: out and down over the Arm, the cloud deck, the campus abeam; the wing's leading edge behind the shoulder
-  { q: ch(4.746), cam: WINDOW_VIEW.cam, look: [-6.8, 0.85, -6.6], fov: 74, set: 5 }, // seated: the cloud tops ahead
-  { q: ch(4.788), cam: WINDOW_VIEW.cam, look: [-7.2, 0.8, -6.4], fov: 74, set: 5 }, // down toward the deck
-  { q: ch(4.837), cam: [-4.5, 1.22, -5.55], look: [-7.4, 0.6, -5.5], fov: 74, set: 5 }, // leaning to the glass through the deck
-  { q: ch(4.942), cam: [-4.48, 1.23, -5.54], look: [-7.35, 0.62, -6.05], fov: 74, set: 5 }, // clear air: the Arm, the peninsula, the campus sliding in from ahead
+  { q: ch(5.746), cam: WINDOW_VIEW.cam, look: [-6.8, 0.85, -6.6], fov: 74, set: 5 }, // seated: the cloud tops ahead
+  { q: ch(5.788), cam: WINDOW_VIEW.cam, look: [-7.2, 0.8, -6.4], fov: 74, set: 5 }, // down toward the deck
+  { q: ch(5.837), cam: [-4.5, 1.22, -5.55], look: [-7.4, 0.6, -5.5], fov: 74, set: 5 }, // leaning to the glass through the deck
+  { q: ch(5.942), cam: [-4.48, 1.23, -5.54], look: [-7.35, 0.62, -6.05], fov: 74, set: 5 }, // clear air: the Arm, the peninsula, the campus sliding in from ahead
   { q: FLIGHT.end, cam: WINDOW_VIEW.cam, look: [-7.4, 0.55, -5.65], fov: 74, set: 5 }, // the campus abeam: the Hicks tower, the Killam, the quad
   { q: PHONE.framed, ...WINDOW_VIEW, set: 5 },
-  { q: ch(5.152), ...WINDOW_VIEW, set: 5, blend: 0 },
+  { q: ch(6.152), ...WINDOW_VIEW, set: 5, blend: 0 },
   { q: PHONE.transfer, ...CLASSROOM_VIEW, set: 6, blend: 1, portal: true },
   // 2022, arrived: seated at the back of the auditorium. A look round the hall, then up, into the aisle, and down
   // the steps to the dais; a turn to face the whole hall from behind the lectern
   { q: PHONE.reveal, ...CLASSROOM_VIEW, set: 6 },
-  { q: ch(5.33), ...CLASSROOM_VIEW, set: 6 },
-  { q: ch(5.4), cam: CLASSROOM_VIEW.cam, look: [8.4, 2.3, -13.5], fov: 74, set: 6 }, // the far bank, the fins, the clock
-  { q: ch(5.47), cam: CLASSROOM_VIEW.cam, look: [4.9, 2.4, -16.2], fov: 74, set: 6 }, // back to the board
-  { q: ch(5.53), cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.6, TOP_ROW.seat - 0.02], look: [5.2, 3.2, -9.5], fov: 74, set: 6 }, // on his feet
-  { q: ch(5.6), cam: aisle(AUDITORIUM.rear - 2.3), look: [4.9, 2.4, -12], fov: 74, set: 6 }, // into the aisle
-  { q: ch(5.69), cam: aisle(-5.7), look: [4.9, 2.0, -13.5], fov: 74, set: 6 },
-  { q: ch(5.78), cam: aisle(-7.05), look: [5.0, 1.8, -14.5], fov: 74, set: 6 }, // down the steps, the screen coming down over the board
-  { q: ch(5.87), cam: aisle(-8.4), look: [5.2, 1.7, -15.2], fov: 74, set: 6 },
-  { q: ch(5.96), cam: aisle(-9.75), look: [5.4, 1.5, -15.7], fov: 74, set: 6 },
-  { q: ch(6.04), cam: aisle(-11.1), look: [5.5, 1.4, -15.9], fov: 74, set: 6 },
-  { q: ch(6.12), cam: aisle(-12.45), look: [5.6, 1.35, -16.0], fov: 74, set: 6 }, // the lectern
-  { q: ch(6.2), cam: aisle(-13.8), look: [6.8, 1.3, -16.0], fov: 74, set: 6 },
-  { q: ch(6.28), cam: [4.95, 1.62, -15.0], look: [8.8, 1.4, -15.4], fov: 74, set: 6 }, // on the floor, turning right past the lectern
-  { q: ch(6.36), cam: [4.9, DAIS.height + 1.6, -15.95], look: [9.4, 1.8, -13.9], fov: 74, set: 6 }, // up on the dais, passing the lectern's side, the right bank coming round
-  { q: ch(6.44), cam: [5.25, DAIS.height + 1.6, -16.55], look: [8.2, 2.2, -10.0], fov: 74, set: 6 },
-  { q: ch(6.52), cam: [5.6, DAIS.height + 1.6, -16.7], look: [5.8, 0.55, -7.5], fov: 74, set: 6 }, // behind the lectern: the laptop at the bottom of the frame, the whole hall above it
-  { q: ch(6.58), cam: [5.6, DAIS.height + 1.6, -16.7], look: [4.9, 0.45, -7.0], fov: 74, set: 6 },
-  { q: ch(6.64), cam: [5.6, DAIS.height + 1.6, -16.7], look: [4.7, 0.5, -8.0], fov: 74, set: 6 }, // teaching
+  { q: ch(6.33), ...CLASSROOM_VIEW, set: 6 },
+  { q: ch(6.4), cam: CLASSROOM_VIEW.cam, look: [8.4, 2.3, -13.5], fov: 74, set: 6 }, // the far bank, the fins, the clock
+  { q: ch(6.47), cam: CLASSROOM_VIEW.cam, look: [4.9, 2.4, -16.2], fov: 74, set: 6 }, // back to the board
+  { q: ch(6.53), cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.6, TOP_ROW.seat - 0.02], look: [5.2, 3.2, -9.5], fov: 74, set: 6 }, // on his feet
+  { q: ch(6.6), cam: aisle(AUDITORIUM.rear - 2.3), look: [4.9, 2.4, -12], fov: 74, set: 6 }, // into the aisle
+  { q: ch(6.69), cam: aisle(-5.7), look: [4.9, 2.0, -13.5], fov: 74, set: 6 },
+  { q: ch(6.78), cam: aisle(-7.05), look: [5.0, 1.8, -14.5], fov: 74, set: 6 }, // down the steps, the screen coming down over the board
+  { q: ch(6.87), cam: aisle(-8.4), look: [5.2, 1.7, -15.2], fov: 74, set: 6 },
+  { q: ch(6.96), cam: aisle(-9.75), look: [5.4, 1.5, -15.7], fov: 74, set: 6 },
+  { q: ch(7.04), cam: aisle(-11.1), look: [5.5, 1.4, -15.9], fov: 74, set: 6 },
+  { q: ch(7.12), cam: aisle(-12.45), look: [5.6, 1.35, -16.0], fov: 74, set: 6 }, // the lectern
+  { q: ch(7.2), cam: aisle(-13.8), look: [6.8, 1.3, -16.0], fov: 74, set: 6 },
+  { q: ch(7.28), cam: [4.95, 1.62, -15.0], look: [8.8, 1.4, -15.4], fov: 74, set: 6 }, // on the floor, turning right past the lectern
+  { q: ch(7.36), cam: [4.9, DAIS.height + 1.6, -15.95], look: [9.4, 1.8, -13.9], fov: 74, set: 6 }, // up on the dais, passing the lectern's side, the right bank coming round
+  { q: ch(7.44), cam: [5.25, DAIS.height + 1.6, -16.55], look: [8.2, 2.2, -10.0], fov: 74, set: 6 },
+  { q: ch(7.52), cam: [5.6, DAIS.height + 1.6, -16.7], look: [5.8, 0.55, -7.5], fov: 74, set: 6 }, // behind the lectern: the laptop at the bottom of the frame, the whole hall above it
+  { q: ch(7.58), cam: [5.6, DAIS.height + 1.6, -16.7], look: [4.9, 0.45, -7.0], fov: 74, set: 6 },
+  { q: ch(7.64), cam: [5.6, DAIS.height + 1.6, -16.7], look: [4.7, 0.5, -8.0], fov: 74, set: 6 }, // teaching
   // 2024: out to the teacher's right, west along the dais, down the step, through the front door straight into Sydney:
   // the hacker house, the table Bean was built on, the whiteboard, the harbour out of the window
-  { q: ch(6.74), cam: [3.9, DAIS.height + 1.6, -16.6], look: [0.9, 1.4, -11.4], fov: 74, set: 6 }, // turning right along the dais
-  { q: ch(6.86), cam: [2.0, DAIS.height + 1.6, -16.4], look: [-2.2, 1.4, -13.7], fov: 72, set: 6 }, // the door ahead
-  { q: ch(6.96), cam: [0.35, DAIS.height + 1.6, -16.15], look: [-2.4, 1.35, -15.8], fov: 72, set: 6 },
-  { q: ch(7.02), cam: [-0.6, 1.62, -15.9], look: [-3.5, 1.3, -15.8], fov: 72, set: 6 }, // down the step
-  { q: ch(7.06), cam: [-1.3, 1.6, -15.8], look: [-4.3, 1.25, -15.85], fov: 72, set: 6, blend: 0 }, // the jamb
-  { q: ch(7.12), cam: [-2.2, 1.6, -15.8], look: [-5.5, 1.2, -15.9], fov: 72, set: 7, blend: 1 }, // in: the table, the monitors, the window
-  { q: ch(7.24), cam: [-2.7, 1.6, -15.0], look: [-4.8, 1.45, -13.4], fov: 74, set: 7 }, // the whiteboard
-  { q: ch(7.35), cam: [-2.95, 1.6, -14.35], look: [-6.0, 1.15, -14.6], fov: 74, set: 7 }, // at the table's end, the room's length ahead
-  { q: ch(7.42), cam: [-3.05, 1.55, -14.3], look: [-4.8, 0.85, -15.5], fov: 74, set: 7 }, // down at the monitors and the wires
+  { q: ch(7.74), cam: [3.9, DAIS.height + 1.6, -16.6], look: [0.9, 1.4, -11.4], fov: 74, set: 6 }, // turning right along the dais
+  { q: ch(7.86), cam: [2.0, DAIS.height + 1.6, -16.4], look: [-2.2, 1.4, -13.7], fov: 72, set: 6 }, // the door ahead
+  { q: ch(7.96), cam: [0.35, DAIS.height + 1.6, -16.15], look: [-2.4, 1.35, -15.8], fov: 72, set: 6 },
+  { q: ch(8.02), cam: [-0.6, 1.62, -15.9], look: [-3.5, 1.3, -15.8], fov: 72, set: 6 }, // down the step
+  { q: ch(8.06), cam: [-1.3, 1.6, -15.8], look: [-4.3, 1.25, -15.85], fov: 72, set: 6, blend: 0 }, // the jamb
+  { q: ch(8.12), cam: [-2.2, 1.6, -15.8], look: [-5.5, 1.2, -15.9], fov: 72, set: 7, blend: 1 }, // in: the table, the monitors, the window
+  { q: ch(8.24), cam: [-2.7, 1.6, -15.0], look: [-4.8, 1.45, -13.4], fov: 74, set: 7 }, // the whiteboard
+  { q: ch(8.35), cam: [-2.95, 1.6, -14.35], look: [-6.0, 1.15, -14.6], fov: 74, set: 7 }, // at the table's end, the room's length ahead
+  { q: ch(8.42), cam: [-3.05, 1.55, -14.3], look: [-4.8, 0.85, -15.5], fov: 74, set: 7 }, // down at the monitors and the wires
   // 2025: straight out. Along the north side, down the gap between the table and the window (the Opera House through it), out of the south door, laptop in hand
-  { q: ch(7.56), cam: [-5.0, 1.6, -14.28], look: [-8.4, 1.5, -16.4], fov: 74, set: 7 },
-  { q: ch(7.68), cam: [-6.7, 1.6, -15.5], look: [-9.5, 1.4, -18.3], fov: 74, set: 7 }, // a glance out of the window on the way past, already turning to the door
-  { q: ch(7.9), cam: [-6.85, 1.6, -17.95], look: [-6.85, 0.35, -19.2], fov: 74, set: 7, blend: 0 }, // the jamb: a look down at the step out, the parapet hiding the water while the harbour becomes Vancouver's
+  { q: ch(8.56), cam: [-5.0, 1.6, -14.28], look: [-8.4, 1.5, -16.4], fov: 74, set: 7 },
+  { q: ch(8.68), cam: [-6.7, 1.6, -15.5], look: [-9.5, 1.4, -18.3], fov: 74, set: 7 }, // a glance out of the window on the way past, already turning to the door
+  { q: ch(8.9), cam: [-6.85, 1.6, -17.95], look: [-6.85, 0.35, -19.2], fov: 74, set: 7, blend: 0 }, // the jamb: a look down at the step out, the parapet hiding the water while the harbour becomes Vancouver's
   // 2025: out of the door onto the terrace, right twice, and north along the harbour side of the house, laptop in hand:
   // Vancouver, Toronto, Halifax, one city a chapter, the thing on the water changing at each threshold; then the door at
   // the terrace's end, the wing, the steps, the side of the stage, the centre for the degree, and the turn to the crowd
@@ -141,12 +152,12 @@ export const DOLLY: DollyKey[] = [
 function walk(): DollyKey[] {
   const X = TERRACE.walkX, keys: DollyKey[] = [];
   const K = (q: number, cam: V3, look: V3, set: number, extra: Partial<DollyKey> = {}): DollyKey => ({ q: ch(q), cam, look, fov: 74, set, ...extra });
-  keys.push(K(7.98, [-6.85, 1.6, -19.3], [-7.0, 0.7, -20.6], 8, { blend: 1 })); // out on the south leg of the terrace, still watching the step: the harbour has become Vancouver's behind the parapet
-  keys.push(K(8.1, [-7.3, 1.6, -19.7], [-10.0, 1.25, -22.2], 8)); // and up, turning right along the south wall: the water, the North Shore
-  keys.push(K(8.22, [-8.5, 1.6, -19.7], [-12.5, 1.3, -19.9], 8)); // west: the parapet and the water ahead, 30 m down
-  keys.push(K(8.34, [-10.0, 1.6, -19.5], [-13.0, 1.3, -16.8], 8)); // the corner: turning right again
-  keys.push(K(8.46, [X, 1.6, -18.4], [X - 0.4, 1.3, -14.4], 8)); // north along the terrace: the water on the left, the house on the right
-  const z0 = -18.4, zJamb = TERRACE.door - 0.6, q0 = 8.46, q1 = 10.98, n = 22; // 42 m over 2.52 chapters
+  keys.push(K(8.98, [-6.85, 1.6, -19.3], [-7.0, 0.7, -20.6], 8, { blend: 1 })); // out on the south leg of the terrace, still watching the step: the harbour has become Vancouver's behind the parapet
+  keys.push(K(9.1, [-7.3, 1.6, -19.7], [-10.0, 1.25, -22.2], 8)); // and up, turning right along the south wall: the water, the North Shore
+  keys.push(K(9.22, [-8.5, 1.6, -19.7], [-12.5, 1.3, -19.9], 8)); // west: the parapet and the water ahead, 30 m down
+  keys.push(K(9.34, [-10.0, 1.6, -19.5], [-13.0, 1.3, -16.8], 8)); // the corner: turning right again
+  keys.push(K(9.46, [X, 1.6, -18.4], [X - 0.4, 1.3, -14.4], 8)); // north along the terrace: the water on the left, the house on the right
+  const z0 = -18.4, zJamb = TERRACE.door - 0.6, q0 = 9.46, q1 = 11.98, n = 22; // 42 m over 2.52 chapters
   for (let k = 1; k <= n; k++) {
     const q = Math.round((q0 + (q1 - q0) * (k / n)) * 1000) / 1000, z = Math.round((z0 + (zJamb - z0) * (k / n)) * 100) / 100;
     const set = k < 5 ? 8 : k < 13 ? 9 : 10; // the thresholds at the fourth and twelfth keys, soft
@@ -158,38 +169,38 @@ function walk(): DollyKey[] {
   // the wing: in through the door, up the steps (the rise spread over the stride, the way an eye takes stairs), and
   // along the stage from its side to the centre, slowing into the stop where the degree is handed over
   const S = STAGE.height, w0 = STAGE.wing[0];
-  keys.push(K(11.08, [X, 1.6, w0 + 1.2], [X, 1.4, w0 + 5.2], 11, { blend: 1 }));
-  keys.push(K(11.22, [X, 1.6 + S, 27.3], [X, 1.45 + S, 31.3], 11)); // up on the stage
-  keys.push(K(11.36, [X, 1.6 + S, 29.4], [X, 1.4 + S, 33.4], 11));
-  keys.push(K(11.5, [X, 1.6 + S, 31.5], [X, 1.4 + S, 35.5], 11));
-  keys.push(K(11.66, [X, 1.6 + S, STAGE.centre], [X, 1.4 + S, STAGE.centre + 4], 11)); // the centre: the degree
+  keys.push(K(12.08, [X, 1.6, w0 + 1.2], [X, 1.4, w0 + 5.2], 11, { blend: 1 }));
+  keys.push(K(12.22, [X, 1.6 + S, 27.3], [X, 1.45 + S, 31.3], 11)); // up on the stage
+  keys.push(K(12.36, [X, 1.6 + S, 29.4], [X, 1.4 + S, 33.4], 11));
+  keys.push(K(12.5, [X, 1.6 + S, 31.5], [X, 1.4 + S, 35.5], 11));
+  keys.push(K(12.66, [X, 1.6 + S, STAGE.centre], [X, 1.4 + S, STAGE.centre + 4], 11)); // the centre: the degree
   // the turn to the hall: a quarter chapter right, from +z to +x, the crowd on its feet
-  keys.push(K(11.78, [X, 1.6 + S, STAGE.centre], [X + 2.0, 1.45 + S, STAGE.centre + 3.5], 11));
-  keys.push(K(11.9, [X, 1.6 + S, STAGE.centre], [X + 3.6, 1.5 + S, STAGE.centre + 1.8], 11));
-  keys.push(K(12.0, [X, 1.6 + S, STAGE.centre], [X + 4, 1.55 + S, STAGE.centre], 11)); // facing the crowd
+  keys.push(K(12.78, [X, 1.6 + S, STAGE.centre], [X + 2.0, 1.45 + S, STAGE.centre + 3.5], 11));
+  keys.push(K(12.9, [X, 1.6 + S, STAGE.centre], [X + 3.6, 1.5 + S, STAGE.centre + 1.8], 11));
+  keys.push(K(13, [X, 1.6 + S, STAGE.centre], [X + 4, 1.55 + S, STAGE.centre], 11)); // facing the crowd
   // out: straight on along the stage, past the leg, backstage to the door in the north wall; through it, Floqer's hacker
   // house; across it to the stair on the left, straight up it to the door at the top, and home: his apartment, the first
   // room, the way he left it (a cut at the door, like the phone's), where the story stops. The last card runs 2.6 chapters.
   const D = STAGE.door, ST = FLOQER.stair, SY = (z: number) => 1.6 + stairY(z), Z1 = FLOQER.z[1];
-  keys.push(K(12.14, [X, 1.6 + S, 34.3], [X + 2.0, 1.5 + S, 37.8], 11)); // turning back to the stage's length
-  keys.push(K(12.28, [X, 1.6 + S, 35.8], [X + 0.2, 1.4 + S, 39.8], 11));
-  keys.push(K(12.45, [X, 1.6 + S, 38.2], [X, 1.4 + S, 42.2], 11));
-  keys.push(K(12.62, [X, 1.6 + S, 40.6], [X, 1.4 + S, 44.6], 11)); // past the leg, backstage
-  keys.push(K(12.8, [X, 1.6 + S, 43.0], [X, 1.4 + S, 47.0], 11));
-  keys.push(K(13.0, [X, 1.6 + S, 45.6], [X, 1.4 + S, 49.6], 11)); // the door ahead, opening
-  keys.push(K(13.12, [X, 1.6 + S, D.z - 0.6], [X, 1.4 + S, D.z + 3.4], 11, { blend: 0 })); // the jamb
-  keys.push(K(13.24, [X, 1.6 + S, D.z + 0.9], [X, 1.4 + S, D.z + 4.9], 12, { blend: 1 })); // in: Floqer's
-  keys.push(K(13.4, [-10.2, 2.6, D.z + 2.6], [-9.0, 2.35, D.z + 6.6], 12)); // the T ahead
-  keys.push(K(13.55, [-9.4, 2.6, D.z + 4.4], [-8.2, 2.3, D.z + 8.4], 12));
-  keys.push(K(13.7, [-8.4, 2.6, D.z + 6.0], [-6.6, 2.4, D.z + 9.6], 12)); // past the bar's end
-  keys.push(K(13.85, [-6.4, 2.6, D.z + 7.6], [ST.x, 2.9, ST.z0 + 1.4], 12)); // turning to the stair
-  keys.push(K(13.97, [ST.x, 2.6, ST.z0 - 0.7], [ST.x, 3.5, Z1], 12)); // its foot: the door at the top, straight ahead
-  keys.push(K(14.1, [ST.x, SY(ST.z0 + 0.9), ST.z0 + 0.9], [ST.x, SY(ST.z0 + 0.9) + 0.6, Z1], 12)); // climbing
-  keys.push(K(14.25, [ST.x, SY(Z1 - 0.9), Z1 - 0.9], [ST.x, SY(Z1 - 0.9) - 0.1, Z1 + 0.2], 12)); // the top step: the door, opening
-  keys.push(K(14.38, [ST.x, SY(Z1 - 0.4), Z1 - 0.4], [ST.x, SY(Z1 - 0.4) - 0.12, Z1 + 1.2], 12)); // the door open, the landing beyond
-  keys.push(K(14.44, [ST.x, SY(Z1 - 0.1), Z1 - 0.1], [ST.x, SY(Z1 - 0.1) - 0.1, Z1 + 1.6], 12, { blend: 0 })); // the jamb: the cut
-  keys.push(K(14.5, [-5.45, 1.58, 1.9], [-6.5, 1.35, -0.8], 0, { blend: 1, portal: true })); // home: in through his own front door
-  keys.push(K(14.6, [-5.45, 1.58, 1.9], [-6.5, 1.35, -0.8], 0)); // and the story stops here, the room ahead: the bed, the window, the desk
+  keys.push(K(13.14, [X, 1.6 + S, 34.3], [X + 2.0, 1.5 + S, 37.8], 11)); // turning back to the stage's length
+  keys.push(K(13.28, [X, 1.6 + S, 35.8], [X + 0.2, 1.4 + S, 39.8], 11));
+  keys.push(K(13.45, [X, 1.6 + S, 38.2], [X, 1.4 + S, 42.2], 11));
+  keys.push(K(13.62, [X, 1.6 + S, 40.6], [X, 1.4 + S, 44.6], 11)); // past the leg, backstage
+  keys.push(K(13.8, [X, 1.6 + S, 43.0], [X, 1.4 + S, 47.0], 11));
+  keys.push(K(14, [X, 1.6 + S, 45.6], [X, 1.4 + S, 49.6], 11)); // the door ahead, opening
+  keys.push(K(14.12, [X, 1.6 + S, D.z - 0.6], [X, 1.4 + S, D.z + 3.4], 11, { blend: 0 })); // the jamb
+  keys.push(K(14.24, [X, 1.6 + S, D.z + 0.9], [X, 1.4 + S, D.z + 4.9], 12, { blend: 1 })); // in: Floqer's
+  keys.push(K(14.4, [-10.2, 2.6, D.z + 2.6], [-9.0, 2.35, D.z + 6.6], 12)); // the T ahead
+  keys.push(K(14.55, [-9.4, 2.6, D.z + 4.4], [-8.2, 2.3, D.z + 8.4], 12));
+  keys.push(K(14.7, [-8.4, 2.6, D.z + 6.0], [-6.6, 2.4, D.z + 9.6], 12)); // past the bar's end
+  keys.push(K(14.85, [-6.4, 2.6, D.z + 7.6], [ST.x, 2.9, ST.z0 + 1.4], 12)); // turning to the stair
+  keys.push(K(14.97, [ST.x, 2.6, ST.z0 - 0.7], [ST.x, 3.5, Z1], 12)); // its foot: the door at the top, straight ahead
+  keys.push(K(15.1, [ST.x, SY(ST.z0 + 0.9), ST.z0 + 0.9], [ST.x, SY(ST.z0 + 0.9) + 0.6, Z1], 12)); // climbing
+  keys.push(K(15.25, [ST.x, SY(Z1 - 0.9), Z1 - 0.9], [ST.x, SY(Z1 - 0.9) - 0.1, Z1 + 0.2], 12)); // the top step: the door, opening
+  keys.push(K(15.38, [ST.x, SY(Z1 - 0.4), Z1 - 0.4], [ST.x, SY(Z1 - 0.4) - 0.12, Z1 + 1.2], 12)); // the door open, the landing beyond
+  keys.push(K(15.44, [ST.x, SY(Z1 - 0.1), Z1 - 0.1], [ST.x, SY(Z1 - 0.1) - 0.1, Z1 + 1.6], 12, { blend: 0 })); // the jamb: the cut
+  keys.push(K(15.5, [-5.45, 1.58, 1.9], [-6.5, 1.35, -0.8], 0, { blend: 1, portal: true })); // home: in through his own front door
+  keys.push(K(15.6, [-5.45, 1.58, 1.9], [-6.5, 1.35, -0.8], 0)); // and the story stops here, the room ahead: the bed, the window, the desk
   return keys;
 }
 

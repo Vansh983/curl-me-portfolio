@@ -37,7 +37,7 @@ import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE, TROPHY } from '../lib/stage/f
 import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
-import { stageProgress, STAGE_SPAN, LAST_SPAN } from '../lib/stage/shot.ts';
+import { stageProgress, STAGE_SPAN, LAST_SPAN, CARD_SPAN, chapterStart } from '../lib/stage/shot.ts';
 import { showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
 import { painters, loadImage, canvas2d, tourLive, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, beanPaint, type Paint, type Images } from './stage-paint.ts';
@@ -410,8 +410,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     mixers: [] as AnimationMixer[],
     backdrops: [] as SetScoped<Object3D>[],
     flight: [] as Array<{ obj: Object3D; base: [number, number, number] }>,
-    drops: [] as Array<{ obj: Object3D; from: number; to: number; by: number; base: number }>,
-    picks: [] as Array<{ obj: Object3D; at: number }>, // things that leave their place for the hands at a stage progress (the trophy) // things that lower with the stage progress: the projection screen
+    drops: [] as Array<{ obj: Object3D; from: number; to: number; by: number; base: number }>, // things that lower with the stage progress: the projection screen
   };
   // the world under the aircraft: `flightRoll` at the cabin rolls with the bank (the sky with it, so the horizon tilts);
   // inside it `flightWorld` sinks with the altitude and slides aft with the ground track
@@ -524,7 +523,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (name === 'city') g.add(streetLightPoints()); // the streets below, a light every 28 m
     if (p.live === 'door' && p.door) live.doors.push({ obj: g, from: p.door[0], to: p.door[1], base: (p.rot?.[1] ?? 0) * D });
     if (p.drop) live.drops.push({ obj: g, from: p.drop[0], to: p.drop[1], by: p.drop[2], base: p.at[1] });
-    if (p.live === 'award' && p.pick !== undefined) live.picks.push({ obj: g, at: p.pick });
     if (name === 'downlight' && p.live === 'downlight' && !baked) {
       const light = new PointLight('#FFF0DC', 28, 14, 1.6); // a recessed can six metres up: a pool on the tier below
       light.position.set(0, -0.15, 0);
@@ -883,23 +881,25 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   function yFor(q: number): number { // hoisted: __stage takes it before this line runs
     const c = Math.min(1, Math.max(0, q)) * STAGE_SPAN, last = articles.length - 1;
     const tops = articles.map((a) => a.offsetTop), base = root.getBoundingClientRect().top + scrollY;
-    if (c >= last) return base + tops[last] + (c - last) * (tops[last] - tops[last - 1]); // the last card runs LAST_SPAN chapter lengths down its own height (it is a viewport taller than that, so the stage stays pinned to its end)
-    const i = Math.min(last - 1, Math.floor(c));
-    return base + tops[i] + (c - i) * (tops[i + 1] - tops[i]);
+    const lastStart = chapterStart(last);
+    if (c >= lastStart) return base + tops[last] + (c - lastStart) * (tops[last] - tops[last - 1]); // the last card runs LAST_SPAN chapter lengths down its own height (it is a viewport taller than that, so the stage stays pinned to its end)
+    let i = 0;
+    while (i < last - 1 && c >= chapterStart(i + 1)) i++;
+    return base + tops[i] + ((c - chapterStart(i)) / (CARD_SPAN[i] ?? 1)) * (tops[i + 1] - tops[i]); // a card that runs two chapters spends its height on both
   }
   const progress = () => {
     if (articles.length < 2) return 0;
     const y = -root.getBoundingClientRect().top;
     const tops = articles.map((a) => a.offsetTop), last = tops.length - 1;
     let c: number;
-    if (y >= tops[last]) c = last + Math.min(LAST_SPAN, Math.max(0, (y - tops[last]) / Math.max(1, tops[last] - tops[last - 1]))); // the last card: LAST_SPAN chapter lengths down its own height
+    if (y >= tops[last]) c = chapterStart(last) + Math.min(LAST_SPAN, Math.max(0, (y - tops[last]) / Math.max(1, tops[last] - tops[last - 1]))); // the last card: LAST_SPAN chapter lengths down its own height
     else {
       let i = 0;
       while (i < last - 1 && y >= tops[i + 1]) i++;
       const span = Math.max(1, tops[i + 1] - tops[i]);
-      c = i + Math.min(1, Math.max(0, (y - tops[i]) / span));
+      c = chapterStart(i) + (CARD_SPAN[i] ?? 1) * Math.min(1, Math.max(0, (y - tops[i]) / span));
     }
-    return Math.max(0, c / (chapters - 1)); // above 1 inside the last card; stageProgress measures it against the span
+    return Math.max(0, c / (chapters - 1)); // in units of (chapters - 1), as stageProgress expects; above 1 inside the last card
   };
 
   /** Switches the light to a set: environment, tint, exposure, fog. Called while the frame is in a doorway. */
@@ -1105,8 +1105,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (showLaptop && !heldLaptop.visible) tourShown = now;
     heldLaptop.visible = showLaptop;
     heldLaptop.position.y = -0.45 * (1 - lift * lift * (3 - 2 * lift));
-    for (const k of live.picks) k.obj.visible = mainFrame.q < k.at;
-    { // the trophy: from the table's corner up into the hands, held out to the balcony
+    { // the trophy: up into the hands on the balcony, the bay behind
       const t = Math.max(0, Math.min(1, (mainFrame.q - TROPHY.raise) / (TROPHY.held - TROPHY.raise)));
       heldTrophy.visible = mainFrame.set === 3 && t > 0;
       if (heldTrophy.visible && heldTrophy.children.length === 0) heldTrophy.add(placeBuilt('trophy', { build: 'trophy', at: [0, 0, 0] }));

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DOLLY, makeDolly, APPROACH_SCALE } from '../../src/lib/stage/dolly.ts';
-import { STAGE_SPAN } from '../../src/lib/stage/shot.ts';
+import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
+import { STAGE_SPAN, approach } from '../../src/lib/stage/shot.ts';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { SETS, FLOQER } from '../../src/lib/stage/sets.ts';
 import { BUILT } from '../../src/lib/stage/built.ts';
@@ -16,18 +16,26 @@ const cameraAt = (q: number) => {
   return camera;
 };
 
-test('the balcony frames the Golden Gate before the cut to Delhi', () => {
+test('the balcony frames the bay and the Golden Gate as the trophy comes up', () => {
   const bridge = SETS[3].props.find((p) => p.build === 'goldenGate')!;
-  for (const q of [0.76, 0.782]) {
-    const p = new Vector3(bridge.at[0], bridge.at[1] + 227 * 0.5, bridge.at[2]).project(cameraAt(q * APPROACH_SCALE)); // a tower's top, from the balcony
-    assert.ok(Math.abs(p.x) < 0.6 && Math.abs(p.y) < 0.8 && p.z < 1, `the bridge out of frame at ${q}: ${p.toArray()}`);
+  for (const q of [0.78, 0.788]) {
+    const p = new Vector3(bridge.at[0], bridge.at[1] + 227 * 0.5 * 0.5, bridge.at[2]).project(cameraAt(approach(q))); // the bridge's middle, half a tower up
+    assert.ok(Math.abs(p.x) < 0.9 && Math.abs(p.y) < 0.9 && p.z < 1, `the bridge out of frame at ${q}: ${p.toArray()}`);
+  }
+});
+
+test('the 2020 room\'s door stays in view on the last steps along the balcony', () => {
+  const shell = SETS[4].shell!, door = shell.openings.find((o) => o.wall === 'z-')!;
+  for (const q of [0.802, 0.805]) {
+    const p = new Vector3(door.at, Math.min(1.5, door.h), shell.z[0]).project(cameraAt(approach(q)));
+    assert.ok(Math.abs(p.x) < 0.85 && Math.abs(p.y) < 0.85 && p.z < 1, `door out of frame at ${q}: ${p.toArray()}`);
   }
 });
 
 test('the Delhi desk views keep the full awards shelf in frame on a laptop', () => {
   const awards = SETS[4].props.find((p) => p.build === 'awards')!;
   for (const q of [0.838, 0.866]) {
-    const camera = cameraAt(q * APPROACH_SCALE);
+    const camera = cameraAt(approach(q));
     for (const part of BUILT.awards()) for (let i = 0; i < part.pos.length; i += 3) {
       const p = new Vector3(part.pos[i], part.pos[i + 1], part.pos[i + 2]);
       p.applyAxisAngle(new Vector3(0, 1, 0), (awards.rot?.[1] ?? 0) * Math.PI / 180).add(new Vector3(...awards.at)).project(camera);
@@ -98,7 +106,7 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[0], -5.45, 2.3), `${jambs[0].cam}`);
   assert.ok(at(jambs[1], -4.85, 6.6), `${jambs[1].cam}`);
   assert.ok(at(jambs[2], 1.4, 4.75), `${jambs[2].cam}`);
-  assert.ok(at(jambs[3], 1.6, -7.0), `${jambs[3].cam}`); // the balcony over the bay: the cut to the 2020 room
+  assert.ok(at(jambs[3], -0.7, -0.1), `${jambs[3].cam}`); // the 2020 room's south door, off Google's balcony
   assert.ok(at(jambs[4], -2.35, 1.6), `${jambs[4].cam}`); // its west door, into the passage to the brick door
   assert.ok(at(jambs[5], WINDOW_VIEW.cam[0], WINDOW_VIEW.cam[2]), `${jambs[5].cam}`);
   assert.ok(at(jambs[6], -1.3, -15.8), `${jambs[6].cam}`); // the auditorium's front west door, out to Sydney
@@ -111,7 +119,7 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.equal(dolly(1).set, 0); // home
   assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);
   // heading north through the south door, the desk on the far wall dead ahead
-  const inRoom = dolly(jambs[3].q + 0.02);
+  const inRoom = dolly(jambs[3].q + 0.008); // a step inside the door
   assert.equal(inRoom.set, 4);
   assert.ok(inRoom.look[2] - inRoom.cam[2] > 1.5 && Math.abs(inRoom.look[0] - inRoom.cam[0]) < 0.6, `${inRoom.cam} -> ${inRoom.look}`);
 });
