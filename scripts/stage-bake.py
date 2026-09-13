@@ -5,7 +5,12 @@ mesh names `kind|prop|surface|live`). Output: .cache/bake/set<i>_baked.glb (the 
 second uv set, `Lightmap`), .cache/bake/set<i>_lm.png (sRGB, irradiance / SCALE), and a Cycles render
 from the set's first dolly key for review. scripts/stage-bake.mjs wraps this and compresses the outputs.
 
-    blender -b -P scripts/stage-bake.py -- <set> [samples=256] [size=2048] [preview=1]
+    blender -b -P scripts/stage-bake.py -- <set> [samples=256] [size=2048] [preview=1] [env]
+
+A set with a shell also gets .cache/bake/set<i>_env.png: the room seen from its centre as an equirectangular
+panorama, radiance / SCALE, sRGB. The runtime uses it as that set's environment map, so the parquet and the
+glass reflect the room itself and not three's studio, whose light panels are far brighter than any room.
+`env` as the fourth argument renders only that panorama and skips the bake.
 """
 import bpy, json, math, os, re, sys
 from mathutils import Vector
@@ -15,6 +20,7 @@ SET = int(argv[0])
 SAMPLES = int(argv[1]) if len(argv) > 1 else 256
 SIZE = int(argv[2]) if len(argv) > 2 else 2048
 PREVIEW = int(argv[3]) if len(argv) > 3 else 1
+ENV_ONLY = len(argv) > 4 and argv[4] == "env"
 SCALE = 4.0  # the lightmap stores irradiance / SCALE, the runtime multiplies back
 ROOT = os.getcwd()
 SRC = f"{ROOT}/.cache/bake/set{SET}.glb"
@@ -22,6 +28,7 @@ MANIFEST = json.load(open(f"{ROOT}/.cache/bake/set{SET}.json"))
 OUT_GLB = f"{ROOT}/.cache/bake/set{SET}_baked.glb"
 OUT_LM = f"{ROOT}/.cache/bake/set{SET}_lm.png"
 OUT_PREVIEW = f"{ROOT}/.cache/bake/set{SET}_render.png"
+OUT_ENV = f"{ROOT}/.cache/bake/set{SET}_env.png"
 
 # what never enters the bake (far backdrops the runtime keeps drawing), what emits, what stays live
 DROP_LIVE = {"city", "sky", "water", "flight"}
@@ -215,8 +222,8 @@ if shell:
     x0, x1 = shell["x"]
     z0, z1 = shell["z"]
     for op in shell["openings"]:
-        if "sill" not in op:
-            continue  # a door: the next room lights it
+        if "sill" not in op or op.get("door"):
+            continue  # a door: the next room lights it (a raised door, at the top of a stair, says so)
         # a window: an area light just outside, the size of the opening, the sky's colour
         w, h = op["w"], op["h"]
         cy = shell.get("y", 0) + (op.get("sill", 0) + h / 2)
@@ -247,6 +254,50 @@ for i, L in enumerate(MANIFEST["lights"]):
     lo = bpy.data.objects.new(f"Point{i}", ld)
     lo.location = (L["at"][0], -L["at"][2], L["at"][1])
     scene.collection.objects.link(lo)
+
+# ---- the room as an environment map: an equirectangular panorama from the room's centre at eye height
+def render_env():
+    sh, view = MANIFEST.get("shell"), MANIFEST.get("view")
+    if not sh or not view or MANIFEST["env"] != "studio":
+        return  # outdoors the runtime's sky is the environment
+    cd = bpy.data.cameras.new("EnvCam")
+    cd.type = "PANO"
+    cd.panorama_type = "EQUIRECTANGULAR"
+    co = bpy.data.objects.new("EnvCam", cd)
+    scene.collection.objects.link(co)
+    p = view["cam"]  # from where the walk first stands in the room: open floor by construction, where the centre may be a table
+    co.location = (p[0], -p[2], p[1])
+    people = [ob for ob in live if json.loads(ob["info"])["live"] == "person"]  # the runtime dresses them; here they are white
+    for ob in people:
+        ob.hide_render = True
+    co.rotation_euler = (math.radians(90), 0, 0)  # a panorama camera looks down its -z: stand it up, and the seam falls behind
+    prev = scene.camera, scene.render.resolution_x, scene.render.resolution_y, scene.cycles.samples, scene.cycles.use_denoising, scene.render.filepath
+    scene.camera = co
+    scene.render.resolution_x, scene.render.resolution_y = 1024, 512
+    scene.render.resolution_percentage = 100
+    scene.cycles.samples = max(64, SAMPLES // 4)
+    scene.cycles.use_denoising = True
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.image_settings.color_mode = "RGB"
+    scene.render.image_settings.color_depth = "8"
+    try:
+        scene.view_settings.view_transform = "Standard"  # radiance as it is, no film curve: the runtime lights with it
+    except TypeError:
+        pass
+    scene.view_settings.look = "None"
+    scene.view_settings.exposure = -math.log2(SCALE)  # stored / SCALE like the lightmap; the runtime multiplies back
+    scene.render.filepath = OUT_ENV
+    bpy.ops.render.render(write_still=True)
+    scene.camera, scene.render.resolution_x, scene.render.resolution_y, scene.cycles.samples, scene.cycles.use_denoising, scene.render.filepath = prev
+    for ob in people:
+        ob.hide_render = False
+    scene.view_settings.exposure = 0
+    print(f"[bake] environment {OUT_ENV}")
+
+
+if ENV_ONLY:
+    render_env()
+    sys.exit(0)
 
 # ---- lightmap uv: one atlas across every static mesh, islands sized by their area
 bpy.ops.object.select_all(action="DESELECT")
@@ -391,3 +442,5 @@ if PREVIEW and view:
     scene.render.filepath = OUT_PREVIEW
     bpy.ops.render.render(write_still=True)
     print(f"[bake] preview {OUT_PREVIEW}")
+
+render_env()

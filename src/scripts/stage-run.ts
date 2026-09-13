@@ -257,6 +257,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const surfacePaint = new Map<string, CanvasTexture>();
   const mats = new Map<string, MeshStandardMaterial>();
   let flightEnvironment: WebGLRenderTarget | undefined;
+  const roomEnvironments = new Map<number, WebGLRenderTarget>(); // a baked room's own panorama (set<i>_env.webp), the environment its glass and parquet reflect
   const matFor = (name: string): MeshStandardMaterial => {
     let m = mats.get(name);
     if (m) return m;
@@ -511,7 +512,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (p.live === 'bulb' && 'mat' in piece.surface && piece.surface.mat === 'bulb') {
         const light = new PointLight('#FFC978', 3, 5, 1.6);
         light.position.set(1.5, 2.1, 0.6);
-        g.add(light);
+        if (!baked) g.add(light); // baked: the bulb's light is in the lightmap; lit twice, the closed landing behind the house's door went white
       }
       g.add(mesh);
     }
@@ -658,7 +659,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const loadBaked = async (i: number): Promise<void> => {
     const S = SETS[i];
     // the map and the mesh together: a baked room shown before its lightmap arrives draws black (its direct light is off by design)
-    const [lm, g] = await Promise.all([texLoader.loadAsync(`/assets/stage/baked/set${i}_lm.webp`), gltf.loadAsync(`/assets/stage/baked/set${i}.glb`)]);
+    const [lm, g, env] = await Promise.all([texLoader.loadAsync(`/assets/stage/baked/set${i}_lm.webp`), gltf.loadAsync(`/assets/stage/baked/set${i}.glb`),
+      texLoader.loadAsync(`/assets/stage/baked/set${i}_env.webp`).catch(() => undefined)]); // the panorama is optional: a room baked before it had one keeps the studio
+    if (env) {
+      env.colorSpace = SRGBColorSpace;
+      roomEnvironments.set(i, pmrem.fromEquirectangular(env)); // radiance / LM_SCALE: enter() multiplies back
+      env.dispose();
+      if (curSet === i) scene.environment = roomEnvironments.get(i)!.texture;
+    }
     lm.flipY = false;
     lm.channel = 1;
     lm.colorSpace = SRGBColorSpace;
@@ -905,7 +913,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     });
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion
-    scene.environment = i === 5 && flightEnvironment ? flightEnvironment.texture : S.env === 'sky' ? skyEnv : studioEnv;
+    scene.environment = roomEnvironments.get(i)?.texture ?? (i === 5 && flightEnvironment ? flightEnvironment.texture : S.env === 'sky' ? skyEnv : studioEnv);
     const span = i === 5 ? 140 : 7;
     Object.assign(sun.shadow.camera, { left: -span, right: span, top: span, bottom: -span, far: i === 5 ? 450 : 80 });
     sun.shadow.camera.updateProjectionMatrix();
@@ -941,7 +949,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const A: StageSet = SETS[f.from], B: StageSet = SETS[f.into];
     const t = f.from === f.into ? 0 : f.blend * f.blend * (3 - 2 * f.blend);
     const mix = (a: number, b: number) => a + (b - a) * t;
-    scene.environmentIntensity = mix(A.envPower, B.envPower);
+    const envOf = (k: number, S: StageSet) => S.envPower * (roomEnvironments.has(k) ? LM_SCALE : 1); // the room's own map stores radiance / LM_SCALE
+    scene.environmentIntensity = mix(envOf(f.from, A), envOf(f.into, B));
     hemi.intensity = mix(A.tint.power, B.tint.power);
     hemi.color.set(A.tint.sky).lerp(new Color(B.tint.sky), t);
     hemi.groundColor.set(A.tint.ground).lerp(new Color(B.tint.ground), t);
@@ -1191,6 +1200,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     video.pause();
     pmrem.dispose();
     flightEnvironment?.dispose();
+    roomEnvironments.forEach((r) => r.dispose());
     mats.get('flightSky')?.map?.dispose();
     phone.dispose();
     composer.dispose();

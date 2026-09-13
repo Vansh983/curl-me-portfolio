@@ -69,3 +69,15 @@ test('an inner wall has two faces cut round its door, two jambs and a lintel, al
     else assert.ok(Math.abs(nz) > 0.5 || ny < -0.5, `reveal normal ${[nx, ny, nz]}`);
   }
 });
+
+test('a raised floor lifts the walls with it: every wall vertex lies between the floor and the ceiling', () => {
+  const house = SETS[12].shell!;
+  assert.ok(house.y! > 0);
+  const { floor, walls, ceiling } = buildShell(house);
+  const ys = (s: { pos: Float32Array }) => Array.from({ length: s.pos.length / 3 }, (_, i) => s.pos[i * 3 + 1]);
+  assert.ok(ys(floor).every((y) => Math.abs(y - house.y!) < 1e-6));
+  assert.ok(ys(ceiling).every((y) => Math.abs(y - house.y! - house.h) < 1e-6));
+  const wy = ys(walls);
+  assert.ok(Math.abs(Math.min(...wy) - house.y!) < 1e-6, `the walls start at ${Math.min(...wy)}, the floor at ${house.y}`);
+  assert.ok(Math.abs(Math.max(...wy) - house.y! - house.h) < 1e-6, `the walls end at ${Math.max(...wy)}, the ceiling at ${house.y! + house.h}`);
+});

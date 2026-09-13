@@ -20,7 +20,7 @@ import { ch } from './shot.ts';
 export type V3 = [number, number, number];
 
 /** A hole in a wall. `at` is the world coordinate along the wall, `sill` the bottom height (0 for a door). */
-export interface Opening { wall: 'x+' | 'x-' | 'z+' | 'z-'; at: number; w: number; h: number; sill?: number }
+export interface Opening { wall: 'x+' | 'x-' | 'z+' | 'z-'; at: number; w: number; h: number; sill?: number; door?: true } // a raised opening is a window to the bake (it lights it as sky) unless marked a door
 /** A partition inside the shell, `from` to `to` on the floor, `t` thick (default 0.12), doors measured along it from `from`. */
 export interface InnerWall { from: [number, number]; to: [number, number]; t?: number; doors?: Array<{ at: number; w: number; h: number }> }
 
@@ -163,7 +163,7 @@ export const STAGE = {
 /** The house's raked floor: ten tiers of 0.16 m every 2.7 m from 5.4 m past the stage's front to the back wall. */
 export const houseFloorY = (x: number): number => (x <= STAGE.hall[0] + 5.4 ? 0 : 0.16 * Math.min(10, Math.floor((x - STAGE.hall[0] - 5.4) / 2.7) + 1));
 /** Floqer's hacker house: north of the hall's backstage, its floor at the stage's height, 12 by 12 m, the windows on Toronto to the west, the stair to his door on the east wall. */
-export const FLOQER = { x: [-16, -4] as [number, number], z: [50, 62] as [number, number], floor: STAGE.door.floor, h: 3.6, stair: { x: -5.0, z0: 55.6, n: 14, rise: 0.171, run: 0.28, w: 1.1 }, door: { x: -5.5, w: 1.0, h: 2.1 } } as const;
+export const FLOQER = { x: [-16, -4] as [number, number], z: [50, 62] as [number, number], floor: STAGE.door.floor, h: 3.6, stair: { x: -5.0, z0: 55.6, n: 8, rise: 0.171, run: 0.28, w: 1.1 }, door: { x: -5.5, w: 1.0, h: 2.1 } } as const;
 /** The height of the office's stair at z, from its foot to the landing. */
 export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stair.n, Math.max(0, (z - FLOQER.stair.z0) / FLOQER.stair.run)) * FLOQER.stair.rise;
 export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
@@ -608,7 +608,7 @@ export const SETS: StageSet[] = [
     // Bean one and messier: the T of tables with the monitors back to back and the team at them, the whiteboards, the boxes,
     // suitcase and mattresses of a rented place people ship from, the mark on the brick, downtown Toronto out of the west
     // windows, and the stair up the east wall to a door: his apartment.
-    id: 'floqer', env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 0.5, baked: true,
+    id: 'floqer', env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 1.0, baked: true, // envPower 1: the room's own panorama is the environment (set12_env.webp), at its baked brightness
     sun: { dir: [-0.75, 0.55, 0.3], color: '#FFE4BE', power: 2.0, shadow: 0.85 },
     fog: { color: '#C9D7E3', near: 60, far: 900 },
     shell: {
@@ -616,16 +616,17 @@ export const SETS: StageSet[] = [
       floor: 'condoFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
       openings: [
         { wall: 'z-', at: STAGE.door.x, w: STAGE.door.w, h: STAGE.door.h }, // in from the hall's passage, heading north
-        { wall: 'z+', at: FLOQER.door.x, w: FLOQER.door.w, h: FLOQER.door.h, sill: FLOQER.stair.n * FLOQER.stair.rise }, // the door at the top of the stair
+        { wall: 'z+', at: FLOQER.door.x, w: FLOQER.door.w, h: FLOQER.door.h, sill: FLOQER.stair.n * FLOQER.stair.rise, door: true }, // the door at the top of the stair: raised, so the bake must be told it is not a window
         ...[52.5, 57.5].map((z) => ({ wall: 'x-' as const, at: z, w: 3.2, h: 1.55, sill: 0.75 })), // the windows on the street
       ],
     },
     props: [
       ...(() => {
         const F = FLOQER.floor, out: Placement[] = [];
-        out.push({ build: 'torontoDay', at: [FLOQER.x[0] - 100, F - 3, 55], live: 'city', shadow: false, cap: 'Downtown Toronto, outside the window.' });
+        // the quay's top sits 0.35 below the floor: level with it, the two planes fought and the pale concrete showed through the parquet in patches
+        out.push({ build: 'torontoDay', at: [FLOQER.x[0] - 100, F - 3 - 0.35, 55], live: 'city', shadow: false, cap: 'Downtown Toronto, outside the window.' });
         for (const z of [52.5, 57.5]) out.push({ build: 'sydneyWindow', at: [FLOQER.x[0], F + 0.75, z], rot: [0, 90, 0], scale: [0.8, 1, 1] });
-        out.push({ build: 'brickWall', at: [-10, F, FLOQER.z[1] - 0.05], scale: [0.667, 1, 1] });
+        out.push({ build: 'brickWall', at: [(FLOQER.x[0] + FLOQER.x[1]) / 2, F, FLOQER.z[1] - 0.05] });
         out.push({ build: 'floqerSign', at: [-11.2, F + 2.3, FLOQER.z[1] - 0.1], rot: [0, 180, 0], live: 'screen', cap: 'Floqer. The orchestration engine behind enterprise go to market automation.' });
         // the T: the bar of two tables across the room, the stem down from its middle; monitors back to back along both
         out.push({ build: 'hackerTable', at: [-13.7, F, 57.2], cap: 'The tables. Floqer is built here.' });
@@ -665,6 +666,7 @@ export const SETS: StageSet[] = [
         out.push({ build: 'whiteboardFloqerB', at: [FLOQER.x[1] - 0.04, F + 1.5, 53.9], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the year, and Disrupt.' });
         // the stair up the east wall to the door, its rail on the open side, a light over it
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
+        out.push({ build: 'landing', at: [FLOQER.door.x + 0.6, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], scale: [0.667, 1, 1], live: 'bulb' }); // behind the door: a closed landing, 2 m, so the door opens onto it and not the sky
         out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(14.28), ch(14.42)] }); // hinged on the east jamb, it swings out
         out.push({ build: 'discLight', at: [-5.5, F + 3.6, 58.5], live: 'pendant' });
         // the mess of a rented place: boxes still packed, a suitcase, a bin bag, a crate, the mattresses and pillows, the shoes by the door

@@ -168,6 +168,24 @@ const cabinSkin = (): Sink => { if (!cabinSkinSink) BUILT.aircraftCabin(); retur
 const CABIN_SECTION: Array<[number, number]> = [[1.15, 0], [1.32, 0.12], [1.37, 0.35], [1.37, 0.8], [1.35, 1.2], [1.3, 1.5], [1.2, 1.7], [1.0, 1.88], [0.72, 2.0], [0.4, 2.06], [0, 2.08]];
 
 
+/** A corridor 3 by 1.2 by 2.4 along +x from the origin, walls and ceiling in one piece, a bulb at its middle; open at its near end, and at its far end when `through`. */
+function corridor(through: boolean): BuiltPart {
+  const sh = buildShell({
+    x: [0, 3], z: [0, 1.2], h: 2.4, floor: 'passageFloor', wall: 'passageWall',
+    openings: [{ wall: 'x-', at: 0.6, w: 1.2, h: 2.4 }, ...(through ? [{ wall: 'x+' as const, at: 0.6, w: 1.2, h: 2.4 }] : [])],
+  });
+  const wc = {
+    pos: new Float32Array([...sh.walls.pos, ...sh.ceiling.pos]), nor: new Float32Array([...sh.walls.nor, ...sh.ceiling.nor]), uv: new Float32Array([...sh.walls.uv, ...sh.ceiling.uv]),
+  };
+  const bulb = new Sink().sphere(1.5, 2.2, 0.6, 0.04, 0.05, 0.04, 14, 8).out();
+  const out: BuiltPart = [
+    { ...sh.floor, surface: M('passageFloor') },
+    { ...wc, surface: M('passageWall') },
+    piece(bulb, M('bulb'), { smooth: true }),
+  ];
+  return out;
+}
+
 export const BUILT: Record<string, () => BuiltPart> = {
   // ---- 2022: the crossing. Cabin in world coordinates; seats are local reusable assemblies.
   aircraftCabin: () => {
@@ -811,8 +829,20 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   /** Floqer's sign, 4 by 1.25, painted on clear (`floqer`): the orange mark and the word in white, for the brick. Faces +z. */
   floqerSign: () => [piece(face(4.0, 1.25, 0.012), { paint: 'floqer' })],
-  /** A brick wall panel 18 by 3.6 along x, 8 cm thick, standing on the floor: the office's north wall. */
-  brickWall: () => [piece(new Sink().box(0, 1.8, 0, 18, 3.6, 0.08).out(), M('condoBrick'), { metres: 'xy' })],
+  /**
+   * The brick panel on the house's north wall: the room's width by its height along x, 8 cm thick, standing on the floor,
+   * centred on the room, with the door at the top of the stair cut out of it (FLOQER.door, its sill the stair's top).
+   */
+  brickWall: () => {
+    const w = FLOQER.x[1] - FLOQER.x[0], h = FLOQER.h, t = 0.08, cx = (FLOQER.x[0] + FLOQER.x[1]) / 2;
+    const d0 = FLOQER.door.x - FLOQER.door.w / 2 - cx, d1 = FLOQER.door.x + FLOQER.door.w / 2 - cx, sill = FLOQER.stair.n * FLOQER.stair.rise, head = sill + FLOQER.door.h;
+    const s = new Sink();
+    s.box((-w / 2 + d0) / 2, h / 2, 0, d0 + w / 2, h, t); // west of the door
+    s.box((d1 + w / 2) / 2, h / 2, 0, w / 2 - d1, h, t); // east of it
+    s.box((d0 + d1) / 2, sill / 2, 0, d1 - d0, sill, t); // under its sill
+    s.box((d0 + d1) / 2, (head + h) / 2, 0, d1 - d0, h - head, t); // over its head
+    return [piece(s.out(), M('condoBrick'), { metres: 'xy' })];
+  },
   crowdRows: (): BuiltPart => {
     const { hall: [h0], hallZ: [hz0, hz1] } = STAGE, out: BuiltPart = [];
     for (let i = 0; i < 9; i++) {
@@ -1175,21 +1205,9 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** A door frame in a 0.9 × 2.05 opening: two jambs and a head, 0.3 deep so the wall reads thick on the way through; the opening runs along z. */
   doorFrame: () => [piece(new Sink().box(-0.5, 1.025, 0, 0.1, 2.05, 0.3).box(0.5, 1.025, 0, 0.1, 2.05, 0.3).box(0, 2.1, 0, 1.1, 0.1, 0.3).out(), M('frameWood'))],
   /** The passage: 3 m long, 1.2 wide, 2.4 high, open at both ends, a bulb halfway. Built with its floor at the origin corner. */
-  passage: () => {
-    const sh = buildShell({
-      x: [0, 3], z: [0, 1.2], h: 2.4, floor: 'passageFloor', wall: 'passageWall',
-      openings: [{ wall: 'x-', at: 0.6, w: 1.2, h: 2.4 }, { wall: 'x+', at: 0.6, w: 1.2, h: 2.4 }],
-    });
-    const wc = {
-      pos: new Float32Array([...sh.walls.pos, ...sh.ceiling.pos]), nor: new Float32Array([...sh.walls.nor, ...sh.ceiling.nor]), uv: new Float32Array([...sh.walls.uv, ...sh.ceiling.uv]),
-    };
-    const bulb = new Sink().sphere(1.5, 2.2, 0.6, 0.04, 0.05, 0.04, 14, 8).out();
-    return [
-      { ...sh.floor, surface: M('passageFloor') },
-      { ...wc, surface: M('passageWall') },
-      piece(bulb, M('bulb'), { smooth: true }),
-    ];
-  },
+  passage: () => corridor(true),
+  /** The landing behind the door at the top of the house's stair: the same corridor, its far end closed, so the door opens onto it and not the sky. */
+  landing: () => corridor(false),
   /** A beige keyboard: a slab and 6 rows of 15 keys. */
   keyboard: () => {
     const base = new Sink().rbox(0, 0.01, 0, 0.44, 0.02, 0.15, 0.005, 2);

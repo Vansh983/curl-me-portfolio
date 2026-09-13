@@ -2,7 +2,7 @@
 // Writes public/assets/stage/baked/set<i>.glb and set<i>_lm.webp. Run: node scripts/stage-bake.mjs <set> [samples] [size] [tex] [simplify-error]
 // tex: the props' own textures in the set file, 512 by default; the apartment (set 0) takes 384 to stay under 5 MB, the lightmap carries the light.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, statSync } from 'node:fs';
 import sharp from 'sharp';
 const set = process.argv[2] ?? '0', samples = process.argv[3] ?? '256', size = process.argv[4] ?? '2048', tex = process.argv[5] ?? (set === '0' ? '384' : '512');
 const simplify = Number(process.argv[6] ?? '0.002'); // 0 preserves close-up window curves and thin furniture hardware
@@ -15,5 +15,6 @@ execFileSync('npx', ['gltf-transform', 'optimize', `.cache/bake/set${set}_baked.
   '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', tex, '--simplify', String(simplify > 0), '--simplify-error', String(simplify), '--instance', 'false', '--palette', 'false', '--join', 'false', '--flatten', 'false',
   '--prune-attributes', 'false'], { stdio: 'inherit' }); // the lightmap uv (TEXCOORD_1) has no texture in the file: keep it
 await sharp(`.cache/bake/set${set}_lm.png`).webp({ quality: 90, smartSubsample: true }).toFile(`${out}/set${set}_lm.webp`); // smart chroma: plain 4:2:0 left colour blotches on dark walls
+if (existsSync(`.cache/bake/set${set}_env.png`)) await sharp(`.cache/bake/set${set}_env.png`).webp({ quality: 90, smartSubsample: true }).toFile(`${out}/set${set}_env.webp`); // the room's own environment map
 const kb = (f) => (statSync(f).size / 1024).toFixed(0);
 console.log(`set ${set}: ${kb(`${out}/set${set}.glb`)} KB glb, ${kb(`${out}/set${set}_lm.webp`)} KB lightmap`);

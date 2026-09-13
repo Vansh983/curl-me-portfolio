@@ -75,7 +75,7 @@ export function buildShell(s: Shell): { floor: Slab; walls: Slab; ceiling: Slab 
         return [c - o.w / 2, sill, c + o.w / 2, sill + o.h];
       });
     for (const [u0, v0, u1, v1] of cut(0, w.len, h, holes)) {
-      const o: P3 = [w.o[0] + w.a[0] * u0, v0, w.o[2] + w.a[2] * u0];
+      const o: P3 = [w.o[0] + w.a[0] * u0, y0 + v0, w.o[2] + w.a[2] * u0]; // v runs from the floor: a raised floor lifts the wall and its openings
       walls.rect(o, [w.a[0] * (u1 - u0), 0, w.a[2] * (u1 - u0)], [0, v1 - v0, 0], w.n, [u0 / tw, v0 / tw], (u1 - u0) / tw, (v1 - v0) / tw);
     }
   }

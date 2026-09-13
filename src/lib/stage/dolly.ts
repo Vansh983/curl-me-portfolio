@@ -184,8 +184,8 @@ function walk(): DollyKey[] {
   keys.push(K(13.7, [-8.8, 2.6, 54.4], [-7.6, 2.4, 58.0], 12)); // past the bar's end
   keys.push(K(13.85, [-7.6, 2.6, 55.4], [ST.x, 2.6, 58.4], 12)); // turning left to the stair
   keys.push(K(13.97, [-6.0, 2.6, 55.9], [ST.x, 3.1, 59.0], 12)); // its foot
-  keys.push(K(14.08, [ST.x, SY(57.1), 57.1], [ST.x, SY(57.1) + 1.0, 60.5], 12)); // climbing
-  keys.push(K(14.19, [ST.x, SY(58.4), 58.4], [ST.x, SY(58.4) + 0.7, 61.6], 12));
+  keys.push(K(14.08, [ST.x, SY(57.1), 57.1], [-5.5, SY(59.6) + 0.1, 61.9], 12)); // climbing, the door at the top in view
+  keys.push(K(14.19, [ST.x, SY(58.4), 58.4], [-5.5, SY(59.6) + 0.05, 62.1], 12));
   keys.push(K(14.3, [ST.x, SY(59.6), 59.6], [-5.5, SY(59.6) - 0.2, 62.4], 12)); // the landing: the door
   keys.push(K(14.4, [-5.5, SY(60.8), 60.8], [-5.5, SY(60.8) - 0.15, 62.6], 12)); // the door opening
   keys.push(K(14.48, [-5.5, SY(61.3), 61.3], [-5.5, SY(61.3) - 0.1, 63.0], 12, { blend: 0 })); // the jamb: the cut
