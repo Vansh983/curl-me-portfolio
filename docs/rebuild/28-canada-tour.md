@@ -194,3 +194,11 @@ Then he corrected it: not through the people; straight on along the stage; the o
 - **The house** (set 12, `FLOQER` x -16..-4, z 50..62, floor 1.0): the T, two tables across and one down from their middle, twelve monitors back to back, eight chairs, six of the team sitting at them (the rig's seated loops), laptops, wires, mugs, papers; two whiteboards on the east wall with only the card's words on them (`whiteboardFloqer`: the engine, Wise, Perplexity, AngelList; Oct 2025 to Apr 2026, $2M pre seed, Disrupt 2026, sticky notes with no words); moving boxes, a suitcase, a bin bag, a crate (Poly Haven, CC0), three mattresses with pillows, the shoe rack, the bin; the mark on the brick; downtown Toronto out of two west windows.
 - **The stair** (`stairFlight`, `FLOQER.stair`): fourteen steps up the east wall to a landing and a door in the north wall (`doorLeaf`, swinging out over 14.62 to 14.78). At its jamb the story cuts, the way the phone does (`portal`), to the inside of his own front door: set 0, the apartment at night, the way he left it. The stage's last set is 0 again; the tests know two portals.
 - Baked: set 11 (463 KB) and set 12 (3.49 MB). Frames: `.cache/fame2/house.png`, `.cache/fame2/home.png`.
+
+## The flashes, and sitting down (2026-09-12, late)
+
+He sent a frame from between rooms: black walls, a cream plane, Toronto's towers, and asked why it does not render properly. Two causes, both in the loader:
+
+- **A baked room drew black until its lightmap arrived.** `loadBaked` awaited the glb but only started the lightmap's download; the room was shown as soon as the mesh was in, and a baked material has its direct light and sky light switched off by design, so with no map yet it drew black. Only the live things (the city, its quay, the sign) had light. Now the map and the mesh are awaited together.
+- **Rooms loaded in order, 0 to 12.** A scroll that ran ahead of the loader met rooms that were not there yet. After the first room the loader now takes whichever unloaded room the scroll is nearest to (`loadNearestFirst` in stage-run.ts).
+- **The ending sits down**: through his own front door, across the room, into the chair at the desk, at the screens (keys 14.55 to 15.0); the house and the stair take 13.4 to 14.48.

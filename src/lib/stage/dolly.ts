@@ -180,17 +180,19 @@ function walk(): DollyKey[] {
   keys.push(K(13.12, [X, 1.6 + S, D.z - 0.6], [X, 1.4 + S, D.z + 3.4], 11, { blend: 0 })); // the jamb
   keys.push(K(13.24, [X, 1.6 + S, 49.0], [X, 1.4 + S, 53.0], 12, { blend: 1 })); // the passage
   keys.push(K(13.4, [-10.4, 2.6, 51.0], [-9.6, 2.35, 55.0], 12)); // in: the T ahead, the team at it
-  keys.push(K(13.6, [-9.6, 2.6, 52.8], [-9.0, 2.3, 56.8], 12));
-  keys.push(K(13.8, [-8.8, 2.6, 54.4], [-7.6, 2.4, 58.0], 12)); // past the bar's end
-  keys.push(K(14.0, [-7.6, 2.6, 55.4], [ST.x, 2.6, 58.4], 12)); // turning left to the stair
-  keys.push(K(14.15, [-6.0, 2.6, 55.9], [ST.x, 3.1, 59.0], 12)); // its foot
-  keys.push(K(14.3, [ST.x, SY(57.1), 57.1], [ST.x, SY(57.1) + 1.0, 60.5], 12)); // climbing
-  keys.push(K(14.45, [ST.x, SY(58.4), 58.4], [ST.x, SY(58.4) + 0.7, 61.6], 12));
-  keys.push(K(14.6, [ST.x, SY(59.6), 59.6], [-5.5, SY(59.6) - 0.2, 62.4], 12)); // the landing: the door
-  keys.push(K(14.75, [-5.5, SY(60.8), 60.8], [-5.5, SY(60.8) - 0.15, 62.6], 12)); // the door opening
-  keys.push(K(14.88, [-5.5, SY(61.3), 61.3], [-5.5, SY(61.3) - 0.1, 63.0], 12, { blend: 0 })); // the jamb: the cut
-  keys.push(K(14.94, [-5.45, 1.58, 1.9], [-7.4, 1.35, -0.6], 0, { blend: 1, portal: true })); // home: in through his own front door
-  keys.push(K(15.0, [-6.3, 1.58, 1.2], [-8.6, 1.3, -1.5], 0)); // the room, the way he left it
+  keys.push(K(13.55, [-9.6, 2.6, 52.8], [-9.0, 2.3, 56.8], 12));
+  keys.push(K(13.7, [-8.8, 2.6, 54.4], [-7.6, 2.4, 58.0], 12)); // past the bar's end
+  keys.push(K(13.85, [-7.6, 2.6, 55.4], [ST.x, 2.6, 58.4], 12)); // turning left to the stair
+  keys.push(K(13.97, [-6.0, 2.6, 55.9], [ST.x, 3.1, 59.0], 12)); // its foot
+  keys.push(K(14.08, [ST.x, SY(57.1), 57.1], [ST.x, SY(57.1) + 1.0, 60.5], 12)); // climbing
+  keys.push(K(14.19, [ST.x, SY(58.4), 58.4], [ST.x, SY(58.4) + 0.7, 61.6], 12));
+  keys.push(K(14.3, [ST.x, SY(59.6), 59.6], [-5.5, SY(59.6) - 0.2, 62.4], 12)); // the landing: the door
+  keys.push(K(14.4, [-5.5, SY(60.8), 60.8], [-5.5, SY(60.8) - 0.15, 62.6], 12)); // the door opening
+  keys.push(K(14.48, [-5.5, SY(61.3), 61.3], [-5.5, SY(61.3) - 0.1, 63.0], 12, { blend: 0 })); // the jamb: the cut
+  keys.push(K(14.55, [-5.45, 1.58, 1.9], [-6.5, 1.35, -0.8], 0, { blend: 1, portal: true })); // home: in through his own front door
+  keys.push(K(14.7, [-5.6, 1.58, 0.6], [-5.3, 1.3, -2.0], 0)); // across the room to the desk
+  keys.push(K(14.85, [-5.55, 1.45, -1.4], [-4.8, 1.1, -2.5], 0)); // the chair
+  keys.push(K(15.0, [-5.3, 1.2, -2.45], [-4.5, 1.02, -2.5], 0)); // sat at the desk, at the screens: building Floqer
   return keys;
 }
 

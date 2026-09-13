@@ -38,7 +38,7 @@ import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress, STAGE_SPAN, LAST_SPAN } from '../lib/stage/shot.ts';
-import { loadAllSets, showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
+import { showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
 import { painters, loadImage, canvas2d, tourLive, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, beanPaint, type Paint, type Images } from './stage-paint.ts';
 
@@ -657,11 +657,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   /** A set Blender lit: the static meshes come back in one file with a second uv set and a lightmap; only the live pieces are built here. */
   const loadBaked = async (i: number): Promise<void> => {
     const S = SETS[i];
-    const lm = texLoader.load(`/assets/stage/baked/set${i}_lm.webp`, () => kick());
+    // the map and the mesh together: a baked room shown before its lightmap arrives draws black (its direct light is off by design)
+    const [lm, g] = await Promise.all([texLoader.loadAsync(`/assets/stage/baked/set${i}_lm.webp`), gltf.loadAsync(`/assets/stage/baked/set${i}.glb`)]);
     lm.flipY = false;
     lm.channel = 1;
     lm.colorSpace = SRGBColorSpace;
-    const g = await gltf.loadAsync(`/assets/stage/baked/set${i}.glb`);
     g.scene.traverse((o) => {
       if (!(o instanceof Mesh)) return;
       const from = o.material as Material;
@@ -1141,10 +1141,19 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   onScroll();
 
   // the set in view first, then every remaining set in sequence while the reader is near the stage
-  const loading = Number.isInteger(exportSet) && SETS[exportSet] ? loadSet(exportSet) : loadAllSets(SETS.length, loadSet, () => {
+  // the first room, then whichever unloaded room the scroll is nearest to: a fast scroll ahead meets its room, not a gap
+  const loadNearestFirst = async () => {
+    await loadSet(0);
     if (curSet < 0) enter(0);
     kick();
-  });
+    const remaining = Array.from({ length: SETS.length - 1 }, (_, k) => k + 1);
+    while (remaining.length) {
+      const want = dolly(stageProgress(target, chapters, STAGE_SPAN)).set;
+      remaining.sort((a, b) => Math.abs(a - want) - Math.abs(b - want) || a - b);
+      await loadSet(remaining.shift()!);
+    }
+  };
+  const loading = Number.isInteger(exportSet) && SETS[exportSet] ? loadSet(exportSet) : loadNearestFirst();
   loading.then(() => {
     // warm every set once, off screen, so nothing is uploaded or compiled on the way in: a first look at a set used to
     // cost a tenth of a second at its threshold (the geometry and the shaders arriving together). One tiny render.

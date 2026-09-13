@@ -665,7 +665,7 @@ export const SETS: StageSet[] = [
         out.push({ build: 'whiteboardFloqerB', at: [FLOQER.x[1] - 0.04, F + 1.5, 53.9], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the year, and Disrupt.' });
         // the stair up the east wall to the door, its rail on the open side, a light over it
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
-        out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(14.62), ch(14.78)] }); // hinged on the east jamb, it swings out
+        out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(14.28), ch(14.42)] }); // hinged on the east jamb, it swings out
         out.push({ build: 'discLight', at: [-5.5, F + 3.6, 58.5], live: 'pendant' });
         // the mess of a rented place: boxes still packed, a suitcase, a bin bag, a crate, the mattresses and pillows, the shoes by the door
         out.push({ model: 'cardboard_box_01', at: [-15.2, F, 50.9], rot: [0, 12, 0] });
