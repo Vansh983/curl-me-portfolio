@@ -495,7 +495,8 @@ export function beanLogo(x: Ctx, logo: HTMLImageElement | null, cx: number, cy: 
  * the app's home scrolling through tonight's recipes, and the city's numbers with the day's signups filling in.
  */
 export function tourLive(x: Ctx, w: number, h: number, t: number, page: number, logo: HTMLImageElement | null): void {
-  const view = Math.floor(t / 8) % 4, u = (t % 8) / 8;
+  // one page, the city's numbers, held: it cycled four views every eight seconds, and each cut (the terminal is black, the app white) flashed across the lower frame of the whole city walk
+  const view: number = 3, u = Math.min(1, t / 8);
   const mono = "13px ui-monospace, Menlo, Consolas, monospace";
   const cities = ['Vancouver', 'Toronto', 'Montréal', 'Halifax'];
   if (view === 0) { // the terminal

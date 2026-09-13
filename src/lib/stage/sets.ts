@@ -158,13 +158,17 @@ export function crowdPeople(): Placement[] {
 
 export const STAGE = {
   wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [24.5, 46.5] as [number, number],
-  door: { x: -10.5, z: 48.0, w: 1.6, h: 2.4, floor: 1.0 }, // the door out of the north wall behind the stage, on the walk's line, at the stage's height: backstage runs to it
+  door: { x: -10.5, z: 48.0, w: 1.0, h: 2.2, floor: 1.0 }, // the door out of the north wall behind the stage, on the walk's line, at the stage's height: backstage runs to it; Floqer's house is right behind it
 } as const;
 /** The house's raked floor: ten tiers of 0.16 m every 2.7 m from 5.4 m past the stage's front to the back wall. */
 export const houseFloorY = (x: number): number => (x <= STAGE.hall[0] + 5.4 ? 0 : 0.16 * Math.min(10, Math.floor((x - STAGE.hall[0] - 5.4) / 2.7) + 1));
-/** Floqer's hacker house: north of the hall's backstage, its floor at the stage's height, 12 by 12 m, the windows on Toronto to the west, the stair to his door on the east wall. */
-export const FLOQER = { x: [-16, -4] as [number, number], z: [50, 62] as [number, number], floor: STAGE.door.floor, h: 3.6, stair: { x: -5.0, z0: 55.6, n: 8, rise: 0.171, run: 0.28, w: 1.1 }, door: { x: -5.5, w: 1.0, h: 2.1 } } as const;
+/** Floqer's hacker house: right behind the door in the hall's north wall, its floor at the stage's height, 12 by 12 m, the windows on Toronto to the west, the stair to his door on the east wall. */
+export const FLOQER = (() => {
+  const z: [number, number] = [STAGE.door.z + 0.3, STAGE.door.z + 12.3], stair = { x: -4.55, n: 8, rise: 0.171, run: 0.28, w: 1.1 }; // the house's south wall is the far face of the hall's door wall; the stair against the east wall
+  return { x: [-16, -4] as [number, number], z, floor: STAGE.door.floor, h: 3.6, stair: { ...stair, z0: z[1] - 0.9 - stair.n * stair.run }, door: { x: stair.x, w: 1.0, h: 2.1 } } as const; // the flight ends 0.9 short of the north wall: a landing, then the door, on the stair's line
+})();
 /** The height of the office's stair at z, from its foot to the landing. */
+const WINDOW_Z = [FLOQER.z[0] + 2.5, FLOQER.z[0] + 7.5]; // the two windows on the street, along the west wall
 export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stair.n, Math.max(0, (z - FLOQER.stair.z0) / FLOQER.stair.run)) * FLOQER.stair.rise;
 export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
 /**
@@ -526,7 +530,7 @@ export const SETS: StageSet[] = [
       { build: 'airMattress', at: [-3.4, 0, -13.66], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' },
       { build: 'airMattress', at: [-3.2, 0, -17.7], rot: [0, 4, 0] },
       { model: 'throw_pillows_01', at: [-1.9, 0.0, -17.3], rot: [0, 30, 0], scale: 0.7 },
-      { build: 'doorLeaf', at: [-6.4, 0, -18.2], rot: [0, -90, 0], live: 'door', door: [ch(7.74), ch(7.86)] }, // the south door beside the window: hinged on the east jamb, it swings into the room, clear of the walk down the west side // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
+      { build: 'doorLeaf', at: [-6.4, 0, -18.2], rot: [0, -90, 0], live: 'door', door: [ch(7.56), ch(7.7)] }, // the south door beside the window: hinged on the east jamb, it swings into the room, clear of the walk down the west side // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
       { build: 'bin', at: [-1.85, 0, -14.7] },
       // the walls
       { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.' },
@@ -600,7 +604,6 @@ export const SETS: StageSet[] = [
       { build: 'downlight', at: [STAGE.x[1] - 3, STAGE.height + 8.8, STAGE.centre + 5.5], live: 'downlight' },
       { build: 'downlight', at: [STAGE.hall[0] + 6, 8.2, STAGE.centre], live: 'downlight' },
       { build: 'downlight', at: [STAGE.hall[0] + 14, 8.2, STAGE.centre], live: 'downlight' },
-      { build: 'passage', at: [STAGE.door.x + 0.6, STAGE.door.floor, STAGE.door.z], rot: [0, -90, 0], scale: [0.667, 1, 1], live: 'bulb' }, // north, 2 m, from backstage to Floqer's hacker house
     ],
   },
   {
@@ -615,74 +618,70 @@ export const SETS: StageSet[] = [
       x: FLOQER.x, z: FLOQER.z, h: FLOQER.h, y: FLOQER.floor,
       floor: 'condoFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
       openings: [
-        { wall: 'z-', at: STAGE.door.x, w: STAGE.door.w, h: STAGE.door.h }, // in from the hall's passage, heading north
+        { wall: 'z-', at: STAGE.door.x, w: STAGE.door.w, h: STAGE.door.h, door: true }, // in from the hall, through its door, heading north
         { wall: 'z+', at: FLOQER.door.x, w: FLOQER.door.w, h: FLOQER.door.h, sill: FLOQER.stair.n * FLOQER.stair.rise, door: true }, // the door at the top of the stair: raised, so the bake must be told it is not a window
-        ...[52.5, 57.5].map((z) => ({ wall: 'x-' as const, at: z, w: 3.2, h: 1.55, sill: 0.75 })), // the windows on the street
+        ...WINDOW_Z.map((z) => ({ wall: 'x-' as const, at: z, w: 3.2, h: 1.55, sill: 0.75 })), // the windows on the street
       ],
     },
     props: [
       ...(() => {
-        const F = FLOQER.floor, out: Placement[] = [];
+        const F = FLOQER.floor, Z = FLOQER.z[0], out: Placement[] = [];
         // the quay's top sits 0.35 below the floor: level with it, the two planes fought and the pale concrete showed through the parquet in patches
-        out.push({ build: 'torontoDay', at: [FLOQER.x[0] - 100, F - 3 - 0.35, 55], live: 'city', shadow: false, cap: 'Downtown Toronto, outside the window.' });
-        for (const z of [52.5, 57.5]) out.push({ build: 'sydneyWindow', at: [FLOQER.x[0], F + 0.75, z], rot: [0, 90, 0], scale: [0.8, 1, 1] });
+        out.push({ build: 'torontoDay', at: [FLOQER.x[0] - 100, F - 3 - 0.35, Z + 5], live: 'city', shadow: false, cap: 'Downtown Toronto, outside the window.' });
+        for (const z of WINDOW_Z) out.push({ build: 'sydneyWindow', at: [FLOQER.x[0], F + 0.75, z], rot: [0, 90, 0], scale: [0.8, 1, 1] });
+        // the door in from the stage: the hall's door leaf, hinged on its east jamb, swinging into the house as he reaches it; the reveal between the two walls
+        out.push({ build: 'doorLeaf', at: [STAGE.door.x + STAGE.door.w / 2, F, STAGE.door.z + 0.15], rot: [0, -90, 0], live: 'door', door: [ch(12.94), ch(13.1)], cap: 'The door out of the hall: Floqer.' });
+        out.push({ build: 'doorReveal', at: [STAGE.door.x, F, STAGE.door.z] });
         out.push({ build: 'brickWall', at: [(FLOQER.x[0] + FLOQER.x[1]) / 2, F, FLOQER.z[1] - 0.05] });
         out.push({ build: 'floqerSign', at: [-11.2, F + 2.3, FLOQER.z[1] - 0.1], rot: [0, 180, 0], live: 'screen', cap: 'Floqer. The orchestration engine behind enterprise go to market automation.' });
-        // the T: the bar of two tables across the room, the stem down from its middle; monitors back to back along both
-        out.push({ build: 'hackerTable', at: [-13.7, F, 57.2], cap: 'The tables. Floqer is built here.' });
-        out.push({ build: 'hackerTable', at: [-10.7, F, 57.2] });
-        out.push({ build: 'hackerTable', at: [-12.2, F, 54.4], rot: [0, 90, 0] });
+        // the T: the bar of two tables across the room, the stem down from its middle; monitors back to back along both, a keyboard at each
+        const bar = Z + 7.2, stem = Z + 4.4;
+        out.push({ build: 'hackerTable', at: [-13.7, F, bar], cap: 'The tables. Floqer is built here.' });
+        out.push({ build: 'hackerTable', at: [-10.7, F, bar] });
+        out.push({ build: 'hackerTable', at: [-12.2, F, stem], rot: [0, 90, 0] });
         const screens = ['monitorApp', 'monitor', 'monitorBoard', 'monitor', 'monitor', 'monitorApp'] as const;
         [-14.45, -12.95, -11.45, -9.95].forEach((x, k) => {
-          out.push({ build: screens[k % 6], at: [x, F + 0.74, 57.35], rot: [0, 180 + (k % 2 ? 3 : -2), 0], live: 'screen' });
-          out.push({ build: screens[(k + 3) % 6], at: [x, F + 0.74, 57.05], rot: [0, (k % 2 ? -3 : 2), 0], live: 'screen' });
-          out.push({ model: 'keyboard_mouse_black', at: [x, F + 0.74, 56.7], rot: [0, 0, 0] });
-          out.push({ model: 'keyboard_mouse_black', at: [x, F + 0.74, 57.7], rot: [0, 180, 0] });
+          out.push({ build: screens[k % 6], at: [x, F + 0.74, bar + 0.15], rot: [0, 180 + (k % 2 ? 3 : -2), 0], live: 'screen' });
+          out.push({ build: screens[(k + 3) % 6], at: [x, F + 0.74, bar - 0.15], rot: [0, (k % 2 ? -3 : 2), 0], live: 'screen' });
+          out.push({ model: 'keyboard_mouse_black', at: [x, F + 0.74, bar - 0.5], rot: [0, 0, 0] });
+          out.push({ model: 'keyboard_mouse_black', at: [x, F + 0.74, bar + 0.5], rot: [0, 180, 0] });
         });
-        for (const z of [53.6, 55.2]) {
-          out.push({ build: screens[z > 54 ? 1 : 4], at: [-12.05, F + 0.74, z], rot: [0, -90, 0], live: 'screen' });
-          out.push({ build: screens[z > 54 ? 5 : 2], at: [-12.35, F + 0.74, z], rot: [0, 90, 0], live: 'screen' });
+        for (const z of [stem - 0.8, stem + 0.8]) {
+          out.push({ build: screens[z > stem ? 1 : 4], at: [-12.05, F + 0.74, z], rot: [0, -90, 0], live: 'screen' });
+          out.push({ build: screens[z > stem ? 5 : 2], at: [-12.35, F + 0.74, z], rot: [0, 90, 0], live: 'screen' });
           out.push({ model: 'keyboard_mouse_black', at: [-11.7, F + 0.74, z], rot: [0, -90, 0] });
           out.push({ model: 'keyboard_mouse_black', at: [-12.7, F + 0.74, z], rot: [0, 90, 0] });
         }
-        // the chairs and the team at them, sitting, on their own loops; the bar's south side faces +z, its north side -z, the stem's sides face across it
-        const seats: Array<[number, number, number, boolean]> = [[-14.45, 56.05, 180, true], [-12.95, 56.05, 180, true], [-11.45, 56.05, 180, false], [-9.95, 56.05, 180, true], [-13.7, 58.35, 0, true], [-10.7, 58.35, 0, false], [-11.05, 53.6, -90, true], [-13.35, 55.2, 90, true]];
-        const skins = ['#F1C9A5', '#D9A57E', '#C68E6A', '#9C6B48', '#6E4A31'], tops = ['#1E2A44', '#2B2B30', '#F2F0EA', '#3B4A3F', '#7C7F86', '#5A1F2A'], hairs = ['#15151A', '#2A1B12', '#4A3221', '#6B4A2B'];
-        seats.forEach(([x, z, rot, someone], i) => {
-          out.push({ model: 'office_chair_black', at: [x, F, z], rot: [0, rot + (i % 2 ? 6 : -5), 0] });
-          if (someone) out.push({ model: 'base_character', at: [x, F, z], rot: [0, rot + (i % 2 ? 6 : -5), 0], live: 'person', person: { wear: { skin: skins[i % 5], top: tops[i % 6], legs: i % 3 ? '#1F2430' : '#3A2E26', shoes: '#141416', sleeves: i % 2 ? 'long' : 'short' }, hair: hairs[i % 4], clip: i % 3 ? 'sit' : 'sitTalk', phase: i * 1.7 } });
-        });
-        out.push({ build: 'wires', at: [-13.7, F, 57.2] });
-        out.push({ build: 'wires', at: [-10.7, F, 57.2] });
-        out.push({ build: 'laptop', at: [-9.3, F + 0.74, 57.5], rot: [0, -70, 0], live: 'screen' });
-        out.push({ model: 'laptop_14_aluminium', at: [-15.1, F + 0.74, 57.0], rot: [0, 80, 0] });
-        out.push({ model: 'laptop_14_aluminium', at: [-12.2, F + 0.74, 52.95], rot: [0, 170, 0] });
-        for (const [x, z, r] of [[-14.2, 56.6, 40], [-11.0, 57.75, -60], [-9.6, 56.6, 110], [-12.5, 54.8, 20]] as const) out.push({ model: 'coffee_mug', at: [x, F + 0.74, z], rot: [0, r, 0] });
-        for (const [x, z, r] of [[-13.1, 57.8, -12], [-10.3, 56.5, 8], [-11.9, 55.6, 30]] as const) out.push({ build: 'papers', at: [x, F + 0.74, z], rot: [0, r, 0] });
-        for (const x of [-13.7, -10.7]) out.push({ model: 'pendant_tense', at: [x, F + 1.86, 57.2], live: 'pendant' });
-        out.push({ model: 'pendant_tense', at: [-12.2, F + 1.86, 54.4], live: 'pendant' });
+        // the chairs, mismatched as the Bean house's were, nobody in them: the bar's south side faces +z, its north side -z, the stem's sides face across it
+        const seats: Array<[number, number, number, 'office_chair_black' | 'SchoolChair_01' | 'painted_wooden_chair_01']> = [
+          [-14.45, bar - 1.15, 180, 'office_chair_black'], [-12.95, bar - 1.15, 180, 'SchoolChair_01'], [-11.45, bar - 1.15, 180, 'office_chair_black'], [-9.95, bar - 1.15, 180, 'painted_wooden_chair_01'],
+          [-13.7, bar + 1.15, 0, 'SchoolChair_01'], [-10.7, bar + 1.15, 0, 'office_chair_black'], [-11.05, stem - 0.8, -90, 'office_chair_black'], [-13.35, stem + 0.8, 90, 'SchoolChair_01'],
+        ];
+        seats.forEach(([x, z, rot, model], i) => out.push({ model, at: [x, F, z], rot: [0, rot + (i % 2 ? 6 : -5), 0] }));
+        for (const x of [-13.7, -10.7]) out.push({ model: 'pendant_tense', at: [x, F + 1.86, bar], live: 'pendant' });
+        out.push({ model: 'pendant_tense', at: [-12.2, F + 1.86, stem], live: 'pendant' });
         // the whiteboards on the east wall, on the way to the stair
-        out.push({ build: 'whiteboardFloqerA', at: [FLOQER.x[1] - 0.04, F + 1.5, 51.4], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the engine and who runs on it.' });
-        out.push({ build: 'whiteboardFloqerB', at: [FLOQER.x[1] - 0.04, F + 1.5, 53.9], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the year, and Disrupt.' });
-        // the stair up the east wall to the door, its rail on the open side, a light over it
+        out.push({ build: 'whiteboardFloqerA', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 1.4], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the engine and who runs on it.' });
+        out.push({ build: 'whiteboardFloqerB', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 3.9], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the year, and Disrupt.' });
+        // the stair up the east wall, straight at the door in the north wall, its rail on the open side, a light over it; the landing behind the door
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
         out.push({ build: 'landing', at: [FLOQER.door.x + 0.6, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], scale: [0.667, 1, 1], live: 'bulb' }); // behind the door: a closed landing, 2 m, so the door opens onto it and not the sky
-        out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(14.28), ch(14.42)] }); // hinged on the east jamb, it swings out
-        out.push({ build: 'discLight', at: [-5.5, F + 3.6, 58.5], live: 'pendant' });
+        out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(14.2), ch(14.36)] }); // hinged on the east jamb, swinging away onto the landing
+        out.push({ build: 'discLight', at: [FLOQER.stair.x, F + 3.6, FLOQER.stair.z0 + 1.2], live: 'pendant' });
         // the mess of a rented place: boxes still packed, a suitcase, a bin bag, a crate, the mattresses and pillows, the shoes by the door
-        out.push({ model: 'cardboard_box_01', at: [-15.2, F, 50.9], rot: [0, 12, 0] });
-        out.push({ model: 'cardboard_box_01', at: [-15.2, F + 0.52, 50.9], rot: [0, -18, 0] });
-        out.push({ model: 'cardboard_box_01', at: [-14.3, F, 51.6], rot: [0, 35, 0] });
-        out.push({ model: 'plastic_crate_01', at: [-7.0, F, 50.9], rot: [0, 20, 0] });
-        out.push({ model: 'vintage_suitcase', at: [-7.6, F, 60.9], rot: [0, 25, 0] });
-        out.push({ model: 'trashbag', at: [-15.3, F, 55.4], rot: [0, 60, 0] });
-        out.push({ model: 'shoe_rack_modern', at: [-9.2, F, 50.3] });
-        out.push({ build: 'airMattress', at: [-14.6, F, 60.4], rot: [0, 90, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' });
-        out.push({ build: 'airMattress', at: [-12.2, F, 60.6], rot: [0, 84, 0] });
-        out.push({ build: 'airMattress', at: [-8.6, F, 51.3], rot: [0, 4, 0] });
-        out.push({ model: 'throw_pillows_01', at: [-15.5, F, 60.4], rot: [0, 100, 0], scale: 0.7 });
-        out.push({ model: 'throw_pillows_01', at: [-11.2, F, 60.7], rot: [0, 80, 0], scale: 0.7 });
-        out.push({ build: 'bin', at: [-6.4, F, 50.6] });
+        out.push({ model: 'cardboard_box_01', at: [-15.2, F, Z + 0.9], rot: [0, 12, 0] });
+        out.push({ model: 'cardboard_box_01', at: [-15.2, F + 0.52, Z + 0.9], rot: [0, -18, 0] });
+        out.push({ model: 'cardboard_box_01', at: [-14.3, F, Z + 1.6], rot: [0, 35, 0] });
+        out.push({ model: 'plastic_crate_01', at: [-7.0, F, Z + 0.9], rot: [0, 20, 0] });
+        out.push({ model: 'vintage_suitcase', at: [-8.4, F, FLOQER.z[1] - 1.1], rot: [0, 25, 0] });
+        out.push({ model: 'trashbag', at: [-15.3, F, Z + 5.4], rot: [0, 60, 0] });
+        out.push({ model: 'shoe_rack_modern', at: [-9.2, F, Z + 0.35] });
+        out.push({ build: 'airMattress', at: [-14.6, F, FLOQER.z[1] - 1.6], rot: [0, 90, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' });
+        out.push({ build: 'airMattress', at: [-12.2, F, FLOQER.z[1] - 1.4], rot: [0, 84, 0] });
+        out.push({ build: 'airMattress', at: [-8.6, F, Z + 1.3], rot: [0, 4, 0] });
+        out.push({ model: 'throw_pillows_01', at: [-15.5, F, FLOQER.z[1] - 1.6], rot: [0, 100, 0], scale: 0.7 });
+        out.push({ model: 'throw_pillows_01', at: [-11.2, F, FLOQER.z[1] - 1.3], rot: [0, 80, 0], scale: 0.7 });
+        out.push({ build: 'bin', at: [-6.4, F, Z + 0.6] });
         return out;
       })(),
     ],

@@ -815,17 +815,35 @@ export const BUILT: Record<string, () => BuiltPart> = {
   whiteboardFloqerB: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardFloqer:1' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
   /**
    * The stair up the east wall of the hacker house: FLOQER.stair steps of rise and run along +z from the origin (its foot at the
-   * floor), closed under, a landing on to the wall at the top, a rail on the open side. Origin at the foot's outer edge.
+   * origin, the wall side at +x), closed below, each tread a board with a nosing; a closed string on the open side, the rail
+   * on posts along it; the landing on from the top step to the north wall, the door on the stair's line.
    */
   stairFlight: () => {
-    const { n, rise, run, w } = FLOQER.stair, treads = new Sink(), rail = new Sink(), post = new Sink();
-    for (let k = 0; k < n; k++) treads.box(0, ((k + 1) * rise) / 2, k * run + run / 2, w, (k + 1) * rise, run); // each step closed to the floor
-    const top = n * rise, zTop = n * run, zEnd = FLOQER.z[1] - FLOQER.stair.z0;
-    treads.box(0, top / 2, (zTop + zEnd) / 2, w, top, zEnd - zTop); // the landing
-    for (let k = 0; k <= n; k += 2) post.box(-w / 2 + 0.03, k * rise + 0.45, k * run + 0.02, 0.03, 0.9, 0.03); // the balusters
-    rail.box(-w / 2 + 0.03, 0, 0, 0.04, 0.04, Math.hypot(zTop, top)).rotateX(0, 0, -Math.atan2(top, zTop)).translate(0, 0.92, 0); // the rail, along the slope
-    rail.box(-w / 2 + 0.03, top + 0.92, (zTop + zEnd) / 2, 0.04, 0.04, zEnd - zTop);
-    return [piece(treads.out(), M('stageOak'), { metres: 'xz' }), piece(rail.out(), M('rod'), { smooth: true }), piece(post.out(), M('chairBase'))];
+    const { n, rise, run, w } = FLOQER.stair, carcass = new Sink(), treads = new Sink(), rail = new Sink(), post = new Sink();
+    const top = n * rise, zTop = n * run, zEnd = FLOQER.z[1] - FLOQER.stair.z0, t = 0.035, nose = 0.03, open = -w / 2;
+    for (let k = 0; k < n; k++) { // the riser and the block under each step, to the floor
+      const y = (k + 1) * rise, z = k * run;
+      carcass.box(0, (y - t) / 2, z + run / 2, w, y - t, run);
+      treads.rbox(0, y - t / 2, z + run / 2 - nose / 2, w, t, run + nose, 0.006, 2);
+    }
+    carcass.box(0, top / 2, (zTop + zEnd) / 2, w, top, zEnd - zTop); // the landing
+    treads.rbox(0, top - t / 2, (zTop + zEnd) / 2 - nose / 2, w, t, zEnd - zTop + nose, 0.006, 2);
+    // the string: a board along the slope on the open side, its top a hand above the nosings, its foot on the floor
+    const L = Math.hypot(zTop, top), slope = Math.atan2(top, zTop);
+    carcass.box(open - 0.02, 0, 0, 0.04, 0.34, L + 0.3).rotateX(0, 0, -slope, carcass.pos.length / 3 - 24).translate(0, top / 2 + 0.12, zTop / 2, carcass.pos.length / 3 - 24);
+    carcass.box(open - 0.02, top / 2 + 0.06, (zTop + zEnd) / 2, 0.04, top + 0.12, zEnd - zTop); // the landing's fascia
+    // the rail on square posts, every second step and at the landing's end
+    for (let k = 0; k <= n; k += 2) post.box(open + 0.03, k * rise + 0.45, k * run + 0.03, 0.03, 0.9, 0.03);
+    post.box(open + 0.03, top + 0.45, zEnd - 0.03, 0.03, 0.9, 0.03);
+    rail.box(open + 0.03, 0, 0, 0.04, 0.04, L).rotateX(0, 0, -slope).translate(0, 0.92 + top / 2, zTop / 2);
+    rail.box(open + 0.03, top + 0.92, (zTop + zEnd) / 2, 0.04, 0.04, zEnd - zTop);
+    return [piece(carcass.out(), M('stageOak'), { metres: 'xz' }), piece(treads.out(), M('stageOak'), { smooth: true, metres: 'xz' }), piece(rail.out(), M('rod'), { smooth: true }), piece(post.out(), M('chairBase'))];
+  },
+  /** The reveal of the door between the hall and the house: two jambs and a lintel filling the 0.3 m between the two walls, from the hall's wall at the origin toward +z. */
+  doorReveal: () => {
+    const { w, h } = STAGE.door, d = 0.3, t = 0.06, s = new Sink();
+    s.box(-w / 2 - t / 2, h / 2, d / 2, t, h, d).box(w / 2 + t / 2, h / 2, d / 2, t, h, d).box(0, h + t / 2, d / 2, w + 2 * t, t, d);
+    return [piece(s.out(), M('passageWall'), { metres: 'xy' })];
   },
   /** Floqer's sign, 4 by 1.25, painted on clear (`floqer`): the orange mark and the word in white, for the brick. Faces +z. */
   floqerSign: () => [piece(face(4.0, 1.25, 0.012), { paint: 'floqer' })],

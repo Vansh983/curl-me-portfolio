@@ -94,7 +94,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const tourCanvas = canvas2d(768, 480);
   const tourTex = new CanvasTexture(tourCanvas);
   tourTex.colorSpace = SRGBColorSpace;
-  let tourPage = 0, tourScreen: Mesh | undefined, tourLast = 0;
+  let tourPage = 0, tourScreen: Mesh | undefined, tourLast = 0, tourShown = 0, tourFrom = -1, tourSwitched = 0; // the page before the last change, faded out over it
 
   // one sun that casts, one hemisphere that tints; the rest of the light is the environment
   const sun = new DirectionalLight(0xffffff, 1);
@@ -949,8 +949,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const A: StageSet = SETS[f.from], B: StageSet = SETS[f.into];
     const t = f.from === f.into ? 0 : f.blend * f.blend * (3 - 2 * f.blend);
     const mix = (a: number, b: number) => a + (b - a) * t;
-    const envOf = (k: number, S: StageSet) => S.envPower * (roomEnvironments.has(k) ? LM_SCALE : 1); // the room's own map stores radiance / LM_SCALE
-    scene.environmentIntensity = mix(envOf(f.from, A), envOf(f.into, B));
+    // the environment's strength belongs to the map that is showing: a room's own map (radiance / LM_SCALE) runs LM_SCALE times a
+    // studio's, and mixed across the blend the hall's studio map ran at the house's strength and washed the room white at the door
+    const envOf = (k: number) => SETS[k].envPower * (roomEnvironments.has(k) ? LM_SCALE : 1);
+    scene.environmentIntensity = roomEnvironments.has(f.from) === roomEnvironments.has(f.into) ? mix(envOf(f.from), envOf(f.into)) : envOf(curSet);
     hemi.intensity = mix(A.tint.power, B.tint.power);
     hemi.color.set(A.tint.sky).lerp(new Color(B.tint.sky), t);
     hemi.groundColor.set(A.tint.ground).lerp(new Color(B.tint.ground), t);
@@ -1078,7 +1080,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     veil.style.opacity = String(mainFrame.set === 5 ? 0.7 * flight.veil : 0); // the puffs on the track do most of it; the veil adds the glow
     if (heldLaptop.children.length === 0 && TOUR_SETS.has(mainFrame.set)) buildHeldLaptop();
     const page = TOUR_PAGE[mainFrame.into] ?? TOUR_PAGE[mainFrame.set];
-    if (page !== undefined) tourPage = page; // the laptop's page follows the city
+    if (page !== undefined && page !== tourPage) { tourFrom = tourPage; tourSwitched = now; tourPage = page; } // the laptop's page follows the city, the last page fading out over half a second: a cut on the screen read as a flash
     if (mainFrame.set === 11 && live.crowd.length) { // the crowd waves: the rows swap between the two frames three times a second, out of step with each other
       if (!crowdFrames) crowdFrames = [paintTex('crowd', 0), paintTex('crowd', 1)];
       const f = Math.floor(now / 330) % 2;
@@ -1086,10 +1088,17 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     if (tourScreen && heldLaptop.visible && now - tourLast > 80) { // repaint the live screen at about twelve a second
       tourLast = now;
-      tourLive(tourCanvas.getContext('2d')!, tourCanvas.width, tourCanvas.height, now / 1000, tourPage, images.bean);
+      const x2 = tourCanvas.getContext('2d')!, fade = tourFrom < 0 ? 1 : Math.min(1, (now - tourSwitched) / 500);
+      tourLive(x2, tourCanvas.width, tourCanvas.height, (now - tourShown) / 1000, tourPage, images.bean); // its bars fill over the first seconds it is in hand
+      if (fade < 1) { x2.globalAlpha = 1 - fade; tourLive(x2, tourCanvas.width, tourCanvas.height, 8, tourFrom, images.bean); x2.globalAlpha = 1; } else tourFrom = -1;
       tourTex.needsUpdate = true;
     }
-    heldLaptop.visible = TOUR_SETS.has(mainFrame.set) || (mainFrame.into !== mainFrame.from && TOUR_SETS.has(mainFrame.into) && mainFrame.blend > 0.5);
+    // the laptop: raised into the frame over the doorway out of the Bean house, with the scroll (it appeared at once at the midpoint: a pop)
+    const lift = TOUR_SETS.has(mainFrame.set) ? 1 : mainFrame.into !== mainFrame.from && TOUR_SETS.has(mainFrame.into) ? mainFrame.blend : 0;
+    const showLaptop = lift > 0;
+    if (showLaptop && !heldLaptop.visible) tourShown = now;
+    heldLaptop.visible = showLaptop;
+    heldLaptop.position.y = -0.45 * (1 - lift * lift * (3 - 2 * lift));
     { // the degree: raised into the frame over the last steps to the dais
       const t = Math.max(0, Math.min(1, (mainFrame.q - DEGREE.raise) / (DEGREE.held - DEGREE.raise)));
       heldDegree.visible = mainFrame.set === 11 && t > 0;

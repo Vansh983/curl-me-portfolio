@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DOLLY, makeDolly, APPROACH_SCALE } from '../../src/lib/stage/dolly.ts';
 import { STAGE_SPAN } from '../../src/lib/stage/shot.ts';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { SETS } from '../../src/lib/stage/sets.ts';
+import { SETS, FLOQER } from '../../src/lib/stage/sets.ts';
 import { BUILT } from '../../src/lib/stage/built.ts';
 import { PHONE, phoneAt, WINDOW_VIEW, CLASSROOM_VIEW } from '../../src/lib/stage/flight.ts';
 
@@ -106,7 +106,7 @@ test('the dolly is inside the doorway when it says it is', () => {
   assert.ok(at(jambs[8], -10.5, -10.8) && at(jambs[9], -10.5, 4.4), `the thresholds along the terrace: ${jambs[8].cam} ${jambs[9].cam}`);
   assert.ok(at(jambs[10], -10.5, 23.4), `the door back into the house at the terrace's end: ${jambs[10].cam}`);
   assert.ok(at(jambs[11], -10.5, 47.4), `the door out of the back of the hall, behind the stage: ${jambs[11].cam}`);
-  assert.ok(at(jambs[12], -5.5, 61.3), `the door at the top of the hacker house's stair: ${jambs[12].cam}`);
+  assert.ok(at(jambs[12], FLOQER.door.x, FLOQER.z[1] - 0.1), `the door at the top of the hacker house's stair: ${jambs[12].cam}`);
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
   assert.equal(dolly(1).set, 0); // home
   assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);
