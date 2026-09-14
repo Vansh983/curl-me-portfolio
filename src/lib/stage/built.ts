@@ -5,7 +5,6 @@
 import { Sink, smoothNormals, flatNormals, type Geo, type V3 } from './rig.ts';
 import { cityBlocks, cnTower, CITY, ringOf } from './city.ts';
 import { northShore } from './northshore.ts';
-import { marinHills } from './marin.ts';
 import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
@@ -35,6 +34,18 @@ function piece(g: Geo, surface: BuiltSurface, o: { smooth?: boolean; metres?: 'x
 
 const M = (mat: string): BuiltSurface => ({ mat });
 const UNIT: [number, number, number, number] = [0, 0, 1, 1];
+
+/** The Android: two legs, the body, the head with its antennae, `h` tall, standing on (cx, 0, cz), facing +z; the eyes go into `eyes` when given. */
+const droid = (s: Sink, h: number, cx = 0, cz = 0, eyes?: Sink): void => {
+  const u = h / 2.2;
+  for (const dx of [-0.25, 0.25]) s.capsule([cx + dx * u, 0.14 * u, cz], [cx + dx * u, 0.5 * u, cz], 0.14 * u, 10, 2);
+  s.cylinder(cx, 0.82 * u, cz, 0.5 * u, 0.94 * u, 20); // the body, y 0.35..1.29
+  s.sphere(cx, 1.36 * u, cz, 0.5 * u, 0.5 * u, 0.5 * u, 20, 7, undefined, 0.5); // the head, a hemisphere
+  s.cylinder(cx, 1.355 * u, cz, 0.5 * u, 0.01 * u, 20); // its flat underside
+  for (const dx of [-0.66, 0.66]) s.capsule([cx + dx * u, 1.22 * u, cz], [cx + dx * u, 0.62 * u, cz], 0.13 * u, 10, 2);
+  for (const dx of [-0.22, 0.22]) s.bone([cx + dx * u, 1.78 * u, cz], [cx + dx * 1.8 * u, 2.16 * u, cz], 0.025 * u, 0.025 * u);
+  for (const dx of [-0.2, 0.2]) (eyes ?? s).sphere(cx + dx * u, 1.6 * u, cz + 0.4 * u, 0.05 * u, 0.05 * u, 0.05 * u, 8, 4);
+};
 
 /** Fixed theatre seating, facing -z: upholstered back, tip-up pan, shared-row floor mounting.
  * Empty seats stow their pan/tablet; the viewer's seat has both deployed. Authored, not a scan. */
@@ -148,18 +159,6 @@ const extrudeZ = (profile: [number, number][], halfD: number): Sink => {
   return s;
 };
 
-/** A car of 2019: a hatchback profile extruded and smooth shaded, a glass band round the cabin, four round wheels; 4.4 m long along x, its nose towards +x. */
-const car = (mat: string) => (): BuiltPart => {
-  const body = extrudeZ([[-2.2, 0.3], [-1.9, 0.24], [1.9, 0.24], [2.2, 0.32], [2.2, 0.6], [2.05, 0.72], [1.2, 0.8], [0.7, 0.86], [0.2, 1.28], [-0.6, 1.36], [-1.2, 1.32], [-1.7, 1.0], [-2.1, 0.92], [-2.2, 0.7]], 0.9);
-  const glass = extrudeZ([[0.66, 0.87], [0.22, 1.25], [-0.6, 1.33], [-1.18, 1.29], [-1.62, 0.99], [-1.5, 0.95], [-0.6, 0.93], [0.3, 0.9]], 0.905);
-  const wheels = new Sink();
-  for (const [x, z] of [[-1.4, 0.8], [1.4, 0.8], [-1.4, -0.8], [1.4, -0.8]] as const) {
-    const start = wheels.count;
-    wheels.cylinder(x, 0.33, z, 0.33, 0.22, 24);
-    wheels.rotateX(0.33, z, Math.PI / 2, start);
-  }
-  return [piece(body.out(), M(mat), { smooth: true }), piece(glass.out(), M('carGlass'), { smooth: true }), piece(wheels.out(), M('tyre'), { smooth: true })];
-};
 
 /** The cabin's windows along z: one at every row and one between. */
 let cabinSkinSink: Sink | null = null;
@@ -1292,204 +1291,227 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const tube = new Sink().cylinder(0, -0.09, 0, 0.02, 1.2, 10).rotateZ(0, -0.09, Math.PI / 2);
     return [piece(tray.out(), M('tray')), piece(tube.out(), M('tubeGlass'), { smooth: true })];
   },
-  /** Paving around the Delhi room and lab passage, never beneath their coplanar indoor floors. Placed at (4, 0, 2.6). */
-  /** The Embarcadero's paving: 48 by 45 m, its middle at the origin; placed one flight below the rooms (CONTEXT: in the bake for shadow, drawn live). */
-  plazaFloor: () => [piece(slab(48, 45), M('pavers'), { metres: 'xz' })],
-
+  // ---- 2019, Google: the Googleplex, the Android lawn and the boardroom (docs/rebuild/30-googleplex-options.md, layout A)
   /**
-   * The outside of the rooms, as the plaza sees them: the apartment's east side in brick with the passage to the
-   * lab, the lab's block in dark render with the passage out, and the 2020 room's block in front of the brick with
-   * its door on the plaza. Faces outward; from inside the rooms they sit behind the walls. World coordinates,
-   * placed at the origin.
+   * The outside of the rooms as the lawn sees them, world coordinates, y 0 to the roof (GOOGLE.top): the lab's block
+   * (its south face round the passage's mouth, its east face), the passage's own sides and top, the 2020 room's block
+   * (its east face round the bed's window, its north face), and the block over the boardroom (its east face over the
+   * glass, the jog north of it, its south and west faces); dark panes in a band on the upper storey; one roof over all.
+   * Cream render. A centimetre outside every interior shell: coplanar faces bake a room black.
    */
   facade: () => {
-    const brick = new Sink(), dark = new Sink(), t = 0.06, H = 14, P = GOOGLE.plaza;
-    // the apartment's east face just behind the studio's wall and the jet bridge's end (x -4.2), z -3.5..8.0, round the passage east (z 6.0..7.2);
-    // the brick door is walled up: the ring leaves through the flight now
-    for (const [z0, z1, y0] of [[-3.5, 6.0, P], [7.2, 8.0, P], [6.0, 7.2, 2.4]] as Array<[number, number, number]>)
-      brick.box(-4.205 - t / 2, (y0 + H) / 2, (z0 + z1) / 2, t, H - y0, z1 - z0);
-    dark.box(-6.82, (P + H) / 2, 8.0 + t / 2, 5.36, H - P, t); // the studio block's north face, x -9.5..-4.14
-    dark.box(-9.5 - t / 2, (P + H) / 2, 2.25, t, H - P, 11.5); // its west face, z -3.5..8.0
-    // the lab's block: x -4.14..2.25, z 4.6..9.9; its south face round the passage south (x 0.8..2.0)
-    for (const [x0, x1, y0] of [[-4.14, 0.8, P], [2.0, 2.25, P], [0.8, 2.0, 2.4]] as Array<[number, number, number]>)
-      dark.box((x0 + x1) / 2, (y0 + H) / 2, 4.6 - t / 2, x1 - x0, H - y0, t);
-    dark.box(2.25 + t / 2, (P + H) / 2, 7.25, t, H - P, 5.3); // east
-    dark.box(-0.945, (P + H) / 2, 9.9 + t / 2, 6.39, H - P, t); // north
-    dark.box(-4.14 - t / 2, (P + H) / 2, 8.95, t, H - P, 1.9); // the west sliver north of the apartment block
-    // the 2020 room's block: x -4.14..0.7, z 0..3.6, over the passage from the brick door too; its south face round the door (x -1.15..-0.25), the reveal in front of it (delhiFace);
-    // in pale render, since Google's balcony stands against it
-    const pale = new Sink();
-    for (const [x0, x1, y0] of [[-4.14, -1.15, P], [-0.25, 0.7, P], [-1.15, -0.25, 2.05]] as Array<[number, number, number]>)
-      pale.box((x0 + x1) / 2, (y0 + H) / 2, -0.01 - t / 2, x1 - x0, H - y0, t);
-    // A centimetre outside the interior shell: coplanar faces otherwise turn the room black from the plaza.
-    pale.box(0.71 + t / 2, (P + H) / 2, 1.8, t, H - P, 3.6); // east, a hand's breadth from Google's block
-    dark.box(-1.72, (P + H) / 2, 3.61 + t / 2, 4.84, H - P, t); // north, facing the lab block across a metre
-    dark.box(-3.6, H + t / 2, 3.2, 11.9, t, 13.4); // one roof over all
-    return [piece(brick.out(), M('condoBrick'), { metres: 'xy' }), piece(dark.out(), M('facadeDark'), { metres: 'xy' }), piece(pale.out(), M('terraceWall'), { metres: 'xy' })];
-  },
-
-  /** The green counter under the sign, 3.6 × 0.9 × 0.6. */
-  counter: () => [piece(new Sink().rbox(0, 0.45, 0, 3.6, 0.9, 0.6, 0.02, 2).out(), M('counter'), { smooth: true })],
-  /** The Google sign: a painted 3.6 × 1.5 face on a white slab, facing +z. */
-  sign: () => [piece(face(3.6, 1.5, 0.041), { paint: 'sign' }), piece(new Sink().rbox(0, 0, 0, 3.7, 1.6, 0.08, 0.02, 2).out(), M('board'), { smooth: true })],
-  /** The trophy: a lathed cup on a disc, gold, 0.26 tall. */
-  trophy: () => {
-    const cup = new Sink().lathe([[0.02, 0], [0.06, 0.05], [0.05, 0.12], [0.09, 0.22], [0.1, 0.26]], 0, 0, 0, 1, 1, 0, 32);
-    const base = new Sink().cylinder(0, 0.01, 0, 0.07, 0.02, 32);
-    return [piece(cup.out(), M('gold'), { smooth: true }), piece(base.out(), M('gold'))];
-  },
-  /** A lanyard: two green cords from the collar to a white badge on the chest; facing +z. */
-  lanyard: () => {
-    const cord = new Sink().bone([-0.05, 0, 0], [-0.022, -0.28, 0.012], 0.006, 0.006).bone([0.05, 0, 0], [0.022, -0.28, 0.012], 0.006, 0.006);
-    const badge = new Sink().box(0, -0.335, 0.008, 0.075, 0.1, 0.006);
-    return [piece(cord.out(), M('lanyardGreen')), piece(badge.out(), M('badgeCard'))];
-  },
-  // ---- 2018, the Embarcadero in front of Google San Francisco
-  /** The kerb between the sidewalk and the road, 40 m along x. */
-  kerb: () => [piece(new Sink().rbox(0, 0.06, 0, 40, 0.12, 0.28, 0.02, 2).out(), M('kerb'), { smooth: true })],
-  /** The road: 40 × 14 m of asphalt, a dashed centre line. */
-  road: () => {
-    const line = new Sink();
-    for (let x = -19; x < 20; x += 3) line.box(x, 0.012, 7, 1.6, 0.01, 0.12);
-    return [piece(new Sink().quad([-20, 0, 14], [20, 0, 14], [20, 0, 0], [-20, 0, 0]).out(), M('asphalt'), { metres: 'xz' }), piece(line.out(), M('kerb'))];
-  },
-  /** The planter the sign stands in: a concrete wall 0.9 high and 7 long, a hedge on top, the brown rail along its front edge. Along x, the face towards +z. */
-  planter: () => {
-    const wall = new Sink().rbox(0, 0.45, 0, 7, 0.9, 1.6, 0.03, 2);
-    // a trimmed hedge: a block with a bumpy top
-    const hedge = new Sink().box(0, 1.2, -0.1, 6.8, 0.6, 1.25);
-    let seed = 7;
-    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-    for (let x = -3.3; x <= 3.3; x += 0.3) for (let z = -0.6; z <= 0.4; z += 0.33) hedge.sphere(x + (rnd() - 0.5) * 0.15, 1.44 + rnd() * 0.08, z + (rnd() - 0.5) * 0.1, 0.2, 0.14, 0.2, 14, 8);
-    const rail = new Sink().bone([-3.6, 1.05, 0.9], [3.6, 1.05, 0.9], 0.03, 0.03);
-    for (const x of [-3.2, -1.1, 1.1, 3.2]) rail.box(x, 0.98, 0.9, 0.04, 0.16, 0.04);
-    return [piece(wall.out(), M('concrete'), { metres: 'xy', smooth: true }), piece(hedge.out(), M('hedge'), { smooth: true }), piece(rail.out(), M('rail'))];
-  },
-  /** A palm: a tapering trunk 7 m tall, a crown of twelve fronds. */
-  palm: () => {
-    const trunk = new Sink().lathe([[0.22, 0], [0.17, 2.5], [0.14, 5], [0.12, 7.1]], 0, 0, 0, 1, 1, 0.08, 20);
-    const crown = new Sink();
-    // each frond arcs up and then droops, in three tapering segments
-    for (let i = 0; i < 18; i++) {
-      const a = (i / 18) * Math.PI * 2 + (i % 2) * 0.15, r = 2.4 + (i % 3) * 0.5, drop = 0.7 + (i % 3) * 0.7;
-      const c = Math.cos(a), sn = Math.sin(a);
-      const p = [[0, 7.1, 0], [0.4 * r * c, 7.45 - 0.1 * drop, 0.4 * r * sn], [0.75 * r * c, 7.3 - 0.45 * drop, 0.75 * r * sn], [r * c, 6.9 - drop, r * sn]] as const;
-      crown.bone([...p[0]], [...p[1]], 0.16, 0.05).bone([...p[1]], [...p[2]], 0.2, 0.04).bone([...p[2]], [...p[3]], 0.14, 0.02);
-    }
-    crown.sphere(0, 7, 0, 0.35, 0.3, 0.35, 12, 8);
-    return [piece(trunk.out(), M('palmTrunk'), { smooth: true }), piece(crown.out(), M('frond'), { smooth: true })];
-  },
-  /** An Embarcadero lamp post: a fluted blue-green column 5.5 m tall with a globe. */
-  lampPost: () => {
-    const post = new Sink().lathe([[0.22, 0], [0.16, 0.4], [0.09, 0.5], [0.08, 4.6], [0.12, 4.8], [0.06, 5.1]], 0, 0, 0, 1, 1, 0, 24);
-    const globe = new Sink().sphere(0, 5.45, 0, 0.32, 0.4, 0.32, 24, 14);
-    return [piece(post.out(), M('lampPost'), { smooth: true }), piece(globe.out(), M('lampGlobe'), { smooth: true })];
-  },
-  carSilver: car('carSilver'),
-  carRed: car('carRed'),
-  carWhite: car('carWhite'),
-  /** The piers across the Embarcadero: two long two-storey sheds, cream walls, dark windows on the -z face, a red roof. Along x. */
-  piers: () => {
-    const walls = new Sink(), roof = new Sink(), glass = new Sink();
-    for (const [x0, len] of [[-30, 26], [4, 30]] as const) {
-      walls.box(x0 + len / 2, 4, 0, len, 8, 14);
-      roof.box(x0 + len / 2, 8.4, 0, len + 0.6, 0.8, 14.6);
-      for (let x = x0 + 1.5; x < x0 + len - 1; x += 2.2) { glass.box(x, 2.2, -7.05, 1.2, 1.8, 0.05); glass.box(x, 5.8, -7.05, 1.2, 1.6, 0.05); }
-    }
-    return [piece(walls.out(), M('pier')), piece(roof.out(), M('pierRoof')), piece(glass.out(), M('pierGlass'))];
-  },
-  // ---- 2019, Google: the boardroom in Sunnyvale and the balcony over the Golden Gate (docs/rebuild/29-google.md)
-  /** The land round the Golden Gate at 1:2 (marin.ts), sea level at the origin, the balcony's point at the origin. */
-  marinHills: () => { const t = new Sink(); marinHills(t, 0.5, 900); return [piece(t.out(), M('terrain'), { tint: true, smooth: true })]; },
-  /**
-   * The Golden Gate Bridge at real size, its middle at the origin, the deck along x, the water at y 0: towers 227 m,
-   * 27.4 m between the legs, the main span 1,280 m, the side spans 343 m, the deck 67 m up, the approaches on piers to
-   * the shores. The cables are drawn thick (2 m) and the suspenders every third (46 m) so they still read from a kilometre
-   * off at 1:2; the portal struts between the legs are the four above the deck and one below. International orange.
-   */
-  goldenGate: () => {
-    const s = new Sink(), TX = 640, TOP = 227, DECK = 67, HALF = 13.7, ANCH = 983, SOUTH = -1330, NORTH = 1240;
-    s.box((SOUTH + NORTH) / 2, DECK - 3.8, 0, NORTH - SOUTH, 7.6, 27.4); // the deck and its truss
-    for (const tx of [-TX, TX]) {
-      for (const leg of [-1, 1]) s.box(tx, TOP / 2, leg * HALF, 9.8, TOP, 8); // the legs, from the pier to the top
-      s.box(tx, 22, 0, 12, 44, 2 * HALF + 8); // the pier and the strut under the deck
-      for (const y of [100, 138, 174, 208]) s.box(tx, y, 0, 9.8, 12, 2 * HALF); // the portal struts
-    }
-    for (let x = SOUTH + 30; x < -ANCH; x += 60) s.box(x, DECK / 2 - 4, 0, 5, DECK - 8, 8); // the piers of the approaches
-    for (let x = ANCH + 40; x < NORTH; x += 60) s.box(x, DECK / 2 - 4, 0, 5, DECK - 8, 8);
-    const mainY = (t: number) => TOP - (TOP - DECK - 8) * (1 - (2 * t - 1) ** 2), sideY = (t: number) => DECK + 3 + (TOP - DECK - 3) * t * t; // t along the span; t from the anchorage to the tower
-    const N = 32, Ms = 10, R = 1.0;
-    for (const side of [-1, 1]) {
-      const cz = side * HALF;
-      for (let i = 0; i < N; i++) s.bone([-TX + (2 * TX * i) / N, mainY(i / N), cz], [-TX + (2 * TX * (i + 1)) / N, mainY((i + 1) / N), cz], R, R);
-      for (let i = 0; i < Ms; i++) {
-        const a = (ANCH - TX) * (i / Ms), b = (ANCH - TX) * ((i + 1) / Ms);
-        s.bone([-ANCH + a, sideY(i / Ms), cz], [-ANCH + b, sideY((i + 1) / Ms), cz], R, R);
-        s.bone([ANCH - a, sideY(i / Ms), cz], [ANCH - b, sideY((i + 1) / Ms), cz], R, R);
-      }
-      for (let x = -TX + 46; x < TX; x += 46) s.bone([x, mainY((x + TX) / (2 * TX)), cz], [x, DECK, cz], 0.5, 0.5); // the suspenders
-      for (let x = TX + 46; x < ANCH; x += 46) { const t = (ANCH - x) / (ANCH - TX); s.bone([x, sideY(t), cz], [x, DECK, cz], 0.5, 0.5); s.bone([-x, sideY(t), cz], [-x, DECK, cz], 0.5, 0.5); }
-    }
-    return [piece(s.out(), M('goldenGate'))];
+    const wall = new Sink(), pane = new Sink(), glass = new Sink(), t = 0.06, H = GOOGLE.top, R = GOOGLE.room, g = 0.01;
+    const face = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number) => wall.box((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, x1 - x0, y1 - y0, z1 - z0);
+    // the lab's block: x -4.14..2.25, z 4.6..9.9; the south face round the passage's mouth (x 0.8..2.0, 2.4 high), the east face
+    face(-4.14, 0.8, 0, H, 4.6 - t, 4.6); face(2.0, 2.25, 0, H, 4.6 - t, 4.6); face(0.8, 2.0, 2.5, H, 4.6 - t, 4.6);
+    face(2.25, 2.25 + t, 0, H, 4.6 - t, 9.9);
+    // the passage's outside: its two sides and its top, 2.5 high
+    face(2.0, 2.0 + t, 0, 2.5, 2.6, 4.6 - t); face(0.8 - t, 0.8, 0, 2.5, 2.6, 4.6 - t); face(0.8 - t, 2.0 + t, 2.44, 2.5, 2.6, 4.6 - t);
+    // the 2020 room's block: x -4.14..0.7, z 0..3.6; its east face round the bed's window (z 0.9..2.1, sill 0.9, head 2.1), its north face, the jog to the boardroom's east wall
+    face(0.7 + g, 0.7 + g + t, 0, 0.9, 0, 3.6); face(0.7 + g, 0.7 + g + t, 2.1, H, 0, 3.6); face(0.7 + g, 0.7 + g + t, 0.9, 2.1, 0, 0.9); face(0.7 + g, 0.7 + g + t, 0.9, 2.1, 2.1, 3.6);
+    face(-4.14, 0.8 - t, 0, H, 3.6 + g, 3.6 + g + t);
+    face(0.7 + g, R.x[1] + g + t, 0, H, R.z[1] + g, R.z[1] + g + t);
+    // the block over the boardroom: the east face above the glass, the south face, the west face
+    face(R.x[1] + g, R.x[1] + g + t, R.h, H, R.z[0] - g - t, R.z[1] + g + t);
+    face(R.x[0] - g - t, R.x[1] + g + t, 0, H, R.z[0] - g - t, R.z[0] - g);
+    // the west face round its three windows (sill 1.0, head 2.4, 1.6 wide at z -6.6, -4.0, -1.4), glass in them
+    const W = [-6.6, -4.0, -1.4], xw0 = R.x[0] - g - t, xw1 = R.x[0] - g;
+    face(xw0, xw1, 0, 1.0, R.z[0] - g, R.z[1] + g); face(xw0, xw1, 2.4, H, R.z[0] - g, R.z[1] + g);
+    for (const [za, zb] of [[R.z[0] - g, W[0] - 0.8], [W[0] + 0.8, W[1] - 0.8], [W[1] + 0.8, W[2] - 0.8], [W[2] + 0.8, R.z[1] + g]] as Array<[number, number]>) face(xw0, xw1, 1.0, 2.4, za, zb);
+    for (const z of W) glass.quad([xw1 - 0.02, 1.0, z - 0.8], [xw1 - 0.02, 1.0, z + 0.8], [xw1 - 0.02, 2.4, z + 0.8], [xw1 - 0.02, 2.4, z - 0.8]).quad([xw1 - 0.02, 1.0, z + 0.8], [xw1 - 0.02, 1.0, z - 0.8], [xw1 - 0.02, 2.4, z - 0.8], [xw1 - 0.02, 2.4, z + 0.8]);
+    face(-4.14, 2.25 + t, H, H + 0.12, R.z[0] - g - t, 9.9); // the roof
+    // the bed's window, dark glass in its reveal; the upper storey's band of panes on the faces the walk sees
+    pane.box(0.7 + g + 0.008, 1.5, 1.5, 0.012, 1.2, 1.2);
+    for (let z = R.z[0] + 0.7; z < R.z[1] - 0.6; z += 1.5) pane.box(R.x[1] + g + t + 0.006, 5.0, z, 0.012, 1.5, 1.1); // the boardroom's block, east
+    for (let z = 0.6; z < 3.4; z += 1.5) pane.box(0.7 + g + t + 0.006, 5.0, z, 0.012, 1.5, 1.1); // the 2020 room's block, east
+    for (let z = 5.2; z < 9.7; z += 1.5) pane.box(2.25 + t + 0.006, 5.0, z, 0.012, 1.5, 1.1); // the lab's block, east
+    for (let x = R.x[0] + 0.6; x < R.x[1] - 0.5; x += 1.5) pane.box(x, 5.0, R.z[0] - g - t - 0.006, 1.1, 1.5, 0.012); // the boardroom's block, south
+    for (let x = -3.6; x < 2.0; x += 1.5) pane.box(x, 5.0, 4.6 - t - 0.006, 1.1, 1.5, 0.012); // the lab's block, south, over the mouth
+    return [piece(wall.out(), M('campusWall'), { metres: 'xy' }), piece(pane.out(), M('campusPane')), piece(glass.out(), M('cabinGlass'))];
   },
   /**
-   * The flight down from the lab's passage to the plaza: GOOGLE.steps steps, rising along +z from the origin at the
-   * plaza's level, solid to the ground, a steel handrail each side; the landing at the top meets the passage's mouth.
+   * The boardroom's east wall in glass, world coordinates: bays GOOGLE.bay wide from the south end between steel
+   * mullions under a head rail; the door's bay (GOOGLE.door) open in its frame, glass over the transom.
    */
-  plazaSteps: () => flight({ ...GOOGLE.steps, land: 1.2, rails: 'both', landRails: 'left', tread: 'pavement', rail: 'handrail' }), // the landing spans the passage's mouth: its rail on the south side only
-  /** The stair up the lobby to the balcony door: the same flight in oak, rising west from the entrance's line, its rail on the open (south) side, the landing on to the west wall under the door. */
-  lobbyStair: () => flight({ ...GOOGLE.steps, land: 1.8 - GOOGLE.block.x[0] - GOOGLE.steps.n * GOOGLE.steps.run, rails: 'left', landRails: 'left', tread: 'stageOak', rail: 'rod' }),
-  /**
-   * Google's block from outside, world coordinates: the walls from the plaza to the roof round the lobby's shell, the
-   * entrance cut in the east face with a steel frame, the balcony door cut in the north face, the wordmark over the
-   * entrance, the roof. White render, like the office on the Embarcadero.
-   */
-  googleBlock: () => {
-    const { x: [x0, x1], z: [z0, z1], top } = GOOGLE.block, P = GOOGLE.plaza, t = 0.12, g = 0.01, wall = new Sink(), steel = new Sink(); // g: a centimetre outside the lobby's shell, or coplanar faces bake its walls black
-    const E = GOOGLE.entrance, D = GOOGLE.door;
-    wall.box((x0 + x1) / 2, (P + top) / 2, z0 - g - t / 2, x1 - x0 + 2 * (g + t), top - P, t); // south
-    wall.box(x0 - g - t / 2, (P + top) / 2, (z0 + z1) / 2, t, top - P, z1 - z0); // west
-    // east, round the entrance
-    for (const [za, zb, ya, yb] of [[z0, E.z - E.w / 2, P, top], [E.z + E.w / 2, z1, P, top], [E.z - E.w / 2, E.z + E.w / 2, P + E.h, top]] as Array<[number, number, number, number]>)
-      wall.box(x1 + g + t / 2, (ya + yb) / 2, (za + zb) / 2, t, yb - ya, zb - za);
-    // north, round the balcony door (at the rooms' level, 0)
-    for (const [xa, xb, ya, yb] of [[x0 - g - t, D.x - D.w / 2, P, top], [D.x + D.w / 2, x1 + g + t, P, top], [D.x - D.w / 2, D.x + D.w / 2, P, 0], [D.x - D.w / 2, D.x + D.w / 2, D.h, top]] as Array<[number, number, number, number]>)
-      wall.box((xa + xb) / 2, (ya + yb) / 2, z1 + g + t / 2, xb - xa, yb - ya, t);
-    wall.box((x0 + x1) / 2, top + g + 0.1, (z0 + z1) / 2, x1 - x0 + 2 * (g + t), 0.2, z1 - z0 + 2 * (g + t)); // the roof
-    steel.box(x1 + 0.03, P + E.h + 0.04, E.z, 0.16, 0.08, E.w + 0.16).box(x1 + 0.03, (P + P + E.h) / 2, E.z - E.w / 2 - 0.04, 0.16, E.h, 0.08).box(x1 + 0.03, (P + P + E.h) / 2, E.z + E.w / 2 + 0.04, 0.16, E.h, 0.08); // the entrance's frame
-    return [piece(wall.out(), M('boothWhite'), { metres: 'xy' }), piece(steel.out(), M('windowFrame'))];
-  },
-  /** The screen in the lobby: 2.4 by 1.35 in a thin black bezel, painted (`googleAward`). Faces +z. */
-  awardScreen: () => [piece(face(2.4, 1.35, 0.012), { paint: 'googleAward' }), piece(frame(2.44, 1.39, 0.03, 0.02).out(), M('bezel'))],
-  /** The wordmark over the entrance: a board 2.4 by 0.7, painted (`googleWordmark`). Faces +z. */
-  googleSign: () => [piece(face(2.4, 0.7, 0.03), { paint: 'googleWordmark' }), piece(new Sink().rbox(0, 0, 0, 2.5, 0.8, 0.06, 0.015, 2).out(), M('board'), { smooth: true })],
-  /**
-   * The balcony at the rooms' level, world coordinates: along the block's north face (GOOGLE.balcony), a slab 0.3 thick,
-   * a glass balustrade on steel posts under a handrail along its open edges, posts down to the ground under its outer edge.
-   */
-  plazaBalcony: () => {
-    const { x: [x0, x1], z: [z0, z1] } = GOOGLE.balcony, P = GOOGLE.plaza, slab = new Sink(), post = new Sink(), rail = new Sink(), glass = new Sink(), pier = new Sink();
-    slab.box((x0 + x1) / 2, -0.15, (z0 + z1) / 2, x1 - x0, 0.3, z1 - z0);
-    const edges: Array<[V3, V3]> = [
-      [[x0, 0, z0], [x0, 0, z1]], // the west end
-      [[0.8, 0, z1], [x1, 0, z1]], // the north edge east of the 2020 room's face
-      [[x1, 0, z1], [x1, 0, z0]], // the east end
-    ];
-    for (const [a, b] of edges) {
-      const len = Math.hypot(b[0] - a[0], b[2] - a[2]), n = Math.max(1, Math.round(len / 1.2)), ux = (b[0] - a[0]) / len, uz = (b[2] - a[2]) / len;
-      for (let k = 0; k <= n; k++) post.box(a[0] + ux * (len * k) / n, 0.55, a[2] + uz * (len * k) / n, 0.05, 1.1, 0.05);
-      rail.box(a[0] + ux * len / 2, 1.12, a[2] + uz * len / 2, Math.abs(ux) * len + 0.05, 0.05, Math.abs(uz) * len + 0.05);
-      glass.quad([a[0], 0.06, a[2]], [b[0], 0.06, b[2]], [b[0], 1.08, b[2]], [a[0], 1.08, a[2]]).quad([b[0], 0.06, b[2]], [a[0], 0.06, a[2]], [a[0], 1.08, a[2]], [b[0], 1.08, b[2]]);
+  boardGlass: () => {
+    const R = GOOGLE.room, x = R.x[1], D = GOOGLE.door, mull = new Sink(), glass = new Sink(), top = R.h - 0.1;
+    const paneAt = (z0: number, z1: number, y0: number, y1: number) => glass.quad([x, y0, z0], [x, y0, z1], [x, y1, z1], [x, y1, z0]).quad([x, y0, z1], [x, y0, z0], [x, y1, z0], [x, y1, z1]);
+    mull.box(x, R.h - 0.05, (R.z[0] + R.z[1]) / 2, 0.1, 0.1, R.z[1] - R.z[0]); // the head
+    mull.box(x, 0.03, (R.z[0] + R.z[1]) / 2, 0.1, 0.06, R.z[1] - R.z[0]); // the sill
+    for (let z = R.z[0]; z < R.z[1] - 0.05; z += GOOGLE.bay) {
+      const z1 = Math.min(z + GOOGLE.bay, R.z[1]);
+      mull.box(x, R.h / 2, z, 0.08, R.h, 0.06);
+      if (Math.abs((z + z1) / 2 - D.z) < 0.3) { // the door: its frame, the bay open to the head of the frame
+        mull.box(x, 1.1, z + 0.05, 0.1, 2.2, 0.06).box(x, 1.1, z1 - 0.05, 0.1, 2.2, 0.06).box(x, 2.23, (z + z1) / 2, 0.1, 0.06, z1 - z);
+        paneAt(z, z1, 2.26, top);
+      } else paneAt(z, z1, 0.06, top);
     }
-    for (const x of [x0 + 0.2, -1.7, 0.4, x1 - 0.2]) pier.box(x, (P - 0.3) / 2, z1 - 0.2, 0.3, -P - 0.3, 0.3); // the posts down to the ground under its outer edge
-    return [piece(slab.out(), M('campusPaving'), { metres: 'xz' }), piece(pier.out(), M('boothWhite')), piece(post.out(), M('handrail')), piece(rail.out(), M('handrail')), piece(glass.out(), M('cabinGlass'))];
+    mull.box(x, R.h / 2, R.z[1], 0.08, R.h, 0.06);
+    return [piece(mull.out(), M('windowFrame')), piece(glass.out(), M('cabinGlass'))];
   },
-  /** The 2020 room's block from the balcony: its south face from the plaza to its roof, the door cut in it at x -0.7 with a reveal 0.4 deep. World coordinates. */
-  delhiFace: () => {
-    const P = GOOGLE.plaza, s = new Sink(), x0 = -2.5, x1 = 0.8, top = 3.0, d = 0.4, dw = 0.9, dh = 2.05, dx = -0.7;
-    for (const [xa, xb, ya, yb] of [[x0, dx - dw / 2, 0, top], [dx + dw / 2, x1, 0, top], [dx - dw / 2, dx + dw / 2, dh, top], [x0, x1, P, 0]] as Array<[number, number, number, number]>)
-      s.box((xa + xb) / 2, (ya + yb) / 2, -d / 2, xb - xa, yb - ya, d);
-    return [piece(s.out(), M('terraceWall'), { metres: 'xy' })];
+  /** The boardroom's table: 1.4 by 4.4 along z, white laminate 4 cm thick at 0.74, on two pedestals. */
+  boardTable: () => {
+    const top = new Sink().rbox(0, 0.72, 0, 1.4, 0.04, 4.4, 0.01, 2), ped = new Sink();
+    for (const z of [-1.4, 1.4]) ped.box(0, 0.35, z, 0.5, 0.7, 0.8).box(0, 0.02, z, 0.9, 0.04, 1.0);
+    return [piece(top.out(), M('tableWhite'), { smooth: true }), piece(ped.out(), M('bezel'))];
+  },
+  /** His name card at the seat: a tent card 0.2 wide, 0.09 high, the front painted (`nameCard`) and leaning back 20 degrees; faces +z. */
+  nameCard: () => {
+    const a = Math.PI / 9, h = 0.09, d = h * Math.sin(a), y = h * Math.cos(a);
+    const front = new Sink().quad([-0.1, 0, d], [0.1, 0, d], [0.1, y, 0], [-0.1, y, 0], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+    const back = new Sink().quad([0.1, 0, -d], [-0.1, 0, -d], [-0.1, y, 0], [0.1, y, 0]);
+    return [piece(front.out(), { paint: 'nameCard' }), piece(back.out(), M('badgeCard'))];
+  },
+  /** The lawn, world coordinates: grass east of the path to 61 m, west of the block, and south of it; never under a room's floor (CONTEXT: baked for the shadows, drawn live). */
+  lawn: () => {
+    const s = new Sink();
+    for (const [x0, x1, z0, z1] of [[1.55, 61.55, -42, 14], [-40, -4.05, -42, 14], [-4.05, 1.55, -42, -8.05]] as Array<[number, number, number, number]>) s.quad([x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0]);
+    return [piece(s.out(), M('lawn'), { metres: 'xz' })];
+  },
+  /** The concrete path down the block's face: 1.4 wide, 12.6 long along z, its middle at the origin. */
+  lawnPath: () => [piece(slab(1.4, 12.6), M('pavement'), { metres: 'xz' })],
+  /** The green Android of the lawn, 2.3 m tall, standing on the origin, facing +z. */
+  bugdroid: () => { const s = new Sink(), e = new Sink(); droid(s, 2.3, 0, 0, e); return [piece(s.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true })]; },
+  /** Cupcake: the fluted wrapper, the pink swirl, a cherry; a small Android beside it. */
+  statueCupcake: () => {
+    const wrap = new Sink().lathe([[0.5, 0], [0.62, 0.72], [0.0, 0.72]], 0, 0, 0, 1, 1, 0, 20);
+    const swirl = new Sink().lathe([[0.0, 0.7], [0.66, 0.72], [0.58, 0.95], [0.44, 1.15], [0.26, 1.32], [0.0, 1.42]], 0, 0, 0, 1, 1, 0, 20).sphere(0, 1.5, 0, 0.11, 0.11, 0.11, 10, 6);
+    const d = new Sink(), e = new Sink(); droid(d, 0.9, 0.95, 0.15, e);
+    return [piece(wrap.out(), M('candyBlue')), piece(swirl.out(), M('candyPink'), { smooth: true }), piece(d.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true })];
+  },
+  /** Donut: a ring 1.7 m across lying on the lawn, pink frosting over its top half with sprinkles; an Android standing in its hole. */
+  statueDonut: () => {
+    const Rg = 0.85, r = 0.32, ring = (a0: number, a1: number): [number, number][] => Array.from({ length: 8 }, (_, i) => { const a = a0 + ((a1 - a0) * i) / 7; return [Rg + r * Math.cos(a), r + r * Math.sin(a)]; });
+    const dough = new Sink().lathe(ring(Math.PI, 2 * Math.PI), 0, 0, 0, 1, 1, 0, 24), frost = new Sink().lathe(ring(0, Math.PI), 0, 0.01, 0, 1.01, 1.01, 0, 24);
+    const sprinkle = new Sink();
+    for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2 + (i % 3) * 0.3, rr = Rg + (i % 5 - 2) * 0.09, start = sprinkle.count; sprinkle.box(rr * Math.cos(a), 2 * r + 0.02, rr * Math.sin(a), 0.11, 0.025, 0.03); sprinkle.rotateY(rr * Math.cos(a), rr * Math.sin(a), a * 1.7, start); }
+    const d = new Sink(), e = new Sink(); droid(d, 1.4, 0, 0, e);
+    return [piece(dough.out(), M('cookie'), { smooth: true }), piece(frost.out(), M('candyPink'), { smooth: true }), piece(sprinkle.out(), M('candyYellow')), piece(d.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true })];
+  },
+  /** Gingerbread: the flat cookie man 2.4 m tall on a disc, icing at his eyes, mouth, buttons, wrists and ankles. */
+  statueGingerbread: () => {
+    const c = new Sink(), ice = new Sink(), t = 0.16;
+    c.sphere(0, 1.95, 0, 0.44, 0.44, t, 16, 8); // the head
+    c.rbox(0, 1.1, 0, 0.9, 0.95, 2 * t, 0.12, 2); // the body
+    for (const dx of [-1, 1]) { c.capsule([dx * 0.35, 1.45, 0], [dx * 0.95, 1.75, 0], t, 8, 2); c.capsule([dx * 0.22, 0.75, 0], [dx * 0.4, 0.2, 0], t, 8, 2); }
+    c.cylinder(0, 0.03, 0, 0.9, 0.06, 24); // the disc he stands on
+    for (const dx of [-0.15, 0.15]) ice.sphere(dx, 2.05, t - 0.02, 0.05, 0.05, 0.03, 8, 4);
+    ice.bone([-0.16, 1.82, t - 0.01], [0.16, 1.82, t - 0.01], 0.02, 0.02);
+    for (const y of [1.3, 1.05, 0.8]) ice.sphere(0, y, t - 0.02, 0.06, 0.06, 0.03, 8, 4);
+    for (const dx of [-1, 1]) { ice.cylinder(dx * 0.86, 1.7, 0, t + 0.015, 0.06, 12); ice.cylinder(dx * 0.37, 0.3, 0, t + 0.015, 0.06, 12); }
+    return [piece(c.out(), M('cookie'), { smooth: true }), piece(ice.out(), M('icing'), { smooth: true })];
+  },
+  /** Jelly Bean: the big red bean and a scatter of small ones; an Android beside them. */
+  statueJellyBean: () => {
+    const bean = new Sink().sphere(0, 0.6, 0, 0.95, 0.6, 0.6, 20, 10), small = new Sink();
+    for (const [x, z, a] of [[-1.3, 0.5, 0.4], [1.2, 0.7, 1.9], [0.9, -0.9, 0.8], [-0.9, -0.9, 2.6]] as const) { const start = small.count; small.sphere(x, 0.18, z, 0.3, 0.18, 0.18, 10, 6); small.rotateY(x, z, a, start); }
+    const d = new Sink(), e = new Sink(); droid(d, 1.6, 1.5, -0.2, e);
+    return [piece(bean.out(), M('candyRed'), { smooth: true }), piece(small.out(), M('candyYellow'), { smooth: true }), piece(d.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true })];
+  },
+  /** KitKat: the Android in red, holding the wafer bar in front of him. */
+  statueKitKat: () => {
+    const d = new Sink(), e = new Sink(); droid(d, 2.0, 0, 0, e);
+    const bar = new Sink().box(0, 1.0, 0.62, 1.1, 0.16, 0.24);
+    for (const dx of [-0.41, -0.14, 0.14, 0.41]) bar.box(dx, 1.1, 0.62, 0.22, 0.06, 0.2);
+    return [piece(d.out(), M('candyRed'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true }), piece(bar.out(), M('chocolate'), { smooth: true })];
+  },
+  /** Lollipop: the Android with a lollipop as tall as himself leaning on his shoulder. */
+  statueLollipop: () => {
+    const d = new Sink(), e = new Sink(); droid(d, 2.0, 0, 0, e);
+    const stick = new Sink().bone([0.5, 0.0, 0.3], [0.85, 1.9, 0.3], 0.035, 0.035);
+    const disc = new Sink(); disc.cylinder(0.92, 2.3, 0.3, 0.5, 0.12, 24); disc.rotateX(2.3, 0.3, Math.PI / 2);
+    const swirl = new Sink(); swirl.cylinder(0.92, 2.3, 0.3, 0.3, 0.13, 20); swirl.rotateX(2.3, 0.3, Math.PI / 2);
+    return [piece(d.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true }), piece(stick.out(), M('icing')), piece(disc.out(), M('candyRed'), { smooth: true }), piece(swirl.out(), M('icing'), { smooth: true })];
+  },
+  /** Marshmallow: an Android standing on a marshmallow, a marshmallow on a stick in his hand. */
+  statueMarshmallow: () => {
+    const m = new Sink().lathe([[0.5, 0], [0.56, 0.08], [0.56, 0.68], [0.5, 0.76], [0.0, 0.76]], 0, 0, 0, 1, 1, 0, 20);
+    const d = new Sink(), e = new Sink(); droid(d, 1.6, 0, 0, e); d.translate(0, 0.76, 0);
+    const stick = new Sink().bone([0.52, 1.25, 0.1], [0.9, 2.15, 0.35], 0.02, 0.02);
+    const mm = new Sink().cylinder(0.95, 2.28, 0.38, 0.14, 0.24, 12);
+    return [piece(m.out(), M('icing'), { smooth: true }), piece(d.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true }), piece(stick.out(), M('treeTrunk')), piece(mm.out(), M('icing'), { smooth: true })];
+  },
+  /** Oreo: the two dark biscuits and the cream between, 1.6 m across; an Android standing on top. */
+  statueOreo: () => {
+    const b = new Sink().cylinder(0, 0.11, 0, 0.8, 0.22, 24).cylinder(0, 0.47, 0, 0.8, 0.22, 24), cream = new Sink().cylinder(0, 0.29, 0, 0.77, 0.14, 24);
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; b.box(0.5 * Math.cos(a), 0.6, 0.5 * Math.sin(a), 0.08, 0.02, 0.08); }
+    const d = new Sink(), e = new Sink(); droid(d, 1.5, 0, 0, e); d.translate(0, 0.58, 0);
+    return [piece(b.out(), M('chocolate')), piece(cream.out(), M('icing')), piece(d.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true })];
+  },
+  /** Pie: a slice, crust and red filling under a lattice, the point toward +z; a small Android beside it. */
+  statuePie: () => {
+    const sector = (Rr: number, a0: number, a1: number): Array<[number, number]> => [[0, 0], ...Array.from({ length: 8 }, (_, i): [number, number] => { const a = a0 + ((a1 - a0) * i) / 7; return [Rr * Math.cos(a), Rr * Math.sin(a)]; })];
+    const crust = new Sink(), fill = new Sink(), lat = new Sink();
+    crust.extrude(sector(1.4, Math.PI / 2 - 0.5, Math.PI / 2 + 0.5), 0, 0.42, undefined, crust); // the point at the origin, the arc toward +z
+    fill.extrude(sector(1.32, Math.PI / 2 - 0.46, Math.PI / 2 + 0.46), 0.3, 0.5, undefined, fill);
+    for (let i = -2; i <= 2; i++) { lat.box(i * 0.24, 0.52, 0.75, 0.07, 0.05, 1.3); lat.box(0, 0.52, 0.45 + i * 0.24, 1.2, 0.05, 0.07); }
+    const d = new Sink(), e = new Sink(); droid(d, 1.1, 1.2, 0.3, e);
+    return [piece(crust.out(), M('wafer')), piece(fill.out(), M('candyRed')), piece(lat.out(), M('wafer')), piece(d.out(), M('android'), { smooth: true }), piece(e.out(), M('droidEye'), { smooth: true })];
+  },
+  /**
+   * The Google letters on the lawn, 1.2 m tall, 24 cm deep, each in its colour, standing on low concrete blocks with the g's
+   * tail reaching the ground between them; faces +z, 5 m wide about the origin.
+   */
+  googleLetters: () => {
+    const T = 0.24, base = 0.45, blocks = new Sink(), out: Built[] = [];
+    // an arc band in letter coordinates (x right, y up), from angle a0 to a1, outer R, inner r
+    const band = (cx: number, cy: number, Rr: number, r: number, a0: number, a1: number, n = 20): Array<[number, number]> => {
+      const pts: Array<[number, number]> = [];
+      for (let i = 0; i <= n; i++) { const a = a0 + ((a1 - a0) * i) / n; pts.push([cx + Rr * Math.cos(a), cy + Rr * Math.sin(a)]); }
+      for (let i = n; i >= 0; i--) { const a = a0 + ((a1 - a0) * i) / n; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
+      return pts;
+    };
+    const rect = (x0: number, x1: number, y0: number, y1: number): Array<[number, number]> => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+    const letter = (mat: string, ...polys: Array<Array<[number, number]>>) => {
+      const s = new Sink();
+      for (const p of polys) s.extrude(p.map(([x, y]): [number, number] => [x, -y]), 0, T, undefined, s); // built flat with the letter's up toward -z, the cap on top
+      s.rotateX(0, 0, Math.PI / 2); // stood up: the cap faces +z
+      out.push(piece(s.out(), M(mat)));
+    };
+    const y = base, X = -2.45, ring = (cx: number, cy: number, Rr: number, r: number) => [band(cx, cy, Rr, r, 0, Math.PI), band(cx, cy, Rr, r, Math.PI, 2 * Math.PI)];
+    // G: the open ring, the bar into it from the right, the short stem under the bar
+    letter('gBlue', band(X + 0.62, y + 0.6, 0.6, 0.38, 0.55, 2 * Math.PI - 0.55), rect(X + 0.62, X + 1.22, y + 0.49, y + 0.71), rect(X + 1.0, X + 1.22, y + 0.3, y + 0.71));
+    letter('gRed', ...ring(X + 1.78, y + 0.42, 0.42, 0.21));
+    letter('gYellow', ...ring(X + 2.72, y + 0.42, 0.42, 0.21));
+    // g: the ring, the stem down its right, the tail curling under to the ground
+    letter('gBlue', ...ring(X + 3.66, y + 0.42, 0.42, 0.21), rect(X + 3.87, X + 4.08, y - 0.12, y + 0.42), band(X + 3.73, y - 0.12, 0.35, 0.14, Math.PI, 2 * Math.PI));
+    letter('gGreen', rect(X + 4.2, X + 4.42, y, y + 1.2));
+    // e: the ring, the bar across, the lower right of the ring cut away
+    letter('gRed', band(X + 4.98, y + 0.42, 0.42, 0.21, -0.35, 2 * Math.PI - 1.15), rect(X + 4.58, X + 5.4, y + 0.36, y + 0.52));
+    for (const [x0, x1] of [[X - 0.02, X + 1.26], [X + 1.33, X + 2.23], [X + 2.27, X + 3.17], [X + 4.16, X + 4.46], [X + 4.53, X + 5.43]]) blocks.box((x0 + x1) / 2, base / 2, 0.12, x1 - x0, base, 0.5);
+    return [piece(blocks.out(), M('plinth')), ...out];
+  },
+  /** A Google bike: the yellow frame, blue and green rims, the red basket; along z, the front at +z, on the origin. */
+  gbike: () => {
+    const frame = new Sink(), tyre = new Sink(), front = new Sink(), rear = new Sink(), black = new Sink(), basket = new Sink();
+    const A: V3 = [0, 0.34, -0.55], F: V3 = [0, 0.34, 0.55], BB: V3 = [0, 0.3, -0.08], S: V3 = [0, 0.92, -0.25], Hd: V3 = [0, 0.9, 0.36];
+    for (const [a, b] of [[A, BB], [BB, S], [S, A], [S, Hd], [BB, Hd], [Hd, F]] as Array<[V3, V3]>) frame.bone(a, b, 0.02, 0.02);
+    for (const [z, rim] of [[-0.55, rear], [0.55, front]] as Array<[number, Sink]>) {
+      let start = tyre.count; tyre.lathe(Array.from({ length: 7 }, (_, i): [number, number] => { const a = (i / 6) * Math.PI * 2; return [0.34 + 0.03 * Math.cos(a), 0.03 * Math.sin(a)]; }), 0, 0.34, z, 1, 1, 0, 18); tyre.rotateZ(0, 0.34, Math.PI / 2, start);
+      start = rim.count; rim.cylinder(0, 0.34, z, 0.3, 0.02, 18); rim.rotateZ(0, 0.34, Math.PI / 2, start);
+    }
+    black.rbox(0, 0.97, -0.28, 0.12, 0.05, 0.26, 0.02, 2).box(0, 0.98, 0.4, 0.52, 0.03, 0.03).box(0, 0.94, 0.36, 0.03, 0.14, 0.03);
+    basket.box(0, 0.74, 0.62, 0.36, 0.02, 0.3).box(-0.17, 0.86, 0.62, 0.02, 0.26, 0.3).box(0.17, 0.86, 0.62, 0.02, 0.26, 0.3).box(0, 0.86, 0.77, 0.36, 0.26, 0.02).box(0, 0.86, 0.47, 0.36, 0.26, 0.02);
+    return [piece(frame.out(), M('bikeYellow')), piece(tyre.out(), M('tyre'), { smooth: true }), piece(front.out(), M('bikeBlue')), piece(rear.out(), M('bikeGreen')), piece(black.out(), M('bezel')), piece(basket.out(), M('bikeRed'))];
+  },
+  /** A bike rack: one steel hoop, 0.8 high, 0.7 long along z, on the origin. */
+  bikeRack: () => [piece(new Sink().bone([0, 0, -0.35], [0, 0.77, -0.35], 0.025, 0.025).bone([0, 0, 0.35], [0, 0.77, 0.35], 0.025, 0.025).bone([0, 0.78, -0.37], [0, 0.78, 0.37], 0.025, 0.025).out(), M('handrail'))],
+  /** The far blocks of the campus, world coordinates: two storeys, cream, a band of panes on the faces toward the lawn. */
+  campusFar: () => {
+    const wall = new Sink(), pane = new Sink(), H = 7.2;
+    for (const [x0, x1, z0, z1] of [[8, 30, -24, -17], [20, 34, -8, 8], [-14, -6, -30, -22]] as Array<[number, number, number, number]>) {
+      wall.box((x0 + x1) / 2, H / 2, (z0 + z1) / 2, x1 - x0, H, z1 - z0);
+      for (let x = x0 + 0.8; x < x1 - 0.6; x += 1.6) pane.box(x, 5.0, z1 + 0.006, 1.1, 1.5, 0.012);
+      for (let z = z0 + 0.8; z < z1 - 0.6; z += 1.6) pane.box(x0 - 0.006, 5.0, z, 0.012, 1.5, 1.1);
+      pane.box((x0 + x1) / 2, 1.5, z1 + 0.006, x1 - x0 - 0.8, 2.2, 0.012); pane.box(x0 - 0.006, 1.5, (z0 + z1) / 2, 0.012, 2.2, z1 - z0 - 0.8); // the ground floor glazed along
+    }
+    return [piece(wall.out(), M('campusWall'), { metres: 'xy' }), piece(pane.out(), M('campusPane'))];
+  },
+  /** A redwood: the trunk and a conifer's tiers of canopy from 3 m up, 23 m tall, on the origin. */
+  redwood: () => {
+    const trunk = new Sink().cylinder(0, 1.8, 0, 0.42, 3.6, 8);
+    const canopy = new Sink().lathe([[3.6, 3.0], [3.9, 3.6], [2.6, 8], [3.0, 8.4], [1.6, 13.5], [2.0, 14], [0.75, 19], [1.0, 19.4], [0, 23]], 0, 0, 0, 1, 1, 0, 10);
+    return [piece(trunk.out(), M('treeTrunk')), piece(canopy.out(), M('conifer'))];
   },
   /** Clouds: a few flattened white puffs, far up and far off, unlit. */
   clouds: () => {
@@ -1501,50 +1523,6 @@ export const BUILT: Record<string, () => BuiltPart> = {
       for (let k = 0; k < 4; k++) s.sphere(cx + (rnd() - 0.5) * w, cy + (rnd() - 0.5) * 8, cz + (rnd() - 0.5) * 20, w * (0.3 + rnd() * 0.3), 7 + rnd() * 6, w * 0.25, 16, 9);
     }
     return [piece(s.out(), M('cloud'), { smooth: true })];
-  },
-  /** The bay: 200 × 120 m of water, uv in metres for the ripple. */
-  water: () => [piece(slab(200, 120), M('water'), { metres: 'xz' })],
-  /** The Bay Bridge: two decks, two towers with braces, main cables, suspenders. Spans x, 300 m; placed at scale 3. */
-  bridge: () => {
-    const s = new Sink();
-    const L = 150, TX = 48, TH = 44, DY = 12;
-    s.box(0, DY, 0, 2 * L, 1.3, 6).box(0, DY - 3.2, 0, 2 * L, 1.0, 6);
-    for (let x = -L + 2; x < L; x += 6) { s.box(x, DY - 1.6, 2.7, 0.3, 2.2, 0.3); s.box(x, DY - 1.6, -2.7, 0.3, 2.2, 0.3); }
-    for (const tx of [-TX, TX]) {
-      for (const leg of [-1, 1]) s.box(tx, TH / 2, leg * 2.4, 2.4, TH, 1.6);
-      const hs = [DY + 6, DY + 16, DY + 26, TH - 3];
-      for (const h of hs) s.box(tx, h, 0, 2.4, 2.6, 6.2);
-      // X bracing between the legs, the steel lattice the towers read as from the street
-      for (let i = 0; i < hs.length - 1; i++) { s.bone([tx, hs[i], -2.4], [tx, hs[i + 1], 2.4], 0.5, 0.5); s.bone([tx, hs[i], 2.4], [tx, hs[i + 1], -2.4], 0.5, 0.5); }
-      s.bone([tx, 1, -2.4], [tx, DY + 6, 2.4], 0.5, 0.5); s.bone([tx, 1, 2.4], [tx, DY + 6, -2.4], 0.5, 0.5);
-    }
-    const N = 24, Mn = 8, r = 0.38;
-    const mainY = (t: number) => TH - (TH - DY - 2) * (1 - (2 * t - 1) ** 2);
-    const sideY = (t: number) => DY + 1.5 + (TH - DY - 1.5) * t * t;
-    for (const side of [-1, 1]) {
-      const cz = side * 2.4;
-      for (let i = 0; i < N; i++) s.bone([-TX + (2 * TX * i) / N, mainY(i / N), cz], [-TX + (2 * TX * (i + 1)) / N, mainY((i + 1) / N), cz], r, r);
-      for (let i = 0; i < Mn; i++) {
-        s.bone([-L + ((L - TX) * i) / Mn, sideY(i / Mn), cz], [-L + ((L - TX) * (i + 1)) / Mn, sideY((i + 1) / Mn), cz], r, r);
-        s.bone([L - ((L - TX) * i) / Mn, sideY(i / Mn), cz], [L - ((L - TX) * (i + 1)) / Mn, sideY((i + 1) / Mn), cz], r, r);
-      }
-      for (let i = 1; i < N; i += 2) s.bone([-TX + (2 * TX * i) / N, mainY(i / N), cz], [-TX + (2 * TX * i) / N, DY, cz], 0.12, 0.12);
-      for (let i = 1; i < Mn; i += 2) {
-        s.bone([-L + ((L - TX) * i) / Mn, sideY(i / Mn), cz], [-L + ((L - TX) * i) / Mn, DY, cz], 0.12, 0.12);
-        s.bone([L - ((L - TX) * i) / Mn, sideY(i / Mn), cz], [L - ((L - TX) * i) / Mn, DY, cz], 0.12, 0.12);
-      }
-    }
-    return [piece(s.out(), M('bridge'))];
-  },
-  /** Two sailboats: hull, mast, sail. */
-  boats: () => {
-    const hull = new Sink(), mast = new Sink(), sail = new Sink();
-    for (const [x, z] of [[-28, -15], [40, -45]] as const) {
-      hull.box(x, 0.4, z, 6, 0.9, 2.2);
-      mast.cylinder(x, 4, z, 0.12, 7, 12);
-      sail.bone([x + 0.2, 1, z], [x + 0.2, 7.4, z], 0.05, 2.2);
-    }
-    return [piece(hull.out(), M('hull')), piece(mast.out(), M('mast')), piece(sail.out(), M('sail'))];
   },
   // ---- 2020, the Delhi room: Webcube from a desk at home
   /** A wide laminate desk, 2.2 × 0.8, the top at 0.74: a panel leg on the left, three drawers on the right, a modesty panel behind. */

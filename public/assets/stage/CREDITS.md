@@ -45,8 +45,8 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 - `SchoolDesk_01` (model) by Ethan Place, CC0, https://polyhaven.com/a/SchoolDesk_01. the lab desks.
 - `SchoolChair_01` (model) by Ethan Place, CC0, https://polyhaven.com/a/SchoolChair_01. the Dalhousie classroom chairs.
 - `wall_clock` (model) by PierreB3D, CC0, https://polyhaven.com/a/wall_clock. the clock.
-- `island_tree_01` (model) by Rob Tuytel, CC0, https://polyhaven.com/a/island_tree_01. the trees by the plaza (1.6 M triangles scanned, simplified hard).
-- `palm_medium` (model) by BlenderKit (CC0), RF, https://www.blenderkit.com/api/v1/downloads/609465/. the palms along the Embarcadero.
+- `island_tree_01` (model) by Rob Tuytel, CC0, https://polyhaven.com/a/island_tree_01. the tree outside the 2010 room (1.6 M triangles scanned, simplified hard).
+- `android_honeycomb` (model) by Francesco P. (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/24f7118cb9b5a756b9ea4d6bd2428717/binaries/glb?download=true. the Honeycomb statue on the Android lawn.
 - `herringbone_parquet` (texture) by Jenelle van Heerden, CC0, https://polyhaven.com/a/herringbone_parquet. the condo floor.
 - `dark_brick_wall` (texture) by Dario Barresi, CC0, https://polyhaven.com/a/dark_brick_wall. the wall behind the desk.
 - `plank_flooring_02` (texture) by Dario Barresi, CC0, https://polyhaven.com/a/plank_flooring_02. the 2010 room floor.
@@ -56,7 +56,7 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 - `cotton_jersey` (texture) by colormass, CC0, https://polyhaven.com/a/cotton_jersey. the curtains.
 - `dirty_carpet` (texture) by Rohit Seervi, CC0, https://polyhaven.com/a/dirty_carpet. the rugs.
 - `oak_veneer_01` (texture) by Jenelle van Heerden, CC0, https://polyhaven.com/a/oak_veneer_01. the shelves, the bed frame.
-- `asphalt_02` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/asphalt_02. the Embarcadero road.
+- `leafy_grass` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/leafy_grass. the Googleplex lawn.
 - `concrete_pavement` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/concrete_pavement. the paving of the promenade.
 
 The Toronto skyline out of the condo window and Halifax under the aircraft are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).

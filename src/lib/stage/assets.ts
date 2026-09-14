@@ -2,7 +2,7 @@
 // turns this into optimised .glb files under public/assets/stage/ and a credits file; the runtime
 // only ever asks assetUrl(). Downloaded assets carry their licences; local geometry has a rebuild script. Model textures are capped at 512 px
 // and scanned surfaces at 1k: the whole set has to stay light enough for a phone on a bad connection.
-export type Licence = 'CC0' | 'CC-BY-3.0' | 'CC-BY-4.0' | 'RF' | 'Original'; // Original: project-authored geometry; RF: BlenderKit royalty free
+export type Licence = 'CC0' | 'CC-BY-3.0' | 'CC-BY-4.0' | 'RF' | '3DW' | 'Original'; // Original: project-authored geometry; RF: BlenderKit royalty free; 3DW: the 3D Warehouse General Model License (use in a project, no standalone redistribution)
 export type TexMap = 'diff' | 'nor' | 'arm'; // colour, normal (gl), and ambient occlusion + roughness + metalness packed in r, g, b
 export interface Asset {
   id: string; // the Poly Haven slug, or our own name for a url asset
@@ -90,8 +90,9 @@ export const ASSETS: Asset[] = [
   model('SchoolChair_01', 'Ethan Place', 'the Dalhousie classroom chairs'),
   model('wall_clock', 'PierreB3D', 'the clock', 256),
   // 2018, the plaza
-  model('island_tree_01', 'Rob Tuytel', 'the trees by the plaza (1.6 M triangles scanned, simplified hard)', 512, 0.003),
-  kit('palm_medium', 609465, 'BlenderKit (CC0)', 'the palms along the Embarcadero'),
+  model('island_tree_01', 'Rob Tuytel', 'the tree outside the 2010 room (1.6 M triangles scanned, simplified hard)', 512, 0.003),
+  // 2019, the Android lawn: the Honeycomb statue of 2011 from 3D Warehouse (its glb download needs no account), its colours in its materials
+  { id: 'android_honeycomb', kind: 'model', source: 'url', url: 'https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/24f7118cb9b5a756b9ea4d6bd2428717/binaries/glb?download=true', res: '1k', licence: '3DW', author: 'Francesco P. (3D Warehouse)', use: 'the Honeycomb statue on the Android lawn', maxTex: 256, simplify: 0.002 },
   // scanned surfaces: floors take the whole set, walls and cloth take only the relief and keep their designed colour
   texture('herringbone_parquet', 'Jenelle van Heerden', 'the condo floor', 3.4, ['diff', 'nor', 'arm'], 1024),
   texture('dark_brick_wall', 'Dario Barresi', 'the wall behind the desk', 1.05, ['diff', 'nor', 'arm']),
@@ -102,7 +103,7 @@ export const ASSETS: Asset[] = [
   texture('cotton_jersey', 'colormass', 'the curtains', 0.26, ['nor', 'arm']),
   texture('dirty_carpet', 'Rohit Seervi', 'the rugs', 0.6, ['nor', 'arm']),
   texture('oak_veneer_01', 'Jenelle van Heerden', 'the shelves, the bed frame', 1.83, ['diff', 'nor', 'arm']),
-  texture('asphalt_02', 'Rob Tuytel', 'the Embarcadero road', 3.0, ['diff', 'nor', 'arm']),
+  texture('leafy_grass', 'Charlotte Baglioni', 'the Googleplex lawn', 2.0, ['diff', 'nor', 'arm']),
   texture('concrete_pavement', 'Charlotte Baglioni', 'the paving of the promenade', 2.0, ['diff', 'nor', 'arm']),
 ];
 

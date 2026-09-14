@@ -43,29 +43,25 @@ const APPROACH: DollyKey[] = [
   { q: 0.532, cam: [-0.3, 1.58, 6.85], look: [1.6, 1.25, 6.2], fov: 62, set: 2 }, // turning right
   { q: 0.559, cam: [0.9, 1.58, 5.6], look: [1.4, 1.3, 3.6], fov: 64, set: 2 }, // the door south
   { q: 0.578, cam: [1.4, 1.58, 4.75], look: [1.4, 1.5, 2.8], fov: 68, set: 2, blend: 0 }, // door jamb, heading south
-  { q: 0.588, cam: [1.4, 1.6, 3.5], look: [3.0, 1.2, 0.2], fov: 68, set: 3, blend: 1 }, // mid passage: daylight, already turning to the steps
-  // 2019: out onto the landing and left, down the flight onto the Embarcadero, the sign and the bay ahead; to the sign;
-  // right, into Google's block under the wordmark; up the stair inside past the screen to the door in the north wall;
-  // out onto the balcony, turned to the bay and the bridge over the plaza as the trophy comes up; along the balcony
-  // and left through the 2020 room's door (Google's card runs two chapter lengths: shot.ts `approach`)
-  { q: 0.597, cam: [1.6, 1.6, 2.35], look: [4.8, 0.5, 1.0], fov: 68, set: 3 }, // the landing: the steps down
-  { q: 0.609, cam: [3.0, 0.9, 2.0], look: [7.5, -1.6, 0.0], fov: 68, set: 3 }, // on the steps: the plaza, the bay
-  { q: 0.626, cam: [4.8, -0.38, 2.0], look: [8.5, -2.4, -2.0], fov: 68, set: 3 }, // the sign coming round
-  { q: 0.64, cam: [6.25, -1.4, 2.0], look: [8.8, -1.8, -2.6], fov: 68, set: 3 }, // the foot: the sign ahead
-  { q: 0.655, cam: [6.8, -1.4, 0.2], look: [8.6, -1.6, -4.6], fov: 66, set: 3 }, // Google San Francisco
-  { q: 0.667, cam: [6.6, -1.4, -1.6], look: [5.6, -1.5, -5.4], fov: 66, set: 3 }, // turning right
-  { q: 0.678, cam: [5.6, -1.4, -3.0], look: [2.6, -1.3, -5.6], fov: 66, set: 3 }, // the entrance, the wordmark over it
-  { q: 0.689, cam: [4.2, -1.4, -3.6], look: [-1.0, -0.9, -3.6], fov: 68, set: 3 }, // the lobby ahead, the screen in it
-  { q: 0.699, cam: [2.9, -1.4, -3.6], look: [-3.9, 0.2, -3.6], fov: 68, set: 3 }, // in
-  { q: 0.707, cam: [1.8, -1.4, -3.6], look: [-3.9, 1.0, -3.6], fov: 68, set: 3 }, // the foot of the stair: the screen over it
-  { q: 0.724, cam: [0.0, -0.13, -3.6], look: [-3.9, 1.6, -3.4], fov: 68, set: 3 }, // up
-  { q: 0.748, cam: [-2.45, 1.6, -3.6], look: [-3.2, 1.4, -0.6], fov: 68, set: 3 }, // the top, turned to the door, open
-  { q: 0.755, cam: [-3.0, 1.6, -3.6], look: [-3.3, 1.4, -0.6], fov: 70, set: 3 }, // through it: the balcony, the 2020 room's face
-  { q: 0.766, cam: [-2.7, 1.6, -2.2], look: [-0.6, 1.2, 1.4], fov: 72, set: 3 }, // out, turning to the bay over the balcony's end
-  { q: 0.78, cam: [-1.4, 1.6, -1.2], look: [3.5, 0.9, 0.1], fov: 72, set: 3 }, // east over the balustrade: the plaza below, the road, the bay, the bridge: the trophy comes up
-  { q: 0.792, cam: [-0.5, 1.6, -1.0], look: [2.8, 1.1, 1.6], fov: 72, set: 3 }, // in hand, San Francisco behind; the balcony's end, turning back
-  { q: 0.802, cam: [-0.6, 1.6, -0.5], look: [0.7, 1.4, 3.7], fov: 70, set: 3 }, // left: the door
-  { q: 0.808, cam: [-0.7, 1.58, -0.1], look: [0.3, 1.45, 4.9], fov: 68, set: 3, blend: 0 }, // door jamb, heading north, the eye still coming round
+  { q: 0.588, cam: [1.4, 1.6, 3.5], look: [2.8, 1.2, 0.2], fov: 68, set: 3, blend: 1 }, // mid passage: daylight, the lawn ahead
+  { q: 0.6, cam: [1.6, 1.6, 2.5], look: [7.0, 1.3, 0.0], fov: 68, set: 3 }, // the mouth: the lawn, the statues along it, the bikes
+  { q: 0.617, cam: [2.7, 1.6, 1.2], look: [7.4, 1.4, -0.8], fov: 68, set: 3 }, // the Android
+  { q: 0.636, cam: [3.2, 1.6, -0.5], look: [7.8, 1.3, -5.0], fov: 68, set: 3 }, // down the row: the donut, the gingerbread man
+  { q: 0.656, cam: [3.2, 1.6, -2.0], look: [6.6, 1.3, -8.6], fov: 68, set: 3 }, // the bean, Honeycomb, KitKat; the letters at the end of the path
+  { q: 0.67, cam: [3.2, 1.6, -3.2], look: [4.0, 1.2, -11.6], fov: 68, set: 3 }, // Google
+  { q: 0.676, cam: [3.2, 1.6, -3.7], look: [1.4, 1.2, -10.4], fov: 68, set: 3 }, // turning right along the glass
+  { q: 0.683, cam: [3.1, 1.6, -4.2], look: [-0.2, 1.2, -8.2], fov: 68, set: 3 },
+  { q: 0.691, cam: [2.9, 1.6, -4.6], look: [-1.4, 1.1, -6.2], fov: 68, set: 3 }, // the boardroom through the glass: the table
+  { q: 0.699, cam: [2.4, 1.6, -4.9], look: [-2.6, 1.0, -4.9], fov: 68, set: 3 }, // the open bay
+  { q: 0.706, cam: [1.9, 1.6, -5.0], look: [-2.8, 0.9, -4.6], fov: 68, set: 3 }, // the door: the table
+  { q: 0.72, cam: [0.9, 1.6, -5.0], look: [-3.0, 0.85, -3.6], fov: 68, set: 3 }, // in: across the table
+  { q: 0.738, cam: [0.6, 1.6, -4.4], look: [-1.8, 0.85, -3.0], fov: 68, set: 3 }, // up the room along the chairs
+  { q: 0.758, cam: [0.25, 1.5, -3.7], look: [-1.0, 0.85, -3.0], fov: 68, set: 3 }, // his seat: the name on the table
+  { q: 0.767, cam: [0.2, 1.58, -3.1], look: [-1.6, 1.1, -1.4], fov: 68, set: 3 }, // coming up
+  { q: 0.776, cam: [0.2, 1.6, -2.5], look: [-0.75, 1.25, 0.4], fov: 68, set: 3 }, // the door in the north wall
+  { q: 0.792, cam: [-0.3, 1.6, -1.5], look: [-0.8, 1.35, 1.6], fov: 68, set: 3 }, // the door
+  { q: 0.802, cam: [-0.6, 1.6, -0.7], look: [-0.8, 1.4, 2.4], fov: 68, set: 3 }, // the jamb ahead
+  { q: 0.808, cam: [-0.7, 1.58, -0.1], look: [-0.85, 1.45, 3.4], fov: 68, set: 3, blend: 0 }, // door jamb, heading north
   { q: 0.822, cam: [-0.7, 1.58, 0.55], look: [-0.9, 1.35, 2.6], fov: 68, set: 4, blend: 1 }, // through the frame: the room, night
   { q: 0.838, cam: [-0.75, 1.58, 0.75], look: [-1.05, 1.45, 3.2], fov: 74, set: 4 }, // the desk and both shelves, with the bed alongside
   { q: 0.866, cam: [-0.85, 1.58, 1.1], look: [-1.1, 1.5, 3.45], fov: 74, set: 4 }, // closer, keeping the tallest awards in frame

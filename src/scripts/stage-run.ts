@@ -33,7 +33,7 @@ import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
 import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
-import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE, TROPHY } from '../lib/stage/flight.ts';
+import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE } from '../lib/stage/flight.ts';
 import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
@@ -90,10 +90,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   heldDegree.name = 'heldDegree';
   heldDegree.visible = false;
   camera.add(heldDegree);
-  const heldTrophy = new Group(); // the Code-in trophy, from the boardroom table into the hands
-  heldTrophy.name = 'heldTrophy';
-  heldTrophy.visible = false;
-  camera.add(heldTrophy);
   // the laptop's screen is live: a canvas repainted a dozen times a second with code running, the editor, the app, the numbers
   const tourCanvas = canvas2d(768, 480);
   const tourTex = new CanvasTexture(tourCanvas);
@@ -1105,15 +1101,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (showLaptop && !heldLaptop.visible) tourShown = now;
     heldLaptop.visible = showLaptop;
     heldLaptop.position.y = -0.45 * (1 - lift * lift * (3 - 2 * lift));
-    { // the trophy: up into the hands on the balcony, the bay behind
-      const t = Math.max(0, Math.min(1, (mainFrame.q - TROPHY.raise) / (TROPHY.held - TROPHY.raise)));
-      heldTrophy.visible = mainFrame.set === 3 && t > 0;
-      if (heldTrophy.visible && heldTrophy.children.length === 0) heldTrophy.add(placeBuilt('trophy', { build: 'trophy', at: [0, 0, 0] }));
-      const e = t * t * (3 - 2 * t);
-      heldTrophy.position.set(0.27, -0.52 + 0.1 * e, -0.9); // low in the right of the frame, an arm's length out, tipped so the cup shows
-      heldTrophy.rotation.set(0.5 - 0.2 * e, -0.5, 0.12);
-      heldTrophy.scale.setScalar(0.8);
-    }
     { // the degree: raised into the frame over the last steps to the dais
       const t = Math.max(0, Math.min(1, (mainFrame.q - DEGREE.raise) / (DEGREE.held - DEGREE.raise)));
       heldDegree.visible = mainFrame.set === 11 && t > 0;

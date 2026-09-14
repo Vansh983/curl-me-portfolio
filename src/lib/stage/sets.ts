@@ -5,7 +5,7 @@
 //   Passage        x -4.85..     z  2.2..4.3           north, 2.1 m, to the 2010 room
 //   Set 1 ROOM     x -9.15..-4.95 z 4.3..7.9   h 2.7   2010, Delhi; in from the south at x -5.45, out east at z 6.6
 //   Set 2 LAB      x -3.15..2.05 z  4.7..9.7   h 3.0   2013; in from the west at z 6.6, out south at x 1.4
-//   Set 3 GOOGLE   x 0.8..8.0    z -5.2..2.6           2019, the Sunnyvale boardroom and the balcony over the Golden Gate; a cut to the 2020 room's door
+//   Set 3 GOOGLE   x -4.0..1.5   z -8.0..-0.03         2019, the Googleplex: the Android lawn, the boardroom, the 2020 room's door in its north wall
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
@@ -169,18 +169,17 @@ export const FLOQER = (() => {
 })();
 /** The height of the office's stair at z, from its foot to the landing. */
 /**
- * Google, 2019 (set 3): the Embarcadero plaza a storey below the rooms, Google's block beside it (x -4.0..2.6, z -9.0..-3.0)
- * with its entrance on the east face and a stair inside up to a door in its north wall; the balcony at the rooms' level
- * runs along the block's north face and ends at the 2020 room's door.
+ * Google, 2019 (set 3): the Googleplex. Out of the lab's passage onto the Android lawn (the statues along it to the east,
+ * the Google letters at its end), south along the face of a two storey block to the open bay in its glass wall: the
+ * boardroom (x -4.0..1.5, z -8.0..-0.03), the long table, his seat, and the 2020 room's door in its north wall.
  */
 export const GOOGLE = {
-  plaza: -3.0, // the plaza's level, a storey down; the bay 0.2 below it
-  steps: { n: 17, rise: 3.0 / 17, run: 0.25, w: 1.2 }, // the flight down from the lab's passage, and the flight up inside
-  block: { x: [-4.0, 2.6] as [number, number], z: [-9.0, -3.0] as [number, number], top: 3.0 },
-  entrance: { z: -3.6, w: 2.0, h: 2.6 }, // in the block's east face, at the plaza's level
-  door: { x: -3.0, w: 1.0, h: 2.1 }, // out onto the balcony, in the block's north wall, at the rooms' level
-  balcony: { x: [-4.0, 2.6] as [number, number], z: [-3.0, -0.4] as [number, number] }, // along the block's north face, over the ground between it and the 2020 room
-  view: [-0.9, -3.2, -1.1] as V3, // the award's spot on the balcony, at the water's level: the postcard is laid out from here, looking east
+  room: { x: [-4.0, 1.5] as [number, number], z: [-8.0, -0.03] as [number, number], h: 3.0 }, // the boardroom: its east wall is glass
+  bay: 1.2, // the glass wall's bays, from the south end; the door is the second
+  door: { z: -5.0, w: 1.2 }, // the open bay in the glass wall, the third from the south
+  top: 7.0, // the block's roof: two storeys
+  walkX: 3.2, // the walk's line down the east face, on the path
+  seat: { x: -0.35, z: -3.0 }, // his chair: the north-east one, nearest the 2020 room's door
 } as const;
 const WINDOW_Z = [FLOQER.z[0] + 2.5, FLOQER.z[0] + 7.5]; // the two windows on the street, along the west wall
 export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stair.n, Math.max(0, (z - FLOQER.stair.z0) / FLOQER.stair.run)) * FLOQER.stair.rise;
@@ -340,56 +339,57 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2019: Google. Out of the lab's passage and down a flight onto the Embarcadero: the Google San Francisco sign from
-    // his photo, the road, the piers, the bay; right, into Google's block, up the stair inside to a door onto the balcony
-    // over the plaza, where the trophy comes up into the hands with the bay and the Golden Gate behind (a postcard
-    // composite, his choice: docs/rebuild/29-google.md); along the balcony to the 2020 room's door. One June morning.
-    id: 'google', env: 'sky', tint: { sky: '#CFE4F7', ground: '#B9B0A2', power: 0.3 }, exposure: 0.9, envPower: 0.7, baked: true,
-    sun: { dir: [0.4, 0.6, -0.6], color: '#FFF3DC', power: 2.6, shadow: 1 }, // a June morning, the sun south-east: the bridge lit across, the plaza in it
-    fog: { color: '#C6D8E6', near: 300, far: 2200 },
-    shell: { // the lobby: one tall room, the stair up its middle to the door in its north wall
-      x: GOOGLE.block.x, z: GOOGLE.block.z, h: GOOGLE.block.top - GOOGLE.plaza, y: GOOGLE.plaza,
-      floor: 'labFloor', wall: 'labWall', ceiling: 'labCeiling',
+    // 2019: Google, the Googleplex. Out of the lab's passage onto the Android lawn: the statues along it to the east, the
+    // bikes, the trees, the Google letters at the end of the path; south along the block's face to the open bay in its
+    // glass wall, into the boardroom (the table, eight chairs, his name at the north-east seat), and out of the door
+    // in its north wall into the 2020 room. One June afternoon. docs/rebuild/30-googleplex-options.md, layout A.
+    id: 'google', env: 'sky', tint: { sky: '#CFE4F7', ground: '#9DAF7C', power: 0.3 }, exposure: 0.9, envPower: 0.7, baked: true,
+    sun: { dir: [0.35, 0.82, -0.45], color: '#FFF3DC', power: 2.6, shadow: 1 }, // high, a little south-east: the statues' tops and the block's face lit, the walk in its shade
+    fog: { color: '#C6D8E6', near: 80, far: 500 },
+    shell: { // the boardroom
+      x: GOOGLE.room.x, z: GOOGLE.room.z, h: GOOGLE.room.h,
+      floor: 'boardCarpet', wall: 'labWall', ceiling: 'labCeiling',
       openings: [
-        { wall: 'x+', at: GOOGLE.entrance.z, w: GOOGLE.entrance.w, h: GOOGLE.entrance.h }, // the entrance, open: the bake lights it as day
-        { wall: 'z+', at: GOOGLE.door.x, w: GOOGLE.door.w, h: GOOGLE.door.h, sill: -GOOGLE.plaza, door: true }, // out onto the balcony, at the rooms' level
+        { wall: 'x+', at: (GOOGLE.room.z[0] + GOOGLE.room.z[1]) / 2, w: GOOGLE.room.z[1] - GOOGLE.room.z[0] - 0.16, h: 2.98 }, // the east wall is glass: open in the shell, the bake lights it as day; boardGlass fills it
+        { wall: 'z+', at: -0.7, w: 0.9, h: 2.05, door: true }, // the 2020 room's door
+        ...[-6.6, -4.0, -1.4].map((z): Opening => ({ wall: 'x-', at: z, w: 1.6, h: 1.4, sill: 1.0 })), // three windows in the west wall: the campus beyond
       ],
     },
     props: [
       ...(() => {
-        const P = GOOGLE.plaza, O = GOOGLE.view, out: Placement[] = [];
-        const az = (20 * Math.PI) / 180, dir = [Math.cos(az), Math.sin(az)] as const; // the postcard's line of sight from the balcony: 20 degrees north of east, over the plaza and the road to the bay
-        out.push({ build: 'plazaFloor', at: [18, P, -17.7] });
-        out.push({ build: 'facade', at: [0, 0, 0] }); // the outside of the rooms we came through
-        out.push({ build: 'plazaSteps', at: [2.0 + GOOGLE.steps.n * GOOGLE.steps.run, P, 2.0], rot: [0, -90, 0], cap: 'Out, and down to the Embarcadero.' }); // rising west to the passage's mouth
-        out.push({ build: 'googleBlock', at: [0, 0, 0], cap: 'Google San Francisco.' });
-        out.push({ build: 'lobbyStair', at: [1.8, P, GOOGLE.entrance.z], rot: [0, -90, 0] });
-        out.push({ build: 'googleSign', at: [GOOGLE.block.x[1] + 0.16, P + GOOGLE.entrance.h + 0.55, GOOGLE.entrance.z], rot: [0, 90, 0], live: 'screen', cap: 'Google.' }); // over the entrance
-        out.push({ build: 'awardScreen', at: [GOOGLE.block.x[0] + 0.05, 2.3, GOOGLE.entrance.z], rot: [0, 90, 0], live: 'screen', cap: 'Google Code-in 2018, grand prize winner.' }); // on the west wall, over the stair's head
-        for (const [x, z] of [[-1.7, -7.4], [-1.7, -4.6], [0.8, -6.0]]) out.push({ build: 'discLight', at: [x, GOOGLE.block.top - 0.02, z], live: 'pendant' }); // three ceiling lights in the lobby
-        out.push({ build: 'doorLeaf', at: [GOOGLE.door.x - GOOGLE.door.w / 2, 0, GOOGLE.block.z[1]], rot: [0, 90, 0], live: 'door', door: [approach(0.742), approach(0.756)] }); // hinged on the west jamb, it swings into the lobby, clear of the balcony's frames (approach: the first rooms' keys)
-        out.push({ build: 'plazaBalcony', at: [0, 0, 0], cap: 'The balcony over the plaza.' });
-        out.push({ build: 'delhiFace', at: [0, 0, 0] });
-        // the Embarcadero from his photo: the sign on its planter with the hedge and the brown rail, palms, the lamp posts, the kerb and the road, the cars, the pier sheds up the shore
-        out.push({ build: 'planter', at: [10.4, P, -4.4], cap: 'Google San Francisco, the Embarcadero. June 2019, the Code-in trip.', href: 'https://codein.withgoogle.com/archive/2018/' });
-        out.push({ build: 'sign', at: [9.3, P + 2.4, -4.8], cap: 'The sign, from his photo.' });
-        out.push({ model: 'palm_medium', at: [7.2, P, -7.8], rot: [0, 270, 0], scale: 0.55 });
-        out.push({ model: 'palm_medium', at: [11.4, P, -8.6], scale: 0.5, rot: [0, 150, 0] });
-        out.push({ model: 'palm_medium', at: [13.6, P, -6.0], scale: 0.6, rot: [0, 30, 0] });
-        out.push({ model: 'island_tree_01', at: [11.0, P, -10.5], rot: [0, 270, 0], scale: 1.0 });
-        for (const z of [-4.0, -13.4, -22.8]) out.push({ build: 'lampPost', at: [14.6, P, z], rot: [0, 270, 0] });
-        out.push({ build: 'kerb', at: [15.4, P, -12], rot: [0, 270, 0] });
-        out.push({ build: 'road', at: [29.55, P + 0.02, -12], rot: [0, 270, 0] });
-        out.push({ build: 'carSilver', at: [18.5, P, -2.2], rot: [0, 90, 0] });
-        out.push({ build: 'carRed', at: [18.9, P, -12.2], rot: [0, 270, 0] });
-        out.push({ build: 'carWhite', at: [25.9, P, -22.2], rot: [0, 270, 0] });
-        out.push({ build: 'piers', at: [54, P, -34], rot: [0, 90, 0], cap: 'The pier sheds down the Embarcadero.' });
-        out.push({ build: 'boats', at: [67, P - 0.2, -14], rot: [0, 270, 0] });
-        // the bay and the postcard behind it: the water to the horizon, the Marin Headlands from real elevation, the Golden Gate a kilometre off
-        out.push({ build: 'harbourAround', at: [O[0], O[1], O[2]], live: 'water', shadow: false, cap: 'The bay.' });
-        out.push({ build: 'marinHills', at: [O[0], O[1], O[2]], rot: [0, -110, 0], live: 'city', shadow: false, cap: 'The Marin Headlands and the shores of the Golden Gate, from real elevation.' });
-        out.push({ build: 'goldenGate', at: [O[0] + 883 * dir[0], O[1], O[2] + 883 * dir[1]], rot: [0, -47.6, 0], scale: 0.5, live: 'city', shadow: false, cap: 'The Golden Gate Bridge.' });
-        out.push({ build: 'clouds', at: [O[0], 0, O[2]], rot: [0, -20, 0], live: 'sky', shadow: false });
+        const out: Placement[] = [], R = GOOGLE.room;
+        out.push({ build: 'facade', at: [0, 0, 0] }); // the outside of the rooms we came through, and the block over the boardroom
+        out.push({ build: 'boardGlass', at: [0, 0, 0], cap: 'Google. The Cloud office in Sunnyvale, June 2019.', href: 'https://codein.withgoogle.com/archive/2018/' });
+        // the boardroom: the table along the room, four chairs a side, his seat the north-east one with his name on the table
+        out.push({ build: 'boardTable', at: [-1.6, 0, -4.6], cap: 'The boardroom. One of the grand prize winners, 2018.' });
+        for (const z of [-6.3, -5.2, -4.1, -3.0]) { out.push({ model: 'office_chair_black', at: [-0.35, 0, z], rot: [0, -90, 0] }); out.push({ model: 'office_chair_black', at: [-2.85, 0, z], rot: [0, 90, 0] }); }
+        out.push({ build: 'nameCard', at: [-1.0, 0.745, GOOGLE.seat.z], rot: [0, 90, 0], cap: 'His seat.' });
+        for (const z of [-6.6, -4.6, -2.6]) out.push({ build: 'discLight', at: [-1.3, R.h - 0.02, z], live: 'pendant' });
+        out.push({ build: 'doorFrame', at: [-0.7, 0, R.z[1] - 0.14] });
+        // the lawn and the path down the block's face
+        out.push({ build: 'lawn', at: [0, 0, 0] });
+        out.push({ build: 'lawnPath', at: [GOOGLE.walkX, 0.015, -3.2] });
+        // the Android lawn: the statues in a row to the east of the path, each facing it (docs/rebuild/30-googleplex-options.md)
+        out.push({ build: 'bugdroid', at: [6.4, 0, 1.6], rot: [0, -90, 0], cap: 'The Android lawn at the Googleplex.' });
+        out.push({ build: 'statueCupcake', at: [7.6, 0, -0.6], rot: [0, -90, 0] });
+        out.push({ build: 'statueDonut', at: [6.6, 0, -2.8], rot: [0, -90, 0] });
+        out.push({ build: 'statueGingerbread', at: [7.8, 0, -5.0], rot: [0, -90, 0] });
+        out.push({ build: 'statueJellyBean', at: [6.4, 0, -7.0], rot: [0, -90, 0] });
+        out.push({ model: 'android_honeycomb', at: [8.6, 0, -7.6], rot: [0, 90, 0], cap: 'Honeycomb, on the lawn since 2011.' });
+        out.push({ build: 'statueKitKat', at: [6.6, 0, -9.6], rot: [0, -90, 0] });
+        out.push({ build: 'statueLollipop', at: [7.4, 0, -11.8], rot: [0, -90, 0] });
+        out.push({ build: 'statueMarshmallow', at: [6.6, 0, -14.0], rot: [0, -90, 0] });
+        out.push({ build: 'statueOreo', at: [8.2, 0, -15.8], rot: [0, -90, 0] });
+        out.push({ build: 'statuePie', at: [7.0, 0, -17.6], rot: [0, -90, 0] });
+        out.push({ build: 'googleLetters', at: [3.9, 0, -11.6], cap: 'Google.' }); // at the end of the path, facing back up it
+        // the bikes by the mouth, the trees, the far blocks of the campus, redwoods behind
+        out.push({ build: 'bikeRack', at: [3.5, 0, 1.0] });
+        out.push({ build: 'gbike', at: [3.2, 0, 1.0], cap: 'A Google bike.' });
+        out.push({ build: 'gbike', at: [3.85, 0, 1.0], rot: [0, 4, 0] });
+        out.push({ build: 'campusFar', at: [0, 0, 0], cap: 'The campus, Mountain View.' });
+        for (const [x, z, s] of [[17.5, -1, 0.85], [19, 8, 0.9], [16, -21, 0.9], [14, -30, 1.0], [22, -33, 1.15], [30, -31, 0.9], [38, -26, 1.1], [42, -12, 1.0], [40, 4, 0.95], [34, 14, 1.05], [22, 17, 0.9], [-8, -18, 1.0], [-2, -22, 1.1]] as const)
+          out.push({ build: 'redwood', at: [x, 0, z], scale: s });
+        out.push({ build: 'clouds', at: [0, 0, 0], rot: [0, 30, 0], live: 'sky', shadow: false });
         return out;
       })(),
     ],

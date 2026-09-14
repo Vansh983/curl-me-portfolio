@@ -9,22 +9,14 @@ import { PHONE, phoneAt, WINDOW_VIEW, CLASSROOM_VIEW } from '../../src/lib/stage
 
 const cameraAt = (q: number) => {
   const f = makeDolly(DOLLY)(q), aspect = 1440 / 900;
-  const camera = new PerspectiveCamera(2 * Math.atan(Math.tan(f.fov * Math.PI / 360) / aspect) * 180 / Math.PI, aspect, 0.05, 2600); // the stage's own range: the Golden Gate stands 900 m off
+  const camera = new PerspectiveCamera(2 * Math.atan(Math.tan(f.fov * Math.PI / 360) / aspect) * 180 / Math.PI, aspect, 0.05, 2600); // the stage's own range
   camera.position.set(...f.cam);
   camera.lookAt(new Vector3(...f.look));
   camera.updateMatrixWorld();
   return camera;
 };
 
-test('the balcony frames the bay and the Golden Gate as the trophy comes up', () => {
-  const bridge = SETS[3].props.find((p) => p.build === 'goldenGate')!;
-  for (const q of [0.78, 0.788]) {
-    const p = new Vector3(bridge.at[0], bridge.at[1] + 227 * 0.5 * 0.5, bridge.at[2]).project(cameraAt(approach(q))); // the bridge's middle, half a tower up
-    assert.ok(Math.abs(p.x) < 0.9 && Math.abs(p.y) < 0.9 && p.z < 1, `the bridge out of frame at ${q}: ${p.toArray()}`);
-  }
-});
-
-test('the 2020 room\'s door stays in view on the last steps along the balcony', () => {
+test('the 2020 room\'s door stays in view on the last steps across the boardroom', () => {
   const shell = SETS[4].shell!, door = shell.openings.find((o) => o.wall === 'z-')!;
   for (const q of [0.802, 0.805]) {
     const p = new Vector3(door.at, Math.min(1.5, door.h), shell.z[0]).project(cameraAt(approach(q)));

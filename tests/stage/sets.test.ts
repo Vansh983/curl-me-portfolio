@@ -63,7 +63,7 @@ test('shells use designed materials and open where the dolly passes', () => {
   assert.ok(door(now, 'z+') && door(now, 'x+'));
   assert.ok(door(room, 'z-') && door(room, 'x+'));
   assert.ok(door(lab, 'x-') && door(lab, 'z-'));
-  assert.ok(door(google, 'x+') && google.shell!.openings.some((o) => o.wall === 'z+' && o.door && (o.sill ?? 0) > 0), 'the lobby: the entrance on the east face, the raised door out to the balcony');
+  assert.ok(google.shell!.openings.some((o) => o.wall === 'x+' && o.w > 5 && o.h > 2.9) && door(google, 'z+') && google.shell!.openings.some((o) => o.wall === 'z+' && o.door), "the boardroom: the east wall open for the glass, the 2020 room's door in the north wall marked a door");
   assert.equal(delhi.id, 'delhi');
   assert.ok(door(delhi, 'z-') && door(delhi, 'x-'));
   assert.ok(!delhi.shell!.openings.some((o) => (o.sill ?? 0) > 0), 'no window: the curtain is drawn');

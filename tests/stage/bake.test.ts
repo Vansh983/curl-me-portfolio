@@ -18,8 +18,8 @@ test('live pieces: painted faces, glass, cloth and fans stay with the runtime; t
 
 test('live placements: backdrops, the wide ground, leafy models, screens and lights', () => {
   assert.ok(placementIsLive({ build: 'city', at: [0, 0, 0], live: 'city' }));
-  assert.ok(placementIsLive({ build: 'plazaFloor', at: [0, 0, 0] }));
-  assert.ok(placementIsLive({ model: 'palm_medium', at: [0, 0, 0] }));
+  assert.ok(placementIsLive({ build: 'lawn', at: [0, 0, 0] }));
+  assert.ok(placementIsLive({ model: 'island_tree_01', at: [0, 0, 0] }));
   assert.ok(placementIsLive({ model: 'television_02', at: [0, 0, 0], live: 'tv' }));
   assert.ok(!placementIsLive({ model: 'office_chair_black', at: [0, 0, 0] }));
   for (const p of DROP_PROP) assert.ok(placementIsLive({ build: p, at: [0, 0, 0] }), p);

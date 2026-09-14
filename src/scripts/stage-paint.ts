@@ -202,40 +202,14 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
         for (const [cx2, c] of [[900, '#2B2B2B'], [940, '#245EDC'], [980, '#D62828']] as const) { x.fillStyle = c; x.fillRect(cx2 - 14, h - 22, 28, 12); }
       }],
     },
-    // the wordmark over the entrance, white on white
-    googleWordmark: {
-      w: 1024, h: 300,
+    // his name card on the boardroom table
+    nameCard: {
+      w: 512, h: 230,
       frames: [(x, w, h) => {
         white(x, w, h);
         x.textAlign = 'center';
-        x.font = '700 190px "Product Sans", "Google Sans", Arial, sans-serif';
-        googleWord(x, w / 2, 215, 190);
-        x.textAlign = 'left';
-      }],
-    },
-    // the screen in the lobby: the award, in the words that are true
-    googleAward: {
-      w: 1200, h: 675,
-      frames: [(x, w, h) => {
-        white(x, w, h);
-        x.textAlign = 'center';
-        x.font = '700 150px "Product Sans", "Google Sans", Arial, sans-serif';
-        googleWord(x, w / 2, 250, 150);
-        x.fillStyle = '#5F6368'; x.font = '500 60px Inter, system-ui, sans-serif'; x.fillText('Code-in 2018', w / 2, 340);
-        x.fillStyle = '#202124'; x.font = '700 78px Inter, system-ui, sans-serif'; x.fillText('Grand Prize Winner', w / 2, 470);
-        x.fillStyle = '#3C4043'; x.font = '500 56px Inter, system-ui, sans-serif'; x.fillText('Vansh Sood', w / 2, 570);
-        x.textAlign = 'left';
-      }],
-    },
-    // the Google San Francisco sign
-    sign: {
-      w: 1024, h: 490,
-      frames: [(x, w, h) => {
-        white(x, w, h);
-        x.textAlign = 'center';
-        x.font = '700 190px "Product Sans", "Google Sans", Arial, sans-serif';
-        googleWord(x, w / 2, 250, 190);
-        x.fillStyle = '#5F6368'; x.font = '500 62px Inter, system-ui, sans-serif'; x.fillText('San Francisco', w / 2, 400);
+        x.fillStyle = '#202124'; x.font = '700 64px Inter, system-ui, sans-serif'; x.fillText('Vansh Sood', w / 2, 112);
+        x.fillStyle = '#5F6368'; x.font = '500 38px Inter, system-ui, sans-serif'; x.fillText('Drupal Association', w / 2, 178);
         x.textAlign = 'left';
       }],
     },
