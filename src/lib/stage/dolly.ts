@@ -141,9 +141,9 @@ export const DOLLY: DollyKey[] = [
 
 /**
  * The walk from the hacker house's south door to the stage: keyed evenly so the spline stays a line. Two quarter-chapter
- * right turns onto the terrace's walk line, then 40 m north at 15.7 m a chapter; the eye at 1.6, looking 4 m ahead and
- * a little down at the laptop's height. Through the door at 10.98, up the four steps, along the stage to its centre by
- * 11.5 (the degree comes up), then a quarter chapter turning right to the hall.
+ * right turns onto the terrace's walk line, then 24 m north to Volta's glass at 16.5 m a chapter and 18 m through the
+ * room; the eye at 1.6, looking 4 m ahead. Through the door at 11.98, up the four steps, along the stage to its centre by
+ * 12.66 (the degree comes up), then a quarter chapter turning right to the hall.
  */
 function walk(): DollyKey[] {
   const X = TERRACE.walkX, keys: DollyKey[] = [];
@@ -152,16 +152,24 @@ function walk(): DollyKey[] {
   keys.push(K(9.1, [-7.3, 1.6, -19.7], [-10.0, 1.25, -22.2], 8)); // and up, turning right along the south wall: the water, the North Shore
   keys.push(K(9.22, [-8.5, 1.6, -19.7], [-12.5, 1.3, -19.9], 8)); // west: the parapet and the water ahead, 30 m down
   keys.push(K(9.34, [-10.0, 1.6, -19.5], [-13.0, 1.3, -16.8], 8)); // the corner: turning right again
-  keys.push(K(9.46, [X, 1.6, -18.4], [X - 2.2, 1.3, -14.4], 8)); // north along the terrace: the plaza opening on the right, the house on the left
-  const z0 = -18.4, zJamb = TERRACE.door - 0.6, q0 = 9.46, q1 = 11.98, n = 22; // 42 m over 2.52 chapters
+  keys.push(K(9.46, [X, 1.6, -18.4], [X, 1.3, -14.4], 8)); // north along the terrace, straight: the booth on the left, the Orca on the right, the streetcar ahead
+  // the terrace: 24 m at 16.5 m a chapter to Volta's glass entrance, the eye straight ahead; Toronto's stretch from z -6.5 (a soft threshold)
+  const z0 = -18.4, zIn = TERRACE.volta.z[0] - 0.6, q0 = 9.46, q1 = 10.9, n = 12;
   for (let k = 1; k <= n; k++) {
-    const q = Math.round((q0 + (q1 - q0) * (k / n)) * 1000) / 1000, z = Math.round((z0 + (zJamb - z0) * (k / n)) * 100) / 100;
-    const set = k < 7 ? 8 : k < 15 ? 9 : 10; // the thresholds at the sixth and fourteenth keys, soft: the sky changes, nothing in the row does
-    const blend = k === 6 || k === 14 ? 0 : k === 7 || k === 15 ? 1 : undefined;
-    const look: V3 = [X - 2.2, 1.3, z + 4]; // ahead and a little right, the whole way: the city's things pass on the right, the water beyond them; never left
-    if (k === n) keys.push(K(q, [X, 1.6, z], [X - 0.8, 1.3, z + 4], 10, { blend: 0 })); // the jamb of the door back in, the eye coming back to the door
-    else keys.push(K(q, [X, 1.6, z], look, set, blend === undefined ? {} : blend === 1 ? { blend, soft: true } : { blend }));
+    const q = Math.round((q0 + (q1 - q0) * (k / n)) * 1000) / 1000, z = Math.round((z0 + (zIn - z0) * (k / n)) * 100) / 100;
+    if (k === n) keys.push(K(q, [X, 1.6, z], [X, 1.3, z + 4], 9, { blend: 0 })); // the jamb of Volta's entrance
+    else keys.push(K(q, [X, 1.6, z], [X, 1.3, z + 4], k < 7 ? 8 : 9, k === 6 ? { blend: 0 } : k === 7 ? { blend: 1, soft: true } : {}));
   }
+  // Volta: in through the glass, the bar on the left (the coffee comes up), the long tables and the people, the harbour
+  // through the glass on the right, straight on to the door at the north end
+  keys.push(K(11.0, [X, 1.6, 7.2], [X, 1.3, 11.2], 10, { blend: 1 }));
+  keys.push(K(11.14, [X, 1.6, 9.6], [X + 1.4, 1.2, 12.4], 10)); // the bar: a look toward the counter as the coffee comes
+  keys.push(K(11.28, [X, 1.6, 12.0], [X + 0.5, 1.3, 15.7], 10));
+  keys.push(K(11.42, [X, 1.6, 14.4], [X - 2.6, 1.3, 18.4], 10)); // the glass: the harbour and Halifax, over the tables
+  keys.push(K(11.56, [X, 1.6, 16.8], [X - 2.6, 1.3, 20.8], 10));
+  keys.push(K(11.7, [X, 1.6, 19.2], [X - 0.8, 1.3, 23.2], 10)); // back to the door
+  keys.push(K(11.84, [X, 1.6, 21.4], [X, 1.3, 25.4], 10)); // the door ahead, opening
+  keys.push(K(11.98, [X, 1.6, TERRACE.door - 0.6], [X, 1.3, TERRACE.door + 3.4], 10, { blend: 0 })); // the jamb
   // the wing: in through the door, up the steps (the rise spread over the stride, the way an eye takes stairs), and
   // along the stage from its side to the centre, slowing into the stop where the degree is handed over
   const S = STAGE.height, w0 = STAGE.wing[0];

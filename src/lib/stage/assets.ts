@@ -114,6 +114,7 @@ export const ASSETS: Asset[] = [
     ['union_station', '377e3a48a1c5298938a5357de8d99892', '3D Warehouse', "Union Station's Front Street facade, Toronto", 512],
     ['town_clock', 'f98e09fd1931e1eaea23ba00b3807e38', '3D Warehouse', 'the Halifax Town Clock on Citadel Hill', 512],
     ['purdys_wharf', 'dcccf6361fcbf5baf229cc4c3c2bf3c9', '3D Warehouse', "Purdy's Wharf on the Halifax waterfront", 512],
+    ['cn_tower', '51cbd1374539b5545a688156b5408036', '3D Warehouse', 'the CN Tower across the water from the terrace, Toronto', 512],
   ] as Array<[string, string, string, string, 256 | 512]>).map(([id, uid, author, use, maxTex]): Asset => ({ id, kind: 'model', source: 'url', url: `https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/${uid}/binaries/glb?download=true`, res: '1k', licence: '3DW', author, use, maxTex, simplify: 0.001 })),
   texture('leafy_grass', 'Charlotte Baglioni', 'the Googleplex lawn', 2.0, ['diff', 'nor', 'arm']),
   texture('concrete_pavement', 'Charlotte Baglioni', 'the paving of the promenade', 2.0, ['diff', 'nor', 'arm']),

@@ -749,12 +749,12 @@ export const BUILT: Record<string, () => BuiltPart> = {
    * down to the water. World metres.
    */
   terrace: () => {
-    const [x0, x1] = TERRACE.x, [z0, z1] = TERRACE.z, { x0: px0, z0: pz0 } = TERRACE.plaza, cx = (x0 + x1) / 2;
-    const paving = new Sink().box(cx, -0.02, (z0 + pz0) / 2, x1 - x0, 0.08, pz0 - z0) // the walk along the room, 6.2 wide, its top 2 cm proud of the headland
-      .box((px0 + x1) / 2, -0.02, (pz0 + z1) / 2, x1 - px0, 0.08, z1 - pz0) // the plaza north of it, out to the water's edge
+    const [x0, x1] = TERRACE.x, [z0, z1] = TERRACE.z, { x0: bx0, z: [bz0, bz1] } = TERRACE.bay, cx = (x0 + x1) / 2, zV = TERRACE.volta.z[0];
+    const paving = new Sink().box(cx, -0.02, (z0 + zV) / 2, x1 - x0, 0.08, zV - z0) // the walk from the south leg to Volta's door, 8.2 wide, its top 2 cm proud of the headland
+      .box((bx0 + x0) / 2, -0.02, (bz0 + bz1) / 2, x0 - bx0, 0.08, bz1 - bz0) // the bay out over the water for the city's things
       .box((x0 - 1.4) / 2, -0.02, (z0 - 18.2) / 2, -1.4 - x0, 0.08, 2.8); // the leg along the south wall
     // along the water a glass balustrade on steel posts under a handrail (the harbour and the Opera House stay in the room's
-    // window, which looks across this terrace): down the walk's edge, west along the plaza's south edge, north along its west edge
+    // window, which looks across this terrace): up the terrace's edge, out round the bay, to Volta's wall
     const kerb = new Sink(), rail = new Sink(), glass = new Sink();
     const edge = (a: [number, number], b: [number, number]) => {
       const len = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / len, uz = (b[1] - a[1]) / len, mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
@@ -763,37 +763,62 @@ export const BUILT: Record<string, () => BuiltPart> = {
       for (let k = 0; k <= len; k += 2.0) rail.box(a[0] + ux * k, 0.62, a[1] + uz * k, 0.05, 0.94, 0.05);
       glass.box(mx, 0.62, mz, Math.abs(ux) * len + 0.012, 0.9, Math.abs(uz) * len + 0.012);
     };
-    edge([x0 + 0.15, z0], [x0 + 0.15, pz0 + 0.15]); edge([x0 + 0.15, pz0 + 0.15], [px0 + 0.15, pz0 + 0.15]); edge([px0 + 0.15, pz0 + 0.15], [px0 + 0.15, z1]);
+    edge([x0 + 0.15, z0], [x0 + 0.15, bz0 + 0.15]); edge([x0 + 0.15, bz0 + 0.15], [bx0 + 0.15, bz0 + 0.15]); edge([bx0 + 0.15, bz0 + 0.15], [bx0 + 0.15, bz1 - 0.1]);
     const wall = new Sink().rbox((x0 - 1.4) / 2, 0.55, z0 + 0.15, -1.4 - x0, 1.1, 0.3, 0.02, 2).rbox((x0 - 1.4) / 2, 1.12, z0 + 0.15, -1.4 - x0 + 0.12, 0.06, 0.42, 0.015, 2); // the south leg's parapet
-    // the headland under the house, the terrace and the plaza, its top 5 cm under the paving, down to the water
-    const cliff = new Sink().box((x0 - 3 + x1 + 21) / 2, -16.05, (z0 - 3 + pz0) / 2, x1 + 24 - x0, 32, pz0 - z0 + 3).box((px0 - 3 + x1 + 21) / 2, -16.05, (pz0 + z1 + 3) / 2, x1 + 24 - px0, 32, z1 + 3 - pz0);
+    // the headland under the house, the terrace, the bay and Volta's room, its top 5 cm under the paving, down to the water
+    const wx = TERRACE.volta.x[0] - 0.1; // the headland ends at Volta's glass: the room stands on the cliff's edge
+    const cliff = new Sink().box((x0 - 3 + x1 + 21) / 2, -16.05, (z0 - 3 + bz0) / 2, x1 + 24 - x0, 32, bz0 - z0 + 3).box((wx + x1 + 21) / 2, -16.05, (bz0 + z1 + 3) / 2, x1 + 21 - wx, 32, z1 + 3 - bz0);
     return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(kerb.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(cliff.out(), M('quayStone'), { metres: 'xz' }),
       piece(rail.out(), M('handrail'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
   },
-  /** A hedge across the plaza between two cities, 1.6 m tall in a concrete planter, 13 m long along x, its middle at the origin: the next city's things stay behind it until the walk is there, only the tall ones over it. */
-  plazaPlanter: () => [piece(new Sink().rbox(0, 0.25, 0, 13, 0.5, 1.0, 0.02, 2).out(), M('concrete'), { metres: 'xy' }), piece(new Sink().rbox(0, 1.05, 0, 12.8, 1.1, 0.9, 0.15, 3).out(), M('hedge'), { smooth: true })],
   /**
    * The house from the terrace: its west wall carried north of the room for 37 m, 3.2 m tall, with a window every 4.2 m
    * (recessed, dark glass), a parapet over it all, and the wing across the terrace's north end with the door in it.
    */
   terraceWall: () => {
-    const [, x1] = TERRACE.x, z1 = TERRACE.z[1], H = 3.2, wall = new Sink(), glass = new Sink(), frame = new Sink();
+    const [, x1] = TERRACE.x, z1 = TERRACE.volta.z[0] - 0.01, H = 3.2, wall = new Sink(), glass = new Sink(), frame = new Sink();
     const zRoom = -13.2; // the room's north wall: the shell's own wall stands south of it
-    wall.box(x1 + 0.25, H / 2, (zRoom + z1) / 2, 0.5, H, z1 - zRoom); // the west wall north of the room
+    wall.box(x1 + 0.25, H / 2, (zRoom + z1) / 2, 0.5, H, z1 - zRoom); // the west wall north of the room, as far as Volta's
     wall.box(-4.4, H + 0.17, (z1 - 18.2) / 2, 6.4, 0.35, z1 + 18.2 + 0.4); // the parapet slab over the house
-    // the wing's face across the north end, a plate with the doorway cut through it: the wing behind is the stage's
-    // (stageWing, its own walls); a solid block here would stand across the open door
-    const dx = TERRACE.walkX;
-    const px0 = TERRACE.plaza.x0;
-    wall.box((px0 - 0.25 + dx - 0.6) / 2, H / 2, z1 + 0.1, dx - 0.6 - px0 + 0.25, H, 0.2).box((dx + 0.6 + x1 + 0.25) / 2, H / 2, z1 + 0.1, x1 + 0.25 - dx - 0.6, H, 0.2).box(dx, (2.1 + H) / 2, z1 + 0.1, 1.2, H - 2.1, 0.2);
-    wall.box((px0 + x1) / 2, H + 0.17, z1 + 3.0, x1 - px0 + 0.9, 0.35, 6.4);
     for (let z = zRoom + 3.4; z < z1 - 2; z += 4.2) { // the windows: a reveal into the wall, the glass 0.2 m back
       glass.quad([x1 - 0.2, 0.9, z - 0.8], [x1 - 0.2, 0.9, z + 0.8], [x1 - 0.2, 2.3, z + 0.8], [x1 - 0.2, 2.3, z - 0.8]);
       frame.box(x1 - 0.1, 0.9, z, 0.2, 0.04, 1.64).box(x1 - 0.1, 2.3, z, 0.2, 0.04, 1.64).box(x1 - 0.1, 1.6, z - 0.8, 0.2, 1.44, 0.04).box(x1 - 0.1, 1.6, z + 0.8, 0.2, 1.44, 0.04);
     }
-    // the door in the wing's face: an opening 1.2 by 2.1 at the walk, the leaf is a live prop
-    frame.box(dx - 0.65, 1.05, z1 - 0.02, 0.1, 2.1, 0.12).box(dx + 0.65, 1.05, z1 - 0.02, 0.1, 2.1, 0.12).box(dx, 2.15, z1 - 0.02, 1.4, 0.1, 0.12);
     return [piece(wall.out(), M('terraceWall'), { metres: 'xy' }), piece(glass.out(), M('tvGlass')), piece(frame.out(), M('bezel'), { smooth: true })];
+  },
+  /**
+   * Volta's room from outside, world coordinates, a centimetre outside its shell: the south face round the glass
+   * entrance with its steel frame, the east face carrying the house's wall on to the wing, the north face west of the
+   * hall's block, the roof. The west face is the glass wall (voltaGlass).
+   */
+  voltaFace: () => {
+    const { x: [x0, x1], z: [z0, z1], h: H } = TERRACE.volta, g = 0.01, t = 0.06, dx = TERRACE.walkX, wall = new Sink(), steel = new Sink();
+    const face = (xa: number, xb: number, ya: number, yb: number, za: number, zb: number) => wall.box((xa + xb) / 2, (ya + yb) / 2, (za + zb) / 2, xb - xa, yb - ya, zb - za);
+    face(x0 - g - t, dx - 1.2, 0, H + 0.12, z0 - g - t, z0 - g); face(dx + 1.2, x1 + g + t, 0, H + 0.12, z0 - g - t, z0 - g); face(dx - 1.2, dx + 1.2, 2.6, H + 0.12, z0 - g - t, z0 - g); // south, round the entrance
+    steel.box(dx - 1.26, 1.3, z0 - g - t / 2, 0.12, 2.6, 0.16).box(dx + 1.26, 1.3, z0 - g - t / 2, 0.12, 2.6, 0.16).box(dx, 2.66, z0 - g - t / 2, 2.64, 0.12, 0.16); // the entrance's frame
+    face(x1 + g, x1 + g + 0.5, 0, H + 0.12, z0 - g - t, z1 + g); // east: the house's wall carried on
+    face(x0 - g - t, STAGE.x[0] - 0.4, 0, H + 0.12, z1 + g, z1 + g + t); // north, west of the hall's block
+    face(x0 - g - t, x1 + g + 0.5, H + g, H + 0.12, z0 - g - t, z1 + g + t); // the roof
+    return [piece(wall.out(), M('terraceWall'), { metres: 'xy' }), piece(steel.out(), M('windowFrame'))];
+  },
+  /** Volta's west wall in glass, world coordinates: bays 2.4 m wide between steel mullions under a head rail, floor to ceiling, the harbour beyond. */
+  voltaGlass: () => {
+    const { x: [x], z: [z0, z1], h: H } = TERRACE.volta, mull = new Sink(), glass = new Sink(), top = H - 0.08;
+    mull.box(x, H - 0.04, (z0 + z1) / 2, 0.1, 0.08, z1 - z0).box(x, 0.03, (z0 + z1) / 2, 0.1, 0.06, z1 - z0);
+    for (let z = z0; z < z1 + 0.01; z += 2.4) mull.box(x, H / 2, Math.min(z, z1), 0.08, H, 0.06);
+    glass.quad([x, 0.06, z0], [x, 0.06, z1], [x, top, z1], [x, top, z0]).quad([x, 0.06, z1], [x, 0.06, z0], [x, top, z0], [x, top, z1]);
+    return [piece(mull.out(), M('windowFrame')), piece(glass.out(), M('cabinGlass'))];
+  },
+  /** Volta's coffee bar against the east wall: a counter 3 m along z, the espresso machine and the grinder on it, a stack of cups, shelves over. The wall at the origin's x, the counter toward -x. */
+  coffeeBar: () => {
+    const counter = new Sink().rbox(-0.35, 0.52, 0, 0.7, 1.04, 3.0, 0.02, 2).rbox(-0.35, 1.06, 0, 0.76, 0.04, 3.06, 0.01, 2);
+    const machine = new Sink().rbox(-0.35, 1.3, -0.6, 0.5, 0.44, 0.56, 0.03, 2).box(-0.6, 1.55, -0.6, 0.06, 0.06, 0.4).rbox(-0.35, 1.28, 0.25, 0.22, 0.4, 0.22, 0.03, 2);
+    const cups = new Sink();
+    for (let i = 0; i < 8; i++) cups.cylinder(-0.3 + (i % 4) * 0.12, 1.13, 0.85 + Math.floor(i / 4) * 0.12, 0.045, 0.1, 12);
+    const shelf = new Sink().box(-0.18, 1.85, 0, 0.36, 0.03, 2.4).box(-0.18, 2.25, 0, 0.36, 0.03, 2.4);
+    const jars = new Sink();
+    for (let i = 0; i < 6; i++) jars.cylinder(-0.18, 1.98, -1.0 + i * 0.4, 0.07, 0.22, 12);
+    return [piece(counter.out(), M('plywood'), { smooth: true, metres: 'xz' }), piece(machine.out(), M('chrome'), { smooth: true }), piece(cups.out(), M('icing')), piece(shelf.out(), M('plywood')), piece(jars.out(), M('acrylic'), { smooth: true })];
   },
   /**
    * The wing behind the terrace's door: a dark passage 3 m long and the four steps up to the stage's side. The door

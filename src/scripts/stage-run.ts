@@ -33,7 +33,7 @@ import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
 import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
-import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE } from '../lib/stage/flight.ts';
+import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE, COFFEE } from '../lib/stage/flight.ts';
 import { createPhone } from './stage-phone.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
@@ -82,14 +82,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   heldLaptop.name = 'heldLaptop';
   heldLaptop.visible = false;
   camera.add(heldLaptop);
-  const TOUR_SETS = new Set([8, 9, 10]);
-  const TOUR_PAGE: Record<number, number> = { 8: 0, 9: 1, 10: 3 }; // the laptop's page per city (screenTour's frames; 2 was Montréal)
+  const TOUR_SETS = new Set([8, 9]); // the laptop is carried along the terrace; it goes down at Volta's door, where the coffee comes up
+  const TOUR_PAGE: Record<number, number> = { 8: 0, 9: 1 }; // the laptop's page per city (screenTour's frames; 2 was Montréal)
   /** The degree in hand on the stage at the end: a rolled parchment, raised as the walk reaches the dais. */
   let crowdFrames: [CanvasTexture, CanvasTexture] | undefined; // the crowd's two frames, painted once
   const heldDegree = new Group();
   heldDegree.name = 'heldDegree';
   heldDegree.visible = false;
   camera.add(heldDegree);
+  const heldCoffee = new Group(); // the mug from Volta's bar
+  heldCoffee.name = 'heldCoffee';
+  heldCoffee.visible = false;
+  camera.add(heldCoffee);
   // the laptop's screen is live: a canvas repainted a dozen times a second with code running, the editor, the app, the numbers
   const tourCanvas = canvas2d(768, 480);
   const tourTex = new CanvasTexture(tourCanvas);
@@ -1097,11 +1101,20 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       tourTex.needsUpdate = true;
     }
     // the laptop: raised into the frame over the doorway out of the Bean house, with the scroll (it appeared at once at the midpoint: a pop)
-    const lift = TOUR_SETS.has(mainFrame.set) ? 1 : mainFrame.into !== mainFrame.from && TOUR_SETS.has(mainFrame.into) ? mainFrame.blend : 0;
+    const crossing = mainFrame.into !== mainFrame.from, fromTour = TOUR_SETS.has(mainFrame.from), intoTour = TOUR_SETS.has(mainFrame.into);
+    const lift = crossing ? (fromTour ? (intoTour ? 1 : 1 - mainFrame.blend) : intoTour ? mainFrame.blend : 0) : TOUR_SETS.has(mainFrame.set) ? 1 : 0; // up over the door out of the Bean house, down over Volta's
     const showLaptop = lift > 0;
     if (showLaptop && !heldLaptop.visible) tourShown = now;
     heldLaptop.visible = showLaptop;
     heldLaptop.position.y = -0.45 * (1 - lift * lift * (3 - 2 * lift));
+    { // the coffee: into the hand at Volta's bar, set down before the wing's door
+      const q = mainFrame.q, up = Math.max(0, Math.min(1, (q - COFFEE.raise) / (COFFEE.held - COFFEE.raise))), down = Math.max(0, Math.min(1, (q - COFFEE.down) / (COFFEE.gone - COFFEE.down)));
+      const t = up * (1 - down), e = t * t * (3 - 2 * t);
+      heldCoffee.visible = mainFrame.set === 10 && t > 0;
+      if (heldCoffee.visible && heldCoffee.children.length === 0) { heldCoffee.userData.loading ??= loadModel('coffee_mug').then((l) => { const m = l.scene.clone(true); m.position.set(0, 0, 0); m.rotation.set(0, 0, 0); m.scale.setScalar(1); m.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } }); heldCoffee.add(m); }); } // the cached scene carries its last placement
+      heldCoffee.position.set(0.24, -0.3 + 0.08 * e, -0.6); // low right, an arm's length out
+      heldCoffee.rotation.set(0.15, -0.7, 0.05);
+    }
     { // the degree: raised into the frame over the last steps to the dais
       const t = Math.max(0, Math.min(1, (mainFrame.q - DEGREE.raise) / (DEGREE.held - DEGREE.raise)));
       heldDegree.visible = mainFrame.set === 11 && t > 0;

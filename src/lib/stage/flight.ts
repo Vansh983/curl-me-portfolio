@@ -17,6 +17,8 @@ const DESCENT = { start: ch(5.704), end: ch(6.047), distance: 1450 };
 export const FLIGHT = { ...DESCENT, top: 385, low: 130, deck: FLIGHT_DECK, bank: 7, cruise: (0.35 * DESCENT.distance) / (DESCENT.end - DESCENT.start) } as const; // cruise: the ground speed the descent ends at, per unit of progress
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
 export const PHONE = { raise: ch(6.012), framed: ch(6.075), zoom: ch(6.103), filled: ch(6.194), transfer: ch(6.215), reveal: ch(6.264) } as const;
+/** The coffee at Volta: into the hand at the bar, held through the room, set down before the wing's door. */
+export const COFFEE = { raise: ch(11.1), held: ch(11.24), down: ch(11.8), gone: ch(11.94) } as const;
 /** The degree: raised into the hand over the last steps onto the stage, held from there. */
 export const DEGREE = { raise: ch(12.56), held: ch(12.7) } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */

@@ -64,6 +64,7 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 - `union_station` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/377e3a48a1c5298938a5357de8d99892/binaries/glb?download=true. Union Station's Front Street facade, Toronto.
 - `town_clock` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/f98e09fd1931e1eaea23ba00b3807e38/binaries/glb?download=true. the Halifax Town Clock on Citadel Hill.
 - `purdys_wharf` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/dcccf6361fcbf5baf229cc4c3c2bf3c9/binaries/glb?download=true. Purdy's Wharf on the Halifax waterfront.
+- `cn_tower` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/51cbd1374539b5545a688156b5408036/binaries/glb?download=true. the CN Tower across the water from the terrace, Toronto.
 - `leafy_grass` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/leafy_grass. the Googleplex lawn.
 - `concrete_pavement` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/concrete_pavement. the paving of the promenade.
 
