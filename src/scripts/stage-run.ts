@@ -174,7 +174,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const video = document.createElement('video');
   Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
   video.setAttribute('playsinline', '');
-  const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null, floqer: null };
+  const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null, floqer: null, elevatePhoto: null, demodayPhoto: null };
   const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...beanPaint(images) };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintTex = (name: string, frame = 0): CanvasTexture => {
@@ -819,6 +819,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'boothMontreal', 'screenTour', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'certificateInvestNS']); });
   for (const key of ['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const) loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo']); });
   loadImage('/assets/stage/logos/floqer.png').then((i) => { images.floqer = i; repaint(['floqer']); });
+  for (const [key, file] of [['elevatePhoto', 'elevate'], ['demodayPhoto', 'demoday']] as const) loadImage(`/assets/stage/photos/${file}.jpg`).then((i) => { images[key] = i; repaint(['photo']); });
   document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
 
   const dolly = makeDolly(DOLLY);

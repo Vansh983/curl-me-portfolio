@@ -89,6 +89,12 @@ function logoBoard(frame: number, dark: boolean, w = 2.0, h = 1.2): BuiltPart {
   return [piece(board.out(), M(dark ? 'logoBoardDark' : 'logoBoard'), { smooth: true }), piece(face(w, h, 0.0), { paint: `logo:${frame}` })];
 }
 
+/** A photo on a stand: two steel posts, the print in a thin frame with its middle 1.6 m up, its face toward +z. */
+function photoBoard(frame: number, w = 1.5, h = 2.0): BuiltPart {
+  const post = new Sink().box(-w / 2 + 0.1, 0.9, -0.04, 0.05, 1.8, 0.05).box(w / 2 - 0.1, 0.9, -0.04, 0.05, 1.8, 0.05).box(0, 0.02, -0.04, w, 0.04, 0.6);
+  return [piece(post.out(), M('handrail')), piece(new Sink().rbox(0, 1.6, -0.02, w + 0.06, h + 0.06, 0.03, 0.005, 1).out(), M('bezel'), { smooth: true }), piece(offsetGeo(face(w, h, 0.0), 0, 1.6, 0), { paint: `photo:${frame}` })];
+}
+
 /** A quad facing +z of size w × h centred at the origin, uv 0..1 (a painted face). */
 const face = (w: number, h: number, z = 0): Geo => new Sink().quad([-w / 2, -h / 2, z], [w / 2, -h / 2, z], [w / 2, h / 2, z], [-w / 2, h / 2, z], [[0, 0], [1, 0], [1, 1], [0, 1]]).out();
 /** The same painted face turned to look toward -z. */
@@ -743,35 +749,44 @@ export const BUILT: Record<string, () => BuiltPart> = {
    * down to the water. World metres.
    */
   terrace: () => {
-    const [x0, x1] = TERRACE.x, [z0, z1] = TERRACE.z, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
-    const paving = new Sink().box(cx, -0.02, cz, x1 - x0, 0.08, z1 - z0).box((x0 - 1.4) / 2, -0.02, (z0 - 18.2) / 2, -1.4 - x0, 0.08, 2.8); // the walk and the leg along the south wall, its top 2 cm proud of the headland
+    const [x0, x1] = TERRACE.x, [z0, z1] = TERRACE.z, { x0: px0, z0: pz0 } = TERRACE.plaza, cx = (x0 + x1) / 2;
+    const paving = new Sink().box(cx, -0.02, (z0 + pz0) / 2, x1 - x0, 0.08, pz0 - z0) // the walk along the room, 6.2 wide, its top 2 cm proud of the headland
+      .box((px0 + x1) / 2, -0.02, (pz0 + z1) / 2, x1 - px0, 0.08, z1 - pz0) // the plaza north of it, out to the water's edge
+      .box((x0 - 1.4) / 2, -0.02, (z0 - 18.2) / 2, -1.4 - x0, 0.08, 2.8); // the leg along the south wall
     // along the water a glass balustrade on steel posts under a handrail (the harbour and the Opera House stay in the room's
-    // window, which looks across this terrace); along the south leg a low parapet
-    const wall = new Sink().rbox(x0 + 0.15, 0.08, cz, 0.3, 0.16, z1 - z0, 0.02, 2)
-      .rbox((x0 - 1.4) / 2, 0.55, z0 + 0.15, -1.4 - x0, 1.1, 0.3, 0.02, 2).rbox((x0 - 1.4) / 2, 1.12, z0 + 0.15, -1.4 - x0 + 0.12, 0.06, 0.42, 0.015, 2);
-    const rail = new Sink().box(x0 + 0.15, 1.12, cz, 0.06, 0.05, z1 - z0);
-    for (let z = z0 + 0.3; z < z1; z += 2.0) rail.box(x0 + 0.15, 0.62, z, 0.05, 0.94, 0.05);
-    const glass = new Sink().box(x0 + 0.15, 0.62, cz, 0.012, 0.9, z1 - z0);
-    const cliff = new Sink().box(cx + 12, -16.05, cz + 3, x1 - x0 + 24, 32, z1 - z0 + 6); // the headland under the house and the terrace, its top 5 cm under the paving, down to the water
-    const planter = new Sink(), hedge = new Sink();
-    for (const z of [-14.0, -1.0, 6.0, 13.0, 20.0]) { planter.rbox(x1 - 0.5, 0.24, z, 0.7, 0.48, 1.6, 0.02, 2); hedge.rbox(x1 - 0.5, 0.75, z, 0.6, 0.55, 1.5, 0.12, 3); }
-    return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(cliff.out(), M('quayStone'), { metres: 'xz' }),
-      piece(planter.out(), M('concrete'), { metres: 'xy' }), piece(hedge.out(), M('hedge'), { smooth: true }), piece(rail.out(), M('handrail'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
+    // window, which looks across this terrace): down the walk's edge, west along the plaza's south edge, north along its west edge
+    const kerb = new Sink(), rail = new Sink(), glass = new Sink();
+    const edge = (a: [number, number], b: [number, number]) => {
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / len, uz = (b[1] - a[1]) / len, mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
+      kerb.rbox(mx, 0.08, mz, Math.abs(ux) * len + 0.3, 0.16, Math.abs(uz) * len + 0.3, 0.02, 2);
+      rail.box(mx, 1.12, mz, Math.abs(ux) * len + 0.06, 0.05, Math.abs(uz) * len + 0.06);
+      for (let k = 0; k <= len; k += 2.0) rail.box(a[0] + ux * k, 0.62, a[1] + uz * k, 0.05, 0.94, 0.05);
+      glass.box(mx, 0.62, mz, Math.abs(ux) * len + 0.012, 0.9, Math.abs(uz) * len + 0.012);
+    };
+    edge([x0 + 0.15, z0], [x0 + 0.15, pz0 + 0.15]); edge([x0 + 0.15, pz0 + 0.15], [px0 + 0.15, pz0 + 0.15]); edge([px0 + 0.15, pz0 + 0.15], [px0 + 0.15, z1]);
+    const wall = new Sink().rbox((x0 - 1.4) / 2, 0.55, z0 + 0.15, -1.4 - x0, 1.1, 0.3, 0.02, 2).rbox((x0 - 1.4) / 2, 1.12, z0 + 0.15, -1.4 - x0 + 0.12, 0.06, 0.42, 0.015, 2); // the south leg's parapet
+    // the headland under the house, the terrace and the plaza, its top 5 cm under the paving, down to the water
+    const cliff = new Sink().box((x0 - 3 + x1 + 21) / 2, -16.05, (z0 - 3 + pz0) / 2, x1 + 24 - x0, 32, pz0 - z0 + 3).box((px0 - 3 + x1 + 21) / 2, -16.05, (pz0 + z1 + 3) / 2, x1 + 24 - px0, 32, z1 + 3 - pz0);
+    return [piece(paving.out(), M('pavement'), { metres: 'xz' }), piece(wall.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(kerb.out(), M('concrete'), { smooth: true, metres: 'xz' }), piece(cliff.out(), M('quayStone'), { metres: 'xz' }),
+      piece(rail.out(), M('handrail'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
   },
+  /** A hedge across the plaza between two cities, 1.6 m tall in a concrete planter, 13 m long along x, its middle at the origin: the next city's things stay behind it until the walk is there, only the tall ones over it. */
+  plazaPlanter: () => [piece(new Sink().rbox(0, 0.25, 0, 13, 0.5, 1.0, 0.02, 2).out(), M('concrete'), { metres: 'xy' }), piece(new Sink().rbox(0, 1.05, 0, 12.8, 1.1, 0.9, 0.15, 3).out(), M('hedge'), { smooth: true })],
   /**
    * The house from the terrace: its west wall carried north of the room for 37 m, 3.2 m tall, with a window every 4.2 m
    * (recessed, dark glass), a parapet over it all, and the wing across the terrace's north end with the door in it.
    */
   terraceWall: () => {
-    const [x0, x1] = TERRACE.x, z1 = TERRACE.z[1], H = 3.2, wall = new Sink(), glass = new Sink(), frame = new Sink();
+    const [, x1] = TERRACE.x, z1 = TERRACE.z[1], H = 3.2, wall = new Sink(), glass = new Sink(), frame = new Sink();
     const zRoom = -13.2; // the room's north wall: the shell's own wall stands south of it
     wall.box(x1 + 0.25, H / 2, (zRoom + z1) / 2, 0.5, H, z1 - zRoom); // the west wall north of the room
     wall.box(-4.4, H + 0.17, (z1 - 18.2) / 2, 6.4, 0.35, z1 + 18.2 + 0.4); // the parapet slab over the house
     // the wing's face across the north end, a plate with the doorway cut through it: the wing behind is the stage's
     // (stageWing, its own walls); a solid block here would stand across the open door
     const dx = TERRACE.walkX;
-    wall.box((x0 - 0.25 + dx - 0.6) / 2, H / 2, z1 + 0.1, dx - 0.6 - x0 + 0.25, H, 0.2).box((dx + 0.6 + x1 + 0.25) / 2, H / 2, z1 + 0.1, x1 + 0.25 - dx - 0.6, H, 0.2).box(dx, (2.1 + H) / 2, z1 + 0.1, 1.2, H - 2.1, 0.2);
-    wall.box((x0 + x1) / 2, H + 0.17, z1 + 3.0, x1 - x0 + 0.9, 0.35, 6.4);
+    const px0 = TERRACE.plaza.x0;
+    wall.box((px0 - 0.25 + dx - 0.6) / 2, H / 2, z1 + 0.1, dx - 0.6 - px0 + 0.25, H, 0.2).box((dx + 0.6 + x1 + 0.25) / 2, H / 2, z1 + 0.1, x1 + 0.25 - dx - 0.6, H, 0.2).box(dx, (2.1 + H) / 2, z1 + 0.1, 1.2, H - 2.1, 0.2);
+    wall.box((px0 + x1) / 2, H + 0.17, z1 + 3.0, x1 - px0 + 0.9, 0.35, 6.4);
     for (let z = zRoom + 3.4; z < z1 - 2; z += 4.2) { // the windows: a reveal into the wall, the glass 0.2 m back
       glass.quad([x1 - 0.2, 0.9, z - 0.8], [x1 - 0.2, 0.9, z + 0.8], [x1 - 0.2, 2.3, z + 0.8], [x1 - 0.2, 2.3, z - 0.8]);
       frame.box(x1 - 0.1, 0.9, z, 0.2, 0.04, 1.64).box(x1 - 0.1, 2.3, z, 0.2, 0.04, 1.64).box(x1 - 0.1, 1.6, z - 0.8, 0.2, 1.44, 0.04).box(x1 - 0.1, 1.6, z + 0.8, 0.2, 1.44, 0.04);
@@ -843,6 +858,9 @@ export const BUILT: Record<string, () => BuiltPart> = {
       wall.box(dx, df / 2, zN - 0.05, dw, df, 0.1).box(dx, (df + dh + H) / 2, zN - 0.05, dw, H - df - dh, 0.1); }
     return [piece(wall.out(), M('terraceWall'), { metres: 'xy' })];
   },
+  /** A photo of his on a stand by the walk: the print 1.5 by 2.0 in a thin frame, its middle 1.6 m up, on two steel posts, painted (`photo:<frame>`). Faces +z. */
+  photoElevate: () => photoBoard(0),
+  photoDemoDay: () => photoBoard(1),
   /** The two whiteboards in the hacker house, 2.4 by 1.2 in aluminium frames, painted (`whiteboardFloqer`). Face +z. */
   whiteboardFloqerA: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardFloqer:0' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],
   whiteboardFloqerB: () => [piece(face(2.4, 1.2, 0.005), { paint: 'whiteboardFloqer:1' }), piece(frame(2.4, 1.2, 0.03, 0.01).out(), M('alu'))],

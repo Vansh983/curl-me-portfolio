@@ -7,7 +7,7 @@ export interface Paint { w: number; h: number; frames: Painter[] }
 /** Apple's "Think different" text, 1997, as printed on the poster: the first sentence is the title, the rest the body. */
 const JOBS_QUOTE = "The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They're not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can't do is ignore them. Because they change things. They push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.";
 
-export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null; floqer: HTMLImageElement | null }
+export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null; floqer: HTMLImageElement | null; elevatePhoto: HTMLImageElement | null; demodayPhoto: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
   const c = document.createElement('canvas');
@@ -793,6 +793,14 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     const img = images[key];
     if (!img) return;
     const pad = 90, sw = w - 2 * pad, sh = h - 2 * pad, k = Math.min(sw / img.width, sh / img.height), dw = img.width * k, dh = img.height * k;
+    x.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  }) },
+  /** His photos on the plaza's stands, 3:4, covering the print: Elevate (Toronto), Demo Day at Volta (Halifax). From his LinkedIn posts. */
+  photo: { w: 768, h: 1024, frames: (['elevatePhoto', 'demodayPhoto'] as const).map((key) => (x: Ctx, w: number, h: number) => {
+    x.fillStyle = '#2A2A2E'; x.fillRect(0, 0, w, h);
+    const img = images[key];
+    if (!img) return;
+    const k = Math.max(w / img.width, h / img.height), dw = img.width * k, dh = img.height * k;
     x.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
   }) },
   /** Toronto's whiteboard, in his words from the trip: churn instead of the meetings. */

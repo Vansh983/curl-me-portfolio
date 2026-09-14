@@ -152,14 +152,14 @@ function walk(): DollyKey[] {
   keys.push(K(9.1, [-7.3, 1.6, -19.7], [-10.0, 1.25, -22.2], 8)); // and up, turning right along the south wall: the water, the North Shore
   keys.push(K(9.22, [-8.5, 1.6, -19.7], [-12.5, 1.3, -19.9], 8)); // west: the parapet and the water ahead, 30 m down
   keys.push(K(9.34, [-10.0, 1.6, -19.5], [-13.0, 1.3, -16.8], 8)); // the corner: turning right again
-  keys.push(K(9.46, [X, 1.6, -18.4], [X - 0.4, 1.3, -14.4], 8)); // north along the terrace: the water on the left, the house on the right
+  keys.push(K(9.46, [X, 1.6, -18.4], [X - 2.2, 1.3, -14.4], 8)); // north along the terrace: the plaza opening on the right, the house on the left
   const z0 = -18.4, zJamb = TERRACE.door - 0.6, q0 = 9.46, q1 = 11.98, n = 22; // 42 m over 2.52 chapters
   for (let k = 1; k <= n; k++) {
     const q = Math.round((q0 + (q1 - q0) * (k / n)) * 1000) / 1000, z = Math.round((z0 + (zJamb - z0) * (k / n)) * 100) / 100;
-    const set = k < 5 ? 8 : k < 13 ? 9 : 10; // the thresholds at the fourth and twelfth keys, soft
-    const blend = k === 4 || k === 12 ? 0 : k === 5 || k === 13 ? 1 : undefined;
-    const look: V3 = blend === undefined ? [X, 1.3, z + 4] : [X + 2.2, 1.45, z + 2.4]; // at each threshold a glance right, at the house, while the city on the water changes behind the eye
-    if (k === n) keys.push(K(q, [X, 1.6, z], [X, 1.3, z + 4], 10, { blend: 0 })); // the jamb of the door back in
+    const set = k < 7 ? 8 : k < 15 ? 9 : 10; // the thresholds at the sixth and fourteenth keys, soft: the sky changes, nothing in the row does
+    const blend = k === 6 || k === 14 ? 0 : k === 7 || k === 15 ? 1 : undefined;
+    const look: V3 = [X - 2.2, 1.3, z + 4]; // ahead and a little right, the whole way: the city's things pass on the right, the water beyond them; never left
+    if (k === n) keys.push(K(q, [X, 1.6, z], [X - 0.8, 1.3, z + 4], 10, { blend: 0 })); // the jamb of the door back in, the eye coming back to the door
     else keys.push(K(q, [X, 1.6, z], look, set, blend === undefined ? {} : blend === 1 ? { blend, soft: true } : { blend }));
   }
   // the wing: in through the door, up the steps (the rise spread over the stride, the way an eye takes stairs), and

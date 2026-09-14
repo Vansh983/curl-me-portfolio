@@ -56,6 +56,14 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 - `cotton_jersey` (texture) by colormass, CC0, https://polyhaven.com/a/cotton_jersey. the curtains.
 - `dirty_carpet` (texture) by Rohit Seervi, CC0, https://polyhaven.com/a/dirty_carpet. the rugs.
 - `oak_veneer_01` (texture) by Jenelle van Heerden, CC0, https://polyhaven.com/a/oak_veneer_01. the shelves, the bed frame.
+- `digital_orca` (model) by Eric S. (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/97dd587e-82c6-42f6-a220-c2630c5abbf7/binaries/glb?download=true. Douglas Coupland's Digital Orca on Jack Poole Plaza, Vancouver.
+- `olympic_cauldron` (model) by jago716 (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/c53ea8331b89ba98c2b2b6308b25b538/binaries/glb?download=true. the 2010 Olympic Cauldron on Jack Poole Plaza, Vancouver.
+- `convention_centre` (model) by 3D Warehouse staff, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/cfa8cd8f4f9aba747e7220e0f528d998/binaries/glb?download=true. the Vancouver Convention Centre West, the Web Summit venue.
+- `harbour_centre` (model) by Ben (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/e6fc5c978ee2043dcea419d2523514c8/binaries/glb?download=true. Harbour Centre behind the Vancouver waterfront.
+- `ttc_streetcar` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/c80d6a2262ceefdf2764a7d5e934bdcf/binaries/glb?download=true. a TTC CLRV streetcar, Toronto.
+- `union_station` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/377e3a48a1c5298938a5357de8d99892/binaries/glb?download=true. Union Station's Front Street facade, Toronto.
+- `town_clock` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/f98e09fd1931e1eaea23ba00b3807e38/binaries/glb?download=true. the Halifax Town Clock on Citadel Hill.
+- `purdys_wharf` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/dcccf6361fcbf5baf229cc4c3c2bf3c9/binaries/glb?download=true. Purdy's Wharf on the Halifax waterfront.
 - `leafy_grass` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/leafy_grass. the Googleplex lawn.
 - `concrete_pavement` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/concrete_pavement. the paving of the promenade.
 

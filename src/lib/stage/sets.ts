@@ -126,7 +126,7 @@ export const aisleHeight = (z: number): number => {
  * the cliff and the water are the same in all three sets (each holds its own copy, this set only): only the sky and
  * the thing on the water change at a threshold.
  */
-export const TERRACE = { x: [-13.6, -7.4] as [number, number], z: [-21.0, 24.0] as [number, number], walkX: -10.5, door: 24.0, water: -30.6 } as const;
+export const TERRACE = { x: [-13.6, -7.4] as [number, number], z: [-21.0, 24.0] as [number, number], walkX: -10.5, door: 24.0, water: -30.6, plaza: { x0: -34.0, z0: -12.0 } } as const; // plaza: north of z0 the paving runs west to x0, the city's things on it, the balustrade at its edge
 /** The stage beyond the terrace's north door: entered from its wing at the south end, the audience to the east. World metres. */
 /**
  * The people in the hall on its feet: graduates in black gowns among their families, standing on the house's tiers facing the
@@ -571,37 +571,54 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2025, Vancouver: out of the hacker house's south door onto the terrace, Web Summit week: the North Shore mountains
-    // across the water (real elevation data), Canada Place's sails on it, the Bean booth and the Web Summit mark against
-    // the wall. The terrace, its wall and the cliff live here and show from Sydney's window, Toronto and Halifax.
+    // 2025, Vancouver: out of the hacker house's south door onto the terrace, Web Summit week. The terrace, its wall and
+    // the cliff live here and show from Sydney's window, Toronto and Halifax; the plaza west of the walk holds the three
+    // cities' things (set 9, so they stand through the whole walk); the North Shore across the water, the sails on it.
     id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, baked: true,
     sun: { dir: [0.45, 0.62, 0.55], color: '#FFF3DC', power: 2.3, shadow: 1 },
     fog: { color: '#C9D7E3', near: 500, far: 4000 },
     props: [
       water(),
-      { build: 'terrace', at: [0, 0, 0], cap: 'The terrace along the harbour side of the hacker house, 30 m over the water, a glass balustrade at its edge.' },
+      { build: 'terrace', at: [0, 0, 0], cap: 'The terrace along the harbour side of the hacker house, 30 m over the water, and the plaza it opens onto.' },
       { build: 'terraceWall', at: [0, 0, 0], cap: 'The house from outside: its windows along the terrace, the door at the end.' },
       { build: 'northShore', at: [0, TERRACE.water, 0], live: 'city', shadow: false, cap: 'The North Shore: Cypress, Grouse and Seymour over Burrard Inlet, from real elevation data.' },
-      { build: 'canadaPlaceSails', at: [-190, TERRACE.water, 230], rot: [0, 90, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier. Web Summit, May 2025.' },
-      { build: 'beanBooth', at: [-8.55, 0, -8.5], rot: [0, 90, 0], cap: 'The Bean booth. One day at Web Summit: 500 conversations, 120 signups, an investor MOU.' },
-      { build: 'logoWebSummit', at: [-7.44, 1.9, -7.7], rot: [0, -90, 0], cap: 'Web Summit Vancouver, May 2025: Bean on the floor.' },
+      { build: 'canadaPlaceSails', at: [-190, TERRACE.water, 230], rot: [0, 90, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier.' },
     ],
   },
   {
-    // 2025, Toronto: the same terrace, Elevate week with the Startup Atlantic delegation: downtown Toronto across the water
-    // as from the lake (real footprints, the CN Tower), the Elevate mark on the wall.
+    // 2025, Toronto: the same terrace, Elevate week. This set holds the row on the plaza, one city after another on the
+    // right of the walk (docs/rebuild/31-tour-row.md): Vancouver's Web Summit venue and Jack Poole Plaza (the Bean booth,
+    // the Digital Orca, the Olympic Cauldron, the Convention Centre, Harbour Centre behind), Toronto (a TTC streetcar, the
+    // Elevate photo, Union Station behind), Halifax (the Demo Day photo, the Town Clock, Purdy's Wharf behind); planters
+    // between; downtown Toronto across the water for its own stretch.
     id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true,
     sun: { dir: [-0.5, 0.6, 0.45], color: '#FFEFD6', power: 2.3, shadow: 1 },
     fog: { color: '#C9D7E3', near: 800, far: 5000 },
     props: [
       water(),
       { build: 'torontoDay', at: [-140, TERRACE.water, 500], rot: [0, 100, 0], live: 'city', shadow: false, cap: 'Downtown Toronto across the water: the real blocks and the CN Tower. Elevate, October 2025.' },
-      { build: 'logoElevate', at: [-7.44, 1.9, 0.7], rot: [0, -90, 0], cap: 'Elevate Festival, Toronto, October 2025: the Startup Atlantic delegation.' },
+      // Vancouver, z -13 to -3
+      { build: 'beanBooth', at: [-15.2, 0, -11.2], rot: [0, -90, 0], cap: 'The Bean booth. One day at Web Summit Vancouver, May 2025: 500 conversations, 120 signups, an investor MOU.' },
+      { model: 'digital_orca', at: [-31.0, 0, -4.0], rot: [0, 90, 0], cap: "Digital Orca, Douglas Coupland's sculpture beside the Convention Centre." },
+      { model: 'olympic_cauldron', at: [-27.5, 0, -1.0], rot: [0, 0, 0], scale: 0.6, cap: 'The 2010 Olympic Cauldron on Jack Poole Plaza.' },
+      { model: 'convention_centre', at: [-200, 0, -125], rot: [0, 35, 0], cap: 'The Vancouver Convention Centre West: Web Summit, May 2025.' },
+      { model: 'harbour_centre', at: [-90, 0, -230], rot: [0, 0, 0], cap: 'Harbour Centre.' },
+      { build: 'plazaPlanter', at: [-20.6, 0, -3.0] },
+      // Toronto, z 0 to 10
+      { build: 'photoElevate', at: [-14.6, 0, 2.2], rot: [0, -90, 0], cap: 'Elevate Festival, Toronto, October 2025, with the Startup Atlantic delegation. His photo.' },
+      { model: 'ttc_streetcar', at: [-22.5, 0, 6.5], rot: [0, 60, 0], cap: 'A TTC streetcar.' },
+      { model: 'union_station', at: [-190, 0, 120], rot: [0, -25, 0], cap: 'Union Station.' },
+      { build: 'plazaPlanter', at: [-20.6, 0, 10.4] },
+      // Halifax, z 12 to 22
+      { build: 'photoDemoDay', at: [-14.6, 0, 15.0], rot: [0, -90, 0], cap: 'Collect. Demo Day at Volta, January 2026: the space packed. His photo.' },
+      { model: 'town_clock', at: [-16.5, 0, 21.5], rot: [0, 20, 0], cap: 'The Halifax Town Clock.' },
+      { model: 'purdys_wharf', at: [-80, 0, 90], rot: [0, 20, 0], cap: "Purdy's Wharf on the Halifax waterfront." },
+      { model: 'purdys_wharf', at: [-115, 0, 118], rot: [0, 20, 0] },
     ],
   },
   {
     // 2025 to 2026, Halifax: downtown Halifax across the harbour as from Dartmouth (real footprints) with the Macdonald
-    // Bridge, and on the wall the marks of Volta, Invest Nova Scotia and Product Hunt. The walk ends at the door back in.
+    // Bridge. The walk ends at the door back in.
     id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, also: [8],
     sun: { dir: [-0.55, 0.6, 0.5], color: '#FFEBD0', power: 2.3, shadow: 1 },
     fog: { color: '#C9D7E3', near: 800, far: 5000 },
@@ -610,9 +627,6 @@ export const SETS: StageSet[] = [
       { build: 'hallShell', at: [0, 0, 0] }, // the hall's outside over the wing: from the terrace a plain block, nothing of the inward room shows
       { build: 'halifaxDay', at: [-480, TERRACE.water, 900], rot: [0, 320, 0], live: 'city', shadow: false, cap: 'Downtown Halifax across the harbour: the real blocks from the flight data.' },
       { build: 'macdonaldBridge', at: [-820, TERRACE.water, 420], rot: [0, -70, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
-      { build: 'logoVolta', at: [-7.44, 1.9, 9.1], rot: [0, -90, 0], cap: 'Volta, Halifax: Collect. every Thursday; Demo Day, February 2026.' },
-      { build: 'logoInvestNS', at: [-7.44, 1.9, 13.3], rot: [0, -90, 0], cap: 'Invest Nova Scotia Accelerate: one of twelve, October 2025.' },
-      { build: 'logoProductHunt', at: [-7.44, 1.9, 17.5], rot: [0, -90, 0], cap: 'Bean at #4 on Product Hunt, December 2025.' },
       { build: 'doorLeafWide', at: [TERRACE.walkX + 0.6, 0, TERRACE.door], rot: [0, -90, 0], live: 'door', door: [ch(11.78), ch(11.92)], cap: 'The door back into the house at the end of the terrace.' },
     ],
   },
