@@ -27,6 +27,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [26-flight-rebuilt.md](./26-flight-rebuilt.md) | The rebuild: stage span, a real descent over OpenStreetMap Halifax, the cabin dressed, the phone, the walk down to the lectern |
 | [27-sydney-hacker-house.md](./27-sydney-hacker-house.md) | Chapter units for every key; out of the auditorium's right-hand door straight into Sydney: the hacker house where Bean was built |
 | [28-canada-tour.md](./28-canada-tour.md) | The Canada tour plan from his LinkedIn: Vancouver, Calgary, Toronto, Halifax with the laptop in hand; Calgary blocked on his facts |
+| [32-loading-and-deployment.md](./32-loading-and-deployment.md) | Worker-based preparation, readiness and recovery, content-hashed delivery, production audit commands and remaining device/network limits |
 
 ## The one-paragraph verdict
 

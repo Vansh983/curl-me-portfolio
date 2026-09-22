@@ -3,6 +3,7 @@
 // Chapters are the timeline entries; the stage's stations sit on the first chapters
 // and the camera holds after the last station. Spec: docs/rebuild/13-journey-real-spec.md.
 import { timeline } from '../data/timeline';
+import { deliveryUrl } from '../lib/stage/delivery';
 
 const chapters = timeline;
 const n = chapters.length;
@@ -10,7 +11,14 @@ const n = chapters.length;
 
 <section class="journey" data-n={n}>
   <div class="stage" aria-hidden="true">
+    <img class="opening" src={deliveryUrl('/assets/stage/preview.webp')} width="1440" height="900" alt="" fetchpriority="high" />
     <canvas class="gl"></canvas>
+  </div>
+
+  <div class="preparation" hidden>
+    <span role="status" aria-live="polite" data-load-status>Loading the journey</span>
+    <button type="button" data-skip-stage>Read without 3D</button>
+    <button type="button" data-retry-stage hidden>Try 3D again</button>
   </div>
 
   <div class="wall">
@@ -59,7 +67,43 @@ const n = chapters.length;
     height: 100%;
     opacity: 0;
     transition: opacity 0.9s ease;
+    position: absolute;
+    inset: 0;
   }
+  .opening { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .preparation {
+    position: fixed;
+    left: var(--pad);
+    right: var(--pad);
+    bottom: 24px;
+    z-index: 5;
+    width: fit-content;
+    max-width: calc(100% - 2 * var(--pad));
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    padding: 12px 16px;
+    color: var(--tx);
+    background: var(--bg);
+    border: 1px solid var(--tx);
+    font-size: 13px;
+  }
+  .preparation[hidden], .preparation button[hidden] { display: none; }
+  .preparation button {
+    color: inherit;
+    font: inherit;
+    border: 0;
+    padding: 6px 0;
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .preparation button:focus-visible { outline: 2px solid var(--tx); outline-offset: 4px; }
+  .journey[data-stage='ready'] .preparation,
+  .journey[data-stage='skipped'] .preparation { display: none; }
+  @media (prefers-reduced-motion: reduce) { .gl { transition: none; } }
   .gl.on {
     opacity: 1;
   }
@@ -193,14 +237,30 @@ const n = chapters.length;
   const root = document.querySelector<HTMLElement>('.journey');
   const canvas = root?.querySelector<HTMLCanvasElement>('canvas.gl');
   if (root && canvas) {
+    const panel = root.querySelector<HTMLElement>('.preparation')!;
+    const skip = root.querySelector<HTMLButtonElement>('[data-skip-stage]')!;
+    const retry = root.querySelector<HTMLButtonElement>('[data-retry-stage]')!;
+    let dispose: (() => void) | undefined;
+    const fail = () => {
+      if (root.dataset.stage === 'skipped') return;
+      root.dataset.stage = 'error';
+      root.querySelector<HTMLElement>('[data-load-status]')!.textContent = 'The 3D journey could not load. You can still read the story.';
+      retry.hidden = false;
+    };
+    skip.addEventListener('click', () => { root.dataset.stage = 'skipped'; dispose?.(); });
+    retry.addEventListener('click', () => location.reload());
+    new MutationObserver(() => { if (root.dataset.stage === 'error') retry.hidden = false; }).observe(root, { attributes: true, attributeFilter: ['data-stage'] });
     const n = Number(root.dataset.n) || 1;
     const io = new IntersectionObserver(
       (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
         io.disconnect();
+        if (root.dataset.stage === 'skipped') return;
+        root.dataset.stage = 'loading';
+        panel.hidden = false;
         import('../scripts/stage-run.ts')
-          .then((m) => m.mount(root, canvas, n))
-          .catch((err) => console.warn('[journey] stage did not start', err));
+          .then((m) => { if (root.dataset.stage !== 'skipped') dispose = m.mount(root, canvas, n); })
+          .catch((err) => { fail(); console.warn('[journey] stage did not start', err); });
       },
       { rootMargin: '100% 0px' },
     );

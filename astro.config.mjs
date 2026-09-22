@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import stageDelivery from './scripts/stage-delivery.mjs';
 
 // Static output. No adapter: every route is a file on the CDN.
 // The only dynamic hop is Vercel Routing Middleware (see /middleware.ts) for curl.
@@ -8,7 +9,7 @@ export default defineConfig({
   site: 'https://vanshsood.com',
   trailingSlash: 'never',
   build: { format: 'file' },
-  integrations: [sitemap()],
+  integrations: [sitemap(), stageDelivery()],
   vite: {
     // Lightning CSS (Vite's default minifier) folds animation-timeline into the
     // animation shorthand, which browsers reject (parcel-bundler/lightningcss#1283).

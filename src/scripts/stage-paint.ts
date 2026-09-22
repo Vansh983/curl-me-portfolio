@@ -1,6 +1,7 @@
 // Everything painted onto a canvas and used as a texture: the TV and the Notepad screen, the view
 // out of the window, the Jobs poster and the team photo, the banner, the whiteboard, the sign.
 // Canvas y runs down, texture v runs up, so "top" in the world is y = 0 here.
+import { deliveryUrl } from '../lib/stage/delivery.ts';
 export type Ctx = CanvasRenderingContext2D;
 export type Painter = (x: Ctx, w: number, h: number) => void;
 export interface Paint { w: number; h: number; frames: Painter[] }
@@ -20,7 +21,7 @@ export const loadImage = (src: string): Promise<HTMLImageElement | null> => new 
   const i = new Image();
   i.onload = () => res(i);
   i.onerror = () => res(null);
-  i.src = src;
+  i.src = deliveryUrl(src);
 });
 
 /** Fills the canvas white first: every rig's default uv points at the corner, which must read white. */

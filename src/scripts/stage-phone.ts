@@ -60,13 +60,26 @@ export function createPhone(renderer: WebGLRenderer) {
   const status = new Mesh(new PlaneGeometry(.7,.06), new MeshBasicMaterial({ map: barTex, transparent: true, toneMapped: false })); status.position.set(0,.712,.001); hardware.add(status);
   const captureCamera = new PerspectiveCamera();
   let visible=false, lastAspect=0, screenExposure=1;
+  const fitTarget = (aspect: number) => {
+    if (aspect === lastAspect) return;
+    lastAspect = aspect;
+    const width = Math.min(1440, Math.round(renderer.getSize(new Vector2()).x));
+    target.setSize(width, Math.round(width / aspect));
+  };
   return {
+    async prepare() {
+      const size = renderer.getSize(new Vector2());
+      fitTarget(size.x / size.y);
+      renderer.initRenderTarget(target);
+      renderer.initTexture(barTex);
+      await renderer.compileAsync(scene, camera);
+      const previous = renderer.getRenderTarget(), warm = new WebGLRenderTarget(8, 8);
+      renderer.setRenderTarget(warm); renderer.render(scene, camera); renderer.setRenderTarget(previous);
+      warm.dispose();
+    },
     update(q: number, aspect: number, reduced: boolean, capture: (camera: PerspectiveCamera, target: WebGLRenderTarget) => void) {
       const state=phoneAt(q,reduced); visible=state.visible; if(!visible) return;
-      if(aspect!==lastAspect){
-        lastAspect=aspect;
-        const width=Math.min(1440,Math.round(renderer.getSize(new Vector2()).x)); target.setSize(width,Math.round(width/aspect));
-      }
+      fitTarget(aspect);
       camera.left=-aspect; camera.right=aspect; camera.updateProjectionMatrix();
       captureCamera.position.set(...CLASSROOM_VIEW.cam); captureCamera.lookAt(...CLASSROOM_VIEW.look);
       capture(captureCamera,target);

@@ -75,6 +75,7 @@ export interface StageSet {
   shell?: Shell;
   props: Placement[];
   baked?: boolean; // the set was lit in Blender: public/assets/stage/baked/set<i>.glb and its lightmap (scripts/stage-bake.mjs)
+  bakedEnvironment?: boolean; // this set also ships set<i>_env.webp; no speculative 404 requests
   outdoor?: true; // no walls of its own: shown only from the set before it and itself, or its ground and road would stand outside the windows of the rooms
   also?: number[]; // sets kept in view beyond the neighbours: the terrace stands in set 8 and is walked through set 10
 }
@@ -686,7 +687,7 @@ export const SETS: StageSet[] = [
     // Bean one and messier: the T of tables with the monitors back to back and the team at them, the whiteboards, the boxes,
     // suitcase and mattresses of a rented place people ship from, the mark on the brick, downtown Toronto out of the west
     // windows, and the stair up the east wall to a door: his apartment.
-    id: 'floqer', env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 1.0, baked: true, // envPower 1: the room's own panorama is the environment (set12_env.webp), at its baked brightness
+    id: 'floqer', env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 1.0, baked: true, bakedEnvironment: true, // envPower 1: the room's own panorama is the environment (set12_env.webp), at its baked brightness
     sun: { dir: [-0.75, 0.55, 0.3], color: '#FFE4BE', power: 2.0, shadow: 0.85 },
     fog: { color: '#C9D7E3', near: 60, far: 900 },
     shell: {
@@ -762,4 +763,3 @@ export const SETS: StageSet[] = [
     ],
   },
 ];
-

@@ -1,4 +1,4 @@
-// The journey stage, client side. Seven connected sets, lit by a soft studio environment indoors
+// The journey stage, client side. Thirteen connected sets, lit by a soft studio environment indoors
 // and a clear sky outdoors (both made in code, nothing downloaded), dressed with a few scanned
 // models and designed materials on code-built shells, joined by one camera dolly that changes set
 // while the frame is inside a doorway. Spec: docs/rebuild/13-journey-real-spec.md.
@@ -6,7 +6,7 @@
 // Everything here touches the DOM or the renderer. The world (sets.ts), the camera path (dolly.ts),
 // the shells (shell.ts), the props (built.ts) and the materials (materials.ts) are pure and tested.
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, DirectionalLight, HemisphereLight, PointLight, Mesh, SkinnedMesh, Group, Quaternion, Matrix4, Object3D, ShaderMaterial, UniformsUtils, UniformsLib,
+  WebGLRenderer, LoadingManager, Scene, PerspectiveCamera, Color, Fog, Light, DirectionalLight, HemisphereLight, PointLight, Mesh, SkinnedMesh, Group, Quaternion, Matrix4, Object3D, ShaderMaterial, UniformsUtils, UniformsLib,
   BufferGeometry,
   Points,
   PointsMaterial,
@@ -29,7 +29,10 @@ import { N8AOPass } from 'n8ao';
 import { SETS, HALIFAX_CAMPUS, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
-import { BUILT, type Built, type BuiltSurface } from '../lib/stage/built.ts';
+import type { Built, BuiltSurface } from '../lib/stage/built.ts';
+import { createGeometrySource } from './stage-geometry.ts';
+import { loadInOrder, yieldToBrowser } from '../lib/stage/loading.ts';
+import { deliveryUrl } from '../lib/stage/delivery.ts';
 import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
@@ -44,6 +47,7 @@ import { painters, loadImage, canvas2d, tourLive, SURFACE_PAINT, CITY_PAINT, SCR
 
 const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
+const AUDIT = DEBUG || (typeof location !== 'undefined' && new URLSearchParams(location.search).has('audit'));
 const LIVE_ALL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('live'); // review: every set built and lit at runtime, no baked files
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#000';
 
@@ -55,7 +59,20 @@ const TV_SCREEN = { w: 0.3, h: 0.24, at: [0, 0.2, 0.178] as const };
 const GRAIN = 128; // pixels per grain tile: a faint normal, never a texture you would look at
 
 export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): () => void {
+  let stopped = false, ready = false;
+  const status = root.querySelector<HTMLElement>('[data-load-status]');
+  const report = (text: string) => { if (status) status.textContent = text; };
+  const checkActive = () => { if (stopped) throw new Error('Scene preparation stopped'); };
+  let sliceStart = performance.now();
+  const breathe = async () => {
+    checkActive();
+    if (performance.now() - sliceStart < 6) return;
+    await yieldToBrowser();
+    checkActive();
+    sliceStart = performance.now();
+  };
   const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  const geometrySource = createGeometrySource();
   // two tiers: a phone (coarse pointer, few cores) gets half-resolution occlusion and plain
   // shadows; everything else gets the full pipeline. The pacer below still drops things if it stutters
   const tierParam = new URLSearchParams(location.search).get('tier'); // review only: ?tier=0|1 forces one
@@ -138,7 +155,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   scene.add(sky);
 
   // ---- loaders and caches
-  const gltf = new GLTFLoader();
+  const loadingManager = new LoadingManager();
+  loadingManager.setURLModifier(deliveryUrl);
+  const gltf = new GLTFLoader(loadingManager);
+  MeshoptDecoder.useWorkers(2);
   gltf.setMeshoptDecoder(MeshoptDecoder);
   interface Loaded { scene: Group; animations: AnimationClip[] }
   const modelCache = new Map<string, Promise<Loaded>>();
@@ -176,12 +196,16 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   // ---- painted canvases
   const video = document.createElement('video');
-  Object.assign(video, { src: '/assets/scenes/zombies-gameplay.mp4', muted: true, loop: true, playsInline: true, preload: 'metadata' });
+  Object.assign(video, { src: deliveryUrl('/assets/scenes/zombies-gameplay.mp4'), muted: true, loop: true, playsInline: true, preload: 'auto' });
   video.setAttribute('playsinline', '');
   const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null, floqer: null, elevatePhoto: null, demodayPhoto: null };
   const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...beanPaint(images) };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
+  const paintCache = new Map<string, CanvasTexture>();
   const paintTex = (name: string, frame = 0): CanvasTexture => {
+    const key = `${name}:${frame}`;
+    const cached = paintCache.get(key);
+    if (cached) return cached;
     const p = PAINT[name];
     const c = canvas2d(p.w, p.h);
     p.frames[frame](c.getContext('2d')!, p.w, p.h);
@@ -189,9 +213,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     tex.colorSpace = SRGBColorSpace;
     tex.anisotropy = maxAniso;
     painted.push({ name, frame, c, tex });
+    paintCache.set(key, tex);
     return tex;
   };
   const repaint = (names: string[]) => {
+    if (stopped) return;
     for (const e of painted) {
       if (!names.includes(e.name)) continue;
       PAINT[e.name].frames[e.frame](e.c.getContext('2d')!, e.c.width, e.c.height);
@@ -241,7 +267,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return t;
   };
   // scanned surfaces from assets.ts: loaded once, cloned per material for its own repeat
-  const texLoader = new TextureLoader();
+  const texLoader = new TextureLoader(loadingManager);
   const scans = new Map<string, Texture>();
   const scanning: Promise<void>[] = []; // the bake export waits for these
   const scanFor = (id: string, map: 'diff' | 'nor' | 'arm'): Texture => {
@@ -312,15 +338,22 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
 
   // ---- geometry helpers
+  const geometryCache = new WeakMap<Slab, Map<string, BufferGeometry>>();
   const slabGeometry = (s: Slab, material?: Material): BufferGeometry => {
+    const mapped = material instanceof MeshStandardMaterial && Boolean(material.map || material.normalMap || material.roughnessMap);
+    const key = `${mapped}:${!!material?.vertexColors}`;
+    let variants = geometryCache.get(s);
+    if (!variants) { variants = new Map(); geometryCache.set(s, variants); }
+    const cached = variants.get(key);
+    if (cached) return cached;
     const g = new BufferGeometry();
     g.setAttribute('position', new BufferAttribute(s.pos, 3));
     g.setAttribute('normal', new BufferAttribute(s.nor, 3));
     // a prop built with no map in mind takes a box projection in metres once its material carries one
-    const mapped = material instanceof MeshStandardMaterial && (material.map || material.normalMap || material.roughnessMap);
     g.setAttribute('uv', new BufferAttribute(mapped && flatUv(s.uv) ? boxUv(s.pos, s.nor) : s.uv, 2));
     const col = (s as Built).col;
     if (material?.vertexColors && col) g.setAttribute('color', new BufferAttribute(col, 3));
+    variants.set(key, g);
     return g;
   };
   /**
@@ -407,7 +440,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     water: [] as MeshStandardMaterial[],
     crowd: [] as Array<{ mat: MeshStandardMaterial; base: number }>, // the rows of the crowd: their two frames alternate while the hall is on
     tubes: [] as { mat: MeshStandardMaterial; light: PointLight }[],
-    mixers: [] as AnimationMixer[],
+    mixers: [] as Array<{ mixer: AnimationMixer; set: number }>,
     backdrops: [] as SetScoped<Object3D>[],
     flight: [] as Array<{ obj: Object3D; base: [number, number, number] }>,
     drops: [] as Array<{ obj: Object3D; from: number; to: number; by: number; base: number }>, // things that lower with the stage progress: the projection screen
@@ -460,8 +493,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     pts.name = 'b|city|mat:streetLight|city';
     return pts;
   };
-  const buildHeldLaptop = () => {
-    const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' });
+  const buildHeldLaptop = (parts: Built[]) => {
+    const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' }, false, parts);
     obj.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
     obj.position.set(0.0, -0.23, -0.52); // held in both hands while walking: the whole laptop in frame, lid and keyboard
     obj.rotation.set(0.5, 0.0, 0.0);
@@ -469,8 +502,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     obj.traverse((o) => { if (o instanceof Mesh && o.name.includes('paint:screenTour')) { tourScreen = o; (o.material as MeshBasicMaterial).map = tourTex; (o.material as MeshBasicMaterial).needsUpdate = true; } });
     heldLaptop.add(obj);
   };
-  const placeBuilt = (name: string, p: Placement, baked = false): Object3D => {
-    const part: Built[] = BUILT[name]();
+  const placeBuilt = (name: string, p: Placement, baked: boolean, part: Built[]): Object3D => {
     const g = new Group();
     g.name = name;
     for (const piece of part) {
@@ -550,7 +582,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
    * A person: the rig cloned with its own skeleton, every vertex coloured by the bone that moves it most, a little self-lit
    * so faces read in a dark hall; the chosen idle loop started `phase` seconds in.
    */
-  const dressPerson = (loaded: Loaded, p: Placement): Object3D => {
+  const dressPerson = (loaded: Loaded, p: Placement, set: number): Object3D => {
     const root = cloneRig(loaded.scene) as Group, person = p.person!;
     root.traverse((o) => {
       if (!(o instanceof SkinnedMesh)) return;
@@ -573,7 +605,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       o.receiveShadow = true;
     });
     const clip = loaded.animations.find((a) => PERSON_CLIP[person.clip].test(a.name)) ?? loaded.animations[0];
-    if (clip) { const mixer = new AnimationMixer(root); const action = mixer.clipAction(clip); action.play(); action.time = person.phase % clip.duration; mixer.update(0); live.mixers.push(mixer); }
+    if (clip) { const mixer = new AnimationMixer(root); const action = mixer.clipAction(clip); action.play(); action.time = person.phase % clip.duration; mixer.update(0); live.mixers.push({ mixer, set }); }
     return root;
   };
   /**
@@ -605,7 +637,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const place = async (p: Placement, set: number, baked = false): Promise<void> => {
     let obj: Object3D;
     if (p.model && p.live === 'person' && p.person) {
-      obj = dressPerson(await loadModel(p.model), p);
+      obj = dressPerson(await loadModel(p.model), p, set);
       obj.traverse((o) => { if (o instanceof Mesh) o.name = `m|${p.model}|${o.name}|person`; });
     } else if (p.model && baked && (p.live === 'tv' || p.live === 'monitor')) {
       // the set is baked: only the glass is live, on an empty where the model stands
@@ -628,7 +660,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (p.live === 'tv') addScreen(obj, p, videoTex);
       if (p.live === 'monitor') addScreen(obj, p, paintTex(p.screen ?? 'screen', p.screen ? 0 : 1));
     } else {
-      obj = placeBuilt(p.build!, p, baked);
+      const parts = await geometrySource.load(p.build!, baked, p.live ?? '');
+      checkActive();
+      obj = placeBuilt(p.build!, p, baked, parts);
     }
     obj.position.set(...p.at);
     if (p.live === 'flight') obj.name = p.build ?? 'flightTree';
@@ -663,8 +697,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const loadBaked = async (i: number): Promise<void> => {
     const S = SETS[i];
     // the map and the mesh together: a baked room shown before its lightmap arrives draws black (its direct light is off by design)
-    const [lm, g, env] = await Promise.all([texLoader.loadAsync(`/assets/stage/baked/set${i}_lm.webp`), gltf.loadAsync(`/assets/stage/baked/set${i}.glb`),
-      texLoader.loadAsync(`/assets/stage/baked/set${i}_env.webp`).catch(() => undefined)]); // the panorama is optional: a room baked before it had one keeps the studio
+    const [lightmap, g, env] = await Promise.all([texLoader.loadAsync(`/assets/stage/baked/set${i}_lm.webp`), gltf.loadAsync(`/assets/stage/baked/set${i}.glb`),
+      S.bakedEnvironment ? texLoader.loadAsync(`/assets/stage/baked/set${i}_env.webp`) : undefined]);
+    const lm: Texture<HTMLImageElement | HTMLCanvasElement> = lightmap;
+    checkActive();
+    // The phone tier does not need desktop-size room lightmaps resident in GPU memory.
+    if (!tier && Math.max(lm.image.width, lm.image.height) > 1024) {
+      const scale = 1024 / Math.max(lm.image.width, lm.image.height);
+      const image = canvas2d(Math.round(lm.image.width * scale), Math.round(lm.image.height * scale));
+      image.getContext('2d')!.drawImage(lm.image, 0, 0, image.width, image.height);
+      lm.image = image;
+      lm.needsUpdate = true;
+    }
     if (env) {
       env.colorSpace = SRGBColorSpace;
       roomEnvironments.set(i, pmrem.fromEquirectangular(env)); // radiance / LM_SCALE: enter() multiplies back
@@ -674,8 +718,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     lm.flipY = false;
     lm.channel = 1;
     lm.colorSpace = SRGBColorSpace;
-    g.scene.traverse((o) => {
-      if (!(o instanceof Mesh)) return;
+    const meshes: Mesh[] = [];
+    g.scene.traverse((o) => { if (o instanceof Mesh) meshes.push(o); });
+    for (const o of meshes) {
       const from = o.material as Material;
       const info = parseBakedName(from.name);
       let m: Material = from;
@@ -692,10 +737,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       o.name = from.name;
       o.castShadow = true; // onto the live ground and cloth; its own light is in the map
       o.receiveShadow = false;
-    });
+      await breathe();
+    }
     groups[i].add(g.scene);
     // every built prop is offered: its live pieces (painted faces, glass, cloth) are built, the rest was baked; models only when live
-    await Promise.all(S.props.filter((p) => p.build || placementIsLive(p)).map((p) => place(p, i, true)));
+    await placeProps(S.props.filter((p) => p.build || placementIsLive(p)), i, true);
+  };
+
+  const placeProps = async (props: Placement[], set: number, baked = false) => {
+    // Start the independent worker/network jobs together; attach props in small, deterministic slices.
+    await Promise.all(props.map((p) => p.build ? geometrySource.load(p.build, baked, p.live ?? '')
+      : p.model && !(baked && (p.live === 'tv' || p.live === 'monitor')) ? loadModel(p.model) : undefined));
+    for (const p of props) { checkActive(); await place(p, set, baked); await breathe(); }
   };
 
   const loadSet = async (i: number): Promise<void> => {
@@ -720,7 +773,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       walls.castShadow = true;
       groups[i].add(floor, walls, ceiling);
     }
-    await Promise.all(S.props.map((p) => place(p, i)));
+    await placeProps(S.props, i);
     await Promise.all(scanning);
     groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
     scene.add(groups[i]);
@@ -815,21 +868,24 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   if (bloom) bloom.enabled = !off.has('bloom');
   vignette.enabled = !off.has('vignette');
   smaa.enabled = !off.has('smaa');
-  if (DEBUG) (window as unknown as { __stage: unknown }).__stage = { yFor, renderer, composer, ao, bloom, scene, camera, Raycaster, Vector3 }; // the classes too, for a probe script to cast rays
+  const diagnostics = { yFor, renderer, composer, ao, bloom, scene, camera, Raycaster, Vector3, readyMs: 0, q: 0 };
+  if (AUDIT) (window as unknown as { __stage: unknown }).__stage = diagnostics;
 
   // assets that arrive later repaint what uses them
-  loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster', 'jobsPoster']); });
-  loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); });
-  loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'boothMontreal', 'screenTour', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'certificateInvestNS']); });
-  for (const key of ['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const) loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo']); });
-  loadImage('/assets/stage/logos/floqer.png').then((i) => { images.floqer = i; repaint(['floqer']); });
-  for (const [key, file] of [['elevatePhoto', 'elevate'], ['demodayPhoto', 'demoday']] as const) loadImage(`/assets/stage/photos/${file}.jpg`).then((i) => { images[key] = i; repaint(['photo']); });
-  document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {});
+  const artwork = [
+    loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster', 'jobsPoster']); }),
+    loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); }),
+    loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'boothMontreal', 'screenTour', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'certificateInvestNS']); }),
+    ...(['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const).map((key) => loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo']); })),
+    loadImage('/assets/stage/logos/floqer.png').then((i) => { images.floqer = i; repaint(['floqer']); }),
+    ...([['elevatePhoto', 'elevate'], ['demodayPhoto', 'demoday']] as const).map(([key, file]) => loadImage(`/assets/stage/photos/${file}.jpg`).then((i) => { images[key] = i; repaint(['photo']); })),
+    document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {}),
+  ];
 
   const dolly = makeDolly(DOLLY);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   let raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1, shown = false;
-  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  const kick = () => { if (!stopped && !raf) raf = requestAnimationFrame(tick); };
 
   const applyTheme = () => {
     renderer.setClearColor(new Color(cssVar('--bg')));
@@ -1063,6 +1119,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const tick = (now: number) => {
     raf = 0;
+    if (!ready || stopped) return;
     const dt = Math.min(0.05, (now - lastT) / 1000 || 0);
     lastT = now;
     if (dt > 0) pace(dt);
@@ -1076,6 +1133,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     let q = stageProgress(cur, chapters, STAGE_SPAN);
     if (reduce.matches) q = Math.round(q * (SETS.length - 1)) / Math.max(1, SETS.length - 1);
+    if (AUDIT) diagnostics.q = q;
     const mainFrame = dolly(q);
     root.classList.toggle('phone-focus', phoneAt(q, reduce.matches).visible);
     frame(mainFrame);
@@ -1085,7 +1143,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     flightWorld.position.set(0, -flight.altitude - flightRoll.position.y, flight.travel - FLIGHT.distance);
     flightRoll.rotation.z = flight.bank * D;
     veil.style.opacity = String(mainFrame.set === 5 ? 0.7 * flight.veil : 0); // the puffs on the track do most of it; the veil adds the glow
-    if (heldLaptop.children.length === 0 && TOUR_SETS.has(mainFrame.set)) buildHeldLaptop();
     const page = TOUR_PAGE[mainFrame.into] ?? TOUR_PAGE[mainFrame.set];
     if (page !== undefined && page !== tourPage) { tourFrom = tourPage; tourSwitched = now; tourPage = page; } // the laptop's page follows the city, the last page fading out over half a second: a cut on the screen read as a flash
     if (mainFrame.set === 11 && live.crowd.length) { // the crowd waves: the rows swap between the two frames three times a second, out of step with each other
@@ -1111,14 +1168,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const q = mainFrame.q, up = Math.max(0, Math.min(1, (q - COFFEE.raise) / (COFFEE.held - COFFEE.raise))), down = Math.max(0, Math.min(1, (q - COFFEE.down) / (COFFEE.gone - COFFEE.down)));
       const t = up * (1 - down), e = t * t * (3 - 2 * t);
       heldCoffee.visible = mainFrame.set === 10 && t > 0;
-      if (heldCoffee.visible && heldCoffee.children.length === 0) { heldCoffee.userData.loading ??= loadModel('coffee_mug').then((l) => { const m = l.scene.clone(true); m.position.set(0, 0, 0); m.rotation.set(0, 0, 0); m.scale.setScalar(1); m.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } }); heldCoffee.add(m); }); } // the cached scene carries its last placement
       heldCoffee.position.set(0.24, -0.3 + 0.08 * e, -0.6); // low right, an arm's length out
       heldCoffee.rotation.set(0.15, -0.7, 0.05);
     }
     { // the degree: raised into the frame over the last steps to the dais
       const t = Math.max(0, Math.min(1, (mainFrame.q - DEGREE.raise) / (DEGREE.held - DEGREE.raise)));
       heldDegree.visible = mainFrame.set === 11 && t > 0;
-      if (heldDegree.visible && heldDegree.children.length === 0) heldDegree.add(placeBuilt('degreeScroll', { build: 'degreeScroll', at: [0, 0, 0] }));
       const e = t * t * (3 - 2 * t);
       heldDegree.position.set(0.16, -0.5 + 0.26 * e, -0.42);
       heldDegree.rotation.set(0.35 + 0.25 * (1 - e), 0.35, -0.75);
@@ -1128,7 +1183,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const t = now / 1000;
     const still = reduce.matches;
     if (!still) {
-      for (const m of live.mixers) m.update(dt);
+      for (const { mixer, set } of live.mixers) if (groups[set].visible) mixer.update(dt);
       fanSpeed = Math.min(6, fanSpeed + dt * 2);
       for (const f of live.fans) f.rotation.y += dt * fanSpeed;
       timeU.value = t;
@@ -1161,7 +1216,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // thirty, which is what a laptop on battery can give all day
     const running = visible && !still;
     if (cur !== target) raf = requestAnimationFrame(tick);
-    else if (running) { raf = -1; setTimeout(() => { raf = requestAnimationFrame(tick); }, 33); }
+    else if (running) { raf = -1; setTimeout(() => { if (!stopped) raf = requestAnimationFrame(tick); }, 33); }
   };
   const onScroll = () => { target = progress(); kick(); };
   const io = new IntersectionObserver(([e]) => {
@@ -1174,44 +1229,98 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   fit();
   onScroll();
 
-  // the set in view first, then every remaining set in sequence while the reader is near the stage
-  // the first room, then whichever unloaded room the scroll is nearest to: a fast scroll ahead meets its room, not a gap
-  const loadNearestFirst = async () => {
-    await loadSet(0);
-    if (curSet < 0) enter(0);
-    kick();
-    const remaining = Array.from({ length: SETS.length - 1 }, (_, k) => k + 1);
-    while (remaining.length) {
-      const want = dolly(stageProgress(target, chapters, STAGE_SPAN)).set;
-      remaining.sort((a, b) => Math.abs(a - want) - Math.abs(b - want) || a - b);
-      await loadSet(remaining.shift()!);
-    }
-  };
-  const loading = Number.isInteger(exportSet) && SETS[exportSet] ? loadSet(exportSet) : loadNearestFirst();
-  loading.then(() => {
-    // warm every set once, off screen, so nothing is uploaded or compiled on the way in: a first look at a set used to
-    // cost a tenth of a second at its threshold (the geometry and the shaders arriving together). One tiny render.
-    if (Number.isInteger(exportSet)) return;
-    const shown = groups.map((g) => g.visible), backs = live.backdrops.map((b) => b.root.visible);
-    for (const g of groups) g.visible = true;
-    for (const b of live.backdrops) b.root.visible = true;
-    if (heldLaptop.children.length === 0) buildHeldLaptop(); // the things in hand too
-    if (heldDegree.children.length === 0) heldDegree.add(placeBuilt('degreeScroll', { build: 'degreeScroll', at: [0, 0, 0] }));
-    heldLaptop.visible = heldDegree.visible = true;
-    const warm = new WebGLRenderTarget(8, 8);
-    renderer.compile(scene, camera);
-    renderer.setRenderTarget(warm);
-    renderer.render(scene, camera);
-    renderer.setRenderTarget(null);
-    warm.dispose();
-    heldLaptop.visible = heldDegree.visible = false;
-    groups.forEach((g, k) => { g.visible = shown[k]; });
-    live.backdrops.forEach((b, k) => { b.root.visible = backs[k]; });
-    if (curSet >= 0) enter(curSet);
-    kick();
-  }).catch((err) => console.warn('[journey] a set did not load', err));
+  const prepare = async () => {
+    if (Number.isInteger(exportSet) && SETS[exportSet]) { await loadSet(exportSet); return; }
+    let loaded = 0;
+    await loadInOrder(SETS.map((_, i) => i), async (i) => {
+      checkActive();
+      await loadSet(i);
+      report(`Loading the journey · ${++loaded} of ${SETS.length}`);
+    });
+    await Promise.all(artwork);
+    const [laptop, degree, coffee] = await Promise.all([geometrySource.load('laptopTour'), geometrySource.load('degreeScroll'), loadModel('coffee_mug')]);
+    checkActive();
+    buildHeldLaptop(laptop);
+    heldDegree.add(placeBuilt('degreeScroll', { build: 'degreeScroll', at: [0, 0, 0] }, false, degree));
+    const mug = coffee.scene.clone(true);
+    mug.position.set(0, 0, 0); mug.rotation.set(0, 0, 0); mug.scale.setScalar(1);
+    mug.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
+    heldCoffee.add(mug);
+    crowdFrames = [paintTex('crowd', 0), paintTex('crowd', 1)];
 
-  return () => {
+    // Warm small batches in each room's actual lighting. Disable frustum culling on the proxies:
+    // a single render from the opening camera left unseen geometry cold until the visitor turned.
+    const warmTarget = new WebGLRenderTarget(8, 8);
+    const uploaded = new Set<Texture>();
+    try {
+      // Include animation frames not yet referenced by a visible material.
+      for (const texture of paintCache.values()) { renderer.initTexture(texture); uploaded.add(texture); await breathe(); }
+      for (let i = 0; i < SETS.length; i++) {
+        checkActive();
+        report(`Preparing the walk · ${i + 1} of ${SETS.length}`);
+        frame(dolly(DOLLY.find((key) => key.set === i && key.blend === undefined)!.q));
+        heldLaptop.visible = TOUR_SETS.has(i); heldDegree.visible = i === 11; heldCoffee.visible = i === 10;
+        scene.updateMatrixWorld(true);
+        const warmScene = new Scene();
+        warmScene.environment = scene.environment; warmScene.fog = scene.fog;
+        const objects: Object3D[] = [];
+        scene.traverseVisible((object) => {
+          if (object instanceof Light) {
+            const light = object.clone(); light.position.setFromMatrixPosition(object.matrixWorld);
+            warmScene.add(light);
+            if (light instanceof DirectionalLight) { light.target.position.copy(sun.target.position); warmScene.add(light.target); }
+          } else if (object instanceof Mesh || object instanceof Points) objects.push(object);
+        });
+        for (let offset = 0; offset < objects.length; offset += 16) {
+          const batch = objects.slice(offset, offset + 16).map((object) => {
+            const proxy = object.clone(false); proxy.matrixAutoUpdate = false; proxy.matrix.copy(object.matrixWorld); proxy.frustumCulled = false;
+            return proxy;
+          });
+          for (const object of batch) {
+            const material = (object as Mesh).material;
+            for (const m of Array.isArray(material) ? material : [material]) for (const value of Object.values(m)) {
+              if (value instanceof Texture && !value.isRenderTargetTexture && !(value instanceof VideoTexture) && !uploaded.has(value)) {
+                renderer.initTexture(value); uploaded.add(value); await breathe();
+              }
+            }
+          }
+          warmScene.add(...batch);
+          await renderer.compileAsync(warmScene, camera);
+          checkActive();
+          const shadowUpdate = renderer.shadowMap.autoUpdate;
+          // Each cloned light needs a real depth map before its shadow sampler can be used.
+          renderer.shadowMap.autoUpdate = offset === 0;
+          renderer.setRenderTarget(warmTarget);
+          renderer.render(warmScene, camera);
+          renderer.setRenderTarget(null);
+          renderer.shadowMap.autoUpdate = shadowUpdate;
+          warmScene.remove(...batch);
+          await yieldToBrowser();
+        }
+        warmScene.traverse((object) => { if (object instanceof DirectionalLight || object instanceof PointLight) object.shadow.dispose(); });
+        // Prime shadow and postprocessing variants too, while the static opening still covers the canvas.
+        composer.render();
+        await yieldToBrowser();
+      }
+      await phone.prepare();
+    } finally { renderer.setRenderTarget(null); warmTarget.dispose(); }
+    checkActive();
+    heldLaptop.visible = heldDegree.visible = heldCoffee.visible = false;
+    geometrySource.dispose();
+    MeshoptDecoder.useWorkers(0);
+    cur = target; vel = 0; lastT = performance.now();
+    ready = true;
+    diagnostics.readyMs = Math.round(performance.now());
+    root.dataset.stage = 'ready';
+    report('Journey ready');
+    kick();
+  };
+  const dispose = () => {
+    if (stopped) return;
+    stopped = true;
+    geometrySource.dispose();
+    MeshoptDecoder.useWorkers(0);
+    loadingManager.abort();
     if (raf > 0) cancelAnimationFrame(raf);
     raf = -1;
     removeEventListener('scroll', onScroll);
@@ -1223,6 +1332,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     themeObs.disconnect();
     scheme.removeEventListener('change', applyTheme);
     video.pause();
+    video.removeAttribute('src');
+    video.load();
     pmrem.dispose();
     flightEnvironment?.dispose();
     roomEnvironments.forEach((r) => r.dispose());
@@ -1230,7 +1341,17 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     phone.dispose();
     composer.dispose();
     renderer.dispose();
+    renderer.forceContextLoss();
+    canvas.classList.remove('on');
     cap.remove();
     root.classList.remove('phone-focus');
   };
+  void prepare().catch((err) => {
+    if (stopped) return;
+    dispose();
+    root.dataset.stage = 'error';
+    report('The 3D journey could not load. You can still read the story.');
+    console.warn('[journey] a set did not load', err);
+  });
+  return dispose;
 }
