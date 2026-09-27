@@ -72,9 +72,47 @@ export const MATS: Record<string, Mat> = {
   logoBoard: { color: '#F4F3EF', rough: 0.55, tile: 1 },
   logoBoardDark: { color: '#15161A', rough: 0.55, tile: 1 },
   bridgeGreen: { color: '#3E6B4F', rough: 0.55, metal: 0.4, tile: 1 }, // the Macdonald's painted steel
-  parchment: { color: '#F1E9D6', rough: 0.85, grain: 'weave', amp: 0.15, tile: 0.1 },
+  parchment: { color: '#F1E9D6', rough: 0.85, grain: 'weave', amp: 0.15, tile: 0.1, emissive: '#F1E9D6', emissivePower: 0.22 }, // a little of its own light: the hall is dark and it is paper
   ribbonGold: { color: '#C9A227', rough: 0.45, metal: 0.3, tile: 1 },
   ribbonBlack: { color: '#17161A', rough: 0.6, tile: 1 },
+  // 2025, the tour's walk (walk.ts): the promenade's paving a city, the quay, the rail, the lamps, the land, the snow
+  paveVancouver: { color: '#C9CDD2', rough: 0.5, tex: 'granite_tile', amp: 0.7, clearcoat: 0.35, clearcoatRough: 0.18, tile: 2.3 }, // grey granite, wet from the morning's rain
+  paveToronto: { color: '#FFFFFF', rough: 0.85, tex: 'rectangular_paving', amp: 0.8, tile: 2.0 },
+  paveHalifax: { color: '#FFFFFF', rough: 0.9, tex: 'weathered_brown_planks', amp: 0.9, tile: 1.8 }, // the boardwalk's timber
+  walkGranite: { color: '#A9A8A4', rough: 0.75, grain: 'speckle', amp: 0.2, tile: 0.6 }, // the coping, the kerbs, the bands, the sills
+  quayWall: { color: '#55585B', rough: 0.9, grain: 'plaster', amp: 0.4, tile: 2.2 },
+  walkLawn: { color: '#FFFFFF', rough: 1, tex: 'leafy_grass', amp: 0.55, tile: 2.0, layer: 2 }, // its season is the walk's (stage-run.ts)
+  snowForm: { color: '#EEF2F8', rough: 0.95, tex: 'snow_02', amp: 0.8, tile: 2.0 }, // snow with a shape of its own: the drifts, the snow along a limb; it comes on with the walk's cover
+  walkSnowFar: { color: '#DDE3EE', rough: 1, tile: 1 }, // snow a long way off: the island, the hill
+  walkBark: { color: '#FFFFFF', rough: 1, tex: 'bark_brown_02', amp: 1.0, tile: 1.0 },
+  walkWater: { color: '#1E3B4A', rough: 0.08, metal: 0, tile: 1, layer: 1 }, // its own shader at runtime (stage-run.ts): the swell, the sky in it
+  railOak: { color: '#B08457', rough: 0.6, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1.83 },
+  lampPost: { color: '#7A7F86', rough: 0.4, metal: 0.85, tile: 1 }, // galvanised: a post that passes close should not be a black bar
+  towerGlass: { color: '#FFFFFF', rough: 0.35, metal: 0.2, paint: 'windowsDay', tile: 1, tint: true }, // Vancouver's glass towers
+  lampLight: { color: '#FFF3DC', rough: 0.4, emissive: '#FFD9A0', emissivePower: 0, tile: 1 }, // brought up by the walk's script
+  houseBoards: { color: '#4E4A46', rough: 0.85, tex: 'weathered_brown_planks', amp: 0.9, tile: 1.8 }, // dark stained boards, upright
+  houseRoof: { color: '#26282B', rough: 0.5, metal: 0.5, tile: 1 },
+  houseSoffit: { color: '#B99A75', rough: 0.6, tex: 'oak_veneer_01', amp: 0.35, tile: 1.83 },
+  trackBed: { color: '#9C9A95', rough: 0.9, grain: 'plaster', amp: 0.2, tile: 1.5, layer: 3 },
+  trackRail: { color: '#8C8F94', rough: 0.3, metal: 0.9, tile: 1, layer: 4 },
+  voltaBrick: { color: '#FFFFFF', rough: 0.9, tex: 'red_brick_03', amp: 0.9, tile: 1.0 },
+  voltaWall: { color: '#ECEBE8', rough: 0.9, tex: 'plastered_wall_04', amp: 0.15, tile: 3.2 }, // Volta's room: white walls
+  voltaDuct: { color: '#16171A', rough: 0.6, metal: 0.3, tile: 1 }, // the open ceiling: slab, ducts and trays all painted black
+  stripLight: { color: '#F6F8FF', rough: 0.5, emissive: '#EEF3FF', emissivePower: 3.2, tile: 1 }, // the long white strips
+  ringLight: { color: '#FFE9C8', rough: 0.5, emissive: '#FFD39A', emissivePower: 3.4, tile: 1 }, // the ring pendants, warm
+  chairOrange: { color: '#D8482A', rough: 0.5, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1 }, // the stacking chairs
+  paperWhite: { color: '#F4F2EC', rough: 0.8, tile: 1 },
+  voltaFloor: { color: '#6F7378', rough: 1, tex: 'dirty_carpet', amp: 0.35, tile: 0.6 }, // grey carpet tile
+  doorDark: { color: '#2A2522', rough: 0.55, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1.83 }, // his front door: dark stained oak
+  windowDark: { color: '#141A22', rough: 0.12, metal: 0.2, clearcoat: 0.8, clearcoatRough: 0.06, tile: 1 },
+  windowLit: { color: '#3A2E20', rough: 0.4, emissive: '#FFC27A', emissivePower: 0, tile: 1 }, // a window with the light on inside, brought up as the day goes
+  towerDusk: { color: '#FFFFFF', rough: 1, paint: 'windows', tile: 1, unlit: true, tint: true }, // downtown at dusk: dark walls, lit windows, in the fog with everything else
+  planeWhite: { color: '#F1F0EC', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.2, tile: 1 },
+  planeBlue: { color: '#1F3F7A', rough: 0.4, clearcoat: 0.4, tile: 1 },
+  planeYellow: { color: '#F2B82B', rough: 0.45, clearcoat: 0.3, tile: 1 },
+  propDisc: { color: '#2A2C30', rough: 0.6, alpha: 0.22, tile: 1 },
+  ferryHull: { color: '#1B2F5C', rough: 0.5, clearcoat: 0.2, tile: 1 },
+  lightRed: { color: '#B5262B', rough: 0.5, tile: 1 },
   // 2024, Sydney: the hacker house. A plywood table on trestles, white walls, timber underfoot
   plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
   trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
@@ -188,11 +226,10 @@ export const MATS: Record<string, Mat> = {
   tray: { color: '#DADDE0', rough: 0.4, metal: 0.6, tile: 1 },
   tubeGlass: { color: '#F6FAFF', rough: 0.3, tile: 1 },
   bulb: { color: '#FFE6B0', rough: 0.4, tile: 1 },
-  // 2019, the Googleplex: the lawn, the statues in their candy colours, the letters, the block, the boardroom
+  // 2019, the Googleplex: the lawn, the statues in their candy colours, the letters, the blocks
   lawn: { color: '#FFFFFF', rough: 1, tex: 'leafy_grass', amp: 0.55, tile: 2.0, layer: 2 },
-  boardCarpet: { color: '#8E9096', rough: 1, tex: 'dirty_carpet', amp: 0.4, tile: 0.6 },
-  tableWhite: { color: '#F3F2EE', rough: 0.35, clearcoat: 0.3, clearcoatRough: 0.2, tile: 1 }, // the boardroom table's laminate
-  campusWall: { color: '#E6DFCF', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 }, // the blocks' render, cream
+  tableWhite: { color: '#F3F2EE', rough: 0.35, clearcoat: 0.3, clearcoatRough: 0.2, tile: 1 }, // white laminate: Volta's lectern
+  campusWall: { color: '#D2CBBB', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 }, // the blocks' render, cream; a shade down since the 2020 room's block faces the sun and the walk comes up to it: lighter, it burned out
   campusPane: { color: '#2C3A46', rough: 0.15, metal: 0.3, clearcoat: 0.8, clearcoatRough: 0.05, tile: 1 }, // the upper windows, dark glass
   android: { color: '#A4C639', rough: 0.5, clearcoat: 0.35, clearcoatRough: 0.2, tile: 1 }, // the green of 2019's statues
   droidEye: { color: '#F6F6F4', rough: 0.4, tile: 1 },

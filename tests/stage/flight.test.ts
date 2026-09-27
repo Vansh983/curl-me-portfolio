@@ -24,7 +24,7 @@ test('the descent: high and level at the start, low and level at the end, a bank
   assert.equal(dolly(ch(7.64)).set, 6);
   assert.equal(dolly(ch(8.3)).set, 7, 'Sydney on the 2024 chapter');
   assert.equal(dolly(ch(9.5)).set, 8, 'Vancouver on its chapter');
-  assert.equal(dolly(ch(10.3)).set, 9); assert.equal(dolly(ch(11.3)).set, 10); assert.equal(dolly(ch(12.5)).set, 11, 'the Cohn on the degree chapter');
+  assert.equal(dolly(ch(10.3)).set, 8, 'still Vancouver: its card runs a chapter and a half'); assert.equal(dolly(ch(11)).set, 9, 'Toronto'); assert.equal(dolly(ch(12.3)).set, 10, 'Halifax'); assert.equal(dolly(ch(13.5)).set, 10, "Volta's room, still Halifax's card"); assert.equal(dolly(ch(14.5)).set, 11, 'the hall on the degree chapter');
 });
 
 test('flight motion is finite, monotonic, continuous and held at the end under reduced motion', () => {
@@ -70,14 +70,15 @@ test('phone covers the viewport before the sole portal cut and is gone at the cl
   assert.ok(PHONE.raise > FLIGHT.start && PHONE.raise < FLIGHT.end && PHONE.framed > FLIGHT.end, 'raised as the campus comes abeam, framed with it there');
   assert.ok(flightAt(PHONE.transfer).altitude === FLIGHT.low && flightAt(PHONE.transfer).travel > flightAt(PHONE.framed).travel, 'level and still moving to the cut');
   assert.ok(flightAt(PHONE.framed).travel - FLIGHT.distance < 80, 'the campus still abeam when the phone is framed');
-  assert.ok(Math.abs((flightAt(FLIGHT.end + 0.001).travel - flightAt(FLIGHT.end).travel) - (flightAt(FLIGHT.end).travel - flightAt(FLIGHT.end - 0.001).travel)) < 8, 'no jolt in the ground speed at the end of the descent');
+  const step = ch(0.016); // a sixtieth of a chapter of scroll, whatever the stage's span
+  assert.ok(Math.abs((flightAt(FLIGHT.end + step).travel - flightAt(FLIGHT.end).travel) - (flightAt(FLIGHT.end).travel - flightAt(FLIGHT.end - step).travel)) < 8, 'no jolt in the ground speed at the end of the descent');
   assert.ok(crossingZ() > 0 && crossingZ() < FLIGHT.distance, 'the deck is crossed over the track');
   assert.ok(flightAt(PHONE.raise).veil < 0.05);
   assert.equal(phoneAt(PHONE.transfer).zoom, 1);
   assert.equal(phoneAt(PHONE.transfer).visible, true);
   assert.equal(phoneAt(PHONE.reveal).visible, false);
   assert.equal(phoneAt(PHONE.framed, true).visible, false);
-  assert.equal(DOLLY.filter((k) => k.portal).length, 2); // the phone's, and the door home at the end
+  assert.equal(DOLLY.filter((k) => k.portal && k.blend !== undefined).length, 1); // the phone's; the way home is walked, and the 2020 room's return to its place changes no set
   const dolly = makeDolly(DOLLY);
   assert.equal(dolly(PHONE.transfer - 1e-6).set, 5);
   assert.equal(dolly(PHONE.transfer).set, 6);

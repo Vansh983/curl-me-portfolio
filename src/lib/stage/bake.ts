@@ -9,23 +9,23 @@ export const LM_SCALE = 4;
 /** Built pieces by material that keep moving or glowing on their own clock. */
 export const LIVE_SURFACE = new Set(['mat:tubeGlass', 'mat:bulb', 'mat:curtain', 'mat:cabinGlass', 'mat:handrail']);
 /** Props that never enter the bake: the backdrops and the far things the fog softens anyway. */
-export const DROP_PROP = new Set(['clouds', 'bridge', 'boats', 'piers', 'nightSky', 'sky', 'city', 'water', 'flightSky', 'campusView', 'sydneyHarbour', 'harbourWater', 'bennelongPoint', 'harbourAround', 'canadaPlaceSails', 'cnTowerFar', 'macdonaldBridge', 'northShore', 'torontoDay', 'halifaxDay']);
-/** Things that stand in the Blender scene for shadow and bounce but are not baked: the wide ground that would eat the atlas, and leafy models whose alpha cards do not survive the round trip. The runtime builds them and lights them live. */
-export const CONTEXT_PROP = new Set(['lawn', 'aircraftSkin', 'aircraftWing']); // the fuselage and the wing: outside, in the sun, only there to keep it out of the cabin
+export const DROP_PROP = new Set(['clouds', 'bridge', 'boats', 'piers', 'nightSky', 'sky', 'city', 'water', 'flightSky', 'campusView', 'sydneyHarbour', 'harbourWater', 'bennelongPoint', 'harbourAround', 'canadaPlaceSails', 'cnTowerFar', 'macdonaldBridge', 'northShore', 'torontoDay', 'halifaxDay', 'walkWater', 'halifaxWalk', 'torontoWalk', 'vancouverTowers', 'georgesIsland', 'ferry', 'seaplane', 'torontoView']);
+/** Things that stand in the Blender scene for shadow and bounce but are not baked: the wide ground that would eat the atlas, leafy models whose alpha cards do not survive the round trip, the doors' cases, each seen from two rooms and lit by the one the walk is in, and the framed photographs on the lawn, whose thin bars the lightmap smears. The runtime builds them and lights them live. */
+export const CONTEXT_PROP = new Set(['lawn', 'aircraftSkin', 'aircraftWing', 'stageBin', 'doorCaseSydney', 'doorCaseVolta', 'doorCaseFloqer', 'doorCaseHome', 'doorCaseFront', 'doorCaseBrick', 'tripPhotoAward', 'tripPhotoSign']); // the fuselage and the wing: outside, in the sun, only there to keep it out of the cabin
 export const CONTEXT_MODEL = new Set(['island_tree_01']);
 
 /** `surface` is `mat:<name>` or `paint:<name>`; `live` is the placement's live flag or ''. */
 export function pieceIsLive(surface: string, live: string): boolean {
   if (surface.startsWith('paint:')) return true; // a painted face is a thin quad on a board: baking it from the wrong side blackens it
   if (LIVE_SURFACE.has(surface)) return true;
-  return live === 'fan' || live === 'door' || live === 'drop' || live === 'flight' || live === 'person';
+  return live === 'fan' || live === 'door' || live === 'drop' || live === 'flight' || live === 'person' || live === 'mover';
 }
 
 /** Whether a placement has anything for the runtime to build in a baked set. */
 export function placementIsLive(p: Placement): boolean {
   if (p.build && (DROP_PROP.has(p.build) || CONTEXT_PROP.has(p.build))) return true;
   if (p.model && CONTEXT_MODEL.has(p.model)) return true;
-  if (p.live === 'city' || p.live === 'sky' || p.live === 'water' || p.live === 'fan' || p.live === 'door' || p.live === 'drop' || p.live === 'flight' || p.live === 'person') return true;
+  if (p.live === 'city' || p.live === 'sky' || p.live === 'water' || p.live === 'fan' || p.live === 'door' || p.live === 'drop' || p.live === 'flight' || p.live === 'person' || p.live === 'mover') return true;
   if (p.live === 'tv' || p.live === 'monitor' || p.live === 'screen' || p.live === 'tube' || p.live === 'bulb' || p.live === 'curtain') return true;
   return false;
 }

@@ -71,7 +71,7 @@ test('the exterior facade sits beyond Delhi interior walls without coplanar face
   parts.forEach((part) => { part.geometry.dispose(); part.material.dispose(); });
 });
 
-const PAINTS = ['window', 'whiteboard', 'banner', 'poster', 'jobsPoster', 'floqer', 'whiteboardFloqer', 'nameCard', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto', 'sydney', 'whiteboardBean', 'screenBeanApp', 'screenBeanCode', 'screenProductHunt', 'screenBeanPhone', 'beanPoster', 'beanSign', 'bannerWebSummit', 'boothFront', 'boothBack', 'screenTour', 'bannerAllIn', 'bannerElevate', 'boothMontreal', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'whiteboardChurn', 'whiteboardCollect', 'certificateInvestNS', 'screenAllIn', 'crowd', 'logo', 'photo', 'windowsDay']; // video: the live television
+const PAINTS = ['signWebsummit', 'signElevate', 'signInvestns', 'signVolta', 'trip', 'window', 'whiteboard', 'banner', 'poster', 'jobsPoster', 'floqer', 'whiteboardFloqer', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto', 'sydney', 'whiteboardBean', 'screenBeanApp', 'screenBeanCode', 'screenProductHunt', 'screenBeanPhone', 'beanPoster', 'beanSign', 'bannerWebSummit', 'boothFront', 'boothBack', 'screenTour', 'bannerAllIn', 'bannerElevate', 'boothMontreal', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'whiteboardChurn', 'whiteboardCollect', 'certificateInvestNS', 'screenAllIn', 'crowd', 'logo', 'photo', 'windowsDay', 'leafSprig', 'windowPane', 'screenDemoDay', 'leafLitter', 'plaque']; // video: the live television
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {
@@ -120,7 +120,7 @@ test('building twice gives the same thing: no hidden state', () => {
 });
 
 test('painted faces span uv 0..1 so the canvas lands whole', () => {
-  for (const name of ['skyline', 'whiteboard', 'banner', 'teamPhoto', 'jobsPrint', 'nameCard', 'monitor', 'monitorApp', 'monitorBoard', 'laptop']) {
+  for (const name of ['skyline', 'whiteboard', 'banner', 'teamPhoto', 'jobsPrint', 'monitor', 'monitorApp', 'monitorBoard', 'laptop']) {
     const painted = BUILT[name]().find((p) => 'paint' in p.surface)!;
     const us = Array.from({ length: painted.uv.length / 2 }, (_, i) => painted.uv[i * 2]);
     const vs = Array.from({ length: painted.uv.length / 2 }, (_, i) => painted.uv[i * 2 + 1]);

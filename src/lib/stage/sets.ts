@@ -1,21 +1,23 @@
 // The world as data: twelve sets in a chain, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
-//   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick door on x+ at z 1.6
+//   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick door on x+ at z 1.6 (shut)
 //   Passage        x -4.85..     z  2.2..4.3           north, 2.1 m, to the 2010 room
 //   Set 1 ROOM     x -9.15..-4.95 z 4.3..7.9   h 2.7   2010, Delhi; in from the south at x -5.45, out east at z 6.6
 //   Set 2 LAB      x -3.15..2.05 z  4.7..9.7   h 3.0   2013; in from the west at z 6.6, out south at x 1.4
-//   Set 3 GOOGLE   x -4.0..1.5   z -8.0..-0.03         2019, the Googleplex: the Android lawn, the boardroom, the 2020 room's door in its north wall
+//   Set 3 GOOGLE   the lawn east of the block x -4.0..1.5  z -8.0..-0.03   2019, the Googleplex: the Android lawn, the door in the block's face on the left (the 2020 room stands behind it, DELHI)
 //   Set 4 DELHI    x -2.4..0.7   z  0..3.6     h 2.7   2020, Webcube from home; in from the south at x -0.7, out west at z 1.6
 //   Set 5 FLIGHT   x -5.2..-1.6  z -10.2..-4.8        south down the boarding corridor; window seat, phone portal
 //   Set 6 HALIFAX  x -1.4..11.2  z -17.4..-2.0        96-seat auditorium; phone arrives at the highest row; out by the front west door
 //   Set 7 SYDNEY   x -7.4..-1.4  z -18.2..-13.2 h 2.9  2024, the hacker house where Bean was built; the Opera House out of the west window; out by the south door
-//   Set 8 VANCOUVER x -7.4..6.6  z -30..-18.2        2025, outside the Convention Centre, Web Summit: the Bean booth; outdoors, laptop in hand
-//   Set 9 TORONTO   x 10..24     z -30..-18.2        2025, Elevate week: a brick front, the sign
-//   Set 10 MONTREAL x 24..38     z -30..-18.2        2025, ALL IN: the booth outside a plain front
-//   Set 11 HALIFAX  x 38..52     z -30..-18.2        2025 to 26, Volta's front; the walk ends
+//   Set 8 VANCOUVER x -13.5..-7.5 z -21..-0.7         2025, the walk (walk.ts): the promenade and everything near it stand here; Vancouver in May beyond it
+//   Set 9 TORONTO   the same walk  z -0.7..20.5        2025, Toronto in October: the streetcar, the tower, the lake
+//   Set 10 HALIFAX  the same walk  z 20.5..42          2026, Halifax in January at dusk, then Volta's room (x -16.6..-7.4, z 30..42)
+//   Set 11 CONVOCATION and Set 12 FLOQER               written about the old terrace door (z 24); they stand TOUR_SHIFT further north
 import { HALIFAX } from './halifax.ts';
-import { ch, approach } from './shot.ts';
+import { ch, approach, TOUR_GAIN } from './shot.ts';
+import { WALK, CITY_AIR, TRACK, RISE, SIGNS, type Cue, type SkyName } from './walk.ts';
+import { hingeOff, type Door } from './door.ts';
 
 export type V3 = [number, number, number];
 
@@ -38,7 +40,7 @@ export interface Shell {
 }
 
 /** `city`: a backdrop shown only in its own set; `sky`: a backdrop shown in its set and the one before it (seen through the exit door). */
-export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight' | 'person';
+export type Live = 'fan' | 'tv' | 'monitor' | 'tube' | 'curtain' | 'water' | 'bulb' | 'lamp' | 'pendant' | 'downlight' | 'screen' | 'city' | 'sky' | 'door' | 'drop' | 'flight' | 'person' | 'walkLamp' | 'mover' | 'glow';
 
 /** Something standing in a set: a scanned model by manifest id, or a code-built prop by name. */
 /** What a person wears, by bone: skin, top, legs, shoes; long sleeves put the top on the forearms. */
@@ -49,8 +51,12 @@ export interface Person { wear: Wear; hair: string; clip: 'idle' | 'talk' | 'sit
 export interface Placement {
   person?: Person; // live 'person'
   screen?: string; // optional painted content for a model's fitted display
+  shut?: [number, number]; // live 'door': the stage progress over which it swings shut again, behind him
   door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
   drop?: [number, number, number]; // live 'drop': the stage progress over which the thing lowers, and by how many metres (the projection screen)
+  cue?: Cue; // it arrives with the scroll (walk.ts): from an offset, a turn or a scale to where it is placed
+  rise?: [number, number, number]; // it is built from the ground up over these chapters, in courses this many metres tall (the pixel whale, cube on cube)
+  mover?: 'seaplane' | 'streetcar' | 'ferry'; // live 'mover': its place comes from the walk's script
   model?: string;
   build?: string;
   at: V3;
@@ -77,7 +83,11 @@ export interface StageSet {
   baked?: boolean; // the set was lit in Blender: public/assets/stage/baked/set<i>.glb and its lightmap (scripts/stage-bake.mjs)
   bakedEnvironment?: boolean; // this set also ships set<i>_env.webp; no speculative 404 requests
   outdoor?: true; // no walls of its own: shown only from the set before it and itself, or its ground and road would stand outside the windows of the rooms
-  also?: number[]; // sets kept in view beyond the neighbours: the terrace stands in set 8 and is walked through set 10
+  outlook?: true; // a room whose windows look out on the day: the sky stands beyond them
+  also?: number[]; // sets kept in view beyond the neighbours: the promenade stands in set 8 and is walked through set 10
+  sky?: SkyName; // an open-air set under one of the walk's skies (public/assets/stage/sky), its light from the walk's script
+  at?: V3; // where the set's own frame stands in the world: its props, its shell and its bake are written about its own origin
+  bake?: { env: 'studio' | 'sky'; tint: StageSet['tint']; envPower: number; sun: SunSpec; view: { cam: V3; look: V3; fov: number } }; // the light the bake lights it by, when that is not the set's own: a room on the walk is lit by its lamps, not the walk's sky
 }
 
 
@@ -121,40 +131,37 @@ export const aisleHeight = (z: number): number => {
 };
 
 /**
- * The Canada tour: out of the hacker house's south door onto its terrace, 30 m over the harbour, right twice, and north
- * along the harbour side of the building for 40 m: the water on the left with one simple thing for each city out on it,
- * the building's wall and its things on the right, then back in through the door at the terrace's end. The terrace,
- * the cliff and the water are the same in all three sets (each holds its own copy, this set only): only the sky and
- * the thing on the water change at a threshold.
+ * The Canada tour is one walk (walk.ts): out of the Bean house's south door, right twice, and 60 m north along a harbour
+ * promenade to Volta's door. The hall and Floqer's house beyond it were written, and baked, when the door into the wing
+ * stood at z 24; the walk is longer now, so their sets stand this much further north (StageSet.at) and the dolly's keys
+ * in them with it.
  */
-export const TERRACE = {
-  x: [-15.6, -7.4] as [number, number], z: [-21.0, 24.0] as [number, number], walkX: -10.5, door: 24.0, water: -30.6,
-  bay: { x0: -19.0, z: [-11.0, 6.0] as [number, number] }, // the terrace steps out over the water for the city's things on the right of the walk
-  volta: { x: [-16.6, -7.4] as [number, number], z: [6.0, 24.0] as [number, number], h: 3.2 }, // Volta's room across the terrace's north end: the walk goes straight in and out of its far door into the wing
-} as const;
-/** The stage beyond the terrace's north door: entered from its wing at the south end, the audience to the east. World metres. */
+export const TOUR_SHIFT = WALK.door - 24 + 0.12; // and a wall's thickness more: the wing's own door wall stands behind Volta's, not through it
+/** The Bean house from outside: the room's own footprint, its roof a little over the walls. */
+export const BEAN_HOUSE = { x: [-7.4, -1.4] as [number, number], z: [-18.2, -13.2] as [number, number], h: 3.2 } as const;
+/** Coupland's whale, in the planting by the walk where a tree would stand: 5 m off the walk's line, in the frame from 8 m back. */
+export const ORCA = { x: -5.1, z: -5.0 } as const;
+/** The trees along the land side of the walk, and a second row behind them. Their season is the walk's (walk.ts): they turn together. None stands beside a mark, nor within 4.5 m before one (its boughs would lie across the mark as he comes to it), nor by the whale. */
+export const WALK_TREES: Array<{ z: number; x: number; kind: number; turn: number; size: number }> = (() => {
+  const out: Array<{ z: number; x: number; kind: number; turn: number; size: number }> = [];
+  let seed = 7919;
+  const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+  for (const z of [-11.2, 2.4, 8.2, 20.7, 30.0]) if (Math.abs(z - ORCA.z) > 3 && !SIGNS.some((g) => z > g.z - 4.5 && z < g.z + 2.4)) out.push({ z, x: -6.55 + (rnd() - 0.5) * 0.3, kind: out.length % 4, turn: Math.round(rnd() * 360), size: 0.92 + rnd() * 0.2 });
+  // a second row further in from the walk, out of step with the first, so the land side has depth
+  for (let z = -8.0; z < WALK.volta.z[0] + 6; z += 7.4) out.push({ z: z + (rnd() - 0.5) * 2, x: 3.0 + rnd() * 3.2, kind: (out.length + 1) % 4, turn: Math.round(rnd() * 360), size: 1.05 + rnd() * 0.3 });
+  return out;
+})();
+/** The lamps along the water's edge, one every 7.5 m from the corner to Volta's. */
+export const WALK_LAMPS: number[] = Array.from({ length: 8 }, (_, i) => -15.5 + i * 7.5);
+/** Volta's podium, at the front of the rows under the screen: he stands behind it, toward +z, and turns to the room. */
+export const VOLTA_PODIUM: V3 = [-12.6, 0, WALK.volta.z[1] - 3.1];
+/** The rows of chairs set out for Demo Day, facing the screen at the room's north end: [x, z] of each, from the room's south wall. */
+export const DEMO_SEATS: Array<[number, number]> = [3.4, 4.6, 5.8, 7.0].flatMap((dz) => [-15.7, -14.85, -14.0, -13.15, -12.3].map((x): [number, number] => [x, WALK.volta.z[0] + dz]));
 /**
  * The people in the hall on its feet: graduates in black gowns among their families, standing on the house's tiers facing the
  * stage, each dressed and started differently from a fixed seed so the crowd is the same every time. The character faces -z
  * in its own frame; turned 90 degrees it faces the stage across -x.
  */
-/** Volta on a Thursday: people at the long tables and standing about with their coffee, seated ones on their chairs' spots. */
-export function voltaPeople(): Placement[] {
-  let seed = 4121;
-  const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-  const pick = <T,>(a: readonly T[]): T => a[Math.floor(rnd() * a.length)];
-  const skins = ['#F1C9A5', '#D9A57E', '#C68E6A', '#9C6B48', '#6E4A31', '#4A3122'] as const;
-  const tops = ['#1E2A44', '#5A1F2A', '#F2F0EA', '#3B4A3F', '#7C7F86', '#2B2B30', '#B8875A', '#6B3F7A', '#2E6B5E'] as const;
-  const legs = ['#1F2430', '#2E3A55', '#6B6F78', '#3A2E26', '#111114'] as const;
-  const hairs = ['#15151A', '#2A1B12', '#4A3221', '#6B4A2B', '#8A8A8A', '#B8925A'] as const;
-  const wear = (): Wear => ({ skin: pick(skins), top: pick(tops), legs: pick(legs), shoes: pick(['#141416', '#3A2E26', '#EDEDEA'] as const), sleeves: rnd() < 0.6 ? 'long' : 'short' });
-  const one = (at: V3, rot: number, clip: Person['clip']): Placement => ({ model: 'base_character', at, rot: [0, rot, 0], live: 'person', person: { wear: wear(), hair: pick(hairs), clip, phase: rnd() * 6 } });
-  const out: Placement[] = [];
-  for (const [x, rot] of [[-13.2, -90], [-15.4, 90]] as const) for (const z of [9.3, 10.7, 12.1, 17.0, 18.4, 19.8]) if (rnd() < 0.7) out.push(one([x, 0, z], rot, rnd() < 0.5 ? 'sit' : 'sitTalk'));
-  out.push(one([-8.7, 0, 12.6], 200, 'talk'), one([-8.9, 0, 14.4], 20, 'idle'), one([-15.6, 0, 14.6], 110, 'idle'), one([-15.2, 0, 22.2], 60, 'talk'), one([-12.6, 0, 21.8], 230, 'talk'), one([-11.8, 0, 22.6], 40, 'idle'));
-  return out;
-}
-
 export function crowdPeople(): Placement[] {
   let seed = 977;
   const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
@@ -191,86 +198,160 @@ export const FLOQER = (() => {
 })();
 /** The height of the office's stair at z, from its foot to the landing. */
 /**
- * Google, 2019 (set 3): the Googleplex. Out of the lab's passage onto the Android lawn (the statues along it to the east,
- * the Google letters at its end), south along the face of a two storey block to the open bay in its glass wall: the
- * boardroom (x -4.0..1.5, z -8.0..-0.03), the long table, his seat, and the 2020 room's door in its north wall.
+ * The apartment (set 0): the studio's walls. He asked for it a bit smaller (2026-09-27): the west wall and the glass
+ * came in, 5.2 by 5.6 m to 4.7 by 5.0. The front door (north) and the brick wall (east) are where they were, so the
+ * passages and the way home (HOME) are too. `glass`: the width of the glass in the south wall, a pier either side.
+ */
+export const CONDO = { x: [-8.9, -4.2] as [number, number], z: [-2.8, 2.2] as [number, number], h: 2.8, glass: 4.1 } as const;
+/**
+ * Google, 2019 (set 3): the Googleplex. Out of the lab's passage onto the Android lawn (the statues along it to the
+ * east, the Google letters at its end), down the path, and left through the door in the block's face, where the
+ * boardroom's glass door was. No room of Google's behind it: he said it was not needed (2026-09-27). The door opens
+ * straight into the 2020 room (DELHI).
  */
 export const GOOGLE = {
-  room: { x: [-4.0, 1.5] as [number, number], z: [-8.0, -0.03] as [number, number], h: 3.0 }, // the boardroom: its east wall is glass
-  bay: 1.2, // the glass wall's bays, from the south end; the door is the second
-  door: { z: -5.0, w: 1.2 }, // the open bay in the glass wall, the third from the south
-  top: 7.0, // the block's roof: two storeys
-  walkX: 3.2, // the walk's line down the east face, on the path
-  seat: { x: -0.35, z: -3.0 }, // his chair: the north-east one, nearest the 2020 room's door
+  block: { x: [-4.0, 1.5] as [number, number], z: [-8.0, -0.03] as [number, number] }, // the block on the left of the walk: its east face is on the lawn
+  door: { z: -5.0, w: 0.9, h: 2.05 }, // the door in that face: the 2020 room's own
+  photos: { z: [-6.255, -7.385] as [number, number], y: 1.55 }, // his two photographs of the trip on that face, past the door: the wall from the door's frame to the block's corner in thirds
+  top: 7.0, // the blocks' roof: two storeys
+  walkX: 3.2, // the walk's line down the lawn, on the path, the statues to its east
 } as const;
+/**
+ * The 2020 room stands in two places, as the apartment does (HOME). Until the walk is well inside it, it stands turned
+ * a quarter behind the door in Google's block (`at`, a turn of `turn` degrees about y first), so the door on the lawn
+ * opens straight into it. At `back`, with nothing but the room's own desk wall in the frame, it is where it was
+ * built, its west door on the jet bridge: the camera's keys before `back` are written through `to`, the ones after
+ * as they were, and the picture does not change. `cut` is that moment in the approach's own measure (dolly.ts).
+ */
+export const DELHI = (() => {
+  const at: V3 = [GOOGLE.block.x[1], 0, GOOGLE.door.z + 0.7], cut = 0.852; // the room's door is at its own x -0.7, z 0
+  return { at, turn: -90, cut, back: approach(cut + 0.0002), to: (p: V3): V3 => [at[0] - p[2], at[1] + p[1], at[2] + p[0]] } as const;
+})();
 const WINDOW_Z = [FLOQER.z[0] + 2.5, FLOQER.z[0] + 7.5]; // the two windows on the street, along the west wall
 export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stair.n, Math.max(0, (z - FLOQER.stair.z0) / FLOQER.stair.run)) * FLOQER.stair.rise;
-export const TOUR = { vancouver: [TERRACE.walkX, 0, -18.6] as V3, toronto: [TERRACE.walkX, 0, -5.4] as V3, halifax: [TERRACE.walkX, 0, 8.0] as V3 } as const;
 /**
- * The water round the headland, 30 m down: every tour set holds its own (this set only). The terrace itself, the cliff
- * and the house's wall stand in the middle set (Toronto), baked, and show from its neighbours either side: the whole
- * walk sees them, the Sydney window never does.
+ * Home: the story ends in the apartment it began in (set 0), and he walks into it: up the stair in Floqer's house,
+ * through the door at its top, along the apartment's own entrance passage and in at its front door. The apartment is
+ * one set in two places: while the story is in Floqer's house and after, it stands turned half round behind that door
+ * (`at`, a turn of 180 degrees about y first), its passage's far end on the house's north wall.
  */
-const water = (): Placement => ({ build: 'harbourAround', at: [0, TERRACE.water, 0], live: 'city', shadow: false, cap: 'The water, 30 m down.' });
+export const HOME = (() => {
+  const door = { x: -5.45, z: 2.2 }, passage = 2.1; // the apartment's front door in its own frame, and the passage north of it
+  const y = FLOQER.floor + FLOQER.stair.n * FLOQER.stair.rise, z = FLOQER.z[1] + TOUR_SHIFT + 0.14 + passage + door.z; // own z 4.3, the passage's far end, a wall's thickness beyond the house's north wall
+  const at: V3 = [FLOQER.door.x + door.x, y, z];
+  // `from`: the chapter from which it stands there (in the hall, long out of sight of both). `night`: the chapter, on the
+  // stair with his door still shut, from which what is outside is the apartment's own night and not the house's street
+  return { at, from: 15.4, night: 16.4 + TOUR_GAIN, to: (p: V3): V3 => [at[0] - p[0], at[1] + p[1], at[2] - p[2]] } as const;
+})();
+/**
+ * The walk's doors (door.ts): each hole as its walls cut it, the depth between the two rooms' walls, what it is made of.
+ * Sydney's opens into the room, off the house's own reveal outside; the others open north, away from the walk.
+ */
+export const DOORS = {
+  voltaIn: { w: 1.2, h: 2.2, depth: 0.25, case: 'windowFrame', leaf: 'windowFrame', sill: 'windowFrame', pull: 'bar', faces: 'swing' }, // Volta's door off the walk, dark steel, in the brick's own reveal
+  sydney: { w: 0.9, h: 2.05, depth: 0.12, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'swing' },
+  volta: { w: 1.2, h: 2.1, depth: 0.22, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'both' },
+  floqer: { w: STAGE.door.w, h: STAGE.door.h, depth: FLOQER.z[0] - STAGE.door.z, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'both' },
+  home: { w: FLOQER.door.w, h: FLOQER.door.h, depth: 0.23, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'both' },
+  brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing' }, // the door in the apartment's brick wall: shut, the story no longer comes back through it
+  google: { w: GOOGLE.door.w, h: GOOGLE.door.h, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the 2020 room's south door, which Google's block shows on the lawn: the room's own frame lines the hole
+  front: { w: 1.2, h: 2.4, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'none', open: true }, // where the apartment's passage meets its room: the passage's whole section, cased, no leaf
+} satisfies Record<string, Door>;
+/** The chapters over which the door out of Volta's room swings open: shut, it hides the hall behind it, which is not drawn until then. */
+export const VOLTA_DOOR: [number, number] = [11.78 + TOUR_GAIN, 11.92 + TOUR_GAIN];
+/**
+ * A door in a wall that runs along x: its case and its leaf, hinged on the east jamb and opening toward +z over `swing`
+ * (stage progress). `x` is the hole's middle, `y` its floor, `z` the face it opens on (the wall's north face).
+ */
+const doorway = (name: keyof typeof DOORS, x: number, y: number, z: number, swing: [number, number], cap: string, shut?: [number, number]): Placement[] => {
+  const at: V3 = [x + hingeOff(DOORS[name]), y, z], n = name[0].toUpperCase() + name.slice(1);
+  const leaf: Placement = { build: `doorLeaf${n}`, at, rot: [0, -90, 0], live: 'door', door: swing, cap, ...(shut ? { shut } : {}) };
+  return (DOORS[name] as Door).bare ? [leaf] : [{ build: `doorCase${n}`, at, rot: [0, -90, 0] }, leaf];
+};
+/** A door that stays shut in a wall that runs along z, its face on the wall's west face at `x`: hinged on the north jamb. `z` is the hole's middle. */
+const shutDoor = (name: keyof typeof DOORS, x: number, y: number, z: number, cap: string): Placement[] => {
+  const at: V3 = [x, y, z + hingeOff(DOORS[name])], n = name[0].toUpperCase() + name.slice(1);
+  return [{ build: `doorCase${n}`, at, rot: [0, 180, 0] }, { build: `doorLeaf${n}`, at, rot: [0, 180, 0], live: 'door', cap }]; // live: built by the runtime in a baked set; no `door`, so it never swings
+};
+/** A cased opening in a wall that runs along x: the case alone. `z` is its north face. */
+const opening = (name: keyof typeof DOORS, x: number, y: number, z: number): Placement => ({ build: `doorCase${name[0].toUpperCase() + name.slice(1)}`, at: [x + hingeOff(DOORS[name]), y, z], rot: [0, -90, 0] });
+/** The bin backstage by the walk along the stage, where the degree goes. The hall's own frame. */
+export const STAGE_BIN: V3 = [WALK.x - 1.05, STAGE.height, 43.6];
+/**
+ * The harbour under the quay: every tour set holds its own (this set only), so the Bean house's window, 30 m over
+ * Sydney's harbour, never sees it.
+ */
+const water = (): Placement => ({ build: 'walkWater', at: [0, WALK.water, 0], live: 'city', shadow: false, cap: 'The harbour.' });
+/** The light of one of the walk's cities as a set carries it: the script's clear air there (walk.ts). */
+const air = (city: keyof typeof CITY_AIR): Pick<StageSet, 'tint' | 'exposure' | 'envPower' | 'sun' | 'fog'> => {
+  const a = CITY_AIR[city];
+  return { tint: a.tint, exposure: a.exposure, envPower: a.envPower, sun: a.sun, fog: a.fog };
+};
 
 export const SETS: StageSet[] = [
   {
-    // now: a studio high over Toronto at night, 5.2 by 5.6 m: the bed along the west wall, the desk
+    // now: a studio high over Toronto at night, 4.7 by 5.0 m (CONDO): the bed along the west wall, the desk
     // on the brick east wall, glass along the whole south side with the CN Tower in it. The walk
     // starts in the north-west corner looking across the room to the glass, turns on the spot to the
-    // front door in the north wall and goes straight out. The journey comes back in through the
-    // door in the brick at the end.
+    // front door in the north wall and goes straight out. The journey comes back in at that front
+    // door at the end (HOME); the door in the brick stays shut.
     id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035, baked: true,
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
     shell: {
-      x: [-9.4, -4.2], z: [-3.4, 2.2], h: 2.8,
+      x: CONDO.x, z: CONDO.z, h: CONDO.h,
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
         { wall: 'z+', at: -5.45, w: 0.9, h: 2.05 }, // the front door, north into the passage
-        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the door in the brick: the journey comes back in through it at the end
-        { wall: 'z-', at: -6.8, w: 4.6, h: 2.8, sill: 0 }, // the glass, floor to ceiling
+        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the door in the brick: shut (DOORS.brick fills it)
+        { wall: 'z-', at: (CONDO.x[0] + CONDO.x[1]) / 2, w: CONDO.glass, h: CONDO.h, sill: 0 }, // the glass, floor to ceiling
       ],
     },
-    props: [
-      { build: 'mullions', at: [-6.8, 0, -3.4], scale: [0.92, 1.4, 1] },
-      { build: 'city', at: [-6.8, -185, -3.4], live: 'city', cap: 'Toronto. The CN Tower from the 51st floor.', shadow: false },
-      { build: 'nightSky', at: [-6.8, 0, -3.4], live: 'city', shadow: false },
-      { build: 'condoBrick', at: [-4.2, 0, 0] },
-      { build: 'condoSkirting', at: [0, 0, 0] },
-      // the bed along the west wall, its head on the wall
-      { model: 'bed_double', at: [-8.2, 0, -1.6], rot: [0, 90, 0], cap: 'Bed. Not used enough.' },
-      { model: 'nightstand_modern', at: [-9.05, 0, -0.2] },
-      { model: 'desk_lamp_arm_01', at: [-9.1, 0.55, -0.2], rot: [0, 120, 0], scale: 0.7 },
-      { model: 'wall_art_circles', at: [-9.365, 1.55, -1.6], rot: [90, 0, -90] },
-      { model: 'pendant_tense', at: [-7.6, 1.78, -1.6], live: 'pendant' },
-      { model: 'steel_frame_shelves_01', at: [-9.12, 0, 1.2], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
-      { model: 'book_encyclopedia_set_01', at: [-9.12, 0.98, 1.2], rot: [0, 90, 0], scale: 0.9 },
-      { model: 'book_encyclopedia_set_01', at: [-9.12, 1.5, 1.15], rot: [0, 90, 0], scale: 0.8 },
-      { model: 'potted_plant_01', at: [-8.95, 0, -3.1], scale: 0.9 },
-      // the desk on the brick, by the glass
-      { build: 'rugGrey', at: [-5.1, 0, -2.45] },
-      { build: 'desk', at: [-4.58, 0, -2.45], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
-      { build: 'deskHutch', at: [-4.34, 0.74, -2.45] },
-      { build: 'hutchLed', at: [-4.34, 0.74, -2.45] },
-      { model: 'coffee_mug', at: [-4.7, 0.74, -2.03], rot: [0, 40, 0] },
-      { build: 'books', at: [-4.34, 1.71, -2.6], cap: 'The shelf. Mostly systems and design.' },
-      { build: 'books', at: [-4.34, 1.21, -2.05] },
-      { build: 'badge', at: [-4.5, 1.69, -3.1], cap: 'Google Code-in 2018. Grand prize.' },
-      { build: 'monitor', at: [-4.56, 0.74, -2.8], rot: [0, -100, 0], live: 'screen' },
-      { build: 'monitorApp', at: [-4.56, 0.74, -2.13], rot: [0, -80, 0], live: 'screen' },
-      { model: 'laptop_14_aluminium', at: [-4.73, 0.74, -1.8], rot: [0, -120, 0] },
-      { model: 'keyboard_mouse_black', at: [-4.82, 0.74, -2.47], rot: [0, -90, 0] },
-      { build: 'pcTower', at: [-4.33, 0, -1.95], rot: [0, -90, 0] },
-      { model: 'desk_lamp_arm_01', at: [-4.3, 0.74, -3.2], rot: [0, -150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
-      { model: 'office_chair_black', at: [-5.3, 0, -2.45], rot: [0, 90, 0] }, // its back away from the desk
-      { model: 'wall_art_circles', at: [-4.235, 1.3, 0.2], rot: [90, 0, 90] },
-      { build: 'discLight', at: [-6.8, 2.8, 0.2], live: 'pendant' },
-      { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
-      { build: 'passage', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room
-      { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the return from Halifax
-      { build: 'doorLeaf', at: [-4.2, 0, 2.05], rot: [0, 180, 0], live: 'door', door: [ch(7.727), ch(7.895)] }, // the return from Halifax; opens into the studio
-    ],
+    props: ((): Placement[] => {
+      const W = CONDO.x[0], S = CONDO.z[0], mid = (CONDO.x[0] + CONDO.x[1]) / 2, bed = S + 1.78, desk = S + 0.95; // the west wall, the glass, the room's middle; the bed's and the desk's middles along z
+      return [
+        { build: 'mullions', at: [mid, 0, S], scale: [CONDO.glass / 5, 1.4, 1] },
+        { build: 'city', at: [mid, -185, S], live: 'city', cap: 'Toronto. The CN Tower from the 51st floor.', shadow: false },
+        { build: 'nightSky', at: [mid, 0, S], live: 'city', shadow: false },
+        { build: 'condoBrick', at: [CONDO.x[1], 0, 0] },
+        { build: 'condoSkirting', at: [0, 0, 0] },
+        // the bed along the west wall, its head on the wall
+        { model: 'bed_double', at: [W + 1.2, 0, bed], rot: [0, 90, 0], cap: 'Bed. Not used enough.' },
+        { model: 'nightstand_modern', at: [W + 0.35, 0, bed + 1.4] },
+        { model: 'desk_lamp_arm_01', at: [W + 0.3, 0.55, bed + 1.4], rot: [0, 120, 0], scale: 0.7 },
+        { model: 'wall_art_circles', at: [W + 0.035, 1.55, bed], rot: [90, 0, -90] },
+        // the lantern over the bed, on the ceiling: the model stands on its rose with its shade uppermost, so it is turned over and set
+        // with the shade's back 5 mm into the ceiling, its hanger and cable above the slab (until 2026-09-27 the shade was in the ceiling, cut by it, and the rose hung in the air)
+        { model: 'pendant_tense', at: [W + 1.8, CONDO.h + 0.905, bed], rot: [180, 0, 0], live: 'pendant' },
+        { model: 'steel_frame_shelves_01', at: [W + 0.28, 0, 1.42], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
+        { model: 'book_encyclopedia_set_01', at: [W + 0.28, 0.98, 1.42], rot: [0, 90, 0], scale: 0.9 },
+        { model: 'book_encyclopedia_set_01', at: [W + 0.28, 1.5, 1.37], rot: [0, 90, 0], scale: 0.8 },
+        { model: 'potted_plant_01', at: [W + 0.45, 0, S + 0.3], scale: 0.9 },
+        // the desk on the brick, by the glass
+        { build: 'rugGrey', at: [-5.1, 0, desk] },
+        { build: 'desk', at: [-4.58, 0, desk], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
+        { build: 'deskHutch', at: [-4.34, 0.74, desk] },
+        { build: 'hutchLed', at: [-4.34, 0.74, desk] },
+        { model: 'coffee_mug', at: [-4.7, 0.74, desk + 0.42], rot: [0, 40, 0] },
+        { build: 'books', at: [-4.34, 1.71, desk - 0.15], cap: 'The shelf. Mostly systems and design.' },
+        { build: 'books', at: [-4.34, 1.21, desk + 0.4] },
+        { build: 'badge', at: [-4.5, 1.69, desk - 0.65], cap: 'Google Code-in 2018. Grand prize.' },
+        { build: 'monitor', at: [-4.56, 0.74, desk - 0.35], rot: [0, -100, 0], live: 'screen' },
+        { build: 'monitorApp', at: [-4.56, 0.74, desk + 0.32], rot: [0, -80, 0], live: 'screen' },
+        { model: 'laptop_14_aluminium', at: [-4.73, 0.74, desk + 0.65], rot: [0, -120, 0] },
+        { model: 'keyboard_mouse_black', at: [-4.82, 0.74, desk - 0.02], rot: [0, -90, 0] },
+        { build: 'pcTower', at: [-4.33, 0, desk + 0.5], rot: [0, -90, 0] },
+        { model: 'desk_lamp_arm_01', at: [-4.3, 0.74, desk - 0.75], rot: [0, -150, 0], live: 'lamp', cap: 'The lamp. It is usually late.' },
+        { model: 'office_chair_black', at: [-5.3, 0, desk], rot: [0, 90, 0] }, // its back away from the desk
+        { model: 'wall_art_circles', at: [-4.235, 1.3, 0.1], rot: [90, 0, 90] }, // on the brick, midway between the desk's end and the door
+        { build: 'discLight', at: [mid, 2.8, 0.2], live: 'pendant' },
+        { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
+        { build: 'passageDoor', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room; an end wall round the door there
+        opening('front', -5.45, 0, 2.2 + DOORS.front.depth), // the passage's mouth on the room, cased: an edge where the two meet
+        ...shutDoor('brick', -4.2, 0, 1.6, 'A door in the brick. Shut.'),
+        { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the return from Halifax
+      ];
+    })(),
   },
   {
     id: 'room', env: 'studio', tint: { sky: '#FFE6C6', ground: '#9C7B5A', power: 0.3 }, exposure: 0.8, envPower: 0.3, baked: true,
@@ -362,35 +443,19 @@ export const SETS: StageSet[] = [
   },
   {
     // 2019: Google, the Googleplex. Out of the lab's passage onto the Android lawn: the statues along it to the east, the
-    // bikes, the trees, the Google letters at the end of the path; south along the block's face to the open bay in its
-    // glass wall, into the boardroom (the table, eight chairs, his name at the north-east seat), and out of the door
-    // in its north wall into the 2020 room. One June afternoon. docs/rebuild/30-googleplex-options.md, layout A.
+    // bikes, the trees, the Google letters at the end of the path; down the path and left to the door in the block's
+    // face, where the boardroom's glass door was: it opens as he comes to it, onto Delhi, 2020. One June afternoon.
+    // docs/rebuild/30-googleplex-options.md; the boardroom of layout A was taken out on 2026-09-27 (36).
     id: 'google', env: 'sky', tint: { sky: '#CFE4F7', ground: '#9DAF7C', power: 0.3 }, exposure: 0.9, envPower: 0.7, baked: true,
     sun: { dir: [0.35, 0.82, -0.45], color: '#FFF3DC', power: 2.6, shadow: 1 }, // high, a little south-east: the statues' tops and the block's face lit, the walk in its shade
     fog: { color: '#C6D8E6', near: 80, far: 500 },
-    shell: { // the boardroom
-      x: GOOGLE.room.x, z: GOOGLE.room.z, h: GOOGLE.room.h,
-      floor: 'boardCarpet', wall: 'labWall', ceiling: 'labCeiling',
-      openings: [
-        { wall: 'x+', at: (GOOGLE.room.z[0] + GOOGLE.room.z[1]) / 2, w: GOOGLE.room.z[1] - GOOGLE.room.z[0] - 0.16, h: 2.98 }, // the east wall is glass: open in the shell, the bake lights it as day; boardGlass fills it
-        { wall: 'z+', at: -0.7, w: 0.9, h: 2.05, door: true }, // the 2020 room's door
-        ...[-6.6, -4.0, -1.4].map((z): Opening => ({ wall: 'x-', at: z, w: 1.6, h: 1.4, sill: 1.0 })), // three windows in the west wall: the campus beyond
-      ],
-    },
     props: [
       ...(() => {
-        const out: Placement[] = [], R = GOOGLE.room;
-        out.push({ build: 'facade', at: [0, 0, 0] }); // the outside of the rooms we came through, and the block over the boardroom
-        out.push({ build: 'boardGlass', at: [0, 0, 0], cap: 'Google. The Cloud office in Sunnyvale, June 2019.', href: 'https://codein.withgoogle.com/archive/2018/' });
-        // the boardroom: the table along the room, four chairs a side, his seat the north-east one with his name on the table
-        out.push({ build: 'boardTable', at: [-1.6, 0, -4.6], cap: 'The boardroom. One of the grand prize winners, 2018.' });
-        for (const z of [-6.3, -5.2, -4.1, -3.0]) { out.push({ model: 'office_chair_black', at: [-0.35, 0, z], rot: [0, -90, 0] }); out.push({ model: 'office_chair_black', at: [-2.85, 0, z], rot: [0, 90, 0] }); }
-        out.push({ build: 'nameCard', at: [-1.0, 0.745, GOOGLE.seat.z], rot: [0, 90, 0], cap: 'His seat.' });
-        for (const z of [-6.6, -4.6, -2.6]) out.push({ build: 'discLight', at: [-1.3, R.h - 0.02, z], live: 'pendant' });
-        out.push({ build: 'doorFrame', at: [-0.7, 0, R.z[1] - 0.14] });
-        // the lawn and the path down the block's face
+        const out: Placement[] = [];
+        out.push({ build: 'facade', at: [0, 0, 0], cap: 'Google. Mountain View, June 2019.', href: 'https://codein.withgoogle.com/archive/2018/' }); // the outside of the rooms we came through, and the block on the lawn
+        // the lawn and the path down the block's face, its spur to the door
         out.push({ build: 'lawn', at: [0, 0, 0] });
-        out.push({ build: 'lawnPath', at: [GOOGLE.walkX, 0.015, -3.2] });
+        out.push({ build: 'lawnPath', at: [0, 0.015, 0] });
         // the Android lawn: the statues in a row to the east of the path, each facing it (docs/rebuild/30-googleplex-options.md)
         out.push({ build: 'bugdroid', at: [6.4, 0, 1.6], rot: [0, -90, 0], cap: 'The Android lawn at the Googleplex.' });
         out.push({ build: 'statueCupcake', at: [7.6, 0, -0.6], rot: [0, -90, 0] });
@@ -404,6 +469,10 @@ export const SETS: StageSet[] = [
         out.push({ build: 'statueOreo', at: [8.2, 0, -15.8], rot: [0, -90, 0] });
         out.push({ build: 'statuePie', at: [7.0, 0, -17.6], rot: [0, -90, 0] });
         out.push({ build: 'googleLetters', at: [3.9, 0, -11.6], cap: 'Google.' }); // at the end of the path, facing back up it
+        // his own photographs of the trip, framed on the block's face by the door: he asked for them there (2026-09-27)
+        const wall = GOOGLE.block.x[1] + 0.07;
+        out.push({ build: 'tripPhotoAward', at: [wall, GOOGLE.photos.y, GOOGLE.photos.z[0]], rot: [0, 90, 0], cap: 'The award. Google Code-in 2018, grand prize winner, June 27, 2019.', href: 'https://codein.withgoogle.com/archive/2018/' });
+        out.push({ build: 'tripPhotoSign', at: [wall, GOOGLE.photos.y, GOOGLE.photos.z[1]], rot: [0, 90, 0], cap: 'Google, San Francisco. June 2019.' });
         // the bikes by the mouth, the trees, the far blocks of the campus, redwoods behind
         out.push({ build: 'bikeRack', at: [3.5, 0, 1.0] });
         out.push({ build: 'gbike', at: [3.2, 0, 1.0], cap: 'A Google bike.' });
@@ -434,6 +503,8 @@ export const SETS: StageSet[] = [
     },
     props: [
       { build: 'doorFrame', at: [-0.7, 0, 0] },
+      // the leaf in it: the door Google's block shows on the lawn (DELHI), opening into the room as he comes to it
+      ...doorway('google', -0.7, 0, 0.15, [approach(0.768), approach(0.797)], 'The door off the lawn: Delhi, 2020.'), // it opens as he turns to it from the photographs
       // the desk on the north wall, its back against it
       { build: 'deskWide', at: [-1.1, 0, 3.2], rot: [0, 180, 0], cap: 'Webcube. 45 companies, six countries, 25 people, from this desk.' },
       { build: 'monitor', at: [-1.45, 0.74, 3.38], rot: [0, 172, 0], live: 'screen' },
@@ -462,7 +533,7 @@ export const SETS: StageSet[] = [
       { build: 'clothes', at: [0.2, 0.57, 0.75], rot: [0, 20, 0] },
       // the mess
       { build: 'clothes', at: [-1.75, 0, 1.15], rot: [0, -35, 0] },
-      { build: 'cartons', at: [-1.9, 0, 0.45], rot: [0, 100, 0], cap: 'Boxes in the corner.' },
+      { build: 'cartons', at: [-1.9, 0, 0.85], rot: [0, 100, 0], cap: 'Boxes in the corner.' }, // clear of the south wall: the open one stood through it, onto the lawn
       { build: 'papers', at: [-0.15, 0, 2.45], rot: [0, 50, 0] },
       { build: 'bin', at: [-2.15, 0, 2.55] },
       { model: 'coffee_mug', at: [0.1, 0, 2.55], rot: [0, 110, 0] },
@@ -584,7 +655,7 @@ export const SETS: StageSet[] = [
       { build: 'airMattress', at: [-3.4, 0, -13.66], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' },
       { build: 'airMattress', at: [-3.2, 0, -17.7], rot: [0, 4, 0] },
       { model: 'throw_pillows_01', at: [-1.9, 0.0, -17.3], rot: [0, 30, 0], scale: 0.7 },
-      { build: 'doorLeaf', at: [-6.4, 0, -18.2], rot: [0, -90, 0], live: 'door', door: [ch(8.56), ch(8.7)] }, // the south door beside the window: hinged on the east jamb, it swings into the room, clear of the walk down the west side // the south door: hinged on the west jamb, it swings out onto the promenade ahead of the walk
+      ...doorway('sydney', -6.85, 0, -18.2, [ch(8.56), ch(8.7)], 'The door out of the Bean house.'), // the south door beside the window: it opens into the room, clear of the walk down the west side
       { build: 'bin', at: [-1.85, 0, -14.7] },
       // the walls
       { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.' },
@@ -593,86 +664,112 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2025, Vancouver: out of the hacker house's south door onto the terrace, Web Summit week: the Bean booth on the left
-    // as the welcome, the Digital Orca on the right, the Convention Centre and Harbour Centre off to the right, the North
-    // Shore across the water, Canada Place's sails on it. The terrace, its wall and the cliff live here (Sydney's window
-    // looks across them; Toronto and Halifax keep them in view).
-    id: 'vancouver', env: 'sky', tint: { sky: '#CFE0F0', ground: '#A8A59C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true, baked: true,
-    sun: { dir: [0.45, 0.62, 0.55], color: '#FFF3DC', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 500, far: 4000 },
+    // 2025, Vancouver in May, a bright overcast: out of the Bean house's south door onto the promenade. The walk itself
+    // stands in this set, all 60 m of it (the paving, the quay, the rail, the lamps, the trees in their seasons, the
+    // track, Volta's building at the end) and shows from the sets either side; Vancouver is what stands beyond it: the
+    // North Shore over the inlet, Canada Place's sails, a seaplane taking off up the harbour, Coupland's pixel whale
+    // going up cube by cube on the land side. Lit live: the light changes along the walk (walk.ts).
+    id: 'vancouver', env: 'sky', sky: 'vancouver', ...air('vancouver'), outdoor: true, also: [10], // Volta's door stands in its building from the walk's first step
     props: [
       water(),
-      { build: 'terrace', at: [0, 0, 0], cap: 'The terrace along the harbour side of the hacker house, 30 m over the water, a glass balustrade at its edge.' },
-      { build: 'terraceWall', at: [0, 0, 0], cap: 'The house from outside: its windows along the terrace.' },
-      { build: 'northShore', at: [0, TERRACE.water, 0], live: 'city', shadow: false, cap: 'The North Shore: Cypress, Grouse and Seymour over Burrard Inlet, from real elevation data.' },
-      { build: 'canadaPlaceSails', at: [-190, TERRACE.water, 230], rot: [0, 90, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier.' },
-      { build: 'beanBooth', at: [-8.6, 0, -11.0], rot: [0, 90, 0], cap: 'The Bean booth. One day at Web Summit Vancouver, May 2025: 500 conversations, 120 signups, an investor MOU.' },
-      { model: 'digital_orca', at: [-15.6, 0, -5.0], rot: [0, 90, 0], scale: 0.7, cap: "Digital Orca, Douglas Coupland's sculpture beside the Convention Centre." },
-      { model: 'convention_centre', at: [-260, 0, -220], rot: [0, 35, 0], cap: 'The Vancouver Convention Centre West: Web Summit, May 2025.' },
-      { model: 'harbour_centre', at: [-90, 0, -230], rot: [0, 0, 0], cap: 'Harbour Centre.' },
+      { build: 'promenade', at: [0, 0, 0], cap: 'The promenade along the harbour.' },
+      { build: 'walkLand', at: [0, 0, 0], shadow: false },
+      { build: 'beanHouse', at: [0, 0, 0], cap: 'The Bean house from outside.' },
+      { build: 'quayRail', at: [0, 0, 0] },
+      { build: 'tramTrack', at: [0, 0, 0], cap: 'The streetcar track along Queens Quay.' },
+      { build: 'voltaBlock', at: [0, 0, 0], live: 'glow', cap: 'Volta, Halifax.' },
+      ...WALK_LAMPS.map((z): Placement => ({ build: 'walkLamp', at: [WALK.path[0] + 0.55, 0, z], live: 'walkLamp' })),
+      ...WALK_TREES.map((t): Placement => ({ build: `walkTree${t.kind}`, at: [t.x, 0, t.z], rot: [0, t.turn, 0], scale: t.size })),
+      ...SIGNS.map((g, i): Placement => ({ build: `logoSign${i}`, at: [g.x, 0, g.z], rot: [0, 40, 0], live: 'glow', cap: g.name })), // each city's mark, standing on his left, turned to him as he comes
+      // the benches along the land side's kerb face the walk and the water, their backs to the land
+      // no bench by Web Summit's mark: the one there stood across it, and he had it taken out (2026-09-27)
+      { build: 'walkBench', at: [WALK.path[1] - 0.45, 0, 9.0], rot: [0, 90, 0] },
+      // each stands clear of the lines from the walk to the marks, while a mark is looked at
+      { build: 'walkBench', at: [WALK.path[1] - 0.45, 0, 18.6], rot: [0, 90, 0] },
+      { build: 'walkBench', at: [WALK.path[1] - 0.45, 0, 29.4], rot: [0, 90, 0] },
+      // Vancouver, beyond the walk
+      { build: 'northShore', at: [0, WALK.water, 60], live: 'city', shadow: false, cap: 'The North Shore: Cypress, Grouse and Seymour over Burrard Inlet, from real elevation data.' },
+      { build: 'canadaPlaceSails', at: [-260, WALK.water, 250], rot: [0, 78, 0], live: 'city', shadow: false, cap: 'Canada Place: the five sails over the pier.' },
+      { model: 'digital_orca', at: [ORCA.x, 0.3, ORCA.z], rot: [0, 150, 0], scale: 0.75, cap: "Digital Orca, Douglas Coupland's sculpture beside the Convention Centre." },
+      { build: 'orcaPlinth', at: [ORCA.x, 0, ORCA.z], rot: [0, 150, 0] },
+      { build: 'vancouverTowers', at: [0, 0, 0], live: 'city', shadow: false, cap: 'Coal Harbour: glass towers on their podiums, set back from the water.' },
+      { build: 'seaplane', at: [-48, WALK.water, -34], live: 'mover', mover: 'seaplane', cap: 'A Harbour Air seaplane off Coal Harbour.' },
     ],
   },
   {
-    // 2025, Toronto, Elevate week: a TTC streetcar on the right along the terrace's bay, his Elevate photo on the left,
-    // the CN Tower across the water ahead-right, downtown Toronto behind it.
-    id: 'toronto', env: 'sky', tint: { sky: '#CDD8E4', ground: '#9A958C', power: 0.25 }, exposure: 0.72, envPower: 0.7, outdoor: true,
-    sun: { dir: [-0.5, 0.6, 0.45], color: '#FFEFD6', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 800, far: 5000 },
+    // 2025, Toronto in October, the golden hour: the same walk, the mist off the lake lifting on the city on the land
+    // side with the tower over it, a streetcar coming up the track from behind and drawing up at the stop ahead, the
+    // maples turned, leaves coming down across the paving, the islands low across the water.
+    id: 'toronto', env: 'sky', sky: 'toronto', ...air('toronto'), outdoor: true,
     props: [
       water(),
-      { build: 'torontoDay', at: [-60, TERRACE.water, 900], rot: [0, 100, 0], live: 'city', shadow: false, cap: 'Downtown Toronto across the water: the real blocks. Elevate, October 2025.' },
-      { model: 'cn_tower', at: [-330, TERRACE.water, 640], rot: [0, 0, 0], live: 'city', shadow: false, cap: 'The CN Tower.' },
-      { model: 'ttc_streetcar', at: [-17.2, 0, -2.0], rot: [0, 90, 0], cap: 'A TTC streetcar.' },
-      { build: 'photoElevate', at: [-8.6, 0, 0.6], rot: [0, -90, 0], cap: 'Elevate Festival, Toronto, October 2025, with the Startup Atlantic delegation. His photo.' },
-      { model: 'union_station', at: [-100, 0, 400], rot: [0, 180, 0], cap: 'Union Station.' },
+      // the city across the harbour, the way it stands from the Islands: the tower 1.4 km off and 20 degrees to the right of the walk's line, downtown to the right of it
+      { build: 'torontoWalk', at: [-490, WALK.water, 1320], rot: [0, -110, 0], live: 'city', shadow: false, cap: 'Downtown Toronto and the CN Tower across the harbour: the real blocks, from OpenStreetMap. Elevate, October 2025.' },
+      { model: 'ttc_flexity', at: [TRACK.x, 0.03, TRACK.from], rot: [0, -90, 0], live: 'mover', mover: 'streetcar', cap: 'A TTC streetcar: the Flexity Outlook, the fleet since 2019.' },
     ],
   },
   {
-    // 2025 to 2026, Halifax: Volta. Straight off the terrace through the glass into Volta's room: the coffee bar on the
-    // left under the Volta mark (a coffee comes into the hand), the long tables and the people of a Thursday, the harbour
-    // and downtown Halifax through the glass wall on the right, his Demo Day photo, and the door at the far end into the wing.
-    id: 'halifaxVolta', env: 'sky', tint: { sky: '#D4E0EA', ground: '#A19C93', power: 0.25 }, exposure: 0.72, envPower: 0.7, also: [8], baked: true,
-    sun: { dir: [-0.55, 0.6, 0.5], color: '#FFEBD0', power: 2.3, shadow: 1 },
-    fog: { color: '#C9D7E3', near: 800, far: 5000 },
+    // 2026, Halifax in January, dusk: snow on the boards and coming down, the lamps lit, the ferry crossing to Dartmouth
+    // with its windows lit, the Macdonald Bridge beyond it, downtown climbing the hill on the land side to the Town
+    // Clock; and at the end of the walk Volta's building, its top floor lit. In at its door, which shuts behind him,
+    // and the room is that floor, the eighth (RISE): the slab and its ducts black, strips of white light, ring
+    // pendants, grey carpet, glass leaning in along the whole harbour side and a window on downtown. Set for Demo Day:
+    // the coffee bar on the left under the Volta mark (a coffee comes into the hand), rows of red-orange chairs, the
+    // screen at the far end; he goes up to the podium and turns to the room; then the door into the wing. No figures:
+    // he found them weird (2026-09-27).
+    id: 'halifaxVolta', env: 'sky', sky: 'halifax', ...air('halifax'), also: [8], baked: true, bakedEnvironment: true,
+    // the room is baked as a room at dusk: its strips and rings light it, the last of the day comes in at the glass
+    bake: { env: 'studio', tint: { sky: '#5F6FA6', ground: '#2A2622', power: 0.22 }, envPower: 0.05, sun: { dir: [-0.55, 0.3, 0.78], color: '#8EA2D8', power: 0.1, shadow: 0.4 }, view: { cam: [WALK.x, 1.6, WALK.volta.z[0] + 2.2], look: [WALK.x - 2.2, 1.3, WALK.volta.z[1]], fov: 74 } },
     shell: {
-      x: TERRACE.volta.x, z: TERRACE.volta.z, h: TERRACE.volta.h,
-      floor: 'lectureFloor', wall: 'labWall', ceiling: 'condoCeiling',
+      x: WALK.volta.x, z: WALK.volta.z, h: WALK.volta.h,
+      floor: 'voltaFloor', wall: 'voltaWall', ceiling: 'voltaDuct',
       openings: [
-        { wall: 'z-', at: TERRACE.walkX, w: 2.4, h: 2.6 }, // the glass entrance off the terrace, open
-        { wall: 'x-', at: (TERRACE.volta.z[0] + TERRACE.volta.z[1]) / 2, w: TERRACE.volta.z[1] - TERRACE.volta.z[0] - 0.2, h: 3.18 }, // the west wall is glass: open in the shell, voltaGlass fills it
-        { wall: 'z+', at: TERRACE.walkX, w: 1.2, h: 2.1, door: true }, // the door into the wing
+        { wall: 'z-', at: WALK.x, w: DOORS.voltaIn.w, h: DOORS.voltaIn.h, door: true }, // the door in off the walk
+        { wall: 'x-', at: (WALK.volta.z[0] + WALK.volta.z[1]) / 2, w: WALK.volta.z[1] - WALK.volta.z[0] - 0.2, h: WALK.volta.h - 0.02 }, // the harbour side is glass: open in the shell, voltaGlass fills it
+        { wall: 'x+', at: (WALK.volta.east[0] + WALK.volta.east[1]) / 2, w: WALK.volta.east[1] - WALK.volta.east[0], h: 2.3, sill: 0.8 }, // the window on downtown
+        { wall: 'z+', at: WALK.x, w: 1.2, h: 2.1, door: true }, // the door into the wing
       ],
     },
     props: [
       water(),
-      { build: 'hallShell', at: [0, 0, 0] }, // the hall's outside over the wing: from the terrace a plain block, nothing of the inward room shows
-      { build: 'voltaFace', at: [0, 0, 0] },
-      { build: 'voltaGlass', at: [0, 0, 0], cap: 'Volta, Halifax: the harbour through the glass.' },
-      { build: 'halifaxDay', at: [-700, TERRACE.water, 20], rot: [0, 270, 0], live: 'city', shadow: false, cap: 'Downtown Halifax across the harbour: the real blocks from the flight data.' },
-      { build: 'macdonaldBridge', at: [-1000, TERRACE.water, 420], rot: [0, -30, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
-      { build: 'coffeeBar', at: [TERRACE.volta.x[1], 0, 11.0], cap: 'The coffee at Volta. Collect. every Thursday; Demo Day, January 2026.' },
-      { build: 'logoVolta', at: [TERRACE.volta.x[1] - 0.01, 2.35, 11.0], rot: [0, -90, 0], cap: 'Volta, 1800 Argyle Street, Halifax.' },
-      ...[9.3, 11.0, 17.0, 18.7].map((z): Placement => ({ model: 'wooden_table_02', at: [-14.3, 0, z], rot: [0, 90, 0], scale: [1.5, 1, 1.2] })),
-      ...[9.3, 10.7, 12.1, 17.0, 18.4, 19.8].flatMap((z): Placement[] => [{ model: 'office_chair_black', at: [-13.2, 0, z], rot: [0, -90, 0] }, { model: 'office_chair_black', at: [-15.4, 0, z], rot: [0, 90, 0] }]),
-      ...voltaPeople(),
-      { build: 'photoDemoDay', at: [TERRACE.volta.x[1] - 1.2, 0, 16.0], rot: [0, -90, 0], cap: 'Collect. Demo Day at Volta, January 15, 2026: the space packed. His photo.' },
-      ...[9.0, 13.0, 17.0, 21.0].flatMap((z): Placement[] => [{ build: 'discLight', at: [-9.6, TERRACE.volta.h - 0.02, z], live: 'pendant' }, { build: 'discLight', at: [-14.2, TERRACE.volta.h - 0.02, z], live: 'pendant' }]),
-      { build: 'doorLeafWide', at: [TERRACE.walkX + 0.6, 0, TERRACE.door], rot: [0, -90, 0], live: 'door', door: [ch(11.78), ch(11.92)], cap: "The door out of Volta's room into the wing." },
+      { build: 'voltaGlass', at: [0, 0, 0], cap: 'Volta, Halifax: the eighth floor, the harbour through the glass.' },
+      // the Maritime Centre 400 m in from the water and 230 m up the walk: downtown on the hill, ahead and to the left
+      { build: 'halifaxWalk', at: [390, 0, 265], live: 'city', shadow: false, cap: 'Downtown Halifax on its hill: the real blocks from the flight data.' },
+      { model: 'town_clock', at: [70, 9.6, 108], rot: [0, -120, 0], scale: 1.6, live: 'city', cap: 'The Town Clock on Citadel Hill.' },
+      { build: 'macdonaldBridge', at: [-760, WALK.water, 1160], rot: [0, 12, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
+      { build: 'georgesIsland', at: [-420, WALK.water, 250], live: 'city', shadow: false, cap: "Georges Island and its lighthouse." },
+      { build: 'ferry', at: [-135, WALK.water, 98], live: 'mover', mover: 'ferry', cap: 'The ferry to Dartmouth.' },
+      { build: 'voltaCeiling', at: [0, 0, 0] },
+      // the door in off the walk: it opens as he comes up to the building and shuts behind him as the room goes up
+      ...doorway('voltaIn', WALK.x, 0, WALK.volta.z[0], [ch(WALK.to.c - 0.2), ch(WALK.to.c - 0.06)], "Volta's door, 1800 Argyle Street.", [ch(RISE.from + 0.02), ch(RISE.from + 0.16)]),
+      { build: 'coffeeBar', at: [WALK.volta.x[1], 0, WALK.volta.z[0] + 3.6], cap: 'The coffee at Volta. Collect. every Thursday; Demo Day, January 2026.' },
+      { build: 'logoVolta', at: [WALK.volta.x[1] - 0.01, 2.45, WALK.volta.z[0] + 3.6], rot: [0, -90, 0], cap: 'Volta, 1800 Argyle Street, Halifax.' },
+      // Demo Day: the chairs in rows, the screen and the podium at the north end, the room behind the walk's line
+      ...DEMO_SEATS.map(([x, z]): Placement => ({ build: 'stackChair', at: [x, 0, z], rot: [0, 180, 0] })),
+      { build: 'demoScreen', at: [VOLTA_PODIUM[0], 1.95, WALK.volta.z[1] - 0.06], live: 'screen', cap: 'Collect. Demo Day at Volta, January 15, 2026.' },
+      { build: 'voltaLectern', at: VOLTA_PODIUM, cap: 'The podium.' }, // his: he goes up to it, stands behind it and turns to the room
+      ...[WALK.volta.z[0] + 2.2, WALK.volta.z[0] + 6.2, WALK.volta.z[0] + 10.0].map((z): Placement => ({ build: 'ringPendant', at: [-9.6, WALK.volta.h - 0.02, z], live: 'pendant' })),
+      { model: 'potted_plant_01', at: [-7.9, 0, WALK.volta.z[0] + 0.7], scale: 1.1 },
+      { model: 'potted_plant_01', at: [-7.9, 0, WALK.volta.z[1] - 0.5], rot: [0, 70, 0], scale: 1.15 },
+      ...doorway('volta', WALK.x, 0, WALK.door + DOORS.volta.depth, [ch(VOLTA_DOOR[0]), ch(VOLTA_DOOR[1])], "The door out of Volta's room into the wing."), // through Volta's wall and the wing's
     ],
   },
   {
     // Dalhousie convocation: through the terrace's north door into the wing, up the steps and straight onto the stage from
     // its side, to the centre for the degree, then a turn to the hall: the crowd on its feet. Authored, no survey.
-    id: 'convocation', env: 'studio', tint: { sky: '#6E6258', ground: '#2A2422', power: 0.9 }, exposure: 0.9, envPower: 0.05, baked: true,
+    id: 'convocation', at: [0, 0, TOUR_SHIFT], env: 'studio', tint: { sky: '#6E6258', ground: '#2A2422', power: 0.9 }, exposure: 0.9, envPower: 0.05, baked: true,
     sun: { dir: [0.5, 0.85, -0.2], color: '#FFE6C4', power: 0.12, shadow: 0.7 },
     fog: { color: '#16141A', near: 60, far: 180 },
     props: [
       { build: 'stageWing', at: [0, 0, 0], cap: 'The wing: four steps up onto the stage from its side.' },
-      { build: 'downlight', at: [TERRACE.walkX, 3.1, STAGE.wing[0] + 1.4], live: 'downlight' },
-      { build: 'downlight', at: [TERRACE.walkX, 3.1, STAGE.wing[1] - 0.6], live: 'downlight' },
+      { build: 'downlight', at: [WALK.x, 3.1, STAGE.wing[0] + 1.4], live: 'downlight' },
+      { build: 'downlight', at: [WALK.x, 3.1, STAGE.wing[1] - 0.6], live: 'downlight' },
       { build: 'stageHall', at: [0, 0, 0], cap: 'The hall: the stage a metre up, the drapes behind it in black and gold, the house beyond the proscenium.' },
       ...crowdPeople(), // the crowd on its feet: 72 people, each a rigged figure dressed by bone
       { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], cap: 'The lectern.' },
+      { build: 'stageBin', at: STAGE_BIN, cap: 'The bin backstage.' },
+      // the door out behind the stage is the hall's: shut, it closes the hall's wall from wherever the hall is seen
+      ...doorway('floqer', STAGE.door.x, STAGE.door.floor, FLOQER.z[0], [ch(13.94 + TOUR_GAIN), ch(14.1 + TOUR_GAIN)], 'The door out of the hall: Floqer.'),
       { build: 'logoDalhousie', at: [STAGE.x[0] + 0.72, STAGE.height + 4.4, STAGE.centre], rot: [0, 90, 0], cap: 'Dalhousie University. Convocation.' },
       ...Array.from({ length: 6 }, (_, i) => ({ build: 'hallChair', at: [STAGE.x[0] + 1.3, STAGE.height, STAGE.z[0] + 2.0 + i * 1.6 + (i > 2 ? 1.4 : 0)] as V3, rot: [0, 90, 0] as V3 })),
       { build: 'downlight', at: [STAGE.x[1] - 3.5, STAGE.height + 8.8, STAGE.centre], live: 'downlight' },
@@ -687,9 +784,9 @@ export const SETS: StageSet[] = [
     // Bean one and messier: the T of tables with the monitors back to back and the team at them, the whiteboards, the boxes,
     // suitcase and mattresses of a rented place people ship from, the mark on the brick, downtown Toronto out of the west
     // windows, and the stair up the east wall to a door: his apartment.
-    id: 'floqer', env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 1.0, baked: true, bakedEnvironment: true, // envPower 1: the room's own panorama is the environment (set12_env.webp), at its baked brightness
+    id: 'floqer', at: [0, 0, TOUR_SHIFT], outlook: true, env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 1.0, baked: true, bakedEnvironment: true, // envPower 1: the room's own panorama is the environment (set12_env.webp), at its baked brightness
     sun: { dir: [-0.75, 0.55, 0.3], color: '#FFE4BE', power: 2.0, shadow: 0.85 },
-    fog: { color: '#C9D7E3', near: 60, far: 900 },
+    fog: { color: '#C9D7E3', near: 400, far: 9000 }, // the skyline stands 3 km off: in the day's haze, not lost in it
     shell: {
       x: FLOQER.x, z: FLOQER.z, h: FLOQER.h, y: FLOQER.floor,
       floor: 'condoFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
@@ -702,12 +799,9 @@ export const SETS: StageSet[] = [
     props: [
       ...(() => {
         const F = FLOQER.floor, Z = FLOQER.z[0], out: Placement[] = [];
-        // the quay's top sits 0.35 below the floor: level with it, the two planes fought and the pale concrete showed through the parquet in patches
-        out.push({ build: 'torontoDay', at: [FLOQER.x[0] - 100, F - 3 - 0.35, Z + 5], live: 'city', shadow: false, cap: 'Downtown Toronto, outside the window.' });
+        // the street is 0.35 below the floor: level with it, the two planes fought and the ground showed through the parquet in patches
+        out.push({ build: 'torontoView', at: [FLOQER.x[0] - 4, F - 30, Z + 5], live: 'city', shadow: false, cap: 'Downtown Toronto and the CN Tower, by day, out of the west windows.' }); // the house some floors up: the windows look over the near roofs to the skyline
         for (const z of WINDOW_Z) out.push({ build: 'sydneyWindow', at: [FLOQER.x[0], F + 0.75, z], rot: [0, 90, 0], scale: [0.8, 1, 1] });
-        // the door in from the stage: the hall's door leaf, hinged on its east jamb, swinging into the house as he reaches it; the reveal between the two walls
-        out.push({ build: 'doorLeaf', at: [STAGE.door.x + STAGE.door.w / 2, F, STAGE.door.z + 0.15], rot: [0, -90, 0], live: 'door', door: [ch(13.94), ch(14.1)], cap: 'The door out of the hall: Floqer.' });
-        out.push({ build: 'doorReveal', at: [STAGE.door.x, F, STAGE.door.z] });
         out.push({ build: 'brickWall', at: [(FLOQER.x[0] + FLOQER.x[1]) / 2, F, FLOQER.z[1] - 0.05] });
         out.push({ build: 'floqerSign', at: [-11.2, F + 2.3, FLOQER.z[1] - 0.1], rot: [0, 180, 0], live: 'screen', cap: 'Floqer. The orchestration engine behind enterprise go to market automation.' });
         // the T: the bar of two tables across the room, the stem down from its middle; monitors back to back along both, a keyboard at each
@@ -741,8 +835,8 @@ export const SETS: StageSet[] = [
         out.push({ build: 'whiteboardFloqerB', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 3.9], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the year, and Disrupt.' });
         // the stair up the east wall, straight at the door in the north wall, its rail on the open side, a light over it; the landing behind the door
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
-        out.push({ build: 'landing', at: [FLOQER.door.x + 0.6, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], scale: [0.667, 1, 1], live: 'bulb' }); // behind the door: a closed landing, 2 m, so the door opens onto it and not the sky
-        out.push({ build: 'doorLeaf', at: [FLOQER.door.x + FLOQER.door.w / 2, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1]], rot: [0, -90, 0], live: 'door', door: [ch(15.2), ch(15.36)] }); // hinged on the east jamb, swinging away onto the landing
+        // the door at the top of the stair is his own: dark oak in a dark case, from the brick's face to the apartment's passage behind it (HOME), opening into the passage
+        out.push(...doorway('home', FLOQER.door.x, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + DOORS.home.depth, [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], 'His own front door.'));
         out.push({ build: 'discLight', at: [FLOQER.stair.x, F + 3.6, FLOQER.stair.z0 + 1.2], live: 'pendant' });
         // the mess of a rented place: boxes still packed, a suitcase, a bin bag, a crate, the mattresses and pillows, the shoes by the door
         out.push({ model: 'cardboard_box_01', at: [-15.2, F, Z + 0.9], rot: [0, 12, 0] });
@@ -750,7 +844,7 @@ export const SETS: StageSet[] = [
         out.push({ model: 'cardboard_box_01', at: [-14.3, F, Z + 1.6], rot: [0, 35, 0] });
         out.push({ model: 'plastic_crate_01', at: [-7.0, F, Z + 0.9], rot: [0, 20, 0] });
         out.push({ model: 'vintage_suitcase', at: [-8.4, F, FLOQER.z[1] - 1.1], rot: [0, 25, 0] });
-        out.push({ model: 'trashbag', at: [-15.3, F, Z + 5.4], rot: [0, 60, 0] });
+        out.push({ model: 'trashbag', at: [-13.4, F, Z + 0.7], rot: [0, 60, 0] }); // with the boxes: the walk goes round the room by the windows
         out.push({ model: 'shoe_rack_modern', at: [-9.2, F, Z + 0.35] });
         out.push({ build: 'airMattress', at: [-14.6, F, FLOQER.z[1] - 1.6], rot: [0, 90, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' });
         out.push({ build: 'airMattress', at: [-12.2, F, FLOQER.z[1] - 1.4], rot: [0, 84, 0] });

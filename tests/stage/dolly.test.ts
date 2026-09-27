@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
 import { STAGE_SPAN, approach } from '../../src/lib/stage/shot.ts';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { SETS, FLOQER } from '../../src/lib/stage/sets.ts';
+import { SETS, FLOQER, TOUR_SHIFT, DELHI } from '../../src/lib/stage/sets.ts';
+import { WALK, TURN, MIST, walkZ } from '../../src/lib/stage/walk.ts';
 import { BUILT } from '../../src/lib/stage/built.ts';
 import { PHONE, phoneAt, WINDOW_VIEW, CLASSROOM_VIEW } from '../../src/lib/stage/flight.ts';
 
@@ -16,10 +17,10 @@ const cameraAt = (q: number) => {
   return camera;
 };
 
-test('the 2020 room\'s door stays in view on the last steps across the boardroom', () => {
+test('the 2020 room\'s door stays in view on the last steps to it, where it stands in Google\'s block', () => {
   const shell = SETS[4].shell!, door = shell.openings.find((o) => o.wall === 'z-')!;
   for (const q of [0.802, 0.805]) {
-    const p = new Vector3(door.at, Math.min(1.5, door.h), shell.z[0]).project(cameraAt(approach(q)));
+    const p = new Vector3(...DELHI.to([door.at, Math.min(1.5, door.h), shell.z[0]])).project(cameraAt(approach(q)));
     assert.ok(Math.abs(p.x) < 0.85 && Math.abs(p.y) < 0.85 && p.z < 1, `door out of frame at ${q}: ${p.toArray()}`);
   }
 });
@@ -30,7 +31,9 @@ test('the Delhi desk views keep the full awards shelf in frame on a laptop', () 
     const camera = cameraAt(approach(q));
     for (const part of BUILT.awards()) for (let i = 0; i < part.pos.length; i += 3) {
       const p = new Vector3(part.pos[i], part.pos[i + 1], part.pos[i + 2]);
-      p.applyAxisAngle(new Vector3(0, 1, 0), (awards.rot?.[1] ?? 0) * Math.PI / 180).add(new Vector3(...awards.at)).project(camera);
+      p.applyAxisAngle(new Vector3(0, 1, 0), (awards.rot?.[1] ?? 0) * Math.PI / 180).add(new Vector3(...awards.at));
+      if (q < DELHI.cut) p.set(...DELHI.to(p.toArray())); // the room stands behind Google's door until the cut
+      p.project(camera);
       assert.ok(Math.abs(p.x) < 0.95 && Math.abs(p.y) < 0.95 && p.z < 1, `award cropped at ${q}: ${p.toArray()}`);
     }
   }
@@ -91,27 +94,33 @@ test('equal scroll increments keep bounded walking and head turns; only the two 
 
 test('the dolly is inside the doorway when it says it is', () => {
   const dolly = makeDolly(DOLLY);
-  // the ring: north out of the apartment, east out of the 2010 room, south out of the lab, across the plaza and
-  // north into the 2020 room, west back in
+  // north out of the apartment, east out of the 2010 room, south out of the lab, down Google's lawn and left into
+  // the 2020 room, west out of it
   const jambs = DOLLY.filter((k) => k.blend === 0);
   const at = (k: { cam: number[] }, x: number, z: number) => Math.abs(k.cam[0] - x) < 0.05 && Math.abs(k.cam[2] - z) < 0.1;
   assert.ok(at(jambs[0], -5.45, 2.3), `${jambs[0].cam}`);
   assert.ok(at(jambs[1], -4.85, 6.6), `${jambs[1].cam}`);
   assert.ok(at(jambs[2], 1.4, 4.75), `${jambs[2].cam}`);
-  assert.ok(at(jambs[3], -0.7, -0.1), `${jambs[3].cam}`); // the 2020 room's south door, off Google's balcony
+  { const [x, , z] = DELHI.to([-0.7, 0, -0.1]); assert.ok(at(jambs[3], x, z), `${jambs[3].cam}`); } // the 2020 room's south door, where it stands in the face of Google's block
   assert.ok(at(jambs[4], -2.35, 1.6), `${jambs[4].cam}`); // its west door, into the passage to the brick door
   assert.ok(at(jambs[5], WINDOW_VIEW.cam[0], WINDOW_VIEW.cam[2]), `${jambs[5].cam}`);
   assert.ok(at(jambs[6], -1.3, -15.8), `${jambs[6].cam}`); // the auditorium's front west door, out to Sydney
   assert.ok(at(jambs[7], -6.85, -17.95), `${jambs[7].cam}`); // the hacker house's south door beside the window, out to Vancouver
-  assert.ok(at(jambs[8], -10.5, -6.5) && at(jambs[9], -10.5, 5.4), `the threshold along the terrace and Volta's entrance: ${jambs[8].cam} ${jambs[9].cam}`);
-  assert.ok(at(jambs[10], -10.5, 23.4), `the door out of Volta's room into the wing: ${jambs[10].cam}`);
-  assert.ok(at(jambs[11], -10.5, 47.4), `the door out of the back of the hall, behind the stage: ${jambs[11].cam}`);
-  assert.ok(at(jambs[12], FLOQER.door.x, FLOQER.z[1] - 0.1), `the door at the top of the hacker house's stair: ${jambs[12].cam}`);
+  // the walk's two open-air thresholds stand where the mist begins to gather, the city changing at its thickest
+  assert.ok(at(jambs[8], WALK.x, walkZ(TURN.toronto - MIST + 0.04)) && at(jambs[9], WALK.x, walkZ(TURN.halifax - MIST + 0.04)), `the thresholds along the walk: ${jambs[8].cam} ${jambs[9].cam}`);
+  assert.ok(at(jambs[10], WALK.x, WALK.door - 0.6), `the door out of Volta's room into the wing: ${jambs[10].cam}`);
+  assert.ok(at(jambs[11], -10.5, 47.4 + TOUR_SHIFT), `the door out of the back of the hall, behind the stage: ${jambs[11].cam}`);
+  assert.ok(at(jambs[12], FLOQER.door.x, FLOQER.z[1] - 0.1 + TOUR_SHIFT), `the door at the top of the hacker house's stair: ${jambs[12].cam}`);
   for (const j of jambs) assert.ok(Math.abs(dolly(j.q).cam[0] - j.cam[0]) < 0.05 && Math.abs(dolly(j.q).cam[2] - j.cam[2]) < 0.1);
   assert.equal(dolly(1).set, 0); // home
   assert.deepEqual(dolly(PHONE.reveal).cam, CLASSROOM_VIEW.cam);
-  // heading north through the south door, the desk on the far wall dead ahead
+  // in through the room's south door (own north; west in the world, where the room stands in Google's block), the desk on the far wall dead ahead
   const inRoom = dolly(jambs[3].q + 0.008); // a step inside the door
   assert.equal(inRoom.set, 4);
-  assert.ok(inRoom.look[2] - inRoom.cam[2] > 1.5 && Math.abs(inRoom.look[0] - inRoom.cam[0]) < 0.6, `${inRoom.cam} -> ${inRoom.look}`);
+  assert.ok(inRoom.cam[0] - inRoom.look[0] > 1.5 && Math.abs(inRoom.look[2] - inRoom.cam[2]) < 0.6, `${inRoom.cam} -> ${inRoom.look}`);
+  // the room's return to where it was built moves nothing in the frame: either side of the cut the camera is at the same place in the room
+  const cut = DOLLY.find((k) => k.portal && k.blend === undefined)!, before = dolly(cut.q - 1e-7), after = dolly(cut.q);
+  const there = DELHI.to(after.cam as [number, number, number]), looks = DELHI.to(after.look as [number, number, number]);
+  for (let i = 0; i < 3; i++) assert.ok(Math.abs(before.cam[i] - there[i]) < 1e-3 && Math.abs(before.look[i] - looks[i]) < 1e-3, `${before.cam} against ${there}`);
+  assert.equal(cut.q, DELHI.back);
 });

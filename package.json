@@ -13,6 +13,7 @@
     "stage:bake": "node scripts/stage-bake.mjs",
     "stage:city": "node scripts/stage-city.mjs",
     "stage:halifax": "node scripts/stage-halifax.mjs",
+    "stage:sky": "node scripts/stage-sky.mjs",
     "stage:audit": "node scripts/stage-audit.mjs"
   },
   "dependencies": {

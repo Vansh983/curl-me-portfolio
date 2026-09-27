@@ -7,7 +7,7 @@ self.onmessage = ({ data }: MessageEvent<{ key: string; name: string; baked: boo
     const parts = BUILT[data.name]().filter((piece) => !data.baked || DROP_PROP.has(data.name) || CONTEXT_PROP.has(data.name)
       || pieceIsLive('mat' in piece.surface ? `mat:${piece.surface.mat}` : `paint:${piece.surface.paint}`, data.live));
     const buffers = new Set<ArrayBuffer>();
-    for (const p of parts) for (const a of [p.pos, p.nor, p.uv, p.col]) if (a) buffers.add(a.buffer as ArrayBuffer);
+    for (const p of parts) for (const a of [p.pos, p.nor, p.uv, p.col, p.aux]) if (a) buffers.add(a.buffer as ArrayBuffer);
     self.postMessage({ key: data.key, parts }, { transfer: [...buffers] });
   } catch (error) {
     self.postMessage({ key: data.key, error: String(error) });

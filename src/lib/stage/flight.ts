@@ -2,7 +2,7 @@
 // The aircraft never moves: the world under it does (stage-run.ts: the flight group), sinking as the
 // altitude falls, sliding aft as the ground track runs, rolling for the bank onto the approach.
 import { AUDITORIUM, TOP_ROW, FLIGHT_DECK } from './sets.ts';
-import { ch } from './shot.ts';
+import { ch, TOUR_GAIN } from './shot.ts';
 const ease = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
@@ -18,9 +18,12 @@ export const FLIGHT = { ...DESCENT, top: 385, low: 130, deck: FLIGHT_DECK, bank:
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
 export const PHONE = { raise: ch(6.012), framed: ch(6.075), zoom: ch(6.103), filled: ch(6.194), transfer: ch(6.215), reveal: ch(6.264) } as const;
 /** The coffee at Volta: into the hand at the bar, held through the room, set down before the wing's door. */
-export const COFFEE = { raise: ch(11.1), held: ch(11.24), down: ch(11.8), gone: ch(11.94) } as const;
-/** The degree: raised into the hand over the last steps onto the stage, held from there. */
-export const DEGREE = { raise: ch(12.56), held: ch(12.7) } as const;
+export const COFFEE = { raise: ch(13.0), held: ch(13.12), down: ch(13.82), gone: ch(13.94) } as const;
+/**
+ * The degree: raised into the hand over the last steps onto the stage and held up to the hall; then, walking off along
+ * the stage, crushed in the fist (`crush`) and thrown into the bin that stands backstage by the walk (`thrown`).
+ */
+export const DEGREE = { raise: ch(12.56 + TOUR_GAIN), held: ch(12.7 + TOUR_GAIN), crush: [ch(13.2 + TOUR_GAIN), ch(13.42 + TOUR_GAIN)] as [number, number], thrown: [ch(13.5 + TOUR_GAIN), ch(13.68 + TOUR_GAIN)] as [number, number] } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
 /** The window seat in the row by the door, the wing's leading edge behind the shoulder: eye at the window, looking out and a little down at the city. */

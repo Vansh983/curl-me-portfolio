@@ -159,10 +159,13 @@ const n = chapters.length;
   }
   /* the last card runs three chapter lengths: the walk out of the hall and into Floqer's office happens under it (LAST_SPAN in shot.ts) */
   .ch[data-i='3'] {
-    min-height: 210svh; /* two chapter lengths: the Android lawn, the boardroom, the 2020 room's door */
+    min-height: 210svh; /* two chapter lengths: the Android lawn, the letters, back up the lawn to the 2020 room's door */
   }
+  /* the tour's three cards run five chapter lengths between them (CARD_SPAN in shot.ts): the walk is 58 m, a city each, then Volta's room */
+  .ch[data-i='8'] { min-height: 150svh; }
+  .ch[data-i='10'] { min-height: 250svh; }
   .ch[data-i='12'] {
-    min-height: 410svh; /* LAST_SPAN chapter lengths of walk (a chapter is a card, a little over a viewport) and a viewport more, so the stage stays pinned to the end of it */
+    min-height: 570svh; /* LAST_SPAN chapter lengths of walk (a chapter is a card, a little over a viewport) and a viewport more, so the stage stays pinned to the end of it */
   }
   @media (min-width: 48.001rem) {
     .ch:first-child {

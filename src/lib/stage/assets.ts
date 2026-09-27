@@ -68,7 +68,8 @@ export const ASSETS: Asset[] = [
   kit('wall_art_circles', 919410, 'BlenderKit', 'the print by the condo door', 512),
   kit('coffee_mug', 782558, 'BlenderKit', 'the mug on the desk', 256),
   model('side_table_01', 'James Ray Cock', 'the side table by the armchair', 256),
-  kit('bed_double', 444375, 'BlenderKit', 'the bed in the bedroom', 512, 0.004),
+  // he asked for the blanket and the pillows grey, dark not light (2026-09-27); the bolsters share the frame's cloth, so the frame is grey with them
+  { ...kit('bed_double', 444375, 'BlenderKit', 'the bed in the bedroom', 512, 0.004), skin: { BedDuvet: { color: '#6E7076' }, BedPillowWhite: { color: '#5A5C62' }, BedGray: { color: '#64666C' } } },
   kit('nightstand_modern', 590108, 'BlenderKit', 'the nightstand', 256),
   kit('sofa_teak', 940237, 'BlenderKit', 'the sofa', 512),
   kit('coffee_table_square', 1088749, 'BlenderKit', 'the coffee table', 256),
@@ -103,19 +104,20 @@ export const ASSETS: Asset[] = [
   texture('cotton_jersey', 'colormass', 'the curtains', 0.26, ['nor', 'arm']),
   texture('dirty_carpet', 'Rohit Seervi', 'the rugs', 0.6, ['nor', 'arm']),
   texture('oak_veneer_01', 'Jenelle van Heerden', 'the shelves, the bed frame', 1.83, ['diff', 'nor', 'arm']),
-  // 2025, the tour: real landmarks from 3D Warehouse (glb downloads open, licence 3DW), trimmed of their site slabs by
+  // 2025, the tour's walk: real things from 3D Warehouse (glb downloads open, licence 3DW), trimmed of their site slabs by
   // scripts/gltf-trim.mjs into .cache/polyhaven/<id>/<id>.glb before the pipeline optimises them (docs/rebuild/31-tour-row.md)
   ...([
     ['digital_orca', '97dd587e-82c6-42f6-a220-c2630c5abbf7', 'Eric S. (3D Warehouse)', "Douglas Coupland's Digital Orca on Jack Poole Plaza, Vancouver", 256],
-    ['olympic_cauldron', 'c53ea8331b89ba98c2b2b6308b25b538', 'jago716 (3D Warehouse)', 'the 2010 Olympic Cauldron on Jack Poole Plaza, Vancouver', 512],
-    ['convention_centre', 'cfa8cd8f4f9aba747e7220e0f528d998', '3D Warehouse staff', 'the Vancouver Convention Centre West, the Web Summit venue', 512],
-    ['harbour_centre', 'e6fc5c978ee2043dcea419d2523514c8', 'Ben (3D Warehouse)', 'Harbour Centre behind the Vancouver waterfront', 256],
-    ['ttc_streetcar', 'c80d6a2262ceefdf2764a7d5e934bdcf', '3D Warehouse', 'a TTC CLRV streetcar, Toronto', 512],
-    ['union_station', '377e3a48a1c5298938a5357de8d99892', '3D Warehouse', "Union Station's Front Street facade, Toronto", 512],
-    ['town_clock', 'f98e09fd1931e1eaea23ba00b3807e38', '3D Warehouse', 'the Halifax Town Clock on Citadel Hill', 512],
-    ['purdys_wharf', 'dcccf6361fcbf5baf229cc4c3c2bf3c9', '3D Warehouse', "Purdy's Wharf on the Halifax waterfront", 512],
-    ['cn_tower', '51cbd1374539b5545a688156b5408036', '3D Warehouse', 'the CN Tower across the water from the terrace, Toronto', 512],
+    ['ttc_flexity', '166ee52d5726aab3971e77ca4a254c30', 'Jacob L. (3D Warehouse)', "a TTC streetcar of today's fleet, the Flexity Outlook, on the track along the walk (joined and simplified in the cache first: its interior is modelled)", 512],
+    ['town_clock', 'f98e09fd1931e1eaea23ba00b3807e38', 'Durwin (3D Warehouse)', 'the Halifax Town Clock on Citadel Hill', 512],
   ] as Array<[string, string, string, string, 256 | 512]>).map(([id, uid, author, use, maxTex]): Asset => ({ id, kind: 'model', source: 'url', url: `https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/${uid}/binaries/glb?download=true`, res: '1k', licence: '3DW', author, use, maxTex, simplify: 0.001 })),
+  // the walk's ground and walls, from Poly Haven
+  texture('granite_tile', 'Charlotte Baglioni', "the promenade's paving in Vancouver", 2.3, ['diff', 'nor', 'arm'], 1024),
+  texture('rectangular_paving', 'Dimitrios Savva', "the promenade's paving in Toronto", 2.0, ['diff', 'nor', 'arm'], 1024),
+  texture('weathered_brown_planks', 'Dimitrios Savva', 'the boardwalk in Halifax, and the boards on the Bean house', 1.8, ['diff', 'nor', 'arm'], 1024),
+  texture('snow_02', 'Rob Tuytel', 'the snow in Halifax', 2.0, ['diff', 'nor', 'arm']),
+  texture('red_brick_03', 'Rob Tuytel', "the brick of Volta's building", 1.0, ['diff', 'nor', 'arm']),
+  texture('bark_brown_02', 'Rob Tuytel', 'the bark of the trees along the walk', 1.0, ['diff', 'nor', 'arm']),
   texture('leafy_grass', 'Charlotte Baglioni', 'the Googleplex lawn', 2.0, ['diff', 'nor', 'arm']),
   texture('concrete_pavement', 'Charlotte Baglioni', 'the paving of the promenade', 2.0, ['diff', 'nor', 'arm']),
 ];

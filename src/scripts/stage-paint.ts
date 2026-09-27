@@ -8,7 +8,7 @@ export interface Paint { w: number; h: number; frames: Painter[] }
 /** Apple's "Think different" text, 1997, as printed on the poster: the first sentence is the title, the rest the body. */
 const JOBS_QUOTE = "The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They're not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can't do is ignore them. Because they change things. They push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.";
 
-export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null; floqer: HTMLImageElement | null; elevatePhoto: HTMLImageElement | null; demodayPhoto: HTMLImageElement | null }
+export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null; floqer: HTMLImageElement | null; elevatePhoto: HTMLImageElement | null; demodayPhoto: HTMLImageElement | null; tripAward: HTMLImageElement | null; tripSign: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
   const c = document.createElement('canvas');
@@ -203,17 +203,6 @@ export function painters(images: Images, video: HTMLVideoElement): Record<string
         for (const [cx2, c] of [[900, '#2B2B2B'], [940, '#245EDC'], [980, '#D62828']] as const) { x.fillStyle = c; x.fillRect(cx2 - 14, h - 22, 28, 12); }
       }],
     },
-    // his name card on the boardroom table
-    nameCard: {
-      w: 512, h: 230,
-      frames: [(x, w, h) => {
-        white(x, w, h);
-        x.textAlign = 'center';
-        x.fillStyle = '#202124'; x.font = '700 64px Inter, system-ui, sans-serif'; x.fillText('Vansh Sood', w / 2, 112);
-        x.fillStyle = '#5F6368'; x.font = '500 38px Inter, system-ui, sans-serif'; x.fillText('Drupal Association', w / 2, 178);
-        x.textAlign = 'left';
-      }],
-    },
   };
 }
 
@@ -389,6 +378,67 @@ export const CITY_PAINT: Record<string, Paint> = {
  */
 /** The cloud deck under the aircraft: soft cumulus on a transparent sheet, drawn once, tiled by the deck's 4 km. */
 export const CLOUD_PAINT: Record<string, Paint> = {
+  /**
+   * A tall sash window of Volta's building, one pane of the wall's many: frame 0 with the light on inside (a warm room
+   * behind a blind half drawn, the glazing bars dark against it), frame 1 dark (the dusk in the glass).
+   */
+  windowPane: { w: 128, h: 192, frames: [0, 1].map((dark) => (x: Ctx, w: number, h: number) => {
+    const g = x.createLinearGradient(0, 0, 0, h);
+    if (dark) { g.addColorStop(0, '#2A3448'); g.addColorStop(0.55, '#1A2130'); g.addColorStop(1, '#10141C'); }
+    else { g.addColorStop(0, '#FFE2AC'); g.addColorStop(0.5, '#FFCB84'); g.addColorStop(1, '#E9A55C'); }
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    if (!dark) {
+      x.fillStyle = 'rgba(255,244,222,0.55)'; x.fillRect(0, 0, w, h * 0.34); // the blind, part drawn
+      x.fillStyle = 'rgba(120,70,30,0.28)'; x.fillRect(w * 0.14, h * 0.62, w * 0.3, h * 0.38); // something in the room: a shelf, a plant
+      x.beginPath(); x.ellipse(w * 0.7, h * 0.7, w * 0.12, h * 0.1, 0, 0, Math.PI * 2); x.fill();
+    } else { x.fillStyle = 'rgba(150,170,210,0.12)'; x.beginPath(); x.moveTo(0, h * 0.2); x.lineTo(w, 0); x.lineTo(w, h * 0.3); x.lineTo(0, h * 0.62); x.fill(); } // the sky in the glass
+    x.fillStyle = dark ? '#0B0D12' : '#2A1C12';
+    x.fillRect(0, 0, w, 5); x.fillRect(0, h - 5, w, 5); x.fillRect(0, 0, 5, h); x.fillRect(w - 5, 0, 5, h); // the frame
+    x.fillRect(w / 2 - 2, 0, 4, h); x.fillRect(0, h * 0.5 - 3, w, 6); // the glazing bar, the meeting rail
+  }) },
+  /**
+   * Four sprigs of leaves, 2 by 2, on clear alpha: a twig and seven or so leaves off it, each a lobed blade with its
+   * midrib, near white so the tree's own colour (the vertex's) is the leaf's. The cards of the walk's trees carry them.
+   */
+  leafSprig: { w: 512, h: 512, frames: [(x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    let seed = 4409;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    const cell = w / 2;
+    const leaf = (px: number, py: number, size: number, turn: number, light: number) => {
+      x.save(); x.translate(px, py); x.rotate(turn); x.scale(size, size);
+      // a maple's blade: three lobes either side of the tip, cut back toward the stalk
+      x.beginPath(); x.moveTo(0, 0.1);
+      const lobes: Array<[number, number]> = [[0.34, 0.0], [0.26, -0.22], [0.52, -0.36], [0.34, -0.5], [0.4, -0.78], [0.16, -0.66], [0, -1.0]];
+      for (const [lx, ly] of lobes) x.lineTo(lx, ly);
+      for (const [lx, ly] of [...lobes].reverse().slice(1)) x.lineTo(-lx, ly);
+      x.closePath();
+      const g = Math.round(255 * light);
+      x.fillStyle = `rgb(${g},${g},${g})`; x.fill();
+      x.strokeStyle = `rgba(${Math.round(g * 0.72)},${Math.round(g * 0.72)},${Math.round(g * 0.72)},0.9)`; x.lineWidth = 0.035;
+      x.beginPath(); x.moveTo(0, 0.1); x.lineTo(0, -0.92); x.moveTo(0, -0.1); x.lineTo(0.38, -0.34); x.moveTo(0, -0.1); x.lineTo(-0.38, -0.34); x.moveTo(0, -0.34); x.lineTo(0.3, -0.7); x.moveTo(0, -0.34); x.lineTo(-0.3, -0.7); x.stroke();
+      x.restore();
+    };
+    for (let k = 0; k < 4; k++) {
+      const ox = (k % 2) * cell, oy = Math.floor(k / 2) * cell;
+      x.save(); x.beginPath(); x.rect(ox + 2, oy + 2, cell - 4, cell - 4); x.clip();
+      // the twig, from the cell's foot up through it, a little bent
+      const bend = (rnd() - 0.5) * 60, x0 = ox + cell * 0.5, y0 = oy + cell * 0.97, x1 = ox + cell * 0.5 + bend, y1 = oy + cell * 0.14;
+      x.strokeStyle = 'rgb(116,100,84)'; x.lineWidth = 5; x.lineCap = 'round';
+      x.beginPath(); x.moveTo(x0, y0); x.quadraticCurveTo(x0 - bend * 0.4, (y0 + y1) / 2, x1, y1); x.stroke();
+      const n = 8 + Math.floor(rnd() * 4);
+      for (let i = 0; i < n; i++) {
+        const t = 0.12 + (i / n) * 0.88, side = i % 2 ? 1 : -1;
+        const px = x0 + (x1 - x0) * t - bend * 0.4 * (2 * t * (1 - t)), py = y0 + (y1 - y0) * t;
+        const size = cell * (0.2 + rnd() * 0.1) * (1 - t * 0.25), turn = side * (0.7 + rnd() * 0.7) + (rnd() - 0.5) * 0.3;
+        x.strokeStyle = 'rgb(116,100,84)'; x.lineWidth = 2.5;
+        x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.sin(turn) * size * 0.35, py - Math.cos(turn) * size * 0.35); x.stroke();
+        leaf(px + Math.sin(turn) * size * 0.4, py - Math.cos(turn) * size * 0.4, size, turn, 0.8 + rnd() * 0.2);
+      }
+      leaf(x1, y1 + 4, cell * 0.24, (rnd() - 0.5) * 0.5, 0.95);
+      x.restore();
+    }
+  }] },
   /** Four cumulus, 2 by 2: a cluster of soft lobes, the tops lit and the undersides shaded blue-grey, on clear alpha. Billboarded by the runtime. */
   cloudPuffs: { w: 1024, h: 1024, frames: [(x, w, h) => {
     x.clearRect(0, 0, w, h);
@@ -494,9 +544,9 @@ export function beanLogo(x: Ctx, logo: HTMLImageElement | null, cx: number, cy: 
  * seconds: a terminal with tests and a deploy running line by line, the editor with the adapt endpoint being typed,
  * the app's home scrolling through tonight's recipes, and the city's numbers with the day's signups filling in.
  */
-export function tourLive(x: Ctx, w: number, h: number, t: number, page: number, logo: HTMLImageElement | null): void {
-  // one page, the city's numbers, held: it cycled four views every eight seconds, and each cut (the terminal is black, the app white) flashed across the lower frame of the whole city walk
-  const view: number = 3, u = Math.min(1, t / 8);
+export function tourLive(x: Ctx, w: number, h: number, t: number, view: number, logo: HTMLImageElement | null): void {
+  // one view each time the laptop comes up (walk.ts LAPTOP): the editor, the terminal, the app. The numbers are out on the paving now
+  const page = 3, u = Math.min(1, t / 8);
   const mono = "13px ui-monospace, Menlo, Consolas, monospace";
   const cities = ['Vancouver', 'Toronto', 'Montréal', 'Halifax'];
   if (view === 0) { // the terminal
@@ -539,23 +589,33 @@ export function tourLive(x: Ctx, w: number, h: number, t: number, page: number, 
 
 /** Sydney, 2024: the hacker house where Bean was built, and the harbour out of its window. The logo is drawn from `images.bean` once it has loaded. */
 export const beanPaint = (images: Images): Record<string, Paint> => ({
-  /** The harbour out of the west window: the bridge's arch, the city behind, a ferry crossing; the Opera House itself is the model in front. Unlit, daylight. */
-  sydney: { w: 2048, h: 768, frames: [(x, w, h) => { // 8:3, laid over a 320 by 120 m quad
+  /**
+   * The harbour out of the west window: the bridge's arch, the city behind, a ferry crossing; the Opera House itself is
+   * the model in front. Unlit, daylight. Frames 1 and 2 carry the view on past its south and north ends (the sky, the
+   * shore, the water; the city stepping down into the trees), so the view has no end out of the south door.
+   */
+  sydney: { w: 2048, h: 768, frames: [0, 1, 2].map((kind) => (x: CanvasRenderingContext2D, w: number, h: number) => { // 8:3, laid over a 1200 by 450 m quad
     const sky = x.createLinearGradient(0, 0, 0, h * 0.62); sky.addColorStop(0, '#6BA3DA'); sky.addColorStop(0.35, '#7FB0E0'); sky.addColorStop(1, '#C9DFF0'); // the top is the set's fog colour
     x.fillStyle = sky; x.fillRect(0, 0, w, h);
     // a few high clouds
-    for (const [cx, cy, cw] of [[300, 150, 220], [900, 110, 300], [1500, 170, 260], [1900, 90, 180]]) {
+    for (const [cx, cy, cw] of [[[300, 150, 220], [900, 110, 300], [1500, 170, 260], [1900, 90, 180]], [[520, 130, 260], [1300, 160, 220]], [[700, 120, 240], [1600, 150, 280]]][kind]) {
       for (let i = 0; i < 5; i++) { const g = x.createRadialGradient(cx + (i - 2) * cw * 0.18, cy + (i % 2) * 10, 0, cx + (i - 2) * cw * 0.18, cy, cw * 0.16); g.addColorStop(0, 'rgba(255,255,255,0.95)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.beginPath(); x.arc(cx + (i - 2) * cw * 0.18, cy, cw * 0.16, 0, Math.PI * 2); x.fill(); }
     }
-    // the far shore and the city: towers behind the Quay
+    // the far shore and the city: towers behind the Quay, stepping down into the trees south of it
     x.fillStyle = '#8FA3B3';
-    for (let i = 0; i < 26; i++) { const bw = 40 + ((i * 37) % 60), bh = 60 + ((i * 53) % 170); x.fillRect(1180 + i * 34, h * 0.62 - bh, bw, bh); }
-    x.fillStyle = '#A9B9C6'; x.fillRect(0, h * 0.6, w, 6); x.fillStyle = '#6F8A6A'; x.fillRect(0, h * 0.58, 700, h * 0.04); // the north shore, wooded
+    if (kind === 0) for (let i = 0; i < 26; i++) { const bw = 40 + ((i * 37) % 60), bh = 60 + ((i * 53) % 170); x.fillRect(1180 + i * 34, h * 0.62 - bh, bw, bh); }
+    if (kind === 1) for (let i = 0; i < 20; i++) { const bw = 40 + (((i + 26) * 37) % 60), bh = (60 + (((i + 26) * 53) % 170)) * Math.max(0, 1 - i / 18) ** 1.5; x.fillRect(-16 + i * 34, h * 0.62 - bh, bw, bh); }
+    x.fillStyle = '#A9B9C6'; x.fillRect(0, h * 0.6, w, 6);
+    x.fillStyle = '#6F8A6A';
+    if (kind === 0) x.fillRect(0, h * 0.58, 700, h * 0.04); // the north shore, wooded
+    if (kind === 1) { x.beginPath(); x.moveTo(380, h * 0.62); for (let px = 380; px <= w; px += 40) x.lineTo(px, h * 0.62 - Math.min(1, (px - 380) / 300) * (h * 0.035 + 8 * Math.sin(px * 0.013) + 5 * Math.sin(px * 0.041))); x.lineTo(w, h * 0.62); x.fill(); }
+    if (kind === 2) { x.beginPath(); x.moveTo(0, h * 0.62); for (let px = 0; px <= w; px += 40) x.lineTo(px, h * 0.62 - (h * 0.035 + 8 * Math.sin(px * 0.011) + 5 * Math.sin(px * 0.037))); x.lineTo(w, h * 0.62); x.fill(); x.fillRect(w - 60, h * 0.58, 60, h * 0.04); } // into the wooded shore the view's north end has
     // the water
     const sea = x.createLinearGradient(0, h * 0.62, 0, h); sea.addColorStop(0, '#5F93B8'); sea.addColorStop(1, '#2F6489');
     x.fillStyle = sea; x.fillRect(0, h * 0.62, w, h * 0.38);
     x.strokeStyle = 'rgba(255,255,255,0.18)'; x.lineWidth = 2;
-    for (let i = 0; i < 40; i++) { const y = h * 0.64 + i * 7 + (i % 3) * 2; x.beginPath(); x.moveTo((i * 131) % w, y); x.lineTo(((i * 131) % w) + 60 + (i % 5) * 30, y); x.stroke(); }
+    for (let i = 0; i < 40; i++) { const y = h * 0.64 + i * 7 + (i % 3) * 2; x.beginPath(); x.moveTo((i * 131 + kind * 517) % w, y); x.lineTo(((i * 131 + kind * 517) % w) + 60 + (i % 5) * 30, y); x.stroke(); }
+    if (kind !== 0) return;
     // the Harbour Bridge: two pylons, the arch, the deck, hangers
     const bx0 = 260, bx1 = 1180, deck = h * 0.5, top = h * 0.14;
     x.fillStyle = '#7B7469';
@@ -568,7 +628,7 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     // a ferry crossing, green and cream
     x.fillStyle = '#F2EBD8'; x.fillRect(1500, h * 0.7, 120, 22); x.fillStyle = '#2E6B4F'; x.fillRect(1492, h * 0.7 + 22, 136, 14); x.fillStyle = '#F2EBD8'; x.fillRect(1520, h * 0.7 - 16, 70, 16);
     x.fillStyle = 'rgba(255,255,255,0.4)'; x.fillRect(1440, h * 0.7 + 38, 200, 4);
-  }] },
+  }) },
   /** The whiteboard on the north wall: how Bean works, and the week the launch was planned on. */
   whiteboardBean: { w: 1024, h: 640, frames: [(x, w, h) => {
     x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h);
@@ -788,6 +848,12 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     const iw = images.floqer.naturalWidth, ih = images.floqer.naturalHeight, k = Math.min((w - 80) / iw, (h - 80) / ih);
     x.drawImage(images.floqer, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k);
   }] },
+  /** The walk's signs (walk.ts SIGNS): the mark alone on nothing, to be cut out by its own edge; Web Summit's in its colours, the white ones white. */
+  ...Object.fromEntries(([['websummit', 1600, 168], ['elevate', 1024, 778], ['investns', 1200, 438], ['volta', 1200, 312]] as const).map(([key, w, h]) => [`sign${key[0].toUpperCase()}${key.slice(1)}`, { w, h, frames: [(x: Ctx, cw: number, ch: number) => {
+    x.clearRect(0, 0, cw, ch);
+    const img = images[key];
+    if (img) x.drawImage(img, 0, 0, cw, ch);
+  }] }])),
   logo: { w: 1000, h: 600, frames: (['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const).map((key) => (x: Ctx, w: number, h: number) => {
     const dark = key === 'elevate' || key === 'volta' || key === 'investns';
     x.fillStyle = dark ? (key === 'volta' ? '#101A2E' : key === 'investns' ? '#0E2A4A' : '#141416') : '#F7F6F2'; x.fillRect(0, 0, w, h);
@@ -799,6 +865,14 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
   /** His photos on the plaza's stands, 3:4, covering the print: Elevate (Toronto), Demo Day at Volta (Halifax). From his LinkedIn posts. */
   photo: { w: 768, h: 1024, frames: (['elevatePhoto', 'demodayPhoto'] as const).map((key) => (x: Ctx, w: number, h: number) => {
     x.fillStyle = '#2A2A2E'; x.fillRect(0, 0, w, h);
+    const img = images[key];
+    if (!img) return;
+    const k = Math.max(w / img.width, h / img.height), dw = img.width * k, dh = img.height * k;
+    x.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  }) },
+  /** His own photographs of the Google trip, June 2019, 4:3, for the frames by the door on the lawn: the award in his hands, and the sign in San Francisco. */
+  trip: { w: 1024, h: 768, frames: (['tripAward', 'tripSign'] as const).map((key) => (x: Ctx, w: number, h: number) => {
+    x.fillStyle = '#E9E6DF'; x.fillRect(0, 0, w, h);
     const img = images[key];
     if (!img) return;
     const k = Math.max(w / img.width, h / img.height), dw = img.width * k, dh = img.height * k;
@@ -889,6 +963,22 @@ export function shiftkeyLabs(x: Ctx, left: number, top: number, size: number, gr
 }
 
 export const SCREEN_PAINT: Record<string, Paint> = {
+  /** The slide on Volta's screen: the evening's name, the place and the date. Nothing else. */
+  screenDemoDay: { w: 1280, h: 720, frames: ([
+    ['Collect.', 'Demo Day', ['Volta, Halifax', 'January 15, 2026']],
+    ['Thursdays.', 'Collect. at Volta', ['with Noah and Sam', 'from a handful of builders to almost a hundred']],
+    ['Bean.', 'Number four on Product Hunt', ['Product of the Day, December 2025', '242 upvotes']],
+    ['Accelerate.', 'Invest Nova Scotia', ['one of twelve startups, one of two consumer companies', '$40k over five months']],
+  ] as Array<[string, string, string[]]>).map(([big, line, notes]) => (x: Ctx, w: number, h: number) => {
+    const g = x.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, '#0F1B33'); g.addColorStop(1, '#16294D');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#FFFFFF'; x.font = `700 150px ${SANS}`; x.fillText(big, 96, 330);
+    x.fillStyle = '#F2B84B'; x.fillRect(100, 380, 120, 8);
+    x.fillStyle = '#FFFFFF'; x.font = `500 64px ${SANS}`; x.fillText(line, 96, 480);
+    x.fillStyle = '#B9C4DA'; x.font = `400 36px ${SANS}`;
+    notes.forEach((n, i) => x.fillText(n, 96, 560 + i * 50));
+  }) },
   flightSign: { w: 920, h: 256, frames: [(x, w, h) => {
     x.fillStyle = '#142C3C'; x.fillRect(0, 0, w, h);
     x.fillStyle = '#AAC1CF'; x.font = '24px Inter, sans-serif'; x.fillText('2022  /  A NEW CHAPTER', 38, 53);

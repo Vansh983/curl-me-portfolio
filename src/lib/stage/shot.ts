@@ -2,11 +2,17 @@
 import { clamp01 } from '../lerp.ts';
 
 /** How many chapter lengths the stage runs over: the Toronto studio on chapter 0, the podium in Halifax at chapter 7, the Sydney hacker house on chapter 7, then Vancouver, Calgary, Toronto and Halifax on 8 to 11; after that the camera holds. */
-export const STAGE_SPAN = 15.6;
-/** How many chapter lengths the last card runs: the walk out of the hall through Floqer's house and home happens under it, ending just inside his front door. */
-export const LAST_SPAN = 2.6;
-/** Cards that run more than one chapter length: the Google card (3) runs two, for the plaza, the stair and the balcony. Every other card runs one; the last runs LAST_SPAN. */
-export const CARD_SPAN: Record<number, number> = { 3: 2 };
+export const STAGE_SPAN = 19.2;
+/** How many chapter lengths the last card runs: the walk out of the hall, round Floqer's house, up its stair and in at his own door happens under it. */
+export const LAST_SPAN = 4.2;
+/**
+ * Cards that run more than one chapter length: the Google card (3) runs two, for the plaza, the stair and the balcony;
+ * the tour's three (8 to 10) run five between them, a city each with room to change around the walk, Halifax's the
+ * longest: its walk, then Volta's room and the stop at Collect.'s stage. Every other card runs one; the last runs LAST_SPAN.
+ */
+export const CARD_SPAN: Record<number, number> = { 3: 2, 8: 1.5, 9: 1, 10: 2.5 };
+/** The chapter lengths the tour gained when its walk was lengthened: every key after it sits this much later. */
+export const TOUR_GAIN = 2;
 /** The chapter at which card `i` begins: the spans of the cards before it. */
 export const chapterStart = (i: number): number => { let c = 0; for (let k = 0; k < i; k++) c += CARD_SPAN[k] ?? 1; return c; };
 

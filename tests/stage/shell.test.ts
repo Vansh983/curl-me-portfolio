@@ -60,8 +60,8 @@ test('every normal points into the room and every triangle winds toward it', () 
 
 test('an inner wall has two faces cut round its door, two jambs and a lintel, all facing out of the wall', () => {
   const { walls } = buildShell({ x: [0, 4], z: [0, 4], h: 2.8, floor: 'condoFloor', wall: 'condoWall', openings: [], walls: [{ from: [2, 0], to: [2, 4], t: 0.1, doors: [{ at: 1, w: 0.8, h: 2 }] }] });
-  // the four outer walls are 4 rects (24 verts); the partition adds 2 faces x 3 rects, 2 jambs, 1 lintel = 9 rects
-  assert.equal(walls.pos.length / 3, (4 + 9) * 6);
+  // the four outer walls are 4 rects (24 verts); the partition adds 2 faces x 5 rects (one grid round the door: no rect's edge ends on another's side), 2 jambs, 1 lintel = 13 rects
+  assert.equal(walls.pos.length / 3, (4 + 13) * 6);
   // every partition vertex normal points away from x = 2 on its own side, or along z / down for the reveals
   for (let i = 24; i < walls.pos.length / 3; i++) {
     const x = walls.pos[i * 3], nx = walls.nor[i * 3], ny = walls.nor[i * 3 + 1], nz = walls.nor[i * 3 + 2];
@@ -80,4 +80,18 @@ test('a raised floor lifts the walls with it: every wall vertex lies between the
   const wy = ys(walls);
   assert.ok(Math.abs(Math.min(...wy) - house.y!) < 1e-6, `the walls start at ${Math.min(...wy)}, the floor at ${house.y}`);
   assert.ok(Math.abs(Math.max(...wy) - house.y! - house.h) < 1e-6, `the walls end at ${Math.max(...wy)}, the ceiling at ${house.y! + house.h}`);
+});
+
+test('a wall cut round a door is one grid: every corner of a rect is a corner of each rect that touches it there', () => {
+  const { walls } = buildShell({ x: [0, 4], z: [0, 3], h: 2.8, floor: 'condoFloor', wall: 'condoWall', openings: [{ wall: 'z-', at: 2, w: 1, h: 2.1 }, { wall: 'z-', at: 3.4, w: 0.6, h: 1, sill: 0.9 }] });
+  const tris: number[][][] = [];
+  for (let i = 0; i < walls.pos.length; i += 9) if (Math.abs(walls.pos[i + 2]) < 1e-9 && Math.abs(walls.pos[i + 5]) < 1e-9 && Math.abs(walls.pos[i + 8]) < 1e-9) tris.push([0, 3, 6].map((k) => [walls.pos[i + k], walls.pos[i + k + 1]]));
+  const corners = tris.flat();
+  // no corner lies strictly inside another triangle's edge (a T junction)
+  for (const [px, py] of corners) for (const t of tris) for (let e = 0; e < 3; e++) {
+    const [ax, ay] = t[e], [bx, by] = t[(e + 1) % 3];
+    if (Math.abs(ax - bx) > 1e-9 && Math.abs(ay - by) > 1e-9) continue; // the diagonal
+    const cross = (bx - ax) * (py - ay) - (by - ay) * (px - ax), along = ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / ((bx - ax) ** 2 + (by - ay) ** 2);
+    assert.ok(!(Math.abs(cross) < 1e-9 && along > 1e-6 && along < 1 - 1e-6), `a corner at ${px}, ${py} on the side of another rect`);
+  }
 });

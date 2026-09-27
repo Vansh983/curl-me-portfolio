@@ -33,20 +33,19 @@ class Bag {
   }
 }
 
-/** Splits a wall rectangle (u along the wall, v up) around its holes into solid rectangles. */
+/**
+ * Splits a wall rectangle (u along the wall, v up) around its holes into solid rectangles, on one grid: every line a
+ * hole's edge lies on runs the wall's whole length or height, so two rectangles that touch share a whole edge and
+ * its two corners. Welded, the wall is one surface: baked, one island of the lightmap, with no seam up from a door's head.
+ */
 function cut(u0: number, u1: number, h: number, holes: Rect[]): Rect[] {
-  let rects: Rect[] = [[u0, 0, u1, h]];
-  for (const [hu0, hv0, hu1, hv1] of holes) {
-    const next: Rect[] = [];
-    for (const [a0, b0, a1, b1] of rects) {
-      const ou0 = Math.max(a0, hu0), ou1 = Math.min(a1, hu1), ov0 = Math.max(b0, hv0), ov1 = Math.min(b1, hv1);
-      if (ou0 >= ou1 || ov0 >= ov1) { next.push([a0, b0, a1, b1]); continue; }
-      if (ou0 > a0) next.push([a0, b0, ou0, b1]);
-      if (ou1 < a1) next.push([ou1, b0, a1, b1]);
-      if (ov0 > b0) next.push([ou0, b0, ou1, ov0]);
-      if (ov1 < b1) next.push([ou0, ov1, ou1, b1]);
-    }
-    rects = next;
+  const inside = holes.map(([a0, b0, a1, b1]): Rect => [Math.max(u0, a0), Math.max(0, b0), Math.min(u1, a1), Math.min(h, b1)]).filter(([a0, b0, a1, b1]) => a1 > a0 && b1 > b0);
+  const lines = (ends: number[]): number[] => [...new Set(ends.map((v) => +v.toFixed(6)))].sort((a, b) => a - b);
+  const us = lines([u0, u1, ...inside.flatMap((r) => [r[0], r[2]])]), vs = lines([0, h, ...inside.flatMap((r) => [r[1], r[3]])]);
+  const rects: Rect[] = [];
+  for (let i = 0; i + 1 < us.length; i++) for (let j = 0; j + 1 < vs.length; j++) {
+    const cu = (us[i] + us[i + 1]) / 2, cv = (vs[j] + vs[j + 1]) / 2;
+    if (!inside.some(([a0, b0, a1, b1]) => cu > a0 && cu < a1 && cv > b0 && cv < b1)) rects.push([us[i], vs[j], us[i + 1], vs[j + 1]]);
   }
   return rects;
 }

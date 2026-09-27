@@ -57,20 +57,24 @@ Models and textures from [Poly Haven](https://polyhaven.com) (CC0), free models 
 - `dirty_carpet` (texture) by Rohit Seervi, CC0, https://polyhaven.com/a/dirty_carpet. the rugs.
 - `oak_veneer_01` (texture) by Jenelle van Heerden, CC0, https://polyhaven.com/a/oak_veneer_01. the shelves, the bed frame.
 - `digital_orca` (model) by Eric S. (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/97dd587e-82c6-42f6-a220-c2630c5abbf7/binaries/glb?download=true. Douglas Coupland's Digital Orca on Jack Poole Plaza, Vancouver.
-- `olympic_cauldron` (model) by jago716 (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/c53ea8331b89ba98c2b2b6308b25b538/binaries/glb?download=true. the 2010 Olympic Cauldron on Jack Poole Plaza, Vancouver.
-- `convention_centre` (model) by 3D Warehouse staff, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/cfa8cd8f4f9aba747e7220e0f528d998/binaries/glb?download=true. the Vancouver Convention Centre West, the Web Summit venue.
-- `harbour_centre` (model) by Ben (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/e6fc5c978ee2043dcea419d2523514c8/binaries/glb?download=true. Harbour Centre behind the Vancouver waterfront.
-- `ttc_streetcar` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/c80d6a2262ceefdf2764a7d5e934bdcf/binaries/glb?download=true. a TTC CLRV streetcar, Toronto.
-- `union_station` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/377e3a48a1c5298938a5357de8d99892/binaries/glb?download=true. Union Station's Front Street facade, Toronto.
-- `town_clock` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/f98e09fd1931e1eaea23ba00b3807e38/binaries/glb?download=true. the Halifax Town Clock on Citadel Hill.
-- `purdys_wharf` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/dcccf6361fcbf5baf229cc4c3c2bf3c9/binaries/glb?download=true. Purdy's Wharf on the Halifax waterfront.
-- `cn_tower` (model) by 3D Warehouse, 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/51cbd1374539b5545a688156b5408036/binaries/glb?download=true. the CN Tower across the water from the terrace, Toronto.
+- `ttc_flexity` (model) by Jacob L. (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/166ee52d5726aab3971e77ca4a254c30/binaries/glb?download=true. a TTC streetcar of today's fleet, the Flexity Outlook, on the track along the walk (joined and simplified in the cache first: its interior is modelled).
+- `town_clock` (model) by Durwin (3D Warehouse), 3DW, https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/f98e09fd1931e1eaea23ba00b3807e38/binaries/glb?download=true. the Halifax Town Clock on Citadel Hill.
+- `granite_tile` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/granite_tile. the promenade's paving in Vancouver.
+- `rectangular_paving` (texture) by Dimitrios Savva, CC0, https://polyhaven.com/a/rectangular_paving. the promenade's paving in Toronto.
+- `weathered_brown_planks` (texture) by Dimitrios Savva, CC0, https://polyhaven.com/a/weathered_brown_planks. the boardwalk in Halifax, and the boards on the Bean house.
+- `snow_02` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/snow_02. the snow in Halifax.
+- `red_brick_03` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/red_brick_03. the brick of Volta's building.
+- `bark_brown_02` (texture) by Rob Tuytel, CC0, https://polyhaven.com/a/bark_brown_02. the bark of the trees along the walk.
 - `leafy_grass` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/leafy_grass. the Googleplex lawn.
 - `concrete_pavement` (texture) by Charlotte Baglioni, CC0, https://polyhaven.com/a/concrete_pavement. the paving of the promenade.
 
-The Toronto skyline out of the condo window and Halifax under the aircraft are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).
+The skies over the tour's walk are three of Poly Haven's pure skies (CC0), cut and compressed by scripts/stage-sky.mjs into `sky/`: `vancouver` is Kloofendal 48d Partly Cloudy by Greg Zaal and Jarod Guest (https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky), `toronto` is Kloppenheim 06 by Greg Zaal and Jarod Guest (https://polyhaven.com/a/kloppenheim_06_puresky), `halifax` is Qwantani Dusk 2 by Greg Zaal and Jarod Guest (https://polyhaven.com/a/qwantani_dusk_2_puresky).
+
+The Toronto skyline out of the condo window and across the harbour from the walk, and Halifax under the aircraft and on its hill beside the walk, are built from [OpenStreetMap](https://www.openstreetmap.org/copyright) data, © OpenStreetMap contributors, ODbL (scripts/stage-city.mjs, scripts/stage-halifax.mjs).
 
 `bean-logo.png` is the Bean logo from [beanmeals.com](https://www.beanmeals.com), the company the site's author co-founded, used on the Sydney set's sign, whiteboard and screens.
 
 
 The poster in the 2010 bedroom carries the text of Apple's 1997 "Think different" campaign ("Here's to the crazy ones"), © Apple Inc., painted at runtime (src/scripts/stage-paint.ts); the portrait is `assets/scenes/jobs.jpg`.
+
+The photographs in `photos/` are the author's own: Elevate and Demo Day from his LinkedIn posts, the Google trip of June 2019 (`google-award.jpg`, `google-sign.jpg`) from his own files.
