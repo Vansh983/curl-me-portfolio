@@ -1,5 +1,29 @@
 # Portfolio journey: next-agent handoff
 
+## Start here (2026-09-27)
+
+Read [38, the playbook](docs/rebuild/38-stage-playbook.md) first: how the stage is built, the working loop, the tools, the traps. Then [37](docs/rebuild/37-nits-round-one.md) for the last round and [34](docs/rebuild/34-the-walk.md) for the walk. Everything below the line is older and partly superseded (set count, span, the tour as rooms, tool paths).
+
+- He is finishing, not building: nits, judged pixel by pixel in his own Chrome. One thing at a time, the thing he named.
+- Thirteen sets. 8 `vancouver`, 9 `toronto`, 10 `halifaxVolta` are one 60 m promenade; its script is `src/lib/stage/walk.ts`, its geometry `src/lib/stage/walk-built.ts`.
+- `STAGE_SPAN` is 19.2. Keys after the tour sit `TOUR_GAIN` (2) later; sets 11 and 12 stand `TOUR_SHIFT` (28.12 m) north by `StageSet.at`.
+- The end is walked: set 0 stands behind Floqer's stair door from chapter 15.4 (`HOME`). Google's door opens into the 2020 room, which stands in two places (`DELHI`). The dolly has two cuts: the phone's and that room's return.
+- On the walk: one number a city on the paving (`MARKS`), four marks standing on the left (`SIGNS`: Web Summit, Elevate, Invest Nova Scotia, Volta). No head turns in Halifax. Only his own figures go in.
+- Sets 8 and 9 are lit live, on purpose. The rest are baked; a baked set shows a code change only after its bake.
+- Tools are in `scripts/look/` (tracked). Older notes name `.cache/*.mjs`: same tools, earlier copies.
+- Doors: a case and a leaf cut to it, `DOORS` in sets.ts. A new door goes through `doorway()`; never place a bare leaf.
+- Local commits only. Never push. Commit when he asks.
+
+### Open
+
+- The pendant lamp hangs upside down in Sydney (set 7) and Floqer's (set 12). Fixed in the apartment only; he has not been asked.
+- What the $70k is made of.
+- The glances in Vancouver and Toronto stand; in Halifax he asked to "just walk".
+- `src/pages/story-draft.astro`: a manuscript page for discussion; its dates and Bean's status are unreviewed.
+- Light theme unchecked. The apartment's passage is a flat warm orange.
+
+---
+
 Updated 2026-09-09. Supersedes the Codex export of the same day. Read newest docs first: [27](docs/rebuild/27-sydney-hacker-house.md), [26](docs/rebuild/26-flight-rebuilt.md), [25](docs/rebuild/25-flight-auditorium-review.md), then [24](docs/rebuild/24-bean-journey-continuation.md) and [23](docs/rebuild/23-lecture-auditorium.md).
 
 ## Start here

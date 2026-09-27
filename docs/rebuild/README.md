@@ -28,6 +28,12 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [27-sydney-hacker-house.md](./27-sydney-hacker-house.md) | Chapter units for every key; out of the auditorium's right-hand door straight into Sydney: the hacker house where Bean was built |
 | [28-canada-tour.md](./28-canada-tour.md) | The Canada tour plan from his LinkedIn: Vancouver, Calgary, Toronto, Halifax with the laptop in hand; Calgary blocked on his facts |
 | [32-loading-and-deployment.md](./32-loading-and-deployment.md) | Worker-based preparation, readiness and recovery, content-hashed delivery, production audit commands and remaining device/network limits |
+| [33-walk-references.md](./33-walk-references.md) | What the best scroll-driven 3D pieces do to keep a moving camera alive: sourced examples, the tells of a cheap scene, eight moves to steal |
+| [34-the-walk.md](./34-the-walk.md) | The walk after Sydney rebuilt: one harbour promenade, three cities in their seasons, mist between them, what moves, Volta as the real room |
+| [35-tour-facts-assets.md](./35-tour-facts-assets.md) | Verified facts for Vancouver, Toronto, Montreal and Halifax (venues, dates, what a walker sees, light) and the usable models with their licences |
+| [36-google-lawn-only.md](./36-google-lawn-only.md) | Google without the boardroom: the lawn, a plain block on the left, its door opening straight into the 2020 room (one set in two places); what was removed and why |
+| [37-nits-round-one.md](./37-nits-round-one.md) | Nits, round one: the apartment smaller with grey bedding, his two Google trip photographs framed by the door on the lawn, Invest Nova Scotia's mark at the start of winter and Volta's at the end; the lamp found upside down |
+| [38-stage-playbook.md](./38-stage-playbook.md) | **Read first.** How the stage is built and how to work on it: the files, the conventions that bite, baked or live, the working loop, the tools in `scripts/look/`, the common jobs, the traps met |
 
 ## The one-paragraph verdict
 
