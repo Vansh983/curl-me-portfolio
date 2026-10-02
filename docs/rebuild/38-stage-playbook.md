@@ -21,7 +21,7 @@ For the next agent, and for the next session. Read this before touching the 3D j
 | `src/lib/stage/sets.ts` | The 13 sets: shell, light, fog, every placement. Named places (`CONDO`, `GOOGLE`, `DELHI`, `HOME`, `FLOQER`, `DOORS`) |
 | `src/lib/stage/dolly.ts` | The camera's keys and the function from `q` to a frame |
 | `src/lib/stage/walk.ts` | The walk's script: light by chapter, `MARKS`, `SIGNS`, `LAPTOP`, movers |
-| `src/lib/stage/built.ts`, `walk-built.ts`, `door-built.ts` | Every code-built prop, by name (`BUILT`) |
+| `src/lib/stage/built.ts`, `walk-built.ts`, `door-built.ts`, `house-built.ts` | Every code-built prop, by name (`BUILT`) |
 | `src/lib/stage/crowd.ts` | Who stands where in the hall; the runtime draws them as cards (`buildCrowd`) |
 | `src/lib/stage/shell.ts` | A room's floor, walls and ceiling with holes cut for doors and windows |
 | `src/lib/stage/materials.ts` | Every material by name (`MATS`) |
@@ -114,6 +114,7 @@ Dev server up. Do not run `npm run check` or `build` while the export step start
 | `photos.mjs <dir>` | Cuts his photographs to 4:3, strips EXIF |
 | `collect.mjs` | Makes the slide on Volta's wall from Collect.'s banner and wordmark and Socratica's marks |
 | `burst.mjs <out> <chapter> [x y w h] [gap] [n]` | A few frames a moment apart, side by side: what moves |
+| `scripts/stage-skyline.mjs`, `scripts/stage-crowd.mjs` | Remake the Toronto skyline strip; the crowd's atlases |
 | `crop.mjs` | Enlarges part of a frame |
 
 URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,smaa`, `&tm=`, `&set=i&cam=...`, `&export=i`.
@@ -154,6 +155,8 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | A slide made up for a real event | Volta's screen said "Collect. Demo Day" in a navy template: "collect poster needs to be better" | Find the event's own artwork first (its public page), and build the slide from it |
 | A real place built from memory | Volta was a white box with a coffee counter: "it doesn't seem like Volta... everything just looks kind of fake" | Collect photographs of the place first (`docs/rebuild/ref/`), list what makes it read as itself, build that (doc 40, 41) |
 | People as rigged game figures | 72 copies of one mannequin in a wide stance: "the people underneath don't [look fine]" | A crowd is cards cut from renders of real figures, dense, in rows, lit by the room (`crowd.ts`, `stage-crowd.mjs`, doc 39) |
+| A city of coded boxes out of a window | Every block one grid, the CN Tower a stick behind them: "it doesn't seem like Toronto" | A real photograph of the skyline on a curved wall far out (`buildSkyline`, `stage-skyline.mjs`), real-looking streets and blocks built in front of it, the landmark where he looks |
+| Things placed by rule, not by use | Monitors stood face to face, each chair looking at a back; the T's stem stopped short of its bar | Stand at each seat (a `pin.mjs` frame) and look: the screen must face it |
 | A model placed unseen | A BlenderKit chair came without textures, black and faceted | Render each new model in Blender before placing it; `map: false` in its `skin` when the texture is missing |
 | Big lamps overhead | Ring lights two metres across bloomed a pale veil over a black ceiling | Draw them dimmer than they light the bake (`bakePower`); a matt black takes `env: 0.04` |
 | A window view that the walk would see | Changing the world outside a room also changes the walk | Swap it only while the building fills the frame (`indoor` placements), and prove it with rays |
@@ -172,6 +175,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Doc | Subject |
 |---|---|
 | 39, 40, 41 | The crowd's research, Volta's photographs and what they show, the room and the hall rebuilt from them |
+| 42, 43, 44 | Toronto's view researched, the real hacker house's photographs, and the degree, the house and the view rebuilt |
 | 34 | The walk, rounds one to five |
 | 36 | Google without the boardroom |
 | 37 | Nits, round one: apartment, photographs, marks, the lamp, the passage |

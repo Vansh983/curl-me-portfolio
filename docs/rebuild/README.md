@@ -37,6 +37,9 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [39-crowd-research.md](./39-crowd-research.md) | How crowds are made to read as natural (games, film, the web), why the hall's did not, the assets and their licences, the pipeline chosen |
 | [40-volta-interior-reference.md](./40-volta-interior-reference.md) | What Volta's floor really looks like, from 25 photographs in `ref/volta/`: what makes a room read as Volta, surfaces, furniture, signs; Collect.'s and Socratica's marks |
 | [41-volta-floor-and-the-hall.md](./41-volta-floor-and-the-hall.md) | Volta rebuilt as the coworking floor it is, Collect.'s slide with Socratica's mark, and the hall's crowd as a full house of rendered people |
+| [42-toronto-view-research.md](./42-toronto-view-research.md) | Why the view out of Floqer's windows did not read as Toronto, what does, how window views are made, the photographs and data with their licences |
+| [43-hacker-house-reference.md](./43-hacker-house-reference.md) | Floqer's real house from 16 photographs, other hacker houses, what makes a room read as one, free models for it |
+| [44-degree-floqer-house-toronto.md](./44-degree-floqer-house-toronto.md) | The degree as Dalhousie's parchment, crumpled and binned; the house's details from its photographs; a real skyline with Old Town built in front of it |
 
 ## The one-paragraph verdict
 
