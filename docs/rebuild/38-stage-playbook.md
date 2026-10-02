@@ -22,6 +22,7 @@ For the next agent, and for the next session. Read this before touching the 3D j
 | `src/lib/stage/dolly.ts` | The camera's keys and the function from `q` to a frame |
 | `src/lib/stage/walk.ts` | The walk's script: light by chapter, `MARKS`, `SIGNS`, `LAPTOP`, movers |
 | `src/lib/stage/built.ts`, `walk-built.ts`, `door-built.ts` | Every code-built prop, by name (`BUILT`) |
+| `src/lib/stage/crowd.ts` | Who stands where in the hall; the runtime draws them as cards (`buildCrowd`) |
 | `src/lib/stage/shell.ts` | A room's floor, walls and ceiling with holes cut for doors and windows |
 | `src/lib/stage/materials.ts` | Every material by name (`MATS`) |
 | `src/lib/stage/assets.ts` | Every downloaded model and texture, its licence, its `skin` |
@@ -43,8 +44,8 @@ For the next agent, and for the next session. Read this before touching the 3D j
 | 6 | halifax | Dalhousie auditorium | baked |
 | 7 | sydney | Bean's hacker house | baked |
 | 8, 9 | vancouver, toronto | The walk. Light changes by chapter | live, on purpose |
-| 10 | halifaxVolta | The walk's end and Volta's room on the eighth floor | baked, own panorama |
-| 11 | convocation | The stage and the degree | baked |
+| 10 | halifaxVolta | The walk's end and Volta's coworking floor | baked, own panorama |
+| 11 | convocation | The stage and the degree; the crowd is live cards | baked |
 | 12 | floqer | Floqer's house, the stair home | baked, own panorama |
 
 ## Conventions that bite
@@ -108,8 +109,11 @@ Dev server up. Do not run `npm run check` or `build` while the export step start
 | `seams.mjs <dir> [step]` | Where the picture jumps between frames |
 | `perf.mjs <from> <to> <steps>` | Frame rate through a stretch |
 | `glb.mjs <files>` | A model's bounds, materials, nodes. Run it before placing any model |
+| `rays.mjs <chapter> <x,y...>` | What the eye hits through screen points: names a stray shape, shows what lies beyond a window |
 | `poster.mjs` | Remakes the opening picture |
 | `photos.mjs <dir>` | Cuts his photographs to 4:3, strips EXIF |
+| `collect.mjs` | Makes the slide on Volta's wall from Collect.'s banner and wordmark and Socratica's marks |
+| `burst.mjs <out> <chapter> [x y w h] [gap] [n]` | A few frames a moment apart, side by side: what moves |
 | `crop.mjs` | Enlarges part of a frame |
 
 URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,smaa`, `&tm=`, `&set=i&cam=...`, `&export=i`.
@@ -120,6 +124,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 |---|---|
 | Resize a room | Give it a named constant (`CONDO`). Derive shell, props and builders from it. Keep the walls that carry doors to other sets. Re-key the camera's first and last frames. Rebake. `void.mjs` |
 | Recolour a model | `glb.mjs` for material names, `skin` in `assets.ts`, rebake |
+| Change what a window shows | A view builder like `voltaView` or `torontoView`, live `city`; if the world there is the walk's, swap with `indoor: 'in'/'out'` at a chapter when the window's side is out of frame |
 | Hang his photograph | Real file, 4:3, no EXIF, in `photos/`. Image key in `Images`, a paint frame, a builder, a placement, the builder's name in `CONTEXT_PROP` (both lists). Credit line in `stage-assets.mjs` |
 | Add or move a mark on the walk | `SIGNS` in `walk.ts`. Then `marks.mjs`: clear of the card, nothing across it, no overlap with the next. Trees keep 4.5 m before a mark and 2.4 m after |
 | Add a door | `DOORS` entry, `doorway()`. Leaf open before the camera reaches the jamb |
@@ -141,6 +146,17 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Removing a thing, then its ground | The boardroom went, then the block too: "now it is empty" | Take out the thing he named, leave what stood round it |
 | Counting animations on honours | A place or a sum caught mid-count reads as a wrong claim | `still: true` |
 | Extra keys for a glance | Pace wobbled 20 percent | Use the even keys |
+| Faking height by moving the world | The walk sank 26 m under Volta as he walked in; he found it weird and Halifax unrecognisable from above | Keep the world still; rooms on the level he walked |
+| A new window onto a hidden set | Volta's side window looked into the hall once the hall was drawn | Before adding a window, cast rays from every camera position through it (`scripts/look/rays.mjs`) |
+| Weather that follows the eye | Snow fell inside rooms on the walk | `stage-weather.ts` keeps it out of Volta's room and the wing |
+| A backdrop that never showed | A `live: 'city'` prop in a baked set was skipped both by the bake and by the runtime | `pieceIsLive` counts 'city'; for a new backdrop, look at it before anything else |
+| A city across a field | Real blocks laid out as the map has them left open snow between the glass and the town: "too much snow, buildings need to be closer" | A window onto a city is a street: sidewalk, road, far sidewalk, a solid front row (`streetAlong`, `frontRow`) |
+| A slide made up for a real event | Volta's screen said "Collect. Demo Day" in a navy template: "collect poster needs to be better" | Find the event's own artwork first (its public page), and build the slide from it |
+| A real place built from memory | Volta was a white box with a coffee counter: "it doesn't seem like Volta... everything just looks kind of fake" | Collect photographs of the place first (`docs/rebuild/ref/`), list what makes it read as itself, build that (doc 40, 41) |
+| People as rigged game figures | 72 copies of one mannequin in a wide stance: "the people underneath don't [look fine]" | A crowd is cards cut from renders of real figures, dense, in rows, lit by the room (`crowd.ts`, `stage-crowd.mjs`, doc 39) |
+| A model placed unseen | A BlenderKit chair came without textures, black and faceted | Render each new model in Blender before placing it; `map: false` in its `skin` when the texture is missing |
+| Big lamps overhead | Ring lights two metres across bloomed a pale veil over a black ceiling | Draw them dimmer than they light the bake (`bakePower`); a matt black takes `env: 0.04` |
+| A window view that the walk would see | Changing the world outside a room also changes the walk | Swap it only while the building fills the frame (`indoor` placements), and prove it with rays |
 
 ## His standing rules
 
@@ -155,6 +171,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 
 | Doc | Subject |
 |---|---|
+| 39, 40, 41 | The crowd's research, Volta's photographs and what they show, the room and the hall rebuilt from them |
 | 34 | The walk, rounds one to five |
 | 36 | Google without the boardroom |
 | 37 | Nits, round one: apartment, photographs, marks, the lamp, the passage |

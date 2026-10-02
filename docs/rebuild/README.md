@@ -34,6 +34,9 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [36-google-lawn-only.md](./36-google-lawn-only.md) | Google without the boardroom: the lawn, a plain block on the left, its door opening straight into the 2020 room (one set in two places); what was removed and why |
 | [37-nits-round-one.md](./37-nits-round-one.md) | Nits, round one: the apartment smaller with grey bedding, his two Google trip photographs framed by the door on the lawn, Invest Nova Scotia's mark at the start of winter and Volta's at the end; the lamp found upside down |
 | [38-stage-playbook.md](./38-stage-playbook.md) | **Read first.** How the stage is built and how to work on it: the files, the conventions that bite, baked or live, the working loop, the tools in `scripts/look/`, the common jobs, the traps met |
+| [39-crowd-research.md](./39-crowd-research.md) | How crowds are made to read as natural (games, film, the web), why the hall's did not, the assets and their licences, the pipeline chosen |
+| [40-volta-interior-reference.md](./40-volta-interior-reference.md) | What Volta's floor really looks like, from 25 photographs in `ref/volta/`: what makes a room read as Volta, surfaces, furniture, signs; Collect.'s and Socratica's marks |
+| [41-volta-floor-and-the-hall.md](./41-volta-floor-and-the-hall.md) | Volta rebuilt as the coworking floor it is, Collect.'s slide with Socratica's mark, and the hall's crowd as a full house of rendered people |
 
 ## The one-paragraph verdict
 

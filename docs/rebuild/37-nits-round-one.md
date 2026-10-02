@@ -64,9 +64,79 @@ Mid-turn he added: "there is a bench hiding web summit, remove that. and i dont 
 - The marks do not stand in one line (x -5.3, -5.55, -6.0, -6.4), so seen from far down the walk each is clear of the next. Elevate's stays clear of the streetcar's side.
 - From far off a bare trunk or a bench's back still crosses a mark that is 60 to 130 px wide on the screen. Not while it is read.
 
+## Volta stays on the ground (the same day, after the commit)
+
+His words: "there is no need to bring things from the top in volta that looks weird, just keep it stable and halifax is not obvious outside just have the halifax harbour and buildings etc just keep it the same as it was outside before walking s it seems the same".
+
+- The rise is gone (`RISE`, `riseAt`, `WALK.volta.up`). The room is on the walk's level; nothing outside moves as he goes in.
+- What the windows show is what the walk showed: the harbour, Georges Island, the ferry and the Macdonald Bridge through the leaning glass; the town on its hill through the side window.
+- The building is unchanged. Its faces are one-sided, so from inside the room they are not there and the windows look straight out.
+- The door off the walk still shuts behind him (`VOLTA_SHUT`, chapters 12.94 to 13.08).
+
+### Found on the way
+
+- Snow fell inside the room while he stood in the door (the flakes are a box of air that goes with the eye). Now nothing falls in the room, and the snow keeps falling outside the glass while he is in it, as it did on the walk. Nothing falls in the wing or the hall; once through the north door the weather stays behind (`stage-weather.ts`).
+- The flakes keep the dusk's colour indoors, not the room's.
+- From the ground, the side window looked into the hall of the next chapter from chapter 13.7, when the hall is drawn: a black box with steps and a figure in it. The hall stands east of the wing, from z 52. The window now runs z 45.6 to 50.0 (was 46.2 to 51.4), so no line from where he stands through it reaches the hall. Checked by rays from the camera (`scripts/look/rays.mjs`).
+- Set 10 rebaked with its panorama.
+
+## Halifax out of Volta's glass (2026-09-28)
+
+His words: "The window outside Volta still seems very weird. Why don't you just put the city of Halifax there? I don't want to see Peggy's Cove or anything or any water there. Just the city of Halifax, just like it was earlier. Just put that outside. The bridge in the back and all".
+
+- "Peggy's Cove": Georges Island, a white mound with a lighthouse on it, seen across the water.
+- The big glass now shows the city: the walk's own town (the real blocks round the Maritime Centre, `halifaxWalk`), turned half round so it stands across the snow from the glass as it stood from the walk, on a lower hill (26 m, not 46), taking blocks up to 1.3 km out (the walk takes 750 m) so the city runs on into the fog.
+- Nine bare trees on the snow in front of it.
+- The Macdonald Bridge stands behind the town, 1.15 km out, its deck along the roofs, towers and cables above them. No block that would stand across a tower or the cables from the room is built.
+- No water shows: snow runs from the building's foot out past the fog.
+- `voltaView` in `walk-built.ts`, `VOLTA_VIEW` and `voltaViewBridge` in `walk.ts`.
+- It stands there from chapter 12.62, when Volta's front fills the frame; the walk's bridge, Georges Island and the ferry are gone from then on (`indoor: 'in' | 'out'` on a placement). Checked by rays: from 12.5 to the door, nothing west of the building is in view, so the change is never seen.
+- The side window still shows the walk's town itself.
+- Frame rate in the room 60 to 63, no hitch at 12.62. No rebake: the view is built at runtime.
+
+### Found on the way
+
+- A prop with `live: 'city'` in a baked set was neither baked (the bake drops 'city') nor built at runtime (only named backdrops were): the first view never showed. `pieceIsLive` in `bake.ts` now counts 'city' as live.
+
+## Halifax as a street (2026-09-28, later)
+
+His words: "halifax is not good, i see too much snow on the floor, buildings need to be closer".
+
+- Out of the big glass now: a sidewalk, a plowed road with banks of snow along both kerbs, the far sidewalk with bare street trees every 13 m, and the city across it, its front row at about 17 m from the glass (was 60 m and more across a field of snow).
+- The front row: the walk's town (real blocks) where they reach the street, and blocks of three to six storeys filling the street's far side where the real ones leave it open. Kept clear of the town's own streets, which run back from it plowed.
+- The ground between the town's blocks is grey (lots and yards trodden and plowed), not white. The sidewalks are wet concrete, darker than the banks.
+- The bridge stands end-on at the back, 1.2 km out, between the blocks (a narrower gap is cut for it: 1.5 degrees either side of its towers).
+- The side window has the same street: sidewalk, road over the walk's lawn and the streetcar's rails, far sidewalk, a front row of blocks. The walk's trees that would stand in it are hidden from the swap on.
+- The swap moved to chapter 12.68 (was 12.62): at 12.62 two rays reached the side street's sidewalk from outside. From 12.66 on, nothing of either view is reachable from outside before the door opens (`.cache/view-seen.mjs`).
+- The side window still never reaches the hall (`.cache/window-sees.mjs`, 0 of every ray, 13.7 to 13.98).
+- Frame rate 60 to 63 through the room. Gap audit: nothing unbuilt; the magenta is the sky only.
+- Helpers: `streetAlong` and `frontRow` in `walk-built.ts`; `street`, `east`, `eastRow` in `VOLTA_VIEW`.
+
 ## Open
 
 - The lamps in Sydney and Floqer's.
+- The view's city is the walk's town turned round: through the glass and the side window the same real blocks show, from opposite sides.
 - What the $70k is made of. It lies between the two marks; neither is claimed as its source.
 - The glances in Vancouver and Toronto are as they were. If "just walk" was meant for the whole walk, they go too.
 - The opening picture shown while the stage loads (`public/assets/stage/preview.webp`) was the old room; remade with `scripts/look/poster.mjs`.
+
+## Collect.'s poster on Volta's screen (2026-10-01)
+
+Superseded the next day: he did not want Demo Day there at all. See `41-volta-floor-and-the-hall.md`.
+
+His words: "collect poster needs to be better".
+
+- It was a navy slide in Helvetica with a yellow rule: "Collect. Demo Day", made up.
+- Now the real poster: "Demo Day." in white on its black ground, Collect.'s computer and Volta builders along the foot, as printed for the evening. From the event's public page (luma.com/7fw81j31; he is one of its hosts).
+- The poster is square and the screen 16:9: it stands whole on the left, its ground carried on to the right with Collect.'s wordmark (off its banner, in white), the date and the place.
+- The three slides after it (Thursdays, Bean, Accelerate) are on the same ground with the same marks, the big word in the poster's size, Inter 800. Their words are unchanged.
+- `scripts/look/collect.mjs` makes `public/assets/stage/collect/demoday.webp` and `ground.webp`; `screenDemoDay` moved into `beanPaint` in `stage-paint.ts` (it draws images now).
+- No rebake: the screen is live.
+- Seen headless only (12.9 to 13.36). His Chrome's tab was hidden and the stage would not load in it.
+
+### Read in the room, not changed
+
+- The front wall is white; in his Demo Day photograph it is brown and the slide is thrown straight on it.
+- The screen is small from the door (he asked for it narrower on 2026-09-27).
+- The side window is a dark wall with a few lit squares, close.
+- The ceiling reads white at the door and black from 13.2 on.
