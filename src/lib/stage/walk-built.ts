@@ -3,7 +3,7 @@
 // harbour is toward -x, on the right of the walk; the land toward +x, on the left.
 import { Sink, tube, type V3 } from './rig.ts';
 import { piece, M, type Built, type BuiltPart } from './part.ts';
-import { WALK, STRETCH, TRACK, SIGNS } from './walk.ts';
+import { WALK, STRETCH, TRACK, SIGNS, VOLTA_VIEW, VOLTA_LINES, VOLTA_PROJECTOR, VOLTA_RECEPTION, voltaViewBridge } from './walk.ts';
 import { CITY, cnTower, ringOf } from './city.ts';
 import { HALIFAX } from './halifax.ts';
 import { rng, obb, hipRoof } from './dalhousie.ts';
@@ -16,7 +16,7 @@ const STEP = V0 - 1.5; // where the quay steps out west to carry Volta's glass w
 /** The Bean house's footprint from outside, a wall's thickness beyond the room's. */
 const HOUSE = { x0: -7.52, x1: -1.28, z0: -18.32, z1: -13.08, h: 3.05 };
 /** Volta's building: over the room and on to the east and north of it, four floors. */
-export const BLOCK = { x0: VX0 - 0.2, x1: -5.3, z0: V0 - 0.25, z1: V1 + 2.0, h: 26.4, top: 22.9 }; // eight storeys, the eighth (from `top`) Volta's; its east wall clear of the streetcar's track
+export const BLOCK = { x0: VX0 - 0.2, x1: -5.3, z0: V0 - 0.25, z1: V1 + 2.0, h: 26.4, top: 22.9 }; // eight storeys, the eighth (from `top`) glass; its east wall clear of the streetcar's track
 
 const hex3 = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')).join('');
 const mixc = (a: number[], b: number[], t: number): number[] => a.map((v, i) => v + (b[i] - v) * t);
@@ -81,6 +81,39 @@ function drift(sink: Sink, a: V3, b: V3, r: number, h: number): void {
     }
   }
   sink.translate(0, a[1], 0, start);
+}
+
+/** A quad lying flat, turned to face up whichever way round its corners are given. */
+function flatUp(sink: Sink, a: V3, b: V3, c: V3, d: V3): void {
+  const up = (b[2] - a[2]) * (d[0] - a[0]) - (b[0] - a[0]) * (d[2] - a[2]);
+  if (up > 0) sink.quad(a, b, c, d); else sink.quad(b, a, d, c);
+}
+/**
+ * A street along z out of one of Volta's windows (walk.ts VOLTA_VIEW): the sidewalk from the window's line `e0` to the
+ * near kerb `e1`, the road to the far kerb `e2`, the far sidewalk to `e3`, from z0 to z1; the road at `y`, the sidewalks
+ * a kerb's height over it; the banks of snow the plough leaves along both kerbs, broken now and then.
+ */
+function streetAlong(walk: Sink, road: Sink, kerb: Sink, bank: Sink, [e0, e1, e2, e3]: readonly number[], z0: number, z1: number, y: number, rnd: () => number): void {
+  const k = 0.12, flat = (sk: Sink, xa: number, xb: number, yy: number) => flatUp(sk, [xa, yy, z1], [xb, yy, z1], [xb, yy, z0], [xa, yy, z0]);
+  flat(walk, e0, e1, y + k); flat(road, e1, e2, y); flat(walk, e2, e3, y + k);
+  for (const x of [e1, e2]) kerb.box(x, y + k / 2 + 0.01, (z0 + z1) / 2, 0.16, k + 0.02, z1 - z0);
+  const into = Math.sign(e2 - e1); // from the near kerb toward the far
+  for (const [x, side] of [[e1 + into * 0.55, -into], [e2 - into * 0.55, into]] as Array<[number, number]>) {
+    for (let z = z0; z < z1; z += 26 + rnd() * 14) drift(bank, [x + side * 0.05, y, z], [x, y, z + 14 + rnd() * 8], 0.55, 0.42);
+  }
+}
+/**
+ * A front row of blocks along the far sidewalk of such a street: three to six storeys, each 11 to 26 m along the
+ * street and 14 to 26 deep, its face `front` (x) set back a little and running away from the window by `dir`, from z0
+ * to z1; a block goes up only where `ok` says its box is clear. `block` builds it.
+ */
+function frontRow(front: number, dir: 1 | -1, z0: number, z1: number, rnd: () => number, ok: (x0: number, za: number, x1: number, zb: number, h: number) => boolean, block: (ring: Array<[number, number]>, h: number, g: number) => void): void {
+  for (let z = z0; z < z1;) {
+    const w = 11 + rnd() * 15, d = 14 + rnd() * 12, h = 9 + Math.floor(rnd() * 5) * 3, xf = front + dir * (0.8 + rnd() * 1.2), xb = xf + dir * d;
+    const [x0, x1] = [Math.min(xf, xb), Math.max(xf, xb)], ring: Array<[number, number]> = dir < 0 ? [[x1, z], [x1, z + w], [x0, z + w], [x0, z]] : [[x0, z + w], [x0, z], [x1, z], [x1, z + w]];
+    if (ok(x0, z, x1, z + w, h)) block(ring, h, 0.45 + rnd() * 0.45);
+    z += w + (rnd() < 0.25 ? 3 + rnd() * 4 : 0.4);
+  }
 }
 
 /**
@@ -298,8 +331,9 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
   orcaPlinth: () => [piece(new Sink().rbox(0, 0.16, 0, 3.6, 0.32, 2.6, 0.03, 2).out(), M('walkGranite'), { smooth: true, metres: 'xz' })],
   /**
    * Volta's building from the walk, world coordinates: brick, eight storeys, a window every 3.2 m in a stone surround
-   * (lit or not), dark glass either side of the door at the foot, a steel canopy over the door; the eighth storey,
-   * Volta's, all glass leaning in under the roof, lit. The room inside is its own set, and stands on that floor.
+   * (lit or not), dark glass either side of the door at the foot, a steel canopy over the door; the eighth storey all
+   * glass leaning in under the roof, lit. The room inside is its own set, behind the door on the walk's level: the
+   * faces are one-sided, so from inside it they are not there and its windows look out on the harbour and the town.
    */
   voltaBlock: () => {
     const brick = new Sink(), brickZ = new Sink(), trim = new Sink(), lit = new Sink(), dark = new Sink(), cap = new Sink(), steel = new Sink(), sill = new Sink(), rnd = rng(1871);
@@ -351,72 +385,131 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
       piece(cap.out(), M('houseRoof')), piece(steel.out(), M('windowFrame')), piece(dark.out(), { paint: 'windowPane:1' }), piece(lit.out(), { paint: 'windowPane:0' })];
   },
   /**
-   * Volta's glass, world coordinates. The harbour side: three bays 4 m wide between steel mullions, from the floor to
-   * the slab, leaning in at the head (WALK.volta.lean) the way a top storey's glass does. The window on downtown in
-   * the east wall (WALK.volta.east), upright in its frame.
+   * Volta's glass, world coordinates (docs/rebuild/40-volta-interior-reference.md). The harbour side: glass from the
+   * floor to the slab, leaning in at the head (WALK.volta.lean), a white mullion every 1.5 m, a white radiator sill
+   * along its foot, a black bulkhead over its head with a line of light under it. The window in the east wall
+   * (WALK.volta.east), upright in a dark frame.
    */
   voltaGlass: () => {
-    const mull = new Sink(), glass = new Sink(), L = WALK.volta.lean, top = VH - 0.06, x = VX0, xt = VX0 + L, [e0, e1] = WALK.volta.east, xe = VX1 + 0.04;
-    mull.box(x, 0.03, (V0 + V1) / 2, 0.1, 0.06, V1 - V0).box(xt, VH - 0.04, (V0 + V1) / 2, 0.1, 0.08, V1 - V0);
-    for (const z of [V0 + 0.03, V0 + 4, V0 + 8, V1 - 0.03]) mull.bone([x, 0.06, z], [xt, top, z], 0.035, 0.035);
+    const white = new Sink(), frame = new Sink(), glass = new Sink(), dark = new Sink(), light = new Sink();
+    const L = WALK.volta.lean, top = VH - 0.06, x = VX0, xt = VX0 + L, [e0, e1] = WALK.volta.east, xe = VX1 + 0.04, zc = (V0 + V1) / 2;
+    white.box(x, 0.03, zc, 0.1, 0.06, V1 - V0).box(xt, VH - 0.04, zc, 0.1, 0.08, V1 - V0);
+    for (let k = 0; k <= 8; k++) { const z = V0 + 0.03 + ((V1 - V0 - 0.06) * k) / 8; white.bone([x, 0.06, z], [xt, top, z], 0.04, 0.04); }
     glass.quad([x, 0.06, V0], [x, 0.06, V1], [xt, top, V1], [xt, top, V0]).quad([x, 0.06, V1], [x, 0.06, V0], [xt, top, V0], [xt, top, V1]);
-    mull.box(xe, 0.8, (e0 + e1) / 2, 0.08, 0.06, e1 - e0).box(xe, 3.1, (e0 + e1) / 2, 0.08, 0.06, e1 - e0);
-    for (const z of [e0, (e0 * 2 + e1) / 3, (e0 + e1 * 2) / 3, e1]) mull.box(xe, 1.95, z, 0.08, 2.3, 0.05);
+    white.rbox(x + 0.26, 0.3, zc, 0.36, 0.6, V1 - V0 - 0.1, 0.012, 1); // the sill: the radiators' cover, knee high
+    for (let z = V0 + 0.45; z < V1 - 0.3; z += 0.75) dark.box(x + 0.27, 0.603, z, 0.2, 0.006, 0.56); // its grilles
+    dark.box(xt + 0.3, 3.05, zc, 0.56, 0.7, V1 - V0 - 0.02); // the bulkhead over the glass
+    light.box(xt + 0.42, 2.693, zc, 0.045, 0.012, V1 - V0 - 1.2); // the line of light along the window
+    frame.box(xe, 0.8, (e0 + e1) / 2, 0.08, 0.06, e1 - e0).box(xe, 3.1, (e0 + e1) / 2, 0.08, 0.06, e1 - e0);
+    for (const z of [e0, (e0 * 2 + e1) / 3, (e0 + e1 * 2) / 3, e1]) frame.box(xe, 1.95, z, 0.08, 2.3, 0.05);
     glass.quad([xe, 0.8, e1], [xe, 0.8, e0], [xe, 3.1, e0], [xe, 3.1, e1]).quad([xe, 0.8, e0], [xe, 0.8, e1], [xe, 3.1, e1], [xe, 3.1, e0]);
-    return [piece(mull.out(), M('windowFrame')), piece(glass.out(), M('cabinGlass'))];
+    return [piece(white.out(), M('voltaWhite'), { smooth: true }), piece(frame.out(), M('windowFrame')), piece(dark.out(), M('voltaBlack')), piece(light.out(), M('stripLight')), piece(glass.out(), M('cabinGlass'))];
   },
   /**
    * Volta's ceiling, world coordinates: open to the slab and painted black the way the real one is, two runs of duct
-   * and a cable tray under it, and long white strips of light across the room (`stripLight`).
+   * and a cable tray under it; slim black linear lights hung at loose angles, their undersides white; the projector on
+   * its pole, facing the north wall.
    */
   voltaCeiling: () => {
-    const duct = new Sink(), light = new Sink(), tray = new Sink(), y = VH;
+    const duct = new Sink(), light = new Sink(), tray = new Sink(), body = new Sink(), white = new Sink(), y = VH;
     for (const x of [-9.2, -14.4]) {
       const n = duct.count;
       duct.cylinder(0, 0, 0, 0.2, V1 - V0 - 0.6, 18).rotateX(0, 0, Math.PI / 2, n).translate(x, y - 0.34, (V0 + V1) / 2, n);
       for (let z = V0 + 1.2; z < V1 - 0.5; z += 2.2) duct.box(x, y - 0.1, z, 0.06, 0.2, 0.03); // its hangers
     }
     tray.box(-12.0, y - 0.22, (V0 + V1) / 2, 0.3, 0.04, V1 - V0 - 0.4).box(-12.15, y - 0.17, (V0 + V1) / 2, 0.02, 0.1, V1 - V0 - 0.4).box(-11.85, y - 0.17, (V0 + V1) / 2, 0.02, 0.1, V1 - V0 - 0.4);
-    for (let z = V0 + 1.5; z < V1 - 0.6; z += 2.1) {
-      light.box((VX0 + VX1) / 2 - 0.4, y - 0.62, z, VX1 - VX0 - 2.4, 0.035, 0.07);
-      for (const x of [VX0 + 1.6, (VX0 + VX1) / 2 - 0.4, VX1 - 2.4]) tray.box(x, y - 0.31, z, 0.008, 0.6, 0.008); // the wires it hangs by
+    for (const [lx, lz, turn, len] of VOLTA_LINES) {
+      const a = body.count, b = light.count, c = tray.count, r = (turn * Math.PI) / 180;
+      body.box(0, 0, 0, len, 0.06, 0.07); light.box(0, -0.034, 0, len - 0.04, 0.008, 0.048);
+      for (const s of [-1, 1]) tray.box((s * len) / 2.6, 0.27, 0, 0.006, 0.5, 0.006); // the wires it hangs by
+      body.rotateY(0, 0, r, a).translate(lx, y - 0.56, lz, a); light.rotateY(0, 0, r, b).translate(lx, y - 0.56, lz, b); tray.rotateY(0, 0, r, c).translate(lx, y - 0.56, lz, c);
     }
-    return [piece(duct.out(), M('voltaDuct'), { smooth: true }), piece(tray.out(), M('voltaDuct')), piece(light.out(), M('stripLight'))];
+    const [px, pz] = VOLTA_PROJECTOR;
+    white.rbox(px, y - 0.52, pz, 0.36, 0.13, 0.3, 0.02, 2); tray.box(px, y - 0.23, pz, 0.04, 0.46, 0.04); body.cylinder(px + 0.08, y - 0.52, pz + 0.155, 0.035, 0.02, 14).rotateX(y - 0.52, pz + 0.155, Math.PI / 2, body.count - 14 * 12);
+    return [piece(duct.out(), M('voltaDuct'), { smooth: true }), piece(tray.out(), M('voltaDuct')), piece(body.out(), M('voltaBlack')), piece(white.out(), M('voltaWhite'), { smooth: true }), piece(light.out(), M('stripLight'))];
   },
-  /** A column of Volta's floor: square, white, floor to slab. At the origin. */
-  voltaColumn: () => [piece(new Sink().rbox(0, VH / 2, 0, 0.42, VH, 0.42, 0.015, 1).out(), M('voltaWall'), { smooth: true, metres: 'xy' })],
-  /** A ring pendant: a hoop of warm light 1.3 m across on three wires, hung from the origin (the slab). */
+  /** A column of Volta's floor: square, 0.6 m, white, floor to slab, a grey foot; a red fire bell and a small black speaker high on its +x face. At the origin. */
+  voltaColumn: () => {
+    const bell = new Sink().cylinder(0, 0, 0, 0.075, 0.05, 20).rotateZ(0, 0, Math.PI / 2).translate(0.325, 2.42, 0);
+    return [piece(new Sink().rbox(0, VH / 2, 0, 0.6, VH, 0.6, 0.015, 1).out(), M('voltaWhite'), { smooth: true, metres: 'xy' }), piece(new Sink().box(0, 0.06, 0, 0.62, 0.12, 0.62).out(), M('voltaBase')),
+      piece(bell.out(), M('voltaBell'), { smooth: true }), piece(new Sink().rbox(0.34, 2.78, 0, 0.09, 0.2, 0.14, 0.01, 1).out(), M('voltaBlack'), { smooth: true })];
+  },
+  /** A ring light: a black hoop 2 m across, warm light on its inner face and underneath, on three cables up to one point at the origin (the slab). Scaled in x and z where it hangs. */
   ringPendant: () => {
-    const hoop = new Sink(), wire = new Sink(), R = 0.65, n = 40, drop = 1.0;
+    const body = new Sink(), glow = new Sink(), wire = new Sink(), Ro = 1.0, Ri = 0.955, n = 56, drop = 0.7, h = 0.045;
+    const p = (t: number, r: number, dy: number): V3 => [Math.cos(t) * r, dy - drop, Math.sin(t) * r];
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2, b = ((i + 1) / n) * Math.PI * 2, p = (t: number, r: number, y: number): V3 => [Math.cos(t) * r, y - drop, Math.sin(t) * r];
-      hoop.quad(p(a, R + 0.02, 0.03), p(b, R + 0.02, 0.03), p(b, R + 0.02, -0.03), p(a, R + 0.02, -0.03)).quad(p(b, R - 0.02, 0.03), p(a, R - 0.02, 0.03), p(a, R - 0.02, -0.03), p(b, R - 0.02, -0.03));
-      hoop.quad(p(a, R - 0.02, 0.03), p(b, R - 0.02, 0.03), p(b, R + 0.02, 0.03), p(a, R + 0.02, 0.03)).quad(p(b, R - 0.02, -0.03), p(a, R - 0.02, -0.03), p(a, R + 0.02, -0.03), p(b, R + 0.02, -0.03));
+      const a = (i / n) * Math.PI * 2, b = ((i + 1) / n) * Math.PI * 2;
+      body.quad(p(a, Ro, h), p(b, Ro, h), p(b, Ro, -h), p(a, Ro, -h)).quad(p(a, Ri, h), p(b, Ri, h), p(b, Ro, h), p(a, Ro, h)); // the outside and the top
+      glow.quad(p(b, Ri, h), p(a, Ri, h), p(a, Ri, -h), p(b, Ri, -h)).quad(p(b, Ri, -h), p(a, Ri, -h), p(a, Ro, -h), p(b, Ro, -h)); // the inner face and the underside
     }
-    for (let k = 0; k < 3; k++) { const a = (k / 3) * Math.PI * 2; wire.bone([Math.cos(a) * R, -drop + 0.03, Math.sin(a) * R], [Math.cos(a) * 0.05, 0, Math.sin(a) * 0.05], 0.003, 0.003); }
-    return [piece(hoop.out(), M('ringLight'), { smooth: true }), piece(wire.out(), M('cable'))];
+    for (let k = 0; k < 3; k++) { const a = (k / 3) * Math.PI * 2 + 0.4; wire.bone([Math.cos(a) * Ri, -drop + h, Math.sin(a) * Ri], [0, 0, 0], 0.003, 0.003); }
+    return [piece(body.out(), M('voltaBlack'), { smooth: true }), piece(glow.out(), M('ringLight'), { smooth: true }), piece(wire.out(), M('cable'))];
   },
-  /** A stacking chair of the kind Volta sets out for an event: a red-orange shell on four thin steel legs. Facing -z, at the origin. */
-  stackChair: () => {
-    const shell = new Sink(), legs = new Sink();
-    shell.rbox(0, 0.45, 0, 0.44, 0.035, 0.42, 0.015, 2);
-    const n = shell.count;
-    shell.rbox(0, 0.72, 0.2, 0.42, 0.34, 0.03, 0.014, 2).rotateX(0.5, 0.2, 0.12, n);
-    for (const [x, z] of [[-0.19, -0.17], [0.19, -0.17], [-0.19, 0.19], [0.19, 0.19]]) legs.bone([x * 1.12, 0, z * 1.15], [x, 0.44, z], 0.01, 0.01);
-    return [piece(shell.out(), M('chairOrange'), { smooth: true }), piece(legs.out(), M('chrome'))];
+  /** One of Volta's tables: a pale flip top 1.5 by 0.75, white T legs on castors. Its length along x, at the origin. */
+  voltaTable: () => {
+    const legs = new Sink().box(0, 0.685, 0, 1.2, 0.05, 0.04), wheels = new Sink();
+    for (const x of [-0.6, 0.6]) {
+      legs.box(x, 0.39, 0, 0.05, 0.64, 0.05).box(x, 0.075, 0, 0.05, 0.03, 0.62);
+      for (const z of [-0.28, 0.28]) wheels.sphere(x, 0.03, z, 0.03, 0.03, 0.022, 10, 6);
+    }
+    return [piece(new Sink().rbox(0, 0.725, 0, 1.5, 0.026, 0.75, 0.008, 1).out(), M('voltaTableTop'), { smooth: true, metres: 'xz' }), piece(legs.out(), M('voltaWhite')), piece(wheels.out(), M('voltaBlack'), { smooth: true })];
   },
-  /** The screen at the front of the room: 3.2 by 1.8, the Demo Day's slide thrown on it (`screenDemoDay`), its face toward -z; centred at the origin. */
-  demoScreen: () => [piece(new Sink().quad([1.1, -0.62, 0], [-1.1, -0.62, 0], [-1.1, 0.62, 0], [1.1, 0.62, 0], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'screenDemoDay' }),
-    piece(new Sink().rbox(0, 0, 0.02, 2.27, 1.31, 0.03, 0.006, 1).out(), M('bezel'), { smooth: true })],
-  /** Volta's podium: a dark oak column on a plinth, its top sloped to the speaker, a microphone on a stem. At the origin, the speaker behind it toward +z. */
-  voltaLectern: () => {
-    const oak = new Sink(), dark = new Sink(), n = oak.count;
-    oak.rbox(0, 0.56, 0, 0.56, 1.04, 0.4, 0.012, 2);
-    const t = oak.count;
-    oak.rbox(0, 1.12, 0.03, 0.66, 0.035, 0.5, 0.008, 2).rotateX(1.12, 0.03, -0.2, t); // the top, sloped to him
-    dark.rbox(0, 0.02, 0, 0.66, 0.04, 0.5, 0.008, 1).bone([0.2, 1.1, -0.12], [0.2, 1.36, -0.2], 0.008, 0.008).rbox(0.2, 1.38, -0.215, 0.03, 0.03, 0.07, 0.01, 1);
-    void n;
-    return [piece(oak.out(), M('doorDark'), { smooth: true, metres: 'xy' }), piece(dark.out(), M('bezel'), { smooth: true })];
+  /** A high table: a white round top 0.8 m across on a white column and a disc foot, 1.05 m tall. At the origin. He stands at one to speak. */
+  voltaHighTable: () => [piece(new Sink().lathe([[0.001, 0], [0.26, 0], [0.26, 0.012], [0.05, 0.03], [0.035, 0.07], [0.035, 1.0], [0.39, 1.02], [0.4, 1.05], [0.001, 1.05]], 0, 0, 0, 1, 1, 0, 40).out(), M('voltaWhite'), { smooth: true })],
+  /** The low table between the tub chairs: a white round top on a walnut cone. At the origin. */
+  voltaSideTable: () => [piece(new Sink().lathe([[0.001, 0], [0.2, 0], [0.07, 0.45]], 0, 0, 0, 1, 1, 0, 32).out(), M('voltaWalnut'), { smooth: true }),
+    piece(new Sink().lathe([[0.07, 0.45], [0.3, 0.455], [0.3, 0.478], [0.001, 0.478]], 0, 0, 0, 1, 1, 0, 32).out(), M('voltaWhite'), { smooth: true })],
+  /** The cube ottomans by the tub chairs, 46 cm: lime, teal, red. At the origin. */
+  voltaOttomanLime: () => [piece(new Sink().rbox(0, 0.22, 0, 0.46, 0.44, 0.46, 0.035, 2).out(), M('voltaLime'), { smooth: true, metres: 'xz' })],
+  voltaOttomanTeal: () => [piece(new Sink().rbox(0, 0.22, 0, 0.46, 0.44, 0.46, 0.035, 2).out(), M('voltaTeal'), { smooth: true, metres: 'xz' })],
+  voltaOttomanRed: () => [piece(new Sink().rbox(0, 0.22, 0, 0.46, 0.44, 0.46, 0.035, 2).out(), M('voltaRed'), { smooth: true, metres: 'xz' })],
+  /** A call booth: black, 1.15 wide, 1.1 deep, 2.25 tall, felt inside, a shelf, a light in its roof, a glass door on its -z face. At the origin, its back toward +z. */
+  voltaBooth: () => {
+    const shell = new Sink(), felt = new Sink(), glass = new Sink();
+    shell.box(0, 1.125, 0.53, 1.15, 2.25, 0.04).box(0, 2.225, 0, 1.15, 0.05, 1.1).box(0, 0.02, 0, 1.15, 0.04, 1.1).box(0, 2.16, -0.53, 1.07, 0.08, 0.04).box(-0.2, 1.1, -0.53, 0.04, 2.04, 0.04);
+    for (const x of [-0.555, 0.555]) shell.box(x, 1.125, 0, 0.04, 2.25, 1.1);
+    shell.box(-0.26, 1.1, -0.56, 0.02, 0.3, 0.02); // the door's pull
+    felt.box(0, 1.15, 0.5, 1.05, 2.1, 0.02).box(-0.525, 1.15, 0.05, 0.02, 2.1, 0.9).box(0.525, 1.15, 0.05, 0.02, 2.1, 0.9);
+    glass.quad([-0.535, 0.05, -0.53], [0.535, 0.05, -0.53], [0.535, 2.12, -0.53], [-0.535, 2.12, -0.53]).quad([0.535, 0.05, -0.53], [-0.535, 0.05, -0.53], [-0.535, 2.12, -0.53], [0.535, 2.12, -0.53]);
+    return [piece(shell.out(), M('voltaBlack')), piece(felt.out(), M('acousticPanel'), { metres: 'xy' }), piece(new Sink().rbox(0, 1.05, 0.34, 0.95, 0.03, 0.3, 0.008, 1).out(), M('voltaWhite'), { smooth: true }),
+      piece(new Sink().box(0, 2.195, 0, 0.5, 0.01, 0.06).out(), M('stripLight')), piece(glass.out(), M('cabinGlass'))];
+  },
+  /** The slide thrown on Volta's wall by the projector, 2.6 by 1.46 (`screenCollect`): no screen, no frame, the wall itself. Its face toward -z, centred at the origin. */
+  voltaSlide: () => [piece(new Sink().quad([1.3, -0.73, 0], [-1.3, -0.73, 0], [-1.3, 0.73, 0], [1.3, 0.73, 0], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), { paint: 'screenCollect' })],
+  /**
+   * What is fixed to Volta's room, world coordinates. The reception: maple planks laid flat on the east wall north of
+   * the window, mixed tones, VOLTA on them in black (`voltaLetters`, the mark itself), a plank desk before them. Under
+   * the window, the bar ledge: a dark counter, the coffee machine and its cups at the south end. A dark baseboard round
+   * the walls, and the plaque by the door out.
+   */
+  voltaFitout: () => {
+    const woods = [new Sink(), new Sink(), new Sink()], bar = new Sink(), steel = new Sink(), cups = new Sink(), base = new Sink(), white = new Sink(), rnd = rng(1800);
+    const { wall: [w0, w1], desk: [d0, d1], sign } = VOLTA_RECEPTION, [e0, e1] = WALK.volta.east, X = VX1;
+    // the plank wall: boards 14 cm tall in broken lengths, each a hair proud of or behind its neighbours
+    for (let y = 0; y < 2.9 - 1e-6; y += 0.145) {
+      let z = w0 - rnd() * 0.9;
+      while (z < w1) { const len = 0.7 + rnd() * 0.9, a = Math.max(w0, z), b = Math.min(w1, z + len), t = 0.018 + rnd() * 0.006; if (b - a > 0.05) woods[Math.floor(rnd() * 3)].box(X - t / 2, y + 0.0725, (a + b) / 2, t, 0.143, b - a - 0.003); z += len; }
+    }
+    // the desk: a plank front counter high, a ledge on it, the worktop behind, a return at each end
+    const zc = (d0 + d1) / 2, fx = X - 1.5;
+    woods[1].box(fx, 0.525, zc, 0.05, 1.05, d1 - d0).box(fx + 0.3, 0.525, d0 + 0.025, 0.6, 1.05, 0.05).box(fx + 0.3, 0.525, d1 - 0.025, 0.6, 1.05, 0.05);
+    woods[0].rbox(fx + 0.14, 1.065, zc, 0.36, 0.03, d1 - d0 + 0.06, 0.008, 1).box(fx + 0.4, 0.74, zc, 0.62, 0.03, d1 - d0 - 0.1);
+    // the bar ledge under the window
+    bar.rbox(X - 0.21, 1.05, (e0 + e1) / 2, 0.42, 0.04, e1 - e0 + 0.3, 0.008, 1);
+    for (const z of [e0 + 0.2, (e0 + e1) / 2, e1 - 0.2]) bar.box(X - 0.02, 0.9, z, 0.04, 0.26, 0.04).bone([X - 0.03, 0.78, z], [X - 0.36, 1.03, z], 0.015, 0.015);
+    steel.rbox(X - 0.23, 1.29, e0 + 0.3, 0.34, 0.44, 0.46, 0.03, 2).box(X - 0.42, 1.44, e0 + 0.3, 0.05, 0.05, 0.3).rbox(X - 0.22, 1.27, e0 + 0.78, 0.18, 0.4, 0.18, 0.03, 2);
+    for (let i = 0; i < 6; i++) cups.cylinder(X - 0.3 + (i % 2) * 0.12, 1.12, e0 + 1.15 + Math.floor(i / 2) * 0.12, 0.045, 0.1, 12);
+    // the baseboard: the north wall either side of the door out, the south wall either side of the door in, the east wall south of the planks
+    for (const [xa, xb] of [[VX0 + 0.45, WALK.x - 0.62], [WALK.x + 0.62, X]]) base.box((xa + xb) / 2, 0.05, V1 - 0.006, xb - xa, 0.1, 0.012).box((xa + xb) / 2, 0.05, V0 + 0.006, xb - xa, 0.1, 0.012);
+    base.box(X - 0.006, 0.05, (V0 + w0) / 2, 0.012, 0.1, w0 - V0).box(X - 0.006, 0.05, (w1 + V1) / 2, 0.012, 0.1, V1 - w1);
+    // the plaque by the door out: white over black
+    white.box(WALK.x - 0.85, 1.6, V1 - 0.006, 0.14, 0.07, 0.012); base.box(WALK.x - 0.85, 1.53, V1 - 0.006, 0.14, 0.07, 0.012);
+    const [sz, sy, sw] = sign, sh = (sw * 312) / 1200, xs = X - 0.03;
+    const letters = new Sink().quad([xs, sy - sh / 2, sz - sw / 2], [xs, sy - sh / 2, sz + sw / 2], [xs, sy + sh / 2, sz + sw / 2], [xs, sy + sh / 2, sz - sw / 2], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+    return [piece(woods[0].out(), M('voltaWoodA'), { metres: 'zy' }), piece(woods[1].out(), M('voltaWoodB'), { metres: 'zy' }), piece(woods[2].out(), M('voltaWoodC'), { metres: 'zy' }),
+      piece(bar.out(), M('voltaBar'), { smooth: true }), piece(steel.out(), M('chrome'), { smooth: true }), piece(cups.out(), M('icing')), piece(base.out(), M('voltaBase')), piece(white.out(), M('voltaWhite')),
+      piece(letters.out(), { paint: 'voltaLetters' })];
   },
   /** A coffee to go: a paper cup in its sleeve under a black lid, 12 cm tall. At the origin. */
   paperCup: () => [piece(new Sink().lathe([[0.029, 0], [0.04, 0.105]], 0, 0, 0, 1, 1, 0, 24).cylinder(0, 0.002, 0, 0.029, 0.004, 24).out(), M('paperWhite'), { smooth: true }),
@@ -586,6 +679,118 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
    * on the hill's slope, the hill itself under snow. Dusk: the walls dark, their windows lit. Real north toward +z,
    * real west toward +x, the Maritime Centre at the origin.
    */
+  /**
+   * Halifax out of Volta's harbour glass (walk.ts VOLTA_VIEW), world coordinates: a street along the glass (sidewalk,
+   * kerb, the road plowed with its banks of snow, kerb, the far sidewalk), and across it the walk's town turned half round
+   * so its front row stands at the far sidewalk, its own real streets plowed on the snow between its blocks. The same
+   * real blocks, walls, lit windows and snowy roofs as halifaxWalk. The bridge and the street trees are placed on their
+   * own (sets.ts).
+   */
+  voltaView: () => {
+    const walls = new Sink(), roofs = new Sink(), snow = new Sink(), road = new Sink(), walk = new Sink(), kerb = new Sink(), bank = new Sink(), rnd = rng(23);
+    const { centre: [cx, cz], rise: R, street: [s0, s1, s2, s3] } = VOLTA_VIEW, kx = (cx + 390) / 2, kz = (cz + 265) / 2; // the town turns half round about (kx, kz)
+    const C: [number, number] = [1171, -223];
+    const a = [Math.sin((340 * Math.PI) / 180), Math.cos((340 * Math.PI) / 180)], r = [Math.cos((340 * Math.PI) / 180), -Math.sin((340 * Math.PI) / 180)];
+    const E0 = C[0] * r[0] + -C[1] * a[0], N0 = C[0] * r[1] + -C[1] * a[1];
+    const map = (x: number, z: number): [number, number] => [-(x * r[0] + -z * a[0] - E0), x * r[1] + -z * a[1] - N0]; // as halifaxWalk: the town's own frame, x inland
+    const turn = ([lx, lz]: [number, number]): [number, number] => [2 * kx - (390 + lx), 2 * kz - (265 + lz)]; // where halifaxWalk stands it, turned half round
+    const hill = (lx: number): number => R * smooth((lx + 330) / 620), h0 = hill(2 * kx - s3 - 390); // the hill, from its foot (lx -330) to the Citadel's
+    const rise = (lx: number): number => Math.max(0, hill(lx) - h0); // from the far sidewalk's level up: no step where the street meets the town
+    const ys = (x: number): number => (x > s3 ? 0 : rise(2 * kx - x - 390)); // the ground's height at world x: the street flat, the town on its hill
+    // the bridge's sightline from the room: the headings between its towers and a little more, and how high its deck stands there
+    const [ox, oz] = VOLTA_VIEW.origin, br = voltaViewBridge(), ax = [Math.sin(((br.turn + 90) * Math.PI) / 180), Math.cos(((br.turn + 90) * Math.PI) / 180)];
+    const headOf = (x: number, z: number): number => (Math.atan2(x - ox, z - oz) * 180) / Math.PI;
+    const towers = [-220.5, 220.5].map((t) => headOf(br.at[0] + ax[0] * t, br.at[2] + ax[1] * t));
+    const sight = [Math.min(...towers) - 1.5, Math.max(...towers) + 1.5], deck = Math.atan2(br.at[1] + 47 - 1.6, Math.hypot(br.at[0] - ox, br.at[2] - oz)), sag = 0.014; // the cables stand this far over the deck line, near enough
+    const taken: Array<[number, number, number, number]> = []; // the real blocks' boxes near the street (x0, z0, x1, z1), for the fill
+    const block = (ring: Array<[number, number]>, y: number, h: number, g: number, hip: boolean) => {
+      walls.color(hex3([g, g * 0.93, g * 0.8].map((v) => v ** (1 / 2.2))));
+      roofs.color(hex3([0.78, 0.8, 0.86].map((v) => v ** (1 / 2.2))));
+      const ob = hip ? obb(ring) : undefined;
+      if (ob && h <= 9 && ob.fill > 0.74 && ob.d > 5 && ob.d < 22) { walls.extrude(ring, y, y + h - 2, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, roofs); hipRoof(roofs, ob, y + h - 2, 0.62, 3.4, 0.35); }
+      else walls.extrude(ring, y, y + h + 0.5, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, roofs);
+    };
+    const seen = (ring: Array<[number, number]>, y: number, h: number): boolean => { // false if it would stand across a tower or the cables of the bridge from the room
+      const hs = ring.map(([x, z]) => headOf(x, z)), lo = Math.min(...hs), hi = Math.max(...hs), near = Math.min(...ring.map(([x, z]) => Math.hypot(x - ox, z - oz)));
+      if (hi < sight[0] || lo > sight[1]) return true;
+      const top = Math.atan2(y + h + 1 - 1.6, near), byTower = towers.some((t) => t > lo - 1.5 && t < hi + 1.5);
+      return top <= deck + (byTower ? 0 : sag);
+    };
+    for (const b of HALIFAX.buildings) {
+      const raw = ringOf(b.p);
+      if (raw.length < 3) continue;
+      const c0 = raw.reduce((s4, q) => [s4[0] + q[0] / raw.length, s4[1] + q[1] / raw.length], [0, 0]);
+      if (Math.hypot(c0[0] - C[0], c0[1] - C[1]) > VOLTA_VIEW.reach) continue;
+      const local = raw.map(([x, z]) => map(x, z)), lc = local.reduce((s4, q) => [s4[0] + q[0] / local.length, s4[1] + q[1] / local.length], [0, 0]);
+      const ring = local.map(turn);
+      if (ring.some(([x]) => x > s3 - 0.5)) continue; // on the far sidewalk or the road: the street is kept clear
+      const y = rise(lc[0]) - 0.5;
+      if (!seen(ring, y, b.h)) continue;
+      const xs0 = ring.map(([x]) => x), zs0 = ring.map(([, z]) => z);
+      if (Math.max(...xs0) > s3 - 80) taken.push([Math.min(...xs0), Math.min(...zs0), Math.max(...xs0), Math.max(...zs0)]);
+      block(ring, y, b.h, 0.5 + rnd() * 0.5, !b.k);
+    }
+    // the street along the glass, from well south of the room to well north of it
+    streetAlong(walk, road, kerb, bank, VOLTA_VIEW.street, -400, 520, -0.12, rnd);
+    // the town's ground: snow on its hill, and its own streets plowed across it
+    const xs: number[] = [s3];
+    for (let x = s3 - 20; x > s3 - 760; x -= 20) xs.push(x);
+    for (let x = s3 - 760; x > -3200; x -= 400) xs.push(x);
+    for (let i = 0; i + 1 < xs.length; i++) {
+      const xa = xs[i], xb = xs[i + 1];
+      for (let z = -2000; z < 2400; z += 400) snow.quad([xb, ys(xb) - 0.02, z + 400], [xa, ys(xa) - 0.02, z + 400], [xa, ys(xa) - 0.02, z], [xb, ys(xb) - 0.02, z]);
+    }
+    const lanes: Array<[number, number, number, number, number]> = []; // the town's streets near ours (ax, az, bx, bz, half width), for the fill
+    for (const rd of HALIFAX.roads) {
+      const p = rd.p, hw = rd.w / 2;
+      for (let k = 0; k + 3 < p.length; k += 2) {
+        const [ax0, az0] = turn(map(p[k], p[k + 1])), [bx0, bz0] = turn(map(p[k + 2], p[k + 3])), L = Math.hypot(bx0 - ax0, bz0 - az0);
+        if (L < 0.5 || Math.hypot((ax0 + bx0) / 2 - ox, (az0 + bz0) / 2 - oz) > 1600) continue;
+        const nx = -(bz0 - az0) / L * hw, nz = (bx0 - ax0) / L * hw, n = Math.max(1, Math.ceil(L / 20));
+        for (let i = 0; i < n; i++) {
+          const t0 = i / n, t1 = (i + 1) / n, xa = ax0 + (bx0 - ax0) * t0, za = az0 + (bz0 - az0) * t0, xb = ax0 + (bx0 - ax0) * t1, zb = az0 + (bz0 - az0) * t1;
+          if (Math.max(xa, xb) + hw > s3) continue; // the street along the glass is its own
+          if (Math.max(xa, xb) > s3 - 80) lanes.push([xa, za, xb, zb, hw]);
+          const q: [V3, V3, V3, V3] = [[xa - nx, ys(xa - nx) + 0.01, za - nz], [xb - nx, ys(xb - nx) + 0.01, zb - nz], [xb + nx, ys(xb + nx) + 0.01, zb + nz], [xa + nx, ys(xa + nx) + 0.01, za + nz]];
+          const up = (q[1][2] - q[0][2]) * (q[3][0] - q[0][0]) - (q[1][0] - q[0][0]) * (q[3][2] - q[0][2]); // the quad's normal, upward or not
+          if (up > 0) road.quad(q[0], q[1], q[2], q[3]); else road.quad(q[1], q[0], q[3], q[2]);
+        }
+      }
+    }
+    // the street's far side built up where the real blocks leave it open, and its own streets left open: a front row of
+    // three to six storeys along the far sidewalk, each block kept clear of the real ones and of the town's streets
+    const clearOf = (x0: number, z0: number, x1: number, z1: number): boolean => !taken.some(([a0, b0, a1, b1]) => a0 < x1 + 2 && a1 > x0 - 2 && b0 < z1 + 2 && b1 > z0 - 2)
+      && !lanes.some(([ax1, az1, bx1, bz1, hw]) => { // the lane's distance to the block's box, sampled along it
+        for (let t = 0; t <= 1; t += 0.1) { const x = ax1 + (bx1 - ax1) * t, z = az1 + (bz1 - az1) * t; if (x > x0 - hw - 2 && x < x1 + hw + 2 && z > z0 - hw - 2 && z < z1 + hw + 2) return true; }
+        return false;
+      });
+    frontRow(s3, -1, -160, 260, rnd, (x0, za, x1, zb, h) => clearOf(x0, za, x1, zb) && seen([[x1, za], [x1, zb], [x0, zb], [x0, za]], 0, h), (ring, h, g) => {
+      block(ring, -0.5, h, g, false);
+      taken.push([Math.min(...ring.map(([x]) => x)), Math.min(...ring.map(([, z]) => z)), Math.max(...ring.map(([x]) => x)), Math.max(...ring.map(([, z]) => z))]);
+    });
+    return [piece(walls.out(), M('towerDusk'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true }), piece(snow.out(), M('citySlush'), { smooth: true }),
+      piece(road.out(), M('streetAsphalt'), { metres: 'xz' }), piece(walk.out(), M('citySidewalk'), { metres: 'xz' }), piece(kerb.out(), M('walkGranite'), { metres: 'xz' }), piece(bank.out(), M('walkSnowFar'), { smooth: true })];
+  },
+  /**
+   * The same street out of Volta's side window, on downtown (walk.ts VOLTA_VIEW.east): the sidewalk from the window, the
+   * road, the far sidewalk, and a front row of blocks across it. It stands over the walk's land and the streetcar's
+   * rails, a few centimetres up, from the moment the glass's city does (sets.ts hides the walk's trees there then).
+   */
+  voltaViewEast: () => {
+    const walls = new Sink(), roofs = new Sink(), road = new Sink(), walk = new Sink(), kerb = new Sink(), bank = new Sink(), rnd = rng(1800);
+    const { east, eastRow } = VOLTA_VIEW;
+    streetAlong(walk, road, kerb, bank, east, -60, eastRow[1] + 10, 0.045, rnd); // over the walk's lawn and the streetcar's rails (their tops at 0.038): Halifax has no streetcar
+    const block = (ring: Array<[number, number]>, h: number, g: number) => {
+      walls.color(hex3([g, g * 0.93, g * 0.8].map((v) => v ** (1 / 2.2))));
+      roofs.color(hex3([0.78, 0.8, 0.86].map((v) => v ** (1 / 2.2))));
+      walls.extrude(ring, -0.5, h + 0.5, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, roofs);
+    };
+    // the row runs on past the room's north wall, through where the hall beyond the wing stands: the hall is drawn only
+    // once the room's side window no longer looks that way, and the view is gone before the hall is entered
+    frontRow(east[3], 1, eastRow[0], eastRow[1], rnd, (_x0, _za, _x1, zb) => zb < eastRow[1], block);
+    return [piece(walls.out(), M('towerDusk'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true }), piece(road.out(), M('streetAsphalt'), { metres: 'xz' }),
+      piece(walk.out(), M('citySidewalk'), { metres: 'xz' }), piece(kerb.out(), M('walkGranite'), { metres: 'xz' }), piece(bank.out(), M('walkSnowFar'), { smooth: true })];
+  },
   halifaxWalk: () => {
     const walls = new Sink(), roofs = new Sink(), hill = new Sink(), rnd = rng(23);
     const C: [number, number] = [1171, -223]; // the Maritime Centre in the aircraft's frame (heading 340)

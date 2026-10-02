@@ -8,7 +8,7 @@ export interface Paint { w: number; h: number; frames: Painter[] }
 /** Apple's "Think different" text, 1997, as printed on the poster: the first sentence is the title, the rest the body. */
 const JOBS_QUOTE = "The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They're not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can't do is ignore them. Because they change things. They push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.";
 
-export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null; floqer: HTMLImageElement | null; elevatePhoto: HTMLImageElement | null; demodayPhoto: HTMLImageElement | null; tripAward: HTMLImageElement | null; tripSign: HTMLImageElement | null }
+export interface Images { jobs: HTMLImageElement | null; xbox: HTMLImageElement | null; clan: HTMLImageElement | null; dalhousie: HTMLImageElement | null; bean: HTMLImageElement | null; websummit: HTMLImageElement | null; elevate: HTMLImageElement | null; volta: HTMLImageElement | null; investns: HTMLImageElement | null; producthunt: HTMLImageElement | null; floqer: HTMLImageElement | null; elevatePhoto: HTMLImageElement | null; demodayPhoto: HTMLImageElement | null; tripAward: HTMLImageElement | null; tripSign: HTMLImageElement | null; collect: HTMLImageElement | null }
 
 export const canvas2d = (w: number, h: number): HTMLCanvasElement => {
   const c = document.createElement('canvas');
@@ -924,6 +924,22 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     x.fillStyle = '#4B5563'; x.font = '500 30px Inter, system-ui, sans-serif'; x.fillText('The last meal planner', w / 2, 660); x.fillText("you'll ever need", w / 2, 700);
     x.fillStyle = '#9CA3AF'; x.font = '22px Inter, system-ui, sans-serif'; x.fillText('beantheapp.com', w / 2, 790); x.textAlign = 'left';
   }] },
+  /**
+   * The slide on Volta's wall: Collect., and Socratica under it (Collect. is Halifax's Socratica node). The banner, the wordmark
+   * and Socratica's marks are their own artwork, put together by scripts/look/collect.mjs; the mint under it until it loads.
+   */
+  screenCollect: { w: 1280, h: 720, frames: [(x, w, h) => {
+    x.fillStyle = '#E9FBF1'; x.fillRect(0, 0, w, h);
+    if (images.collect) x.drawImage(images.collect, 0, 0, w, h);
+    x.fillStyle = 'rgba(176, 168, 156, 0.16)'; x.fillRect(0, 0, w, h); // thrown on a grey wall in a lit room, not shown on a screen
+  }] },
+  /** VOLTA on the reception's planks: the mark itself, in black, cut out by its own edge. */
+  voltaLetters: { w: 1200, h: 312, frames: [(x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    if (!images.volta) return;
+    x.drawImage(images.volta, 0, 0, w, h);
+    x.globalCompositeOperation = 'source-in'; x.fillStyle = '#161616'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over';
+  }] },
 });
 
 export const BADGE_PAINT: Record<string, Paint> = {
@@ -963,22 +979,6 @@ export function shiftkeyLabs(x: Ctx, left: number, top: number, size: number, gr
 }
 
 export const SCREEN_PAINT: Record<string, Paint> = {
-  /** The slide on Volta's screen: the evening's name, the place and the date. Nothing else. */
-  screenDemoDay: { w: 1280, h: 720, frames: ([
-    ['Collect.', 'Demo Day', ['Volta, Halifax', 'January 15, 2026']],
-    ['Thursdays.', 'Collect. at Volta', ['with Noah and Sam', 'from a handful of builders to almost a hundred']],
-    ['Bean.', 'Number four on Product Hunt', ['Product of the Day, December 2025', '242 upvotes']],
-    ['Accelerate.', 'Invest Nova Scotia', ['one of twelve startups, one of two consumer companies', '$40k over five months']],
-  ] as Array<[string, string, string[]]>).map(([big, line, notes]) => (x: Ctx, w: number, h: number) => {
-    const g = x.createLinearGradient(0, 0, w, h);
-    g.addColorStop(0, '#0F1B33'); g.addColorStop(1, '#16294D');
-    x.fillStyle = g; x.fillRect(0, 0, w, h);
-    x.fillStyle = '#FFFFFF'; x.font = `700 150px ${SANS}`; x.fillText(big, 96, 330);
-    x.fillStyle = '#F2B84B'; x.fillRect(100, 380, 120, 8);
-    x.fillStyle = '#FFFFFF'; x.font = `500 64px ${SANS}`; x.fillText(line, 96, 480);
-    x.fillStyle = '#B9C4DA'; x.font = `400 36px ${SANS}`;
-    notes.forEach((n, i) => x.fillText(n, 96, 560 + i * 50));
-  }) },
   flightSign: { w: 920, h: 256, frames: [(x, w, h) => {
     x.fillStyle = '#142C3C'; x.fillRect(0, 0, w, h);
     x.fillStyle = '#AAC1CF'; x.font = '24px Inter, sans-serif'; x.fillText('2022  /  A NEW CHAPTER', 38, 53);

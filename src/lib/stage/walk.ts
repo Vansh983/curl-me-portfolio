@@ -20,13 +20,23 @@ export const WALK = {
   water: -2.6, // the harbour under the quay
   from: { c: 9.46, z: -18.4 }, // the first straight step north
   to: { c: 12.9, z: 40.0 }, // Volta's door, where the walk goes indoors
-  // Volta's room across the walk's north end. It is the eighth floor (1800 Argyle Street, suite 801): once he is in at the
-  // door the walk and the harbour sink `up` metres under it (RISE). `lean`: how far its glass leans in at the head;
-  // `east`: the window on downtown, along z
-  volta: { x: [-16.6, -7.4] as [number, number], z: [40.0, 52.0] as [number, number], h: 3.4, up: 26, lean: 0.8, east: [46.2, 51.4] as [number, number] },
+  // Volta's room across the walk's north end, on the walk's own level: the harbour and the town out of its windows are
+  // the ones he walked past. (For a day it was the eighth floor, the world sinking under it as he came in; he found the
+  // movement weird and Halifax no longer plain, 2026-09-27.) `lean`: how far its harbour glass leans in at the head;
+  // `east`: the window on downtown, along z, at the south end of the east wall by the door in; the reception's plank
+  // wall has the rest. It must stop 2 m short of the north wall wherever it stands: past that, from where he stands once
+  // the hall beyond the wing is drawn, the window would look into the hall's side (it stands east of the wing, z 52 on)
+  volta: { x: [-16.6, -7.4] as [number, number], z: [40.0, 52.0] as [number, number], h: 3.4, lean: 0.8, east: [40.7, 44.4] as [number, number] },
   door: 52.0, // the door into the wing
   out: 11.98 + TOUR_GAIN, // the chapter at the jamb of that door: the walk's end
 } as const;
+
+/** Volta's linear lights, hung at loose angles under the black ceiling: x, z, the turn about y in degrees (0 lies along x), the length. */
+export const VOLTA_LINES: Array<[number, number, number, number]> = [[-10.6, 41.5, 20, 1.8], [-14.6, 44.3, -35, 2.2], [-9.1, 44.6, 78, 1.8], [-11.5, 46.0, -12, 2.0], [-14.9, 48.3, 18, 1.8], [-9.6, 50.3, 62, 1.8]];
+/** The projector on its pole under Volta's slab (x, z): it throws the slide on the north wall. */
+export const VOLTA_PROJECTOR: [number, number] = [-13.7, WALK.volta.z[1] - 3.3];
+/** Volta's reception against the east wall, along z: the plank wall, the desk before it, and VOLTA on the planks (its centre's z and height, its width). */
+export const VOLTA_RECEPTION = { wall: [44.9, 50.4] as [number, number], desk: [46.3, 49.1] as [number, number], sign: [47.65, 2.02, 1.7] as [number, number, number] } as const;
 
 /** Metres walked per chapter of scroll. */
 export const WALK_SPEED = (WALK.to.z - WALK.from.z) / (WALK.to.c - WALK.from.c);
@@ -219,14 +229,37 @@ export const SIGNS = [
   { z: 37.4, x: -6.4, w: 2.6, ratio: 1200 / 312, logo: 'volta', name: 'Volta, Halifax' }, // at the walk's end, against the dark glass at the foot of its own building
 ] as const;
 
-/** The chapters over which Volta's room goes up to its floor: from his first step in at the door, the door shutting behind him. */
-export const RISE = { from: WALK.to.c + 0.02, to: WALK.to.c + 0.36 } as const;
-/** How far the room has gone up at chapter `c`, 0 (on the walk) to 1 (the eighth floor). */
-export const riseAt = (c: number): number => smooth((c - RISE.from) / (RISE.to - RISE.from));
+/** The chapters over which Volta's door off the walk swings shut behind him, once he is in. */
+export const VOLTA_SHUT: [number, number] = [WALK.to.c + 0.04, WALK.to.c + 0.18];
 
-/** Volta's screen: the slides he goes up to, one after another while he stands at the front of the rows. */
-export const SLIDES = { from: 13.12, to: 13.44, n: 4 } as const; // on his way up the room to the podium, the screen ahead
-export const slideAt = (c: number): number => Math.min(SLIDES.n - 1, Math.max(0, Math.floor(((c - SLIDES.from) / (SLIDES.to - SLIDES.from)) * SLIDES.n)));
+/**
+ * What Volta's harbour glass shows: a street of Halifax, the city close across it and the Macdonald Bridge in the back,
+ * no water (2026-09-28: "Just the city of Halifax ... The bridge in the back and all"; then "i see too much snow on the
+ * floor, buildings need to be closer"). Outside the glass a sidewalk, a plowed road with its banks of snow, the far
+ * sidewalk with bare street trees; across it the walk's own town (halifaxWalk: the real blocks round the Maritime
+ * Centre, their own streets drawn plowed), turned half round so its front row stands at the far sidewalk. `centre` is
+ * where the Maritime Centre lands, `rise` the height of its hill, `reach` how far round the Maritime Centre its blocks
+ * are taken; `street` the edges along the glass (x): the sidewalk's, the road's two kerbs, the far sidewalk's; `east`
+ * the same out of the side window, across which a front row of blocks stands (`eastRow`). The
+ * bridge stands behind the town: its heading from the room's middle (the walk's way round), distance, the angle of its
+ * span to that line, and the height of its footing; no block that would stand across its towers or cables from the
+ * room is built. All of it is there from `from`, when the building's front fills the frame; until then the harbour is
+ * (`indoor`, sets.ts).
+ */
+export const VOLTA_VIEW = {
+  centre: [-326, 13] as [number, number], rise: 26, reach: 1300, origin: [-12, 46] as [number, number],
+  street: [-16.85, -19.6, -30.2, -33.4] as [number, number, number, number],
+  east: [WALK.volta.x[1] + 0.04, -4.6, 5.9, 9.1] as [number, number, number, number], eastRow: [-40, 115] as [number, number], // the side window's street, and where its front row runs (z)
+  bridge: { heading: -60, out: 1200, skew: 18, base: 18 },
+  from: 12.68,
+} as const;
+/** Whether Volta's view of the city stands outside the glass at chapter `c` (and the harbour is gone). */
+export const voltaViewAt = (c: number): boolean => c >= VOLTA_VIEW.from;
+/** Where Volta's view stands its bridge (the builder's span runs along x): its place, and its turn about y in degrees. */
+export function voltaViewBridge(): { at: V3; turn: number } {
+  const { bridge: { heading, out, skew, base }, origin: [ox, oz] } = VOLTA_VIEW, h = (heading * Math.PI) / 180;
+  return { at: [ox + out * Math.sin(h), base, oz + out * Math.cos(h)], turn: heading + skew - 90 };
+}
 
 /** Something that arrives with the scroll: over `at` (chapters) it comes from `from` (an offset, a turn in degrees, a scale) to where it is placed. */
 export interface Cue { at: [number, number]; move?: V3; turn?: V3; scale?: number; ease?: 'out' | 'inOut' | 'back'; leave?: [number, number] }

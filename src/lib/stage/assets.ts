@@ -94,6 +94,15 @@ export const ASSETS: Asset[] = [
   model('island_tree_01', 'Rob Tuytel', 'the tree outside the 2010 room (1.6 M triangles scanned, simplified hard)', 512, 0.003),
   // 2019, the Android lawn: the Honeycomb statue of 2011 from 3D Warehouse (its glb download needs no account), its colours in its materials
   { id: 'android_honeycomb', kind: 'model', source: 'url', url: 'https://3dwarehouse.sketchup.com/warehouse/v1.0/entities/24f7118cb9b5a756b9ea4d6bd2428717/binaries/glb?download=true', res: '1k', licence: '3DW', author: 'Francesco P. (3D Warehouse)', use: 'the Honeycomb statue on the Android lawn', maxTex: 256, simplify: 0.002 },
+  // 2026, Volta: the coworking floor as it is (docs/rebuild/40): white chairs at the tables, the red-orange stacking chairs,
+  // tub chairs at the glass, a fiddle leaf fig, stools, a bag, a bottle. The lights, the tables and the booth are built in code
+  kit('volta_chair', 619978, 'BlenderKit (Demycs)', "the white chairs at Volta's tables", 256),
+  { ...kit('volta_stack_chair', 930473, 'BlenderKit (Ahmad Go)', "Volta's stacking chairs", 256), skin: { 'Procedural Rubber': { color: '#D43D2E', map: false, rough: 0.45 }, 'Matal solid paint white': { color: '#DADCE0', rough: 0.15, metal: 1 } } }, // red-orange shells on chrome
+  { ...kit('volta_tub_chair', 540563, 'BlenderKit (Habibullah Alfatih)', "the tub chairs at Volta's glass", 256, 0.004), skin: { 'McAlister Linea DoveGrey': { color: '#C8853A', map: false, rough: 0.95 }, 'Patten Fabric': { color: '#D9B36A', map: false, rough: 0.95 } } }, // orange, as Volta's are
+  { ...kit('volta_fig', 551469, 'BlenderKit (Anh Le)', "the fiddle leaf figs at Volta", 512, 0.004), skin: { 'wood body': { color: '#1E1E1E', map: false, rough: 0.5 } } }, // in black pots
+  { ...kit('volta_stool', 721174, 'BlenderKit (GLL3D Gill)', "the stools at Volta's high tables", 256), skin: { M_Metal: { color: '#E6E3DC', rough: 0.4, metal: 0.2 }, M_Plastic: { color: '#EDEBE6', map: false, rough: 0.5 } } }, // white
+  { ...kit('volta_backpack', 1211780, 'BlenderKit (Fasolka 3D)', "a backpack by a table at Volta", 256), skin: { 'school subjects colors': { color: '#2E3440', rough: 0.9 } } },
+  { ...kit('volta_bottle', 989625, 'BlenderKit (3D Studio)', "a water bottle on a table at Volta", 256, 0.004), skin: { 'Circle.009_Baked': { color: '#3D6E8C', map: false, rough: 0.35 } } },
   // scanned surfaces: floors take the whole set, walls and cloth take only the relief and keep their designed colour
   texture('herringbone_parquet', 'Jenelle van Heerden', 'the condo floor', 3.4, ['diff', 'nor', 'arm'], 1024),
   texture('dark_brick_wall', 'Dario Barresi', 'the wall behind the desk', 1.05, ['diff', 'nor', 'arm']),

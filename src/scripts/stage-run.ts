@@ -27,13 +27,14 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { N8AOPass } from 'n8ao';
 import { SETS, HALIFAX_CAMPUS, WALK_LAMPS, HOME, DELHI, STAGE_BIN, VOLTA_DOOR, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
-import { airAt, onWalk, laptopAt, cueAt, seaplaneAt, streetcarAt, ferryAt, walkZ, markAt, slideAt, riseAt, MARKS, CITY_AIR, type Mark, WALK, type Air, type SkyName, type Pose } from '../lib/stage/walk.ts';
+import { airAt, onWalk, laptopAt, cueAt, seaplaneAt, streetcarAt, ferryAt, walkZ, markAt, voltaViewAt, MARKS, CITY_AIR, type Mark, WALK, type Air, type SkyName, type Pose } from '../lib/stage/walk.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
 import type { Built, BuiltSurface } from '../lib/stage/built.ts';
 import { createGeometrySource } from './stage-geometry.ts';
 import { loadInOrder, yieldToBrowser } from '../lib/stage/loading.ts';
 import { deliveryUrl } from '../lib/stage/delivery.ts';
+import { crowdSeats, crowdLoop, CROWD, type CrowdSheet } from '../lib/stage/crowd.ts';
 import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
@@ -51,6 +52,7 @@ const D = Math.PI / 180;
 const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
 const AUDIT = DEBUG || (typeof location !== 'undefined' && new URLSearchParams(location.search).has('audit'));
 const VOID = typeof location !== 'undefined' && new URLSearchParams(location.search).has('void'); // review: what is not built keeps the colour the audit gives it (.cache/void.mjs)
+const EXPORTING = typeof location !== 'undefined' && new URLSearchParams(location.search).has('export'); // the bake's export: a lamp gives the light it gives in the bake
 const LIVE_ALL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('live'); // review: every set built and lit at runtime, no baked files
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#000';
 
@@ -238,7 +240,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const video = document.createElement('video');
   Object.assign(video, { src: deliveryUrl('/assets/scenes/zombies-gameplay.mp4'), muted: true, loop: true, playsInline: true, preload: 'auto' });
   video.setAttribute('playsinline', '');
-  const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null, floqer: null, elevatePhoto: null, demodayPhoto: null, tripAward: null, tripSign: null };
+  const images: Images = { jobs: null, xbox: null, clan: null, dalhousie: null, bean: null, websummit: null, elevate: null, volta: null, investns: null, producthunt: null, floqer: null, elevatePhoto: null, demodayPhoto: null, tripAward: null, tripSign: null, collect: null };
   const PAINT: Record<string, Paint> = { ...painters(images, video), ...SURFACE_PAINT, ...CITY_PAINT, ...SCREEN_PAINT, ...WINDOW_PAINT, ...BADGE_PAINT, ...CLOUD_PAINT, ...beanPaint(images) };
   const painted: Array<{ name: string; frame: number; c: HTMLCanvasElement; tex: CanvasTexture }> = [];
   const paintCache = new Map<string, CanvasTexture>();
@@ -389,13 +391,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     m = s.unlit
       ? (new MeshBasicMaterial({ color: s.color, fog: s.fog !== false, vertexColors: s.tint === true }) as unknown as MeshStandardMaterial)
       : physical
-        ? new MeshPhysicalMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: 1, fog: s.fog !== false, vertexColors: s.tint === true })
-        : new MeshStandardMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: 1, fog: s.fog !== false, vertexColors: s.tint === true });
+        ? new MeshPhysicalMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: s.env ?? 1, fog: s.fog !== false, vertexColors: s.tint === true })
+        : new MeshStandardMaterial({ color: s.color, roughness: s.rough, metalness: s.metal ?? 0, envMapIntensity: s.env ?? 1, fog: s.fog !== false, vertexColors: s.tint === true });
     if (m instanceof MeshPhysicalMaterial) {
       if (s.sheen !== undefined) { m.sheen = s.sheen; m.sheenRoughness = 0.8; m.sheenColor.set(s.color).lerp(new Color('#FFFFFF'), 0.5); }
       if (s.clearcoat !== undefined) { m.clearcoat = s.clearcoat; m.clearcoatRoughness = s.clearcoatRough ?? 0.15; }
     }
-    if (s.emissive && !s.unlit) { m.emissive.set(s.emissive); m.emissiveIntensity = s.emissivePower ?? 1; }
+    if (s.emissive && !s.unlit) { m.emissive.set(s.emissive); m.emissiveIntensity = (EXPORTING ? s.bakePower : undefined) ?? s.emissivePower ?? 1; }
     if (s.inside) m.side = BackSide;
     if (s.alpha !== undefined) { m.transparent = true; m.opacity = s.alpha; m.depthWrite = false; }
     if (name === 'flightSky') {
@@ -636,6 +638,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         glowing.push(m);
         return m;
       }
+      if (name === 'voltaLetters') return new MeshBasicMaterial({ map: paintTex(name, 0), alphaTest: 0.5 }); // black letters on the planks: the wall shows round them
       if (name === 'floqer') { const map = paintTex(name, 0); return new MeshStandardMaterial({ map, transparent: true, alphaTest: 0.4, emissive: '#FFFFFF', emissiveMap: map, emissiveIntensity: 0.45, roughness: 0.6, metalness: 0, envMapIntensity: 0.4 }); } // the sign on the brick: its own light, the wall through the clear
       if (name === 'crowd') { const map = paintTex(name, Number(frame ?? 0)); return new MeshStandardMaterial({ map, emissive: '#FFFFFF', emissiveMap: map, emissiveIntensity: 0.32, roughness: 0.9, metalness: 0, envMapIntensity: 0.5, transparent: true, alphaTest: 0.5, side: DoubleSide }); } // a cut-out row of people, a little lit from the stage
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
@@ -679,6 +682,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     movers: [] as Array<{ obj: Object3D; kind: NonNullable<Placement['mover']>; turn: number; set: number }>, // the seaplane, the streetcar, the ferry
     cues: [] as Array<{ obj: Object3D; p: Placement }>, // things that arrive with the scroll
     rises: [] as Array<{ obj: Object3D; plane: Plane; from: number; to: number; course: number; y0: number; y1: number }>, // things built from the ground up
+    indoor: [] as Array<{ obj: Object3D; set: number; mode: 'in' | 'out'; kind: 'mover' | 'backdrop' | 'prop' }>, // Volta's view of the city and the harbour it stands in for (walk.ts VOLTA_VIEW)
   };
   // the world under the aircraft: `flightRoll` at the cabin rolls with the bank (the sky with it, so the horizon tilts);
   // inside it `flightWorld` sinks with the altitude and slides aft with the ground track
@@ -739,7 +743,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     halo.colorSpace = SRGBColorSpace;
     return halo;
   };
-  let slides: { mat: MeshBasicMaterial; maps: CanvasTexture[] } | undefined; // Volta's screen and what goes by on it
   const buildHeldLaptop = (parts: Built[]) => {
     const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' }, false, parts);
     obj.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
@@ -839,10 +842,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (rank < 3) { light = new PointLight('#FFC27E', 0, 8.5, 1.6); light.position.set(1.3, 4.2, 0); g.add(light); } // reaching the paving and the snow, not the water: on it the light broke into sparks
       if (head) live.lamps.push({ mat: head, glow, pool, light, rank });
     }
-    if (name === 'demoScreen') g.traverse((o) => {
-      if (!(o instanceof Mesh) || !o.name.includes('paint:screenDemoDay')) return;
-      slides = { mat: o.material as MeshBasicMaterial, maps: PAINT.screenDemoDay.frames.map((_, i) => paintTex('screenDemoDay', i)) };
-    });
     if (p.cue) live.cues.push({ obj: g, p });
     return g;
   };
@@ -965,6 +964,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     } else groups[set].add(obj);
     if (p.live === 'person' && p.person) attachHair(obj, p.person);
     if (p.live === 'mover' && p.mover) { obj.rotation.order = 'YXZ'; live.movers.push({ obj, kind: p.mover, turn: (p.rot?.[1] ?? 0) * D, set }); }
+    if (p.indoor) live.indoor.push({ obj, set, mode: p.indoor, kind: p.live === 'mover' ? 'mover' : p.live === 'city' ? 'backdrop' : 'prop' });
     if (p.cue && p.model) live.cues.push({ obj, p });
     if (p.rise) {
       // built from the ground up: a plane that rises through it a course at a time, and nothing over the plane is drawn
@@ -1043,10 +1043,72 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     for (const p of props) { checkActive(); await place(p, set, baked); await breathe(); }
   };
 
+  /**
+   * The hall's crowd (crowd.ts, docs/rebuild/39-crowd-research.md): every person a card cut from a render of a real
+   * figure, turned about its own upright to face the eye, all of them in two draw calls (the near rows' atlas, the far
+   * rows'). Each plays its loop at its own pace from its own start, one frame running into the next; the stage's
+   * light falls away row by row and the back of the house goes into the hall's dark air.
+   */
+  const buildCrowd = async (set: number): Promise<void> => {
+    const res = await fetch(deliveryUrl('/assets/stage/crowd/people.json'));
+    if (!res.ok) return;
+    const sheet = (await res.json()) as CrowdSheet, seats = crowdSeats(), loops = new Map<string, number>();
+    checkActive();
+    for (const name of ['near', 'far'] as const) {
+      const A = sheet.atlases[name], mine = seats.filter((s) => s.near === (name === 'near'));
+      if (!A || !mine.length) continue;
+      const map = await texLoader.loadAsync(`/assets/stage/crowd/${A.file}`);
+      checkActive();
+      map.colorSpace = SRGBColorSpace;
+      map.anisotropy = maxAniso;
+      const n = mine.length, at = new Float32Array(n * 3), cell = new Float32Array(n * 4), anim = new Float32Array(n * 4), look = new Float32Array(n * 4);
+      mine.forEach((s, i) => {
+        const beside = (row: number, seat: number) => loops.get(`${row}:${seat}`) ?? -1;
+        const k = crowdLoop(sheet, s, [beside(s.row, s.seat - 1), beside(s.row, s.seat - 2), beside(s.row - 1, s.seat), beside(s.row - 1, s.seat + 1)]);
+        loops.set(`${s.row}:${s.seat}`, k);
+        const p = sheet.people[k];
+        at.set(s.at, i * 3);
+        cell.set([p.x / A.size[0], 1 - (p.y + A.cell[1]) / A.size[1], A.cell[0] / A.size[0], A.cell[1] / A.size[1]], i * 4);
+        anim.set([p.frames, (p.frames / CROWD.period[p.action]) * s.rate, s.phase, s.mirror ? -1 : 1], i * 4);
+        look.set([sheet.metres[0] * s.size, sheet.metres[1] * s.size, s.light, s.haze], i * 4);
+      });
+      const g = new InstancedBufferGeometry();
+      g.setAttribute('position', new Float32BufferAttribute([-0.5, 0, 0, 0.5, 0, 0, 0.5, 1, 0, -0.5, 1, 0], 3));
+      g.setAttribute('uv', new Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2));
+      g.setIndex([0, 1, 2, 0, 2, 3]);
+      g.setAttribute('aAt', new InstancedBufferAttribute(at, 3));
+      g.setAttribute('aCell', new InstancedBufferAttribute(cell, 4));
+      g.setAttribute('aAnim', new InstancedBufferAttribute(anim, 4));
+      g.setAttribute('aLook', new InstancedBufferAttribute(look, 4));
+      g.instanceCount = n;
+      const m = new MeshBasicMaterial({ map, alphaTest: 0.4, fog: false, side: DoubleSide });
+      m.onBeforeCompile = (sh) => {
+        sh.uniforms.uTime = timeU; sh.uniforms.uFeet = { value: sheet.feet }; sh.uniforms.uKey = { value: new Color('#FFE9CF') }; sh.uniforms.uAir = { value: new Color('#16141A') };
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', '#include <common>\nuniform float uTime; uniform float uFeet; attribute vec3 aAt; attribute vec4 aCell; attribute vec4 aAnim; attribute vec4 aLook; varying vec2 vNext; varying float vBlend; varying vec2 vAir;')
+          // the frame of the loop this instant and the one after it, each a cell of the atlas; a mirrored card reads its cell the other way
+          .replace('#include <uv_vertex>', '#include <uv_vertex>\n float fr = mod(uTime * aAnim.y + aAnim.z, aAnim.x), f0 = floor(fr), f1 = mod(f0 + 1.0, aAnim.x), ux = aAnim.w > 0.0 ? uv.x : 1.0 - uv.x;\n vMapUv = vec2(aCell.x + (f0 + ux) * aCell.z, aCell.y + uv.y * aCell.w); vNext = vec2(aCell.x + (f1 + ux) * aCell.z, aCell.y + uv.y * aCell.w); vBlend = fract(fr); vAir = aLook.zw;')
+          // the card stands on its feet where its seat is and turns about its upright to the eye's place, so a turn of the head moves nothing
+          .replace('#include <project_vertex>', ' vec4 seat = modelMatrix * vec4(aAt, 1.0); vec3 eye = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz; vec2 to = normalize(eye.xz - seat.xz);\n float sway = sin(uTime * 0.8 + aAnim.z * 2.7) * 0.01 * position.y;\n vec3 stood = seat.xyz + vec3(to.y, 0.0, -to.x) * (position.x * aLook.x + sway) + vec3(0.0, (position.y - uFeet) * aLook.y, 0.0);\n vec4 mvPosition = viewMatrix * vec4(stood, 1.0); gl_Position = projectionMatrix * mvPosition;');
+        sh.fragmentShader = sh.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform vec3 uKey; uniform vec3 uAir; varying vec2 vNext; varying float vBlend; varying vec2 vAir;')
+          .replace('#include <map_fragment>', ' vec4 sampledDiffuseColor = mix(texture2D(map, vMapUv), texture2D(map, vNext), smoothstep(0.3, 0.7, vBlend));\n diffuseColor *= sampledDiffuseColor;\n diffuseColor.rgb = mix(diffuseColor.rgb * uKey * vAir.x, uAir, vAir.y);');
+      };
+      m.customProgramCacheKey = () => 'crowd';
+      const mesh = new Mesh(g, m);
+      mesh.frustumCulled = false; // its cards stand all over the house, not where the one quad of its geometry is
+      mesh.name = `crowd:${name}`;
+      groups[set].add(mesh);
+      await breathe();
+    }
+    kick();
+  };
+
   const loadSet = async (i: number): Promise<void> => {
     const S = SETS[i];
     if (S.baked && exportSet !== i && !LIVE_ALL) {
       await loadBaked(i);
+      if (S.id === 'convocation') await buildCrowd(i);
       await Promise.all(scanning); // cloned surface maps must have pixels before this group can render
       groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
       scene.add(groups[i]);
@@ -1066,6 +1128,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       groups[i].add(floor, walls, ceiling);
     }
     await placeProps(S.props, i);
+    if (S.id === 'convocation' && exportSet !== i) await buildCrowd(i); // never in the bake: it is drawn, not lit
     await Promise.all(scanning);
     groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
     scene.add(groups[i]);
@@ -1176,10 +1239,11 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     loadImage('/assets/scenes/jobs.jpg').then((i) => { images.jobs = i; repaint(['poster', 'jobsPoster']); }),
     loadImage('/assets/story/cc.jpg').then((i) => { images.clan = i; repaint(['poster']); }),
     loadImage('/assets/stage/bean-logo.png').then((i) => { images.bean = i; repaint(['beanSign', 'whiteboardBean', 'screenBeanPhone', 'screenProductHunt', 'beanPoster', 'boothFront', 'boothBack', 'boothMontreal', 'screenTour', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'certificateInvestNS']); }),
-    ...(['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const).map((key) => loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo', 'signWebsummit', 'signElevate', 'signInvestns', 'signVolta']); })),
+    ...(['websummit', 'elevate', 'volta', 'investns', 'producthunt', 'dalhousie'] as const).map((key) => loadImage(`/assets/stage/logos/${key}.png`).then((i) => { images[key] = i; repaint(['logo', 'signWebsummit', 'signElevate', 'signInvestns', 'signVolta', 'voltaLetters']); })),
     loadImage('/assets/stage/logos/floqer.png').then((i) => { images.floqer = i; repaint(['floqer']); }),
     ...([['elevatePhoto', 'elevate'], ['demodayPhoto', 'demoday']] as const).map(([key, file]) => loadImage(`/assets/stage/photos/${file}.jpg`).then((i) => { images[key] = i; repaint(['photo']); })),
     ...([['tripAward', 'google-award'], ['tripSign', 'google-sign']] as const).map(([key, file]) => loadImage(`/assets/stage/photos/${file}.jpg`).then((i) => { images[key] = i; repaint(['trip']); })),
+    loadImage('/assets/stage/collect/slide.webp').then((i) => { images.collect = i; repaint(['screenCollect']); }),
     document.fonts.load('700 40px "Product Sans"').then(() => repaint(['sign'])).catch(() => {}),
   ];
 
@@ -1581,13 +1645,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         m.obj.position.set(...pose.at);
         m.obj.rotation.set(-pose.pitch * D, m.turn + pose.yaw * D, pose.roll * D);
       }
-      // Volta's room is the eighth floor: from his first step in at its door the walk, the harbour and the town sink
-      // under it (the room going up), the door shutting behind him. Nothing of the walk is drawn once it is up
-      const up = riseAt(c), sunk = -WALK.volta.up * up;
-      groups[8].position.y = groups[9].position.y = sunk;
-      for (const b of live.backdrops) if (b.sets.length === 1 && b.sets[0] === 10) b.root.position.y = ((b.root.userData.floor ??= b.root.position.y) as number) + sunk;
-      for (const m of live.movers) if (m.set === 10) m.obj.position.y += sunk;
-      if (mainFrame.set === 10) groups[8].visible = groups[9].visible = up < 1;
+      // at Volta's door the harbour gives way to the city out of its glass; the building's front fills the frame then
+      const view = voltaViewAt(c);
+      for (const v of live.indoor) if (view !== (v.mode === 'in')) v.obj.visible = false; else if (v.kind !== 'mover') v.obj.visible = v.kind === 'prop' || curSet === v.set; // a mover keeps its own; a backdrop shows with its set; a prop with its group
       const year = onWalk(c) ? airAt(c) : undefined, lamps = year?.lamps ?? 0;
       seasonU.value = year?.season ?? 0;
       coverU.value = year?.cover ?? 0;
@@ -1608,7 +1668,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         (k.mesh.material as MeshBasicMaterial).opacity = (k.night ? 0.55 * lamps : 0.9) * Math.min(1, at.shown * 1.6);
         if (at.text !== k.text && k.mesh.visible) paintMark(k, at.text, m);
       });
-      if (slides) { const map = slides.maps[slideAt(c)]; if (slides.mat.map !== map) { slides.mat.map = map; slides.mat.needsUpdate = true; } }
       weather.update(walkAir, clock, camera.position);
       domeU.drift.value = clock * 0.00022;
     }

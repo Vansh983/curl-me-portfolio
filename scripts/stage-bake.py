@@ -39,7 +39,7 @@ EMIT = {"paint:screenCode": 4.0, "paint:screenFloqer": 4.0, "paint:screenBoard":
 LIVE_SURFACE = {"mat:tubeGlass", "mat:bulb", "mat:curtain", "mat:cabinGlass", "mat:handrail"}  # runtime keeps building these pieces
 # in the scene for shadow and bounce, not baked, not exported: the wide ground, the leafy models (bake.ts CONTEXT_*)
 CONTEXT_PROP = {"lawn", "aircraftSkin", "aircraftWing", "stageBin", "doorCaseSydney", "doorCaseVolta", "doorCaseFloqer", "doorCaseHome", "doorCaseFront", "doorCaseBrick", "tripPhotoAward", "tripPhotoSign"}
-CONTEXT_MODEL = {"island_tree_01"}
+CONTEXT_MODEL = {"island_tree_01", "volta_fig"}
 
 
 def hexrgb(h):

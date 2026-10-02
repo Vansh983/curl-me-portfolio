@@ -742,17 +742,6 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const edge = new Sink().box(-125, -0.5, 0, 250.4, 1.3, 210.4);
     return [piece(top.out(), M('campusPaving'), { metres: 'xz' }), piece(edge.out(), M('quayStone'))];
   },
-  /** Volta's coffee bar against the east wall: a counter 3 m along z, the espresso machine and the grinder on it, a stack of cups, shelves over. The wall at the origin's x, the counter toward -x. */
-  coffeeBar: () => {
-    const counter = new Sink().rbox(-0.35, 0.52, 0, 0.7, 1.04, 3.0, 0.02, 2).rbox(-0.35, 1.06, 0, 0.76, 0.04, 3.06, 0.01, 2);
-    const machine = new Sink().rbox(-0.35, 1.3, -0.6, 0.5, 0.44, 0.56, 0.03, 2).box(-0.6, 1.55, -0.6, 0.06, 0.06, 0.4).rbox(-0.35, 1.28, 0.25, 0.22, 0.4, 0.22, 0.03, 2);
-    const cups = new Sink();
-    for (let i = 0; i < 8; i++) cups.cylinder(-0.3 + (i % 4) * 0.12, 1.13, 0.85 + Math.floor(i / 4) * 0.12, 0.045, 0.1, 12);
-    const shelf = new Sink().box(-0.18, 1.85, 0, 0.36, 0.03, 2.4).box(-0.18, 2.25, 0, 0.36, 0.03, 2.4);
-    const jars = new Sink();
-    for (let i = 0; i < 6; i++) jars.cylinder(-0.18, 1.98, -1.0 + i * 0.4, 0.07, 0.22, 12);
-    return [piece(counter.out(), M('plywood'), { smooth: true, metres: 'xz' }), piece(machine.out(), M('chrome'), { smooth: true }), piece(cups.out(), M('icing')), piece(shelf.out(), M('plywood')), piece(jars.out(), M('acrylic'), { smooth: true })];
-  },
   /**
    * The wing behind the terrace's door: a dark passage 3 m long and the four steps up to the stage's side. The door
    * opening is cut where the terrace wall's frame stands; the walk goes straight through and up.

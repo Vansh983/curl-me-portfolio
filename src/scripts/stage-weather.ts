@@ -1,26 +1,36 @@
 // What comes down on the walk: October's leaves in Toronto, January's snow in Halifax. Each is one draw call: a box of
 // air that travels with the eye, every flake or leaf a seed in it, fallen and blown by the clock and wrapped back
 // into the box as it leaves, so the air is as full behind a step as ahead of it. How much of it shows is the walk's
-// script (walk.ts `Air.snow`, `Air.leaves`): the first flakes come one by one.
+// script (walk.ts `Air.snow`, `Air.leaves`): the first flakes come one by one. Indoors at Volta it keeps falling outside
+// the glass, as it was on the walk; nothing falls in the room, nor in the wing and the hall behind its north wall.
 import {
   BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Fog, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry, Points, Scene, ShaderMaterial, Vector3,
   CanvasTexture, SRGBColorSpace,
 } from 'three';
-import type { Air } from '../lib/stage/walk.ts';
+import { WALK, CITY_AIR, type Air } from '../lib/stage/walk.ts';
 
 const FOG = `
   uniform vec3 fogColor; uniform float fogNear; uniform float fogFar;
   vec3 fogged(vec3 c, float depth) { return mix(c, fogColor, smoothstep(fogNear, fogFar, depth) * 0.85); }`;
 const WRAP = `
   uniform float uTime; uniform vec3 uEye; uniform vec3 uBox; uniform vec3 uAhead;
-  vec3 wrapped(vec3 p) { vec3 c = uEye + uAhead; return mod(p - c + uBox * 0.5, uBox) - uBox * 0.5 + c; }`;
+  vec3 wrapped(vec3 p) { vec3 c = uEye + uAhead; return mod(p - c + uBox * 0.5, uBox) - uBox * 0.5 + c; }
+  uniform vec3 uRoomMin; uniform vec3 uRoomMax; uniform float uIndoor;
+  // 0 where nothing falls: Volta's room, and while the eye is in it, north of its north wall on the land side of its glass
+  float open(vec3 w) {
+    vec3 a = step(uRoomMin, w) * step(w, uRoomMax);
+    return (1.0 - a.x * a.y * a.z) * (1.0 - uIndoor * step(uRoomMax.z, w.z) * step(uRoomMin.x, w.x));
+  }`;
+/** Volta's room, where nothing falls: from the floor to its slab. */
+const ROOM = { min: new Vector3(WALK.volta.x[0], -1, WALK.volta.z[0]), max: new Vector3(WALK.volta.x[1], WALK.volta.h + 0.05, WALK.volta.z[1]) };
+const inRoom = (e: Vector3): boolean => e.x > ROOM.min.x && e.x < ROOM.max.x && e.z > ROOM.min.z && e.z < ROOM.max.z && e.y < ROOM.max.y;
 
 export interface Weather { update(air: Air | undefined, clock: number, eye: Vector3): void; dispose(): void }
 
 export function createWeather(scene: Scene, fog: Fog): Weather {
   let seed = 8191;
   const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-  const shared = { fogColor: { value: fog.color }, fogNear: { value: 1 }, fogFar: { value: 100 }, uTime: { value: 0 }, uEye: { value: new Vector3() } };
+  const shared = { fogColor: { value: fog.color }, fogNear: { value: 1 }, fogFar: { value: 100 }, uTime: { value: 0 }, uEye: { value: new Vector3() }, uRoomMin: { value: ROOM.min }, uRoomMax: { value: ROOM.max }, uIndoor: { value: 0 } };
 
   // ---- snow: soft round flakes, the near ones large
   const N = 1600, at: number[] = [], k: number[] = [];
@@ -39,9 +49,10 @@ export function createWeather(scene: Scene, fog: Fog): Weather {
         p.y -= uTime * (0.75 + k.x * 0.55);
         p.x += sin(uTime * 0.6 + k.x * 40.0) * 0.4 + uTime * 0.32;
         p.z += cos(uTime * 0.47 + k.y * 27.0) * 0.35 - uTime * 0.12;
-        vec4 mv = viewMatrix * vec4(wrapped(p), 1.0);
+        vec3 w = wrapped(p);
+        vec4 mv = viewMatrix * vec4(w, 1.0);
         gl_Position = projectionMatrix * mv;
-        float show = step(k.y, uAmount);
+        float show = step(k.y, uAmount) * open(w);
         vDepth = -mv.z;
         gl_PointSize = uSize * (0.55 + k.x * 0.9) / max(0.6, vDepth) * show;
         vAlpha = smoothstep(0.3, 1.6, vDepth) * (0.5 + 0.5 * k.x) * show;
@@ -101,7 +112,7 @@ export function createWeather(scene: Scene, fog: Fog): Weather {
         c.z += cos(t * 1.1 + seed.y * 17.0) * 0.5;
         c = wrapped(c);
         float a = t * 2.4 + seed.z * 6.283, b = t * 1.7 + seed.x * 6.283;
-        float size = (0.085 + seed.w * 0.06) * step(seed.z, uAmount);
+        float size = (0.085 + seed.w * 0.06) * step(seed.z, uAmount) * open(c);
         vec3 q = vec3(position.xy * size, 0.0);
         q = vec3(q.x, q.y * cos(a) - q.z * sin(a), q.y * sin(a) + q.z * cos(a));
         q = vec3(q.x * cos(b) + q.z * sin(b), q.y, -q.x * sin(b) + q.z * cos(b));
@@ -123,21 +134,23 @@ export function createWeather(scene: Scene, fog: Fog): Weather {
   leaves.name = 'b|weather|mat:leaffall|walk';
   scene.add(snow, leaves);
 
-  const light = new Color(), sky = new Color();
+  const light = new Color(), sky = new Color(), outside = new Color(CITY_AIR.halifax.tint.sky);
   return {
     update(air, clock, eye) {
-      const on = air !== undefined && air.inside < 0.98;
+      const on = air !== undefined && eye.z < WALK.door; // through Volta's north door into the wing, the weather stays outside
       snow.visible = on && air.snow > 0.01;
       leaves.visible = on && air.leaves > 0.01;
       if (!on) return;
       shared.uTime.value = clock;
       shared.uEye.value.copy(eye);
+      shared.uIndoor.value = inRoom(eye) ? 1 : 0;
       shared.fogNear.value = fog.near;
       shared.fogFar.value = fog.far;
-      snowU.uAmount.value = air.snow * (1 - air.inside);
+      snowU.uAmount.value = air.snow;
       snowU.uSize.value = 34 * Math.min(2, window.devicePixelRatio || 1);
-      // a flake takes the sky's light and the lamps': near white at dusk, never brighter than the snow on the ground
-      sky.set(air.tint.sky);
+      // a flake takes the sky's light and the lamps': near white at dusk, never brighter than the snow on the ground; seen
+      // from inside Volta it is still the dusk's, not the room's
+      sky.set(air.tint.sky).lerp(outside, air.inside);
       snowU.uTint.value.set('#FFFFFF').lerp(sky, 0.35).multiplyScalar(0.62 + 0.3 * air.lamps);
       leafU.uAmount.value = air.leaves;
       light.set(air.sun.color);

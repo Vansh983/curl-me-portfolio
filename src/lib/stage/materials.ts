@@ -19,11 +19,13 @@ export interface Mat {
   tile: number;
   emissive?: string; // glows on its own
   emissivePower?: number;
+  bakePower?: number; // its glow as a lamp in the bake, when that differs from how bright it is drawn (default: emissivePower)
   unlit?: boolean; // a basic material: the map or colour is the light (screens, the city at night)
   fog?: false; // outside the room's fog, kilometres away
   inside?: true; // seen from inside (a sky dome): back faces
   tint?: true; // takes the piece's vertex colours (the city: each building its own brightness)
   alpha?: number; // see-through: a pane of glass; kept live, never baked
+  env?: number; // how much of the room's reflection it takes, 0..1 (default 1): a matt black ceiling takes almost none
   layer?: number; // flat ground layers on the same plane, kilometres off: drawn over what is under them (polygon offset), higher wins
 }
 
@@ -84,6 +86,8 @@ export const MATS: Record<string, Mat> = {
   walkLawn: { color: '#FFFFFF', rough: 1, tex: 'leafy_grass', amp: 0.55, tile: 2.0, layer: 2 }, // its season is the walk's (stage-run.ts)
   snowForm: { color: '#EEF2F8', rough: 0.95, tex: 'snow_02', amp: 0.8, tile: 2.0 }, // snow with a shape of its own: the drifts, the snow along a limb; it comes on with the walk's cover
   walkSnowFar: { color: '#DDE3EE', rough: 1, tile: 1 }, // snow a long way off: the island, the hill
+  citySlush: { color: '#7C818A', rough: 1, tile: 1 }, // the ground of the town out of Volta's glass: lots and yards trodden and plowed, grey, not a field of snow
+  citySidewalk: { color: '#6B6D70', rough: 0.9, grain: 'speckle', amp: 0.2, tile: 0.6 }, // the sidewalks along it: wet concrete at dusk, darker than the snow on the banks
   walkBark: { color: '#FFFFFF', rough: 1, tex: 'bark_brown_02', amp: 1.0, tile: 1.0 },
   walkWater: { color: '#1E3B4A', rough: 0.08, metal: 0, tile: 1, layer: 1 }, // its own shader at runtime (stage-run.ts): the swell, the sky in it
   railOak: { color: '#B08457', rough: 0.6, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1.83 },
@@ -96,13 +100,28 @@ export const MATS: Record<string, Mat> = {
   trackBed: { color: '#9C9A95', rough: 0.9, grain: 'plaster', amp: 0.2, tile: 1.5, layer: 3 },
   trackRail: { color: '#8C8F94', rough: 0.3, metal: 0.9, tile: 1, layer: 4 },
   voltaBrick: { color: '#FFFFFF', rough: 0.9, tex: 'red_brick_03', amp: 0.9, tile: 1.0 },
-  voltaWall: { color: '#ECEBE8', rough: 0.9, tex: 'plastered_wall_04', amp: 0.15, tile: 3.2 }, // Volta's room: white walls
-  voltaDuct: { color: '#16171A', rough: 0.6, metal: 0.3, tile: 1 }, // the open ceiling: slab, ducts and trays all painted black
+  // Volta's floor as it is (docs/rebuild/40-volta-interior-reference.md): light warm grey walls, warm grey carpet tile, white columns,
+  // sills, mullions and furniture, pale maple planks behind the reception desk, everything overhead painted black
+  voltaWall: { color: '#CFC8BC', rough: 0.9, tex: 'plastered_wall_04', amp: 0.15, tile: 3.2 },
+  voltaWhite: { color: '#E6E3DC', rough: 0.55, clearcoat: 0.12, clearcoatRough: 0.4, tile: 1 }, // columns, the sill, the mullions, table legs, the high tables
+  voltaBlack: { color: '#1B1B1D', rough: 0.5, env: 0.35, tile: 1 }, // the ring lights' bodies, the linear lights, the booth, the bulkhead over the glass
+  voltaBase: { color: '#55524E', rough: 0.7, tile: 1 }, // the baseboard, the columns' feet
+  voltaTableTop: { color: '#C3BCAF', rough: 0.5, grain: 'speckle', amp: 0.08, clearcoat: 0.15, clearcoatRough: 0.4, tile: 1 }, // the flip-top tables: pale grey woodgrain
+  voltaWoodA: { color: '#CDAA84', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.12, clearcoatRough: 0.5, tile: 0.7 }, // the plank wall and the desk: maple, three tones (plain colours: the oak scan's own colour made them orange)
+  voltaWoodB: { color: '#C09A75', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.12, clearcoatRough: 0.5, tile: 0.7 },
+  voltaWoodC: { color: '#B08F72', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.12, clearcoatRough: 0.5, tile: 0.7 },
+  voltaBar: { color: '#2B2A2A', rough: 0.45, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1 }, // the bar ledge under the side window
+  voltaLime: { color: '#A9A83C', rough: 0.95, tex: 'wool_boucle', amp: 0.4, sheen: 0.5, tile: 0.35 }, // the cube ottomans
+  voltaTeal: { color: '#4FB4D0', rough: 0.95, tex: 'wool_boucle', amp: 0.4, sheen: 0.5, tile: 0.35 },
+  voltaRed: { color: '#B13A2E', rough: 0.95, tex: 'wool_boucle', amp: 0.4, sheen: 0.5, tile: 0.35 },
+  voltaWalnut: { color: '#6B4A33', rough: 0.55, tex: 'oak_veneer_01', amp: 0.35, clearcoat: 0.2, tile: 1.83 }, // the side table's cone
+  voltaBell: { color: '#B3261E', rough: 0.4, clearcoat: 0.4, clearcoatRough: 0.2, tile: 1 }, // the fire bells on the columns
+  voltaDuct: { color: '#1D1B1A', rough: 0.95, env: 0.04, tile: 1 }, // the open ceiling: slab, ducts and trays all painted black, matt (taking the room's reflection, it read pale from the door)
+  voltaDoor: { color: '#4E4E4E', rough: 0.5, clearcoat: 0.15, clearcoatRough: 0.4, tile: 1 }, // Volta's doors: flat charcoal
   stripLight: { color: '#F6F8FF', rough: 0.5, emissive: '#EEF3FF', emissivePower: 3.2, tile: 1 }, // the long white strips
-  ringLight: { color: '#FFE9C8', rough: 0.5, emissive: '#FFD39A', emissivePower: 3.4, tile: 1 }, // the ring pendants, warm
-  chairOrange: { color: '#D8482A', rough: 0.5, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1 }, // the stacking chairs
+  ringLight: { color: '#FFE9C8', rough: 0.5, emissive: '#FFDDB4', emissivePower: 1.2, bakePower: 1.9, tile: 1 }, // the ring lights' inner faces, warm. Drawn dimmer than they light the room: two metres across and overhead, their bloom laid a pale veil over the black ceiling
   paperWhite: { color: '#F4F2EC', rough: 0.8, tile: 1 },
-  voltaFloor: { color: '#6F7378', rough: 1, tex: 'dirty_carpet', amp: 0.35, tile: 0.6 }, // grey carpet tile
+  voltaFloor: { color: '#8C877F', rough: 1, tex: 'dirty_carpet', amp: 0.35, tile: 0.6 }, // warm grey carpet tile
   doorDark: { color: '#2A2522', rough: 0.55, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1.83 }, // his front door: dark stained oak
   windowDark: { color: '#141A22', rough: 0.12, metal: 0.2, clearcoat: 0.8, clearcoatRough: 0.06, tile: 1 },
   windowLit: { color: '#3A2E20', rough: 0.4, emissive: '#FFC27A', emissivePower: 0, tile: 1 }, // a window with the light on inside, brought up as the day goes

@@ -16,7 +16,7 @@
 //   Set 11 CONVOCATION and Set 12 FLOQER               written about the old terrace door (z 24); they stand TOUR_SHIFT further north
 import { HALIFAX } from './halifax.ts';
 import { ch, approach, TOUR_GAIN } from './shot.ts';
-import { WALK, CITY_AIR, TRACK, RISE, SIGNS, type Cue, type SkyName } from './walk.ts';
+import { WALK, CITY_AIR, TRACK, VOLTA_SHUT, VOLTA_VIEW, SIGNS, voltaViewBridge, type Cue, type SkyName } from './walk.ts';
 import { hingeOff, type Door } from './door.ts';
 
 export type V3 = [number, number, number];
@@ -57,6 +57,7 @@ export interface Placement {
   cue?: Cue; // it arrives with the scroll (walk.ts): from an offset, a turn or a scale to where it is placed
   rise?: [number, number, number]; // it is built from the ground up over these chapters, in courses this many metres tall (the pixel whale, cube on cube)
   mover?: 'seaplane' | 'streetcar' | 'ferry'; // live 'mover': its place comes from the walk's script
+  indoor?: 'in' | 'out'; // Volta's view (walk.ts VOLTA_VIEW): shown only while it stands outside the glass ('in'), or only while it does not ('out')
   model?: string;
   build?: string;
   at: V3;
@@ -153,38 +154,24 @@ export const WALK_TREES: Array<{ z: number; x: number; kind: number; turn: numbe
 })();
 /** The lamps along the water's edge, one every 7.5 m from the corner to Volta's. */
 export const WALK_LAMPS: number[] = Array.from({ length: 8 }, (_, i) => -15.5 + i * 7.5);
-/** Volta's podium, at the front of the rows under the screen: he stands behind it, toward +z, and turns to the room. */
+/** The high table at the north end of Volta's floor, by the slide on the wall: he stands behind it, toward +z, and turns to the room. */
 export const VOLTA_PODIUM: V3 = [-12.6, 0, WALK.volta.z[1] - 3.1];
-/** The rows of chairs set out for Demo Day, facing the screen at the room's north end: [x, z] of each, from the room's south wall. */
-export const DEMO_SEATS: Array<[number, number]> = [3.4, 4.6, 5.8, 7.0].flatMap((dz) => [-15.7, -14.85, -14.0, -13.15, -12.3].map((x): [number, number] => [x, WALK.volta.z[0] + dz]));
+/** Bare street trees along the far sidewalk out of Volta's glass (VOLTA_VIEW.street), one every 13 m or so: x, z, turn, size. */
+const VIEW_TREES: Array<[number, number, number, number]> = [-44, -30, -17, -4, 9, 22, 35, 58, 71, 84, 97, 110, 123].map((z, i) => [VOLTA_VIEW.street[3] + 1.2, z + ((i * 37) % 5) - 2, (i * 83) % 360, 0.9 + ((i * 29) % 7) / 30]);
 /**
- * The people in the hall on its feet: graduates in black gowns among their families, standing on the house's tiers facing the
- * stage, each dressed and started differently from a fixed seed so the crowd is the same every time. The character faces -z
- * in its own frame; turned 90 degrees it faces the stage across -x.
+ * Volta's floor as it is furnished (docs/rebuild/40-volta-interior-reference.md), west of the walk's line through the
+ * room: two groups of white tables with white chairs pulled up, the tub chairs and ottomans at the glass, a high table
+ * and stools, the fat white columns, the ring lights overhead. x, z and a turn about y in degrees (a seat faces +z at 0).
  */
-export function crowdPeople(): Placement[] {
-  let seed = 977;
-  const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
-  const pick = <T,>(a: readonly T[]): T => a[Math.floor(rnd() * a.length)];
-  const skins = ['#F1C9A5', '#D9A57E', '#C68E6A', '#9C6B48', '#6E4A31', '#4A3122'] as const;
-  const tops = ['#1E2A44', '#5A1F2A', '#F2F0EA', '#3B4A3F', '#7C7F86', '#2B2B30', '#B8875A', '#6B3F7A'] as const;
-  const legs = ['#1F2430', '#2E3A55', '#6B6F78', '#3A2E26', '#111114'] as const;
-  const hairs = ['#15151A', '#2A1B12', '#4A3221', '#6B4A2B', '#8A8A8A', '#B8925A'] as const;
-  const out: Placement[] = [];
-  const [h0] = STAGE.hall, [hz0, hz1] = STAGE.hallZ;
-  for (let i = 0; i < 8; i++) {
-    const x = h0 + 3.2 + i * 2.35, y = houseFloorY(x);
-    const n = 9, span = hz1 - hz0 - 3;
-    for (let j = 0; j < n; j++) {
-      const z = hz0 + 1.5 + (span * (j + 0.5)) / n + (rnd() - 0.5) * 1.2;
-      const gown = rnd() < 0.45;
-      const wear: Wear = gown ? { skin: pick(skins), top: '#121214', legs: '#121214', shoes: '#141416', sleeves: 'long' } : { skin: pick(skins), top: pick(tops), legs: pick(legs), shoes: pick(['#141416', '#3A2E26', '#EDEDEA'] as const), sleeves: rnd() < 0.6 ? 'long' : 'short' };
-      out.push({ model: 'base_character', at: [x + (rnd() - 0.5) * 0.6, y, z], rot: [0, 90 + (rnd() - 0.5) * 24, 0], live: 'person', person: { wear, hair: pick(hairs), clip: rnd() < 0.35 ? 'talk' : 'idle', phase: rnd() * 6 } });
-    }
-  }
-  return out;
-}
-
+export const VOLTA_FLOOR = {
+  columns: [[-14.9, 43.9], [-14.9, 47.6]] as Array<[number, number]>,
+  rings: [[-13.4, 42.6, 1.0], [-13.0, 46.3, 1.3], [-9.3, 47.5, 0.85], [-12.4, 50.0, 0.9]] as Array<[number, number, number]>, // x, z, radius
+  tables: [[-13.4, 42.225, 0], [-13.4, 42.975, 0], [-12.8, 45.25, 90], [-12.8, 46.75, 90]] as Array<[number, number, number]>,
+  chairs: [[-13.8, 41.45, 8], [-13.0, 41.4, -12], [-13.75, 43.8, 172], [-12.85, 44.05, 205], [-11.95, 45.2, -84], [-11.9, 46.75, -100], [-13.65, 45.3, 96], [-13.7, 46.85, 78]] as Array<[number, number, number]>,
+  tubs: [[-15.45, 45.35, 52], [-15.45, 46.95, 131]] as Array<[number, number, number]>,
+  stools: [[-8.05, 41.6, 80], [-8.1, 42.5, 95], [-8.05, 43.45, 110], [-14.75, 49.65, 0], [-15.55, 50.05, 40]] as Array<[number, number, number]>,
+  highTable: [-15.35, 49.4] as [number, number],
+} as const;
 export const STAGE = {
   wing: [24.0, 27.0] as [number, number], z: [27.0, 41.0] as [number, number], x: [-15.4, -7.4] as [number, number], height: 1.0, centre: 33.5, hall: [-7.4, 24.0] as [number, number], hallZ: [24.5, 46.5] as [number, number],
   door: { x: -10.5, z: 48.0, w: 1.0, h: 2.2, floor: 1.0 }, // the door out of the north wall behind the stage, on the walk's line, at the stage's height: backstage runs to it; Floqer's house is right behind it
@@ -250,7 +237,7 @@ export const HOME = (() => {
 export const DOORS = {
   voltaIn: { w: 1.2, h: 2.2, depth: 0.25, case: 'windowFrame', leaf: 'windowFrame', sill: 'windowFrame', pull: 'bar', faces: 'swing' }, // Volta's door off the walk, dark steel, in the brick's own reveal
   sydney: { w: 0.9, h: 2.05, depth: 0.12, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'swing' },
-  volta: { w: 1.2, h: 2.1, depth: 0.22, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'both' },
+  volta: { w: 1.2, h: 2.1, depth: 0.22, case: 'doorPaint', leaf: 'voltaDoor', sill: 'windowFrame', pull: 'lever', faces: 'both' },
   floqer: { w: STAGE.door.w, h: STAGE.door.h, depth: FLOQER.z[0] - STAGE.door.z, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'both' },
   home: { w: FLOQER.door.w, h: FLOQER.door.h, depth: 0.23, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'both' },
   brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing' }, // the door in the apartment's brick wall: shut, the story no longer comes back through it
@@ -679,7 +666,8 @@ export const SETS: StageSet[] = [
       { build: 'tramTrack', at: [0, 0, 0], cap: 'The streetcar track along Queens Quay.' },
       { build: 'voltaBlock', at: [0, 0, 0], live: 'glow', cap: 'Volta, Halifax.' },
       ...WALK_LAMPS.map((z): Placement => ({ build: 'walkLamp', at: [WALK.path[0] + 0.55, 0, z], live: 'walkLamp' })),
-      ...WALK_TREES.map((t): Placement => ({ build: `walkTree${t.kind}`, at: [t.x, 0, t.z], rot: [0, t.turn, 0], scale: t.size })),
+      // the walk's trees; the two that would stand in the street out of Volta's side window are gone once it is there
+      ...WALK_TREES.map((t): Placement => ({ build: `walkTree${t.kind}`, at: [t.x, 0, t.z], rot: [0, t.turn, 0], scale: t.size, ...(t.x > VOLTA_VIEW.east[0] && t.x < VOLTA_VIEW.east[3] + 30 && t.z > VOLTA_VIEW.eastRow[0] ? { indoor: 'out' as const } : {}) })),
       ...SIGNS.map((g, i): Placement => ({ build: `logoSign${i}`, at: [g.x, 0, g.z], rot: [0, 40, 0], live: 'glow', cap: g.name })), // each city's mark, standing on his left, turned to him as he comes
       // the benches along the land side's kerb face the walk and the water, their backs to the land
       // no bench by Web Summit's mark: the one there stood across it, and he had it taken out (2026-09-27)
@@ -712,11 +700,12 @@ export const SETS: StageSet[] = [
     // 2026, Halifax in January, dusk: snow on the boards and coming down, the lamps lit, the ferry crossing to Dartmouth
     // with its windows lit, the Macdonald Bridge beyond it, downtown climbing the hill on the land side to the Town
     // Clock; and at the end of the walk Volta's building, its top floor lit. In at its door, which shuts behind him,
-    // and the room is that floor, the eighth (RISE): the slab and its ducts black, strips of white light, ring
-    // pendants, grey carpet, glass leaning in along the whole harbour side and a window on downtown. Set for Demo Day:
-    // the coffee bar on the left under the Volta mark (a coffee comes into the hand), rows of red-orange chairs, the
-    // screen at the far end; he goes up to the podium and turns to the room; then the door into the wing. No figures:
-    // he found them weird (2026-09-27).
+    // into Volta's floor as it is (docs/rebuild/40-volta-interior-reference.md), on the walk's own level: the slab and
+    // its ducts black, black ring lights and loose linear ones, warm grey carpet and walls, fat white columns, the
+    // glass leaning in along the whole west side over a white sill, the reception's plank wall and desk on the east,
+    // white tables and chairs, tub chairs at the glass, Collect.'s slide thrown on the north wall. Nothing outside
+    // moves as he goes in (2026-09-27). He goes up to the high table and turns to the room; then the door into the
+    // wing. No figures: he found them weird (2026-09-27).
     id: 'halifaxVolta', env: 'sky', sky: 'halifax', ...air('halifax'), also: [8], baked: true, bakedEnvironment: true,
     // the room is baked as a room at dusk: its strips and rings light it, the last of the day comes in at the glass
     bake: { env: 'studio', tint: { sky: '#5F6FA6', ground: '#2A2622', power: 0.22 }, envPower: 0.05, sun: { dir: [-0.55, 0.3, 0.78], color: '#8EA2D8', power: 0.1, shadow: 0.4 }, view: { cam: [WALK.x, 1.6, WALK.volta.z[0] + 2.2], look: [WALK.x - 2.2, 1.3, WALK.volta.z[1]], fov: 74 } },
@@ -732,25 +721,58 @@ export const SETS: StageSet[] = [
     },
     props: [
       water(),
-      { build: 'voltaGlass', at: [0, 0, 0], cap: 'Volta, Halifax: the eighth floor, the harbour through the glass.' },
+      { build: 'voltaGlass', at: [0, 0, 0], cap: 'Volta, Halifax: the harbour through the glass.' },
       // the Maritime Centre 400 m in from the water and 230 m up the walk: downtown on the hill, ahead and to the left
       { build: 'halifaxWalk', at: [390, 0, 265], live: 'city', shadow: false, cap: 'Downtown Halifax on its hill: the real blocks from the flight data.' },
       { model: 'town_clock', at: [70, 9.6, 108], rot: [0, -120, 0], scale: 1.6, live: 'city', cap: 'The Town Clock on Citadel Hill.' },
-      { build: 'macdonaldBridge', at: [-760, WALK.water, 1160], rot: [0, 12, 0], live: 'city', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
-      { build: 'georgesIsland', at: [-420, WALK.water, 250], live: 'city', shadow: false, cap: "Georges Island and its lighthouse." },
-      { build: 'ferry', at: [-135, WALK.water, 98], live: 'mover', mover: 'ferry', cap: 'The ferry to Dartmouth.' },
+      // the harbour as the walk has it; from the building's door on, the city stands there instead (VOLTA_VIEW)
+      { build: 'macdonaldBridge', at: [-760, WALK.water, 1160], rot: [0, 12, 0], live: 'city', indoor: 'out', shadow: false, cap: 'The Angus L. Macdonald Bridge across the harbour.' },
+      { build: 'georgesIsland', at: [-420, WALK.water, 250], live: 'city', indoor: 'out', shadow: false, cap: "Georges Island and its lighthouse." },
+      { build: 'ferry', at: [-135, WALK.water, 98], live: 'mover', mover: 'ferry', indoor: 'out', cap: 'The ferry to Dartmouth.' },
+      // what the glass shows once he is at the door: the city of Halifax on snow, the bridge in the back, no water
+      { build: 'voltaView', at: [0, 0, 0], live: 'city', indoor: 'in', shadow: false, cap: 'Halifax: the real blocks, from OpenStreetMap.' },
+      { build: 'voltaViewEast', at: [0, 0, 0], live: 'city', indoor: 'in', shadow: false },
+      { build: 'macdonaldBridge', at: voltaViewBridge().at, rot: [0, voltaViewBridge().turn, 0], live: 'city', indoor: 'in', shadow: false, cap: 'The Angus L. Macdonald Bridge, in the back.' },
+      ...VIEW_TREES.map((t, i): Placement => ({ build: `walkTree${i % 4}`, at: [t[0], 0, t[1]], rot: [0, t[2], 0], scale: t[3], live: 'city', indoor: 'in', shadow: false })),
       { build: 'voltaCeiling', at: [0, 0, 0] },
-      // the door in off the walk: it opens as he comes up to the building and shuts behind him as the room goes up
-      ...doorway('voltaIn', WALK.x, 0, WALK.volta.z[0], [ch(WALK.to.c - 0.2), ch(WALK.to.c - 0.06)], "Volta's door, 1800 Argyle Street.", [ch(RISE.from + 0.02), ch(RISE.from + 0.16)]),
-      { build: 'coffeeBar', at: [WALK.volta.x[1], 0, WALK.volta.z[0] + 3.6], cap: 'The coffee at Volta. Collect. every Thursday; Demo Day, January 2026.' },
-      { build: 'logoVolta', at: [WALK.volta.x[1] - 0.01, 2.45, WALK.volta.z[0] + 3.6], rot: [0, -90, 0], cap: 'Volta, 1800 Argyle Street, Halifax.' },
-      // Demo Day: the chairs in rows, the screen and the podium at the north end, the room behind the walk's line
-      ...DEMO_SEATS.map(([x, z]): Placement => ({ build: 'stackChair', at: [x, 0, z], rot: [0, 180, 0] })),
-      { build: 'demoScreen', at: [VOLTA_PODIUM[0], 1.95, WALK.volta.z[1] - 0.06], live: 'screen', cap: 'Collect. Demo Day at Volta, January 15, 2026.' },
-      { build: 'voltaLectern', at: VOLTA_PODIUM, cap: 'The podium.' }, // his: he goes up to it, stands behind it and turns to the room
-      ...[WALK.volta.z[0] + 2.2, WALK.volta.z[0] + 6.2, WALK.volta.z[0] + 10.0].map((z): Placement => ({ build: 'ringPendant', at: [-9.6, WALK.volta.h - 0.02, z], live: 'pendant' })),
-      { model: 'potted_plant_01', at: [-7.9, 0, WALK.volta.z[0] + 0.7], scale: 1.1 },
-      { model: 'potted_plant_01', at: [-7.9, 0, WALK.volta.z[1] - 0.5], rot: [0, 70, 0], scale: 1.15 },
+      // the door in off the walk: it opens as he comes up to the building and shuts behind him
+      ...doorway('voltaIn', WALK.x, 0, WALK.volta.z[0], [ch(WALK.to.c - 0.2), ch(WALK.to.c - 0.06)], "Volta's door, 1800 Argyle Street.", [ch(VOLTA_SHUT[0]), ch(VOLTA_SHUT[1])]),
+      // the reception's plank wall and desk, the bar ledge under the window, the baseboard
+      { build: 'voltaFitout', at: [0, 0, 0], cap: 'Volta, 1800 Argyle Street, Suite 801: the reception.' },
+      { build: 'laptop', at: [WALK.volta.x[1] - 1.1, 0.755, 47.2], rot: [0, 90, 0] },
+      { model: 'volta_chair', at: [WALK.volta.x[1] - 0.55, 0, 47.3], rot: [0, -105, 0] },
+      { model: 'volta_fig', at: [WALK.volta.x[1] - 0.65, 0, 45.6], rot: [0, 40, 0], scale: 0.78 },
+      ...VOLTA_FLOOR.columns.map(([x, z], i): Placement => ({ build: 'voltaColumn', at: [x, 0, z], rot: [0, i ? 180 : 0, 0] })),
+      ...VOLTA_FLOOR.rings.map(([x, z, r]): Placement => ({ build: 'ringPendant', at: [x, WALK.volta.h - 0.02, z], scale: [r, 1, r], live: 'pendant' })),
+      // the coworking floor: tables in two groups, chairs pulled up, what people leave on and under them
+      ...VOLTA_FLOOR.tables.map(([x, z, turn]): Placement => ({ build: 'voltaTable', at: [x, 0, z], rot: [0, turn, 0] })),
+      ...VOLTA_FLOOR.chairs.map(([x, z, turn]): Placement => ({ model: 'volta_chair', at: [x, 0, z], rot: [0, turn, 0] })),
+      { build: 'laptop', at: [-13.75, 0.74, 42.0], rot: [0, 180, 0] },
+      { build: 'laptopBeanCode', at: [-12.95, 0.74, 43.15] },
+      { build: 'laptopBean', at: [-12.62, 0.74, 45.2], rot: [0, 90, 0] },
+      { build: 'laptop', at: [-12.98, 0.74, 46.85], rot: [0, -90, 0] },
+      { model: 'coffee_mug', at: [-13.3, 0.74, 42.15], rot: [0, 30, 0] },
+      { model: 'coffee_mug', at: [-12.62, 0.74, 46.2], rot: [0, 200, 0] },
+      { model: 'volta_bottle', at: [-13.95, 0.74, 42.9] },
+      { model: 'volta_bottle', at: [-12.95, 0.74, 45.75] },
+      { model: 'volta_backpack', at: [-14.25, 0, 41.3], rot: [0, 60, 0] },
+      { model: 'volta_backpack', at: [-11.75, 0, 45.85], rot: [0, -70, 0] },
+      // at the glass: the tub chairs round a low table, cube ottomans, a high table with its stools
+      ...VOLTA_FLOOR.tubs.map(([x, z, turn]): Placement => ({ model: 'volta_tub_chair', at: [x, 0, z], rot: [0, turn, 0] })),
+      { build: 'voltaSideTable', at: [-15.15, 0, 46.15] },
+      { build: 'voltaOttomanLime', at: [-14.45, 0, 45.7], rot: [0, 15, 0] },
+      { build: 'voltaOttomanTeal', at: [-14.35, 0, 46.55], rot: [0, -20, 0] },
+      { build: 'voltaHighTable', at: [VOLTA_FLOOR.highTable[0], 0, VOLTA_FLOOR.highTable[1]] },
+      ...VOLTA_FLOOR.stools.map(([x, z, turn]): Placement => ({ model: 'volta_stool', at: [x, 0, z], rot: [0, turn, 0], scale: [1, 1.38, 1] })),
+      { model: 'volta_fig', at: [-15.6, 0, 40.95], scale: 0.85 },
+      { model: 'volta_fig', at: [-15.55, 0, 51.2], rot: [0, 150, 0], scale: 0.8 },
+      // the north end: Collect.'s slide thrown on the wall, the high table he speaks at, a stack of the event chairs, the call booth
+      { build: 'voltaSlide', at: [-13.7, 1.95, WALK.volta.z[1] - 0.012], live: 'screen', cap: "Collect. at Volta: Halifax's Socratica node." },
+      { build: 'voltaHighTable', at: VOLTA_PODIUM, cap: 'The high table he spoke at.' }, // his: he goes up to it, stands behind it and turns to the room
+      { build: 'laptop', at: [VOLTA_PODIUM[0], 1.05, VOLTA_PODIUM[2] - 0.1] },
+      ...Array.from({ length: 6 }, (_, i): Placement => ({ model: 'volta_stack_chair', at: [-11.75, i * 0.085, WALK.volta.z[1] - 0.45 - i * 0.012], rot: [0, 180, 0] })),
+      { build: 'voltaBooth', at: [WALK.volta.x[1] - 0.58, 0, WALK.volta.z[1] - 0.62], rot: [0, 90, 0], cap: 'A call booth.' }, // its back to the east wall, its glass door to the room
+      { build: 'whiteboardCollect', at: [-13.9, 1.5, WALK.volta.z[0] + 0.03], cap: 'Collect. every Thursday at Volta.' },
       ...doorway('volta', WALK.x, 0, WALK.door + DOORS.volta.depth, [ch(VOLTA_DOOR[0]), ch(VOLTA_DOOR[1])], "The door out of Volta's room into the wing."), // through Volta's wall and the wing's
     ],
   },
@@ -765,7 +787,7 @@ export const SETS: StageSet[] = [
       { build: 'downlight', at: [WALK.x, 3.1, STAGE.wing[0] + 1.4], live: 'downlight' },
       { build: 'downlight', at: [WALK.x, 3.1, STAGE.wing[1] - 0.6], live: 'downlight' },
       { build: 'stageHall', at: [0, 0, 0], cap: 'The hall: the stage a metre up, the drapes behind it in black and gold, the house beyond the proscenium.' },
-      ...crowdPeople(), // the crowd on its feet: 72 people, each a rigged figure dressed by bone
+      // the crowd on its feet is not placed here: crowd.ts seats it and the runtime draws it as cards (buildCrowd in stage-run.ts)
       { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], cap: 'The lectern.' },
       { build: 'stageBin', at: STAGE_BIN, cap: 'The bin backstage.' },
       // the door out behind the stage is the hall's: shut, it closes the hall's wall from wherever the hall is seen

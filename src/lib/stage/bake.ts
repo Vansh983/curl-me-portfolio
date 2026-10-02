@@ -12,13 +12,13 @@ export const LIVE_SURFACE = new Set(['mat:tubeGlass', 'mat:bulb', 'mat:curtain',
 export const DROP_PROP = new Set(['clouds', 'bridge', 'boats', 'piers', 'nightSky', 'sky', 'city', 'water', 'flightSky', 'campusView', 'sydneyHarbour', 'harbourWater', 'bennelongPoint', 'harbourAround', 'canadaPlaceSails', 'cnTowerFar', 'macdonaldBridge', 'northShore', 'torontoDay', 'halifaxDay', 'walkWater', 'halifaxWalk', 'torontoWalk', 'vancouverTowers', 'georgesIsland', 'ferry', 'seaplane', 'torontoView']);
 /** Things that stand in the Blender scene for shadow and bounce but are not baked: the wide ground that would eat the atlas, leafy models whose alpha cards do not survive the round trip, the doors' cases, each seen from two rooms and lit by the one the walk is in, and the framed photographs on the lawn, whose thin bars the lightmap smears. The runtime builds them and lights them live. */
 export const CONTEXT_PROP = new Set(['lawn', 'aircraftSkin', 'aircraftWing', 'stageBin', 'doorCaseSydney', 'doorCaseVolta', 'doorCaseFloqer', 'doorCaseHome', 'doorCaseFront', 'doorCaseBrick', 'tripPhotoAward', 'tripPhotoSign']); // the fuselage and the wing: outside, in the sun, only there to keep it out of the cabin
-export const CONTEXT_MODEL = new Set(['island_tree_01']);
+export const CONTEXT_MODEL = new Set(['island_tree_01', 'volta_fig']); // the fig's leaves came back from the bake black
 
 /** `surface` is `mat:<name>` or `paint:<name>`; `live` is the placement's live flag or ''. */
 export function pieceIsLive(surface: string, live: string): boolean {
   if (surface.startsWith('paint:')) return true; // a painted face is a thin quad on a board: baking it from the wrong side blackens it
   if (LIVE_SURFACE.has(surface)) return true;
-  return live === 'fan' || live === 'door' || live === 'drop' || live === 'flight' || live === 'person' || live === 'mover';
+  return live === 'fan' || live === 'door' || live === 'drop' || live === 'flight' || live === 'person' || live === 'mover' || live === 'city'; // 'city': a backdrop, never in the bake (DROP_LIVE in stage-bake.py)
 }
 
 /** Whether a placement has anything for the runtime to build in a baked set. */

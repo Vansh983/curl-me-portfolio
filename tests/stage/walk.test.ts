@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { WALK, WALK_SPEED, TURN, MIST, STRETCH, TRACK, LAPTOP, MARKS, SLIDES, walkZ, walkC, airAt, onWalk, cityAt, laptopAt, cueAt, markAt, slideAt, seaplaneAt, streetcarAt, ferryAt } from '../../src/lib/stage/walk.ts';
-import { SETS, WALK_TREES, WALK_LAMPS, ORCA, DEMO_SEATS, TOUR_SHIFT, HOME, FLOQER, STAGE_BIN, STAGE } from '../../src/lib/stage/sets.ts';
+import { WALK, WALK_SPEED, TURN, MIST, STRETCH, TRACK, LAPTOP, MARKS, walkZ, walkC, airAt, onWalk, cityAt, laptopAt, cueAt, markAt, seaplaneAt, streetcarAt, ferryAt } from '../../src/lib/stage/walk.ts';
+import { SETS, WALK_TREES, WALK_LAMPS, ORCA, VOLTA_FLOOR, TOUR_SHIFT, HOME, FLOQER, STAGE_BIN, STAGE } from '../../src/lib/stage/sets.ts';
 import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
 import { STAGE_SPAN, CARD_SPAN, chapterStart, ch } from '../../src/lib/stage/shot.ts';
 import { BLOCK } from '../../src/lib/stage/walk-built.ts';
@@ -133,8 +133,7 @@ test('the walk stands in the Vancouver set; nothing stands on the walk or on the
   }
   // no board, no banner, no photo on a stand, no booth: the cities are the things themselves
   for (const s of [van, tor, hal]) for (const p of s.props) assert.ok(!/^(photo|beanBooth|sign|hang|logoWebSummit|logoElevate|logoInvestNS|logoProductHunt|expoBooth)/.test(p.build ?? ''), `${s.id}: ${p.build}`);
-  assert.equal(DEMO_SEATS.length, 20);
-  for (const [x] of DEMO_SEATS) assert.ok(x < WALK.x - 1.2, 'the chairs clear of the walk through the room');
+  for (const [x] of [...VOLTA_FLOOR.chairs, ...VOLTA_FLOOR.tables, ...VOLTA_FLOOR.tubs]) assert.ok(x < WALK.x - 1.2, 'the tables and chairs clear of the walk through the room');
   assert.deepEqual(SETS[11].at, [0, 0, TOUR_SHIFT]); assert.deepEqual(SETS[12].at, [0, 0, TOUR_SHIFT]);
   assert.ok(TOUR_SHIFT > 28 && TOUR_SHIFT < 28.3);
   assert.ok(Math.abs(STAGE_SPAN - 19.2) < 1e-9);

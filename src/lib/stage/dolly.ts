@@ -183,7 +183,7 @@ function walk(): DollyKey[] {
     // the walk goes north: the land is toward +x, on the left; a glance to the left is +x
     keys.push(K(c, [X, 1.6, z], [X + side, 1.4 + rise, z + 4], from ? from[2] - 1 : into ? into[2] : setAt(c), from ? { blend: 0 } : into ? { blend: 1, soft: true } : {}));
   }
-  // Volta: in at the door (it shuts behind him, the room goes up to its floor), the bar on the left (the coffee comes
+  // Volta: in at the door (it shuts behind him), the bar on the left (the coffee comes
   // up), on up the room past the rows with the screen ahead and the harbour under the glass on the right; to the
   // podium, round behind it, and a turn to the room: the rows, the harbour on the left, downtown on the right; then
   // the door into the wing
@@ -193,7 +193,7 @@ function walk(): DollyKey[] {
   keys.push(at(0.06, X, zV + 1.0, 7)); // in: the room, the bar ahead on the left
   keys.push(at(0.18, X, zV + 2.9, 29, 0.35)); // the bar: a look toward the counter as the coffee comes
   keys.push(at(0.3, X, zV + 4.9, -15, 0.15)); // on up the room: the rows on the right, the screen over the podium ahead
-  keys.push(at(0.42, X - 0.3, zV + 6.9, -48, 0.15)); // the harbour under the glass, from the eighth floor
+  keys.push(at(0.42, X - 0.3, zV + 6.9, -48, 0.15)); // the harbour through the glass, as it was from the walk
   keys.push(at(0.5, X - 0.9, zV + 8.1, -78, 0.2));
   keys.push(at(0.58, px + 0.4, pz + 0.3, -122, 0.25)); // round the podium's end, the head coming round with him
   keys.push(at(0.66, px, pz + 0.8, -168, 0.3)); // behind it, facing the room: the rows, the harbour along the left

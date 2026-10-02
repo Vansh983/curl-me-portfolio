@@ -1,0 +1,75 @@
+{
+ "metres": [
+  1.2,
+  2.4
+ ],
+ "feet": 0.03,
+ "atlases": {
+  "near": {
+   "file": "near.webp",
+   "size": [
+    1920,
+    1920
+   ],
+   "cell": [
+    160,
+    320
+   ]
+  },
+  "far": {
+   "file": "far.webp",
+   "size": [
+    1536,
+    1152
+   ],
+   "cell": [
+    96,
+    192
+   ]
+  }
+ },
+ "people": [
+  { "atlas": "near", "id": "Male_Adult_17", "kind": "gown", "action": "clap", "x": 0, "y": 0, "frames": 4, "height": 1.812 },
+  { "atlas": "near", "id": "Female_Adult_05", "kind": "gown", "action": "clap", "x": 640, "y": 0, "frames": 4, "height": 1.736 },
+  { "atlas": "near", "id": "Male_Adult_04", "kind": "gown", "action": "cheer", "x": 1280, "y": 0, "frames": 4, "height": 1.868 },
+  { "atlas": "near", "id": "Female_Adult_08", "kind": "gown", "action": "clap", "x": 0, "y": 320, "frames": 4, "height": 1.735 },
+  { "atlas": "near", "id": "Male_Adult_10", "kind": "gown", "action": "clap", "x": 640, "y": 320, "frames": 4, "height": 1.829 },
+  { "atlas": "near", "id": "Female_Adult_12", "kind": "gown", "action": "clap", "x": 1280, "y": 320, "frames": 4, "height": 1.726 },
+  { "atlas": "near", "id": "Male_Adult_01", "kind": "gown", "action": "clap", "x": 0, "y": 640, "frames": 4, "height": 1.823 },
+  { "atlas": "near", "id": "Female_Adult_03", "kind": "gown", "action": "clap", "x": 640, "y": 640, "frames": 4, "height": 1.739 },
+  { "atlas": "near", "id": "Female_Party_02", "kind": "gown", "action": "clap", "x": 1280, "y": 640, "frames": 4, "height": 1.788 },
+  { "atlas": "near", "id": "Male_Adult_16", "kind": "gown", "action": "idle", "x": 0, "y": 960, "frames": 4, "height": 1.809 },
+  { "atlas": "near", "id": "Business_Female_02", "kind": "family", "action": "clap", "x": 640, "y": 960, "frames": 4, "height": 1.729 },
+  { "atlas": "near", "id": "Business_Male_04", "kind": "family", "action": "clap", "x": 1280, "y": 960, "frames": 4, "height": 1.8 },
+  { "atlas": "near", "id": "Male_Adult_03", "kind": "family", "action": "clap", "x": 0, "y": 1280, "frames": 4, "height": 1.806 },
+  { "atlas": "near", "id": "Female_Adult_06", "kind": "family", "action": "clap", "x": 640, "y": 1280, "frames": 4, "height": 1.735 },
+  { "atlas": "near", "id": "Male_Adult_05", "kind": "family", "action": "clap", "x": 1280, "y": 1280, "frames": 4, "height": 1.812 },
+  { "atlas": "near", "id": "Female_Adult_11", "kind": "family", "action": "cheer", "x": 0, "y": 1600, "frames": 4, "height": 1.736 },
+  { "atlas": "near", "id": "Female_Adult_09", "kind": "family", "action": "phone", "x": 640, "y": 1600, "frames": 4, "height": 1.735 },
+  { "atlas": "near", "id": "Male_Adult_12", "kind": "family", "action": "idle", "x": 1280, "y": 1600, "frames": 4, "height": 1.806 },
+  { "atlas": "far", "id": "Male_Adult_10", "kind": "gown", "action": "clap", "x": 0, "y": 0, "frames": 4, "height": 1.829 },
+  { "atlas": "far", "id": "Female_Adult_12", "kind": "gown", "action": "clap", "x": 384, "y": 0, "frames": 4, "height": 1.726 },
+  { "atlas": "far", "id": "Male_Adult_04", "kind": "gown", "action": "clap", "x": 768, "y": 0, "frames": 4, "height": 1.868 },
+  { "atlas": "far", "id": "Female_Adult_08", "kind": "gown", "action": "cheer", "x": 1152, "y": 0, "frames": 4, "height": 1.735 },
+  { "atlas": "far", "id": "Male_Adult_17", "kind": "gown", "action": "clap", "x": 0, "y": 192, "frames": 4, "height": 1.812 },
+  { "atlas": "far", "id": "Female_Adult_05", "kind": "gown", "action": "clap", "x": 384, "y": 192, "frames": 4, "height": 1.736 },
+  { "atlas": "far", "id": "Male_Adult_10", "kind": "gown", "action": "cheer", "x": 768, "y": 192, "frames": 4, "height": 1.829 },
+  { "atlas": "far", "id": "Female_Adult_12", "kind": "gown", "action": "idle", "x": 1152, "y": 192, "frames": 4, "height": 1.726 },
+  { "atlas": "far", "id": "Female_Adult_05", "kind": "gown", "action": "clap", "x": 0, "y": 384, "frames": 4, "height": 1.736 },
+  { "atlas": "far", "id": "Female_Adult_14", "kind": "family", "action": "clap", "x": 384, "y": 384, "frames": 4, "height": 1.739 },
+  { "atlas": "far", "id": "Male_Adult_20", "kind": "family", "action": "clap", "x": 768, "y": 384, "frames": 4, "height": 1.805 },
+  { "atlas": "far", "id": "Business_Female_02", "kind": "family", "action": "clap", "x": 1152, "y": 384, "frames": 4, "height": 1.729 },
+  { "atlas": "far", "id": "Business_Male_04", "kind": "family", "action": "clap", "x": 0, "y": 576, "frames": 4, "height": 1.8 },
+  { "atlas": "far", "id": "Male_Adult_03", "kind": "family", "action": "clap", "x": 384, "y": 576, "frames": 4, "height": 1.806 },
+  { "atlas": "far", "id": "Female_Adult_09", "kind": "family", "action": "clap", "x": 768, "y": 576, "frames": 4, "height": 1.735 },
+  { "atlas": "far", "id": "Female_Adult_06", "kind": "family", "action": "clap", "x": 1152, "y": 576, "frames": 4, "height": 1.735 },
+  { "atlas": "far", "id": "Male_Adult_05", "kind": "family", "action": "cheer", "x": 0, "y": 768, "frames": 4, "height": 1.812 },
+  { "atlas": "far", "id": "Female_Adult_11", "kind": "family", "action": "clap", "x": 384, "y": 768, "frames": 4, "height": 1.736 },
+  { "atlas": "far", "id": "Male_Adult_12", "kind": "family", "action": "clap", "x": 768, "y": 768, "frames": 4, "height": 1.806 },
+  { "atlas": "far", "id": "Female_Adult_14", "kind": "family", "action": "phone", "x": 1152, "y": 768, "frames": 4, "height": 1.739 },
+  { "atlas": "far", "id": "Male_Adult_20", "kind": "family", "action": "phone", "x": 0, "y": 960, "frames": 4, "height": 1.805 },
+  { "atlas": "far", "id": "Male_Adult_05", "kind": "family", "action": "idle", "x": 384, "y": 960, "frames": 4, "height": 1.812 },
+  { "atlas": "far", "id": "Business_Male_04", "kind": "family", "action": "cheer", "x": 768, "y": 960, "frames": 4, "height": 1.8 },
+  { "atlas": "far", "id": "Female_Adult_09", "kind": "family", "action": "clap", "x": 1152, "y": 960, "frames": 4, "height": 1.735 }
+ ]
+}
