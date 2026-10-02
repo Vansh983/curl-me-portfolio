@@ -10,7 +10,7 @@ export interface Mat {
   metal?: number;
   grain?: Kind; // a faint normal map, tiled every `tile` metres
   amp?: number; // normal strength, 0..1 (default 0.25)
-  paint?: 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky' | 'facade' | 'pitch' | 'windowsDay'; // a painted colour map, tiled every `tile` metres
+  paint?: 'brickFront' | 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky' | 'facade' | 'pitch' | 'windowsDay'; // a painted colour map, tiled every `tile` metres
   tex?: string; // a scanned surface from assets.ts: its relief and roughness, and its colour when it ships one; tiled every `tile` metres
   sheen?: number; // cloth: the soft rim light of fibres, 0..1
   clearcoat?: number; // lacquer, car paint, glossy plastic: a clear layer over the colour, 0..1
@@ -145,6 +145,26 @@ export const MATS: Record<string, Mat> = {
   airBed: { color: '#2A3446', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.25, tile: 1 }, // flocked PVC, a little sheen
   airBedFlock: { color: '#3B4457', rough: 0.95, sheen: 0.4, tile: 1 },
   bedding: { color: '#D9D6CF', rough: 0.95, tex: 'wool_boucle', amp: 0.3, sheen: 0.5, tile: 0.35 },
+  // Floqer's house (docs/rebuild/43): the raised air bed, grey bedding, white trestles, an oak standing desk, a white tower, cans and their cases, the foam mark
+  airBedCharcoal: { color: '#3A3D44', rough: 0.4, clearcoat: 0.4, clearcoatRough: 0.3, tile: 1 },
+  airBedGrey: { color: '#858990', rough: 0.95, sheen: 0.4, tile: 1 },
+  beddingGrey: { color: '#8E9198', rough: 0.95, tex: 'wool_boucle', amp: 0.3, sheen: 0.5, tile: 0.35 },
+  trestleWhite: { color: '#E9E7E1', rough: 0.6, tile: 1 },
+  deskOak: { color: '#B98E5E', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.15, clearcoatRough: 0.4, tile: 0.7 },
+  towerWhite: { color: '#ECECEA', rough: 0.4, clearcoat: 0.3, clearcoatRough: 0.3, tile: 1 },
+  canSilver: { color: '#AEBBD2', rough: 0.3, metal: 0.8, tile: 1 },
+  canBlack: { color: '#1E2520', rough: 0.35, metal: 0.6, tile: 1 },
+  canRed: { color: '#C8232C', rough: 0.35, metal: 0.5, tile: 1 },
+  caseRed: { color: '#C4262E', rough: 0.3, clearcoat: 0.6, clearcoatRough: 0.2, tile: 1 }, // a tray of cans in shrink wrap
+  caseBlue: { color: '#2F6FD0', rough: 0.3, clearcoat: 0.6, clearcoatRough: 0.2, tile: 1 },
+  foamBlack: { color: '#19191B', rough: 1, env: 0.1, tile: 1 }, // acoustic foam: it takes no shine at all
+  foamOrange: { color: '#F83903', rough: 0.9, env: 0.2, tile: 1 },
+  // Old Town out of Floqer's windows: brick fronts with their windows (each building its own brick, by vertex colour), tar roofs, the street
+  torontoBrick: { color: '#FFFFFF', rough: 0.9, paint: 'brickFront', tile: 1, tint: true },
+  torontoRoof: { color: '#57585C', rough: 1, tile: 1 },
+  torontoRoad: { color: '#45474B', rough: 0.95, tile: 1 },
+  torontoWalk: { color: '#A3A29D', rough: 0.9, tile: 1 },
+  torontoCar: { color: '#FFFFFF', rough: 0.35, clearcoat: 0.6, clearcoatRough: 0.15, tile: 1, tint: true },
   cableWhite: { color: '#E8E6E0', rough: 0.55, tile: 1 },
   cableRed: { color: '#B8262A', rough: 0.55, tile: 1 },
   powerStrip: { color: '#EAE8E2', rough: 0.5, clearcoat: 0.2, tile: 1 },

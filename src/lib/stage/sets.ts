@@ -16,7 +16,7 @@
 //   Set 11 CONVOCATION and Set 12 FLOQER               written about the old terrace door (z 24); they stand TOUR_SHIFT further north
 import { HALIFAX } from './halifax.ts';
 import { ch, approach, TOUR_GAIN } from './shot.ts';
-import { WALK, CITY_AIR, TRACK, VOLTA_SHUT, VOLTA_VIEW, SIGNS, voltaViewBridge, type Cue, type SkyName } from './walk.ts';
+import { WALK, CITY_AIR, TRACK, VOLTA_SHUT, VOLTA_VIEW, TORONTO_SKYLINE, SIGNS, voltaViewBridge, type Cue, type SkyName } from './walk.ts';
 import { hingeOff, type Door } from './door.ts';
 
 export type V3 = [number, number, number];
@@ -183,6 +183,12 @@ export const FLOQER = (() => {
   const z: [number, number] = [STAGE.door.z + 0.3, STAGE.door.z + 12.3], stair = { x: -4.55, n: 8, rise: 0.171, run: 0.28, w: 1.1 }; // the house's south wall is the far face of the hall's door wall; the stair against the east wall
   return { x: [-16, -4] as [number, number], z, floor: STAGE.door.floor, h: 3.6, stair: { ...stair, z0: z[1] - 0.9 - stair.n * stair.run }, door: { x: stair.x, w: 1.0, h: 2.1 } } as const; // the flight ends 0.9 short of the north wall: a landing, then the door, on the stair's line
 })();
+/**
+ * The T of desks in Floqer's house: the bar across the room (its middle line's z), the stem down from its middle (its
+ * middle's z, its line's x), and the seats along the bar (x), a desk each side of the line at each. Desks are 1.5 by
+ * 0.75, pushed together back to back, so the stem's head meets the bar's south edge.
+ */
+export const FLOQER_T = { bar: FLOQER.z[0] + 7.2, stem: FLOQER.z[0] + 7.2 - 0.76 - 1.5, x: -12.2, seats: [-14.45, -12.95, -11.45, -9.95] } as const;
 /** The height of the office's stair at z, from its foot to the landing. */
 /**
  * The apartment (set 0): the studio's walls. He asked for it a bit smaller (2026-09-27): the west wall and the glass
@@ -214,7 +220,9 @@ export const DELHI = (() => {
   const at: V3 = [GOOGLE.block.x[1], 0, GOOGLE.door.z + 0.7], cut = 0.852; // the room's door is at its own x -0.7, z 0
   return { at, turn: -90, cut, back: approach(cut + 0.0002), to: (p: V3): V3 => [at[0] - p[2], at[1] + p[1], at[2] + p[0]] } as const;
 })();
-const WINDOW_Z = [FLOQER.z[0] + 2.5, FLOQER.z[0] + 7.5]; // the two windows on the street, along the west wall
+/** The two windows on the street, along the house's west wall (z). */
+export const FLOQER_WINDOWS = [FLOQER.z[0] + 2.5, FLOQER.z[0] + 7.5];
+const WINDOW_Z = FLOQER_WINDOWS;
 export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stair.n, Math.max(0, (z - FLOQER.stair.z0) / FLOQER.stair.run)) * FLOQER.stair.rise;
 /**
  * Home: the story ends in the apartment it began in (set 0), and he walks into it: up the stair in Floqer's house,
@@ -815,65 +823,93 @@ export const SETS: StageSet[] = [
       openings: [
         { wall: 'z-', at: STAGE.door.x, w: STAGE.door.w, h: STAGE.door.h, door: true }, // in from the hall, through its door, heading north
         { wall: 'z+', at: FLOQER.door.x, w: FLOQER.door.w, h: FLOQER.door.h, sill: FLOQER.stair.n * FLOQER.stair.rise, door: true }, // the door at the top of the stair: raised, so the bake must be told it is not a window
-        ...WINDOW_Z.map((z) => ({ wall: 'x-' as const, at: z, w: 3.2, h: 1.55, sill: 0.75 })), // the windows on the street
+        ...WINDOW_Z.map((z) => ({ wall: 'x-' as const, at: z, w: 4.4, h: 2.0, sill: 0.55 })), // the windows on the street: wide and tall, so the city stands whole in them (they were 3.2 by 1.55 and he could not see it properly)
       ],
     },
     props: [
       ...(() => {
         const F = FLOQER.floor, Z = FLOQER.z[0], out: Placement[] = [];
-        // the street is 0.35 below the floor: level with it, the two planes fought and the ground showed through the parquet in patches
-        out.push({ build: 'torontoView', at: [FLOQER.x[0] - 4, F - 30, Z + 5], live: 'city', shadow: false, cap: 'Downtown Toronto and the CN Tower, by day, out of the west windows.' }); // the house some floors up: the windows look over the near roofs to the skyline
-        for (const z of WINDOW_Z) out.push({ build: 'sydneyWindow', at: [FLOQER.x[0], F + 0.75, z], rot: [0, 90, 0], scale: [0.8, 1, 1] });
+        // out of the west windows: Old Town's street and brick blocks from some floors up, a streetcar on the tracks, and behind
+        // them the photograph of the skyline (TORONTO_SKYLINE, drawn by the runtime): the CN Tower clear of the core
+        out.push({ build: 'torontoStreet', at: [FLOQER.x[0], F - TORONTO_SKYLINE.up, WINDOW_Z[0]], live: 'city', shadow: false, cap: 'Old Town, and downtown Toronto beyond it: the CN Tower.' });
+        out.push({ model: 'ttc_flexity', at: [FLOQER.x[0] - 64, F - TORONTO_SKYLINE.up + 0.03, WINDOW_Z[0] - 1.75], live: 'city', shadow: false, cap: 'A TTC streetcar on King Street.' });
+        for (const z of WINDOW_Z) out.push({ build: 'sydneyWindow', at: [FLOQER.x[0], F + 0.55, z], rot: [0, 90, 0], scale: [1.1, 2.0 / 1.55, 1] });
         out.push({ build: 'brickWall', at: [(FLOQER.x[0] + FLOQER.x[1]) / 2, F, FLOQER.z[1] - 0.05] });
         out.push({ build: 'floqerSign', at: [-11.2, F + 2.3, FLOQER.z[1] - 0.1], rot: [0, 180, 0], live: 'screen', cap: 'Floqer. The orchestration engine behind enterprise go to market automation.' });
-        // the T: the bar of two tables across the room, the stem down from its middle; monitors back to back along both, a keyboard at each
-        const bar = Z + 7.2, stem = Z + 4.4;
-        out.push({ build: 'hackerTable', at: [-13.7, F, bar], cap: 'The tables. Floqer is built here.' });
-        out.push({ build: 'hackerTable', at: [-10.7, F, bar] });
-        out.push({ build: 'hackerTable', at: [-12.2, F, stem], rot: [0, 90, 0] });
-        const screens = ['monitorApp', 'monitor', 'monitorBoard', 'monitor', 'monitor', 'monitorApp'] as const;
-        [-14.45, -12.95, -11.45, -9.95].forEach((x, k) => {
-          out.push({ build: screens[k % 6], at: [x, F + 0.74, bar + 0.15], rot: [0, 180 + (k % 2 ? 3 : -2), 0], live: 'screen' });
-          out.push({ build: screens[(k + 3) % 6], at: [x, F + 0.74, bar - 0.15], rot: [0, (k % 2 ? -3 : 2), 0], live: 'screen' });
-          out.push({ model: 'keyboard_mouse_black', at: [x, F + 0.74, bar - 0.5], rot: [0, 0, 0] });
-          out.push({ model: 'keyboard_mouse_black', at: [x, F + 0.74, bar + 0.5], rot: [0, 180, 0] });
+        // the T (FLOQER_T): a desk for each seat, pushed together back to back, as the real house has them (docs/rebuild/43):
+        // pale tops on white trestles, one black standing desk among them, nothing quite square to its neighbour
+        const { bar, stem, seats: SX, x: TX } = FLOQER_T, D = F + 0.74;
+        const jig = (i: number) => (((i * 37) % 7) - 3) / 300;
+        SX.forEach((x, k) => {
+          out.push({ build: k === 3 ? 'standingDesk' : 'trestleDesk', at: [x + jig(k), F, bar + 0.385 + jig(k + 3)], rot: [0, jig(k) * 90, 0], ...(k === 0 ? { cap: 'The desks. Floqer is built here.' } : {}) });
+          out.push({ build: 'trestleDesk', at: [x + jig(k + 5), F, bar - 0.385 + jig(k + 1)], rot: [0, 180 + jig(k + 2) * 90, 0] });
         });
-        for (const z of [stem - 0.8, stem + 0.8]) {
-          out.push({ build: screens[z > stem ? 1 : 4], at: [-12.05, F + 0.74, z], rot: [0, -90, 0], live: 'screen' });
-          out.push({ build: screens[z > stem ? 5 : 2], at: [-12.35, F + 0.74, z], rot: [0, 90, 0], live: 'screen' });
-          out.push({ model: 'keyboard_mouse_black', at: [-11.7, F + 0.74, z], rot: [0, -90, 0] });
-          out.push({ model: 'keyboard_mouse_black', at: [-12.7, F + 0.74, z], rot: [0, 90, 0] });
-        }
-        // the chairs, mismatched as the Bean house's were, nobody in them: the bar's south side faces +z, its north side -z, the stem's sides face across it
-        const seats: Array<[number, number, number, 'office_chair_black' | 'SchoolChair_01' | 'painted_wooden_chair_01']> = [
-          [-14.45, bar - 1.15, 180, 'office_chair_black'], [-12.95, bar - 1.15, 180, 'SchoolChair_01'], [-11.45, bar - 1.15, 180, 'office_chair_black'], [-9.95, bar - 1.15, 180, 'painted_wooden_chair_01'],
-          [-13.7, bar + 1.15, 0, 'SchoolChair_01'], [-10.7, bar + 1.15, 0, 'office_chair_black'], [-11.05, stem - 0.8, -90, 'office_chair_black'], [-13.35, stem + 0.8, 90, 'SchoolChair_01'],
+        [stem - 0.75, stem + 0.75].forEach((z, i) => {
+          out.push({ build: 'trestleDesk', at: [TX + 0.385, F, z + jig(i)], rot: [0, 90, 0] });
+          out.push({ build: 'trestleDesk', at: [TX - 0.385, F, z + jig(i + 4)], rot: [0, -90, 0] });
+        });
+        // a screen faces whoever sits at it, its back to the other row's: the north row's toward +z, the south row's toward -z.
+        // No two seats the same: a monitor and a keyboard, an open laptop beside it or alone, the tower on one desk
+        const north: Array<[string, number]> = [['monitorApp', 1], ['monitor', 0], ['monitorBoard', 1.3], ['monitor', 0]], south: Array<[string, number]> = [['monitor', 1], ['', 0], ['monitorApp', 1], ['monitorBoard', 0]];
+        SX.forEach((x, k) => {
+          const [n, nw] = north[k], [so, sw] = south[k], up = k === 3 ? 0.06 : 0; // the standing desk's top is higher
+          if (n) out.push({ build: n, at: [x + (nw ? 0 : -0.2), D + up, bar + 0.17], rot: [0, k % 2 ? 3 : -2, 0], ...(nw > 1 ? { scale: [nw, 1.05, 1] as V3 } : {}), live: 'screen' });
+          if (!nw) out.push({ build: 'laptop', at: [x + 0.36, D + up, bar + 0.3], rot: [0, -18, 0], live: 'screen' });
+          out.push({ model: 'keyboard_mouse_black', at: [x + (nw ? 0 : -0.15), D + up, bar + 0.56], rot: [0, 180, 0] });
+          if (so) out.push({ build: so, at: [x + (sw ? 0 : 0.2), D, bar - 0.17], rot: [0, 180 + (k % 2 ? -3 : 2), 0], live: 'screen' });
+          if (!sw) out.push({ build: 'laptop', at: [x - (so ? 0.36 : 0), D, bar - (so ? 0.3 : 0.4)], rot: [0, 180 + (so ? -18 : 6), 0], live: 'screen' });
+          if (so) out.push({ model: 'keyboard_mouse_black', at: [x + (sw ? 0 : 0.15), D, bar - 0.56], rot: [0, 0, 0] });
+        });
+        out.push({ build: 'monitor', at: [TX + 0.17, D, stem - 0.75], rot: [0, 90, 0], live: 'screen' }, { model: 'keyboard_mouse_black', at: [TX + 0.56, D, stem - 0.75], rot: [0, -90, 0] });
+        out.push({ build: 'monitorApp', at: [TX - 0.17, D, stem + 0.75], rot: [0, -90, 0], live: 'screen' }, { model: 'keyboard_mouse_black', at: [TX - 0.56, D, stem + 0.75], rot: [0, 90, 0] });
+        out.push({ build: 'laptop', at: [TX - 0.3, D, stem - 0.7], rot: [0, -84, 0], live: 'screen' });
+        out.push({ build: 'towerPC', at: [SX[2] + 0.58, D, bar - 0.4], rot: [0, 180, 0], cap: 'The tower on the desk.' });
+        // what is left at each seat: cans, a mug, a bottle, the box the kit came in
+        out.push({ build: 'deskCans', at: [SX[0] - 0.5, D, bar + 0.42] }, { build: 'deskCan', at: [SX[1] + 0.55, D, bar - 0.5] }, { build: 'deskCanSlim', at: [SX[2] - 0.5, D, bar + 0.5] }, { build: 'deskCans', at: [SX[3] + 0.45, D, bar - 0.45], rot: [0, 140, 0] });
+        out.push({ build: 'deskCanSlim', at: [SX[3] - 0.5, D + 0.06, bar + 0.5] }, { build: 'deskCan', at: [TX + 0.5, D, stem + 0.55] }, { build: 'deskCanSlim', at: [TX - 0.55, D, stem - 0.2] });
+        out.push({ model: 'coffee_mug', at: [SX[1] - 0.55, D, bar + 0.48], rot: [0, 40, 0] }, { model: 'coffee_mug', at: [SX[2] + 0.2, D, bar - 0.55], rot: [0, 200, 0] }, { model: 'volta_bottle', at: [SX[0] + 0.5, D, bar - 0.5] }, { model: 'volta_bottle', at: [TX + 0.55, D, stem - 0.3] });
+        out.push({ build: 'floqerBox', at: [TX + 0.42, D, stem + 0.85], rot: [0, 100, 0], cap: "Floqer's box." });
+        // the leads off the back of every desk, the strips they run to, the extension lead across the floor
+        out.push({ build: 'floqerLeads', at: [0, F, 0] }, { build: 'powerStrip', at: [SX[3] + 1.05, F, bar + 0.3], rot: [0, 25, 0] }, { build: 'powerStrip', at: [TX + 0.2, F, stem - 1.8], rot: [0, 80, 0] });
+        // the chairs, mismatched, nobody in them, none pushed in straight: the bar's south side faces +z, its north side -z, the stem's sides face across it
+        const seats: Array<[number, number, number, 'office_chair_black' | 'SchoolChair_01' | 'painted_wooden_chair_01' | 'volta_chair']> = [
+          [SX[0], bar - 1.15, 172, 'office_chair_black'], [SX[1] + 0.1, bar - 1.3, 205, 'volta_chair'], [SX[2], bar - 1.15, 180, 'office_chair_black'], [SX[3], bar - 1.2, 160, 'painted_wooden_chair_01'],
+          [SX[0] + 0.1, bar + 1.2, 12, 'SchoolChair_01'], [SX[1], bar + 1.15, -6, 'office_chair_black'], [SX[2] + 0.25, bar + 1.45, 35, 'volta_chair'],
+          [TX + 1.15, stem - 0.75, -96, 'office_chair_black'], [TX - 1.2, stem + 0.7, 80, 'SchoolChair_01'], [TX + 1.3, stem + 0.6, -60, 'painted_wooden_chair_01'],
         ];
-        seats.forEach(([x, z, rot, model], i) => out.push({ model, at: [x, F, z], rot: [0, rot + (i % 2 ? 6 : -5), 0] }));
+        seats.forEach(([x, z, rot, model]) => out.push({ model, at: [x, F, z], rot: [0, rot, 0] }));
+        out.push({ model: 'volta_backpack', at: [SX[0] + 0.55, F, bar - 0.9], rot: [0, 40, 0] }, { model: 'volta_backpack', at: [TX - 1.0, F, stem - 0.6], rot: [0, -70, 0] });
         for (const x of [-13.7, -10.7]) out.push({ model: 'pendant_tense', at: [x, F + 1.86, bar], live: 'pendant' });
-        out.push({ model: 'pendant_tense', at: [-12.2, F + 1.86, stem], live: 'pendant' });
-        // the whiteboards on the east wall, on the way to the stair
+        out.push({ model: 'pendant_tense', at: [TX, F + 1.86, stem], live: 'pendant' });
+        // the east wall, on the way to the stair: the whiteboards, and the mark as the house has it, made of acoustic foam tiles
         out.push({ build: 'whiteboardFloqerA', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 1.4], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the engine and who runs on it.' });
         out.push({ build: 'whiteboardFloqerB', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 3.9], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the year, and Disrupt.' });
+        out.push({ build: 'foamMark', at: [FLOQER.x[1] - 0.01, F + 0.6, Z + 7.1], rot: [0, -90, 0], cap: 'The F, in acoustic foam tiles, as it hangs in the house.' });
+        // the whiteboard on wheels, thick with sticky notes, against the brick past the mark, where he walks by it on the way to the stair
+        out.push({ build: 'rollingWhiteboard', at: [-8.3, F, FLOQER.z[1] - 1.0], rot: [0, -142, 0], live: 'screen', cap: 'The whiteboard on wheels: to do, failed, passed, prod.' });
         // the stair up the east wall, straight at the door in the north wall, its rail on the open side, a light over it; the landing behind the door
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
         // the door at the top of the stair is his own: dark oak in a dark case, from the brick's face to the apartment's passage behind it (HOME), opening into the passage
         out.push(...doorway('home', FLOQER.door.x, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + DOORS.home.depth, [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], 'His own front door.'));
         out.push({ build: 'discLight', at: [FLOQER.stair.x, F + 3.6, FLOQER.stair.z0 + 1.2], live: 'pendant' });
-        // the mess of a rented place: boxes still packed, a suitcase, a bin bag, a crate, the mattresses and pillows, the shoes by the door
-        out.push({ model: 'cardboard_box_01', at: [-15.2, F, Z + 0.9], rot: [0, 12, 0] });
-        out.push({ model: 'cardboard_box_01', at: [-15.2, F + 0.52, Z + 0.9], rot: [0, -18, 0] });
-        out.push({ model: 'cardboard_box_01', at: [-14.3, F, Z + 1.6], rot: [0, 35, 0] });
-        out.push({ model: 'plastic_crate_01', at: [-7.0, F, Z + 0.9], rot: [0, 20, 0] });
-        out.push({ model: 'vintage_suitcase', at: [-8.4, F, FLOQER.z[1] - 1.1], rot: [0, 25, 0] });
-        out.push({ model: 'trashbag', at: [-13.4, F, Z + 0.7], rot: [0, 60, 0] }); // with the boxes: the walk goes round the room by the windows
-        out.push({ model: 'shoe_rack_modern', at: [-9.2, F, Z + 0.35] });
-        out.push({ build: 'airMattress', at: [-14.6, F, FLOQER.z[1] - 1.6], rot: [0, 90, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' });
-        out.push({ build: 'airMattress', at: [-12.2, F, FLOQER.z[1] - 1.4], rot: [0, 84, 0] });
-        out.push({ build: 'airMattress', at: [-8.6, F, Z + 1.3], rot: [0, 4, 0] });
-        out.push({ model: 'throw_pillows_01', at: [-15.5, F, FLOQER.z[1] - 1.6], rot: [0, 100, 0], scale: 0.7 });
-        out.push({ model: 'throw_pillows_01', at: [-11.2, F, FLOQER.z[1] - 1.3], rot: [0, 80, 0], scale: 0.7 });
-        out.push({ build: 'bin', at: [-6.4, F, Z + 0.6] });
+        // a house people ship from: boxes still packed, a suitcase, a bin bag, a crate, the shoes by the door, cases of drinks against the wall, a torchiere in the corner
+        out.push({ model: 'cardboard_box_01', at: [-15.0, F, Z + 0.9], rot: [0, 12, 0] });
+        out.push({ model: 'cardboard_box_01', at: [-15.0, F + 0.52, Z + 0.9], rot: [0, -18, 0] });
+        out.push({ model: 'cardboard_box_01', at: [-14.2, F, Z + 1.5], rot: [0, 35, 0] });
+        out.push({ build: 'torchiere', at: [-15.62, F, Z + 0.4], cap: 'The floor lamp.' });
+        out.push({ build: 'canCases', at: [-12.9, F, Z + 0.3], rot: [0, 6, 0], cap: 'Cases of drinks.' });
+        out.push({ model: 'trashbag', at: [-13.7, F, Z + 0.6], rot: [0, 60, 0] }); // with the boxes: the walk goes round the room by the windows
+        out.push({ model: 'plastic_crate_01', at: [-9.0, F, Z + 0.5], rot: [0, 20, 0] });
+        out.push({ model: 'shoe_rack_modern', at: [-9.6, F, Z + 0.35] });
+        // the soft corner by the door: a grey sofa against the south wall, a brown bean bag
+        out.push({ model: 'floqer_sofa', at: [-6.6, F, Z + 0.62], cap: 'The sofa.' });
+        out.push({ model: 'floqer_beanbag', at: [-5.2, F, Z + 2.5], rot: [0, 30, 0], cap: 'The bean bag.' });
+        // you sleep where you ship: two air beds, each its own kind and at its own angle
+        out.push({ build: 'airBedRaised', at: [-14.85, F, FLOQER.z[1] - 1.4], rot: [0, 96, 0], cap: 'An air bed. A hacker house: you sleep where you ship.' });
+        out.push({ build: 'airBedLow', at: [-8.1, F, Z + 2.7], rot: [0, 192, 0] });
+        out.push({ model: 'vintage_suitcase', at: [-6.5, F, FLOQER.z[1] - 0.7], rot: [0, 25, 0] });
+        out.push({ model: 'volta_bottle', at: [-13.9, F, FLOQER.z[1] - 1.9] });
+        out.push({ build: 'bin', at: [-8.4, F, bar + 1.6] });
         return out;
       })(),
     ],

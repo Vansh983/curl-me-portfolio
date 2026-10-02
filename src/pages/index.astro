@@ -2,17 +2,10 @@
 import Base from '../layouts/Base.astro';
 import Wordmark from '../components/Wordmark.astro';
 import Journey from '../components/Journey.astro';
-import Field from '../components/Field.astro';
 import { profile } from '../data/profile';
-import { getCollection } from 'astro:content';
-import { short } from '../lib/date';
-
-const posts = (await getCollection('blog', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
 ---
 
-<Base topbar={false}>
+<Base topbar={false} footer={false}>
   <section class="story">
     <Journey>
       <div slot="hero" class="hero">
@@ -25,26 +18,6 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
         </p>
       </div>
     </Journey>
-  </section>
-
-  <section class="block">
-    <Field label="field.js" />
-  </section>
-
-  <section class="block">
-    <p class="label">Writing</p>
-    {
-      posts.map((p) => (
-        <div class="row">
-          <span class="yr">{short(p.data.pubDate)}</span>
-          <span>
-            <a href={`/blog/${p.id}`}>{p.data.title}</a>
-          </span>
-          <span class="meta">{p.data.tags[0] ?? ''}</span>
-        </div>
-      ))
-    }
-    <p class="more small"><a href="/blog">All writing</a> &middot; <a href="/rss.xml">RSS</a></p>
   </section>
 </Base>
 
@@ -59,6 +32,10 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .story {
     margin-top: 0;
   }
+  /* the scroll ends in the journey's last room: nothing under it, not even the shell's foot */
+  :global(main.shell) {
+    padding-bottom: 0;
+  }
   .links {
     display: flex;
     flex-wrap: wrap;
@@ -68,11 +45,5 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
     font-size: var(--t-label);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
-  .desc {
-    display: block;
-  }
-  .more {
-    margin-top: 14px;
   }
 </style>

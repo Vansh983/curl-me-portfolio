@@ -15,6 +15,7 @@ import { WALK } from './walk.ts';
 import { piece, M, type Built, type BuiltPart, type BuiltSurface } from './part.ts';
 import { WALK_BUILT } from './walk-built.ts';
 import { DOOR_BUILT } from './door-built.ts';
+import { HOUSE_BUILT } from './house-built.ts';
 export type { Built, BuiltPart, BuiltSurface };
 
 const UNIT: [number, number, number, number] = [0, 0, 1, 1];
@@ -227,6 +228,7 @@ function flight(o: { n: number; rise: number; run: number; w: number; land: numb
 export const BUILT: Record<string, () => BuiltPart> = {
   ...WALK_BUILT, // the tour's walk: the promenade and what stands along it (walk-built.ts)
   ...DOOR_BUILT, // the walk's doors: a case and a leaf each (door-built.ts)
+  ...HOUSE_BUILT, // Floqer's hacker house, from its photographs (house-built.ts)
   // ---- 2022: the crossing. Cabin in world coordinates; seats are local reusable assemblies.
   aircraftCabin: () => {
     const { cx, z: [z0, z1], windowZ, win, door } = CABIN, sec = CABIN_SECTION;
@@ -936,10 +938,6 @@ export const BUILT: Record<string, () => BuiltPart> = {
     }
     return [piece(steel.out(), M('bridgeGreen')), piece(deck.out(), M('bridge')), piece(cable.out(), M('bridgeGreen'), { smooth: true })];
   },
-  /** The degree in hand: a rolled parchment 30 cm long, 4 cm across, a black and gold ribbon round its middle; along +x. */
-  degreeScroll: (): BuiltPart => [piece(new Sink().cylinder(0, 0, 0, 0.021, 0.3, 20).rotateZ(0, 0, Math.PI / 2).out(), M('parchment'), { smooth: true }),
-    piece(new Sink().cylinder(0, 0, 0, 0.024, 0.03, 20).rotateZ(0, 0, Math.PI / 2).out(), M('ribbonGold'), { smooth: true }),
-    piece(new Sink().cylinder(0.025, 0, 0, 0.0235, 0.02, 20).rotateZ(0, 0, Math.PI / 2).out(), M('ribbonBlack'), { smooth: true })],
   /** The CN Tower as the condo has it (city.ts), rebuilt at the origin: placed across the water on the tour, by day. */
   cnTowerFar: () => {
     const cn = new Sink(), pod = new Sink(), light = new Sink();

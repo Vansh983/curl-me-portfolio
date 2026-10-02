@@ -524,15 +524,9 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
     for (let k = 0; k < n; k++) { const z = (k / (n - 1)) * 0.1; cut.quad([g.w / 2, y0, z], [-g.w / 2, y0, z], [-g.w / 2, y0 + h, z], [g.w / 2, y0 + h, z], [[0, 0], [1, 0], [1, 1], [0, 1]]); }
     return [piece(cut.out(), { paint: `sign${g.logo[0].toUpperCase()}${g.logo.slice(1)}` }), piece(new Sink().rbox(0, y0 / 2, 0.05, g.w + 0.3, y0, 0.42, 0.02, 1).out(), M('walkGranite'), { smooth: true, metres: 'xy' })];
   }])),
-  /** The bin backstage: a plain round bin 0.62 tall, open, empty until the degree lands in it. At the origin. */
-  stageBin: () => [piece(new Sink().lathe([[0.17, 0], [0.2, 0.6], [0.205, 0.62], [0.19, 0.62], [0.16, 0.03], [0.001, 0.03]], 0, 0, 0, 1, 1, 0, 28).out(), M('binPlastic'), { smooth: true })],
-  /** The degree, crushed: a ball of parchment 9 cm across, all creases. At the origin. */
-  degreeBall: () => {
-    const s = new Sink(), rnd = rng(1913), seg = 14, ring = 9, pts: V3[][] = [];
-    for (let i = 0; i <= ring; i++) { pts.push([]); for (let j = 0; j < seg; j++) { const ph = (i / ring) * Math.PI, th = (j / seg) * Math.PI * 2, r = i === 0 || i === ring ? 0.042 : 0.036 + rnd() * 0.013; pts[i].push([Math.sin(ph) * Math.cos(th) * r, Math.cos(ph) * r, Math.sin(ph) * Math.sin(th) * r]); } }
-    for (let i = 0; i < ring; i++) for (let j = 0; j < seg; j++) { const a = pts[i][j], b = pts[i][(j + 1) % seg], c = pts[i + 1][(j + 1) % seg], d = pts[i + 1][j]; s.tri(a, b, c).tri(a, c, d); }
-    return [piece(s.out(), M('parchment'))];
-  },
+  /** The bin backstage: a round black bin 0.62 tall with a rolled rim, a liner folded over it, open, empty until the degree lands in it. At the origin. */
+  stageBin: () => [piece(new Sink().lathe([[0.17, 0], [0.2, 0.585], [0.212, 0.6], [0.212, 0.62], [0.19, 0.62], [0.16, 0.03], [0.001, 0.03]], 0, 0, 0, 1, 1, 0, 36).out(), M('binPlastic'), { smooth: true }),
+    piece(new Sink().lathe([[0.214, 0.5], [0.2165, 0.6], [0.216, 0.624], [0.2, 0.628], [0.186, 0.6], [0.184, 0.5]], 0, 0, 0, 1, 1, 0, 36).out(), M('paperWhite'), { smooth: true })],
   /** The harbour: 4 km square of water at the origin's height, the quay standing in it. */
   walkWater: () => [piece(new Sink().quad([2000, 0, 2000], [2000, 0, -2000], [-2000, 0, -2000], [-2000, 0, 2000]).out(), M('walkWater'), { metres: 'xz' })],
   /**
@@ -627,51 +621,6 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
     // the tower's own frame is the condo's (x west, z north): onto this one
     for (const k of [cn, pod, light]) { k.translate(-tx, Q, -tz); for (let i = 0; i < k.pos.length; i += 3) { const x = k.pos[i], z = k.pos[i + 2]; k.pos[i] = z; k.pos[i + 2] = -x; } }
     return [piece(shore.out(), M('quayWall'), { metres: 'xz' }), piece(walls.out(), M('towerDay'), { tint: true }), piece(tops.out(), M('towerTopDay')), piece(cn.out(), M('cnShaftDay'), { smooth: true }), piece(pod.out(), M('cnPodDay'), { smooth: true }), piece(light.out(), M('cnLight'), { smooth: true })];
-  },
-  /**
-   * Downtown Toronto from a window east of it, by day: every real block OpenStreetMap gives a height (the condo's
-   * data) from a spot 1.9 km east and 320 m south of the CN Tower, on the city's ground: from there the tower stands
-   * clear of the financial district, to its left, at its true 553 m. The spot at the origin, clear of blocks for 60 m round it. West toward
-   * -x, north toward -z. Seen from some floors up (the placement lowers it), the skyline stands whole in a window.
-   */
-  torontoView: () => {
-    const [tx, tz] = CITY.cn, hx = tx - 1900, hz = tz - 320, walls = new Sink(), tops = new Sink(), street = new Sink(), rnd = rng(53);
-    const map = (x: number, z: number): [number, number] => [-(x - hx), -(z - hz)]; // the condo's frame: x west, z north
-    for (const b of CITY.buildings) {
-      const ring = ringOf(b.p).map(([x, z]) => map(x, z));
-      if (ring.length < 3) continue;
-      const near = Math.min(...ring.map(([x, z]) => Math.hypot(x, z)));
-      if (near < 60 || b.h < 8) continue;
-      const g = 0.55 + rnd() * 0.35, cool = rnd() < 0.6;
-      walls.color(hex3((cool ? [g * 0.86, g * 0.93, g] : [g, g * 0.95, g * 0.88]).map((v) => v ** (1 / 2.2))));
-      walls.extrude(ring, b.min, b.h, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, tops);
-    }
-    // the city's own fabric between the towers, which the data does not carry: low blocks of three to seven storeys
-    // on the street grid the real footprints lie on, west of the house as far as the skyline, none where a real block stands
-    const real = CITY.buildings.map((b) => { const r = ringOf(b.p).map(([x, z]) => map(x, z)), c = r.reduce((a, q) => [a[0] + q[0] / r.length, a[1] + q[1] / r.length], [0, 0]); return { c, rad: Math.max(...r.map(([x, z]) => Math.hypot(x - c[0], z - c[1]))) }; });
-    const bins = new Array(90).fill(0);
-    for (const b of CITY.buildings) { const r = ringOf(b.p); for (let i = 0; i < r.length; i++) { const [ax, az] = r[i], [bx, bz] = r[(i + 1) % r.length], len = Math.hypot(bx - ax, bz - az); if (len > 12) bins[((Math.round((Math.atan2(bz - az, bx - ax) * 180) / Math.PI) % 90) + 90) % 90] += len; } }
-    const turn = (bins.indexOf(Math.max(...bins)) * Math.PI) / 180, cs = Math.cos(turn), sn = Math.sin(turn);
-    const grid = (u: number, v: number): [number, number] => [u * cs - v * sn, u * sn + v * cs];
-    const brick = [[0.5, 0.31, 0.25], [0.62, 0.52, 0.42], [0.55, 0.55, 0.57], [0.44, 0.3, 0.24], [0.68, 0.64, 0.58]];
-    for (let bu = -2100; bu < 120; bu += 104) for (let bv = -1700; bv < 1700; bv += 78) {
-      let u = bu;
-      while (u < bu + 86) {
-        const w = 18 + rnd() * 26, u1 = Math.min(bu + 90, u + w), d = 22 + rnd() * 36, v0 = bv + rnd() * 6, c = grid((u + u1) / 2, v0 + d / 2);
-        const open = Math.hypot(c[0], c[1]) < 70 || c[0] > 30 || real.some((r) => Math.hypot(r.c[0] - c[0], r.c[1] - c[1]) < r.rad + 22) || rnd() < 0.12;
-        if (!open) {
-          const t = brick[Math.floor(rnd() * brick.length)], k = 0.85 + rnd() * 0.3;
-          walls.color(hex3(t.map((v) => (v * k) ** (1 / 2.2))));
-          walls.extrude([grid(u, v0), grid(u1, v0), grid(u1, v0 + d), grid(u, v0 + d)], 0, 9 + Math.floor(rnd() * 5) * 3.3, { u0: rnd() * 4, v0: 0, perU: 96, perV: 70 }, tops);
-        }
-        u = u1 + (rnd() < 0.3 ? 6 : 0.4);
-      }
-    }
-    street.quad([-6000, 0, 6000], [6000, 0, 6000], [6000, 0, -6000], [-6000, 0, -6000]);
-    const cn = new Sink(), pod = new Sink(), light = new Sink();
-    cnTower(cn, pod, light, 553);
-    for (const k of [cn, pod, light]) for (let i = 0; i < k.pos.length; i += 3) { const p = map(k.pos[i], k.pos[i + 2]); k.pos[i] = p[0]; k.pos[i + 2] = p[1]; }
-    return [piece(street.out(), M('streetAsphalt'), { metres: 'xz' }), piece(walls.out(), M('towerDay'), { tint: true }), piece(tops.out(), M('towerTopDay')), piece(cn.out(), M('cnShaftDay'), { smooth: true }), piece(pod.out(), M('cnPodDay'), { smooth: true }), piece(light.out(), M('cnLight'))];
   },
   /**
    * Downtown Halifax on the land side of the walk, climbing the hill from the water the way it does: the real

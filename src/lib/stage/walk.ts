@@ -38,6 +38,15 @@ export const VOLTA_PROJECTOR: [number, number] = [-13.7, WALK.volta.z[1] - 3.3];
 /** Volta's reception against the east wall, along z: the plank wall, the desk before it, and VOLTA on the planks (its centre's z and height, its width). */
 export const VOLTA_RECEPTION = { wall: [44.9, 50.4] as [number, number], desk: [46.3, 49.1] as [number, number], sign: [47.65, 2.02, 1.7] as [number, number, number] } as const;
 
+/**
+ * The skyline out of Floqer's windows: a photograph of Toronto from the east (scripts/stage-skyline.mjs), on a wall
+ * curved round the house two kilometres out. `span` and `tall`: what the strip covers, in degrees; `eye`: where the
+ * photograph's eye line lies, from its top; `tower`: where the CN Tower stands across it. In the room it is magnified
+ * (the tower 13 degrees tall, as from Old Town's roofs, not 7 as from the park it was taken in) and turned so the
+ * tower stands `bearing` degrees to the left of straight out of the glass, where he looks as he comes up to it.
+ */
+export const TORONTO_SKYLINE = { span: 93.23, tall: 18.75, eye: 0.929, tower: 0.2099, magnify: 1.85, bearing: 16, radius: 2000, up: 14 } as const;
+
 /** Metres walked per chapter of scroll. */
 export const WALK_SPEED = (WALK.to.z - WALK.from.z) / (WALK.to.c - WALK.from.c);
 /** Where the walk stands at chapter `c`, along z. */

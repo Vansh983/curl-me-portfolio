@@ -13,7 +13,7 @@ import {
   AdditiveBlending, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
   RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Vector2, Vector3,
   LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, DoubleSide, Float32BufferAttribute,
-  AnimationMixer, AnimationClip, Box3, ShaderChunk, WebGLRenderTarget, Plane, MeshDepthMaterial, RGBADepthPacking, Sprite, SpriteMaterial, InstancedBufferGeometry, InstancedBufferAttribute, NormalBlending, ClampToEdgeWrapping,
+  AnimationMixer, AnimationClip, Box3, ShaderChunk, WebGLRenderTarget, Plane, MeshDepthMaterial, RGBADepthPacking, Sprite, SpriteMaterial, InstancedBufferGeometry, InstancedBufferAttribute, NormalBlending, ClampToEdgeWrapping, MirroredRepeatWrapping,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneRig } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -26,8 +26,8 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { N8AOPass } from 'n8ao';
-import { SETS, HALIFAX_CAMPUS, WALK_LAMPS, HOME, DELHI, STAGE_BIN, VOLTA_DOOR, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
-import { airAt, onWalk, laptopAt, cueAt, seaplaneAt, streetcarAt, ferryAt, walkZ, markAt, voltaViewAt, MARKS, CITY_AIR, type Mark, WALK, type Air, type SkyName, type Pose } from '../lib/stage/walk.ts';
+import { SETS, HALIFAX_CAMPUS, WALK_LAMPS, HOME, DELHI, STAGE_BIN, VOLTA_DOOR, FLOQER, FLOQER_WINDOWS, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
+import { airAt, onWalk, laptopAt, cueAt, seaplaneAt, streetcarAt, ferryAt, walkZ, markAt, voltaViewAt, TORONTO_SKYLINE, MARKS, CITY_AIR, type Mark, WALK, type Air, type SkyName, type Pose } from '../lib/stage/walk.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
 import type { Built, BuiltSurface } from '../lib/stage/built.ts';
@@ -114,7 +114,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   heldDegree.name = 'heldDegree';
   heldDegree.visible = false;
   camera.add(heldDegree);
-  let degreeScroll: Object3D | undefined, degreeBall: Object3D | undefined, thrownBall: Object3D | undefined;
+  let degreeSheet: { mesh: Group; crush: (c: number, fist: number) => void } | undefined, thrownBall: Object3D | undefined;
   const release = new Vector3(), binMouth = new Vector3(STAGE_BIN[0] + (SETS[11].at?.[0] ?? 0), STAGE_BIN[1] + 0.66 + (SETS[11].at?.[1] ?? 0), STAGE_BIN[2] + (SETS[11].at?.[2] ?? 0)); // where the crushed degree leaves the hand, and the mouth of the bin
   const heldCoffee = new Group(); // the coffee from Volta's bar, in its paper cup
   heldCoffee.name = 'heldCoffee';
@@ -743,6 +743,66 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     halo.colorSpace = SRGBColorSpace;
     return halo;
   };
+  /**
+   * The degree: a scroll. A sheet of parchment rolled two and a half turns by hand (the turns step out a little at
+   * one end and show their spiral), tied round the middle with a gold ribbon edged in black, Dalhousie's colours, in a
+   * bow with two tails. The paper is a grid of facets: every corner has its place in the roll and a place in a crushed
+   * ball (a smooth fold of the sheet over itself, so neighbours stay neighbours) and its own crease; `crush` moves
+   * them from one to the other, the creases showing before the ball closes, the ribbon slipping off as the fist takes it.
+   */
+  const makeDegree = (): { mesh: Group; crush: (c: number, fist: number) => void } => {
+    const L = 0.3, nu = 26, nv = 64, turns = 2.5, R0 = 0.0125, grow = 0.0031, R = 0.036, n = (nu + 1) * (nv + 1), TAU = Math.PI * 2;
+    const rolled = new Float32Array(n * 3), ball = new Float32Array(n * 3), crease = new Float32Array(n * 3), uv = new Float32Array(n * 2), index: number[] = [];
+    let seed = 1818;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647 - 0.5; };
+    for (let j = 0; j <= nv; j++) for (let i = 0; i <= nu; i++) {
+      const k = j * (nu + 1) + i, u = i / nu, v = j / nv, th = v * turns * TAU, r = R0 + (grow * th) / TAU + 0.0006 * rnd();
+      rolled.set([(u - 0.5) * L + (0.0022 * th) / TAU, r * Math.cos(th), r * Math.sin(th)], k * 3); uv.set([u * 1.5, v * 1.2], k * 2);
+      // where it ends in the ball: a direction that winds smoothly over the sheet, at a radius of its own
+      const d = new Vector3(Math.sin(7.1 * u + 3.3 * v + 0.4) + 0.5 * Math.sin(13.7 * v - 4.1 * u), Math.sin(5.3 * v - 6.2 * u + 1.9) + 0.5 * Math.sin(11.9 * u + 2.7 * v), Math.cos(6.4 * u + 5.8 * v + 0.7) + 0.5 * Math.sin(9.3 * (u - v))).normalize().multiplyScalar(R * (0.8 + 0.4 * (rnd() + 0.5)));
+      ball.set([d.x, d.y, d.z], k * 3); crease.set([rnd(), rnd(), rnd()], k * 3);
+      if (i < nu && j < nv) index.push(k, k + 1, k + nu + 2, k, k + nu + 2, k + nu + 1);
+    }
+    const g = new BufferGeometry(), pos = new BufferAttribute(new Float32Array(rolled), 3), map = paintTex('degreeParchment', 0);
+    map.wrapS = map.wrapT = RepeatWrapping;
+    g.setAttribute('position', pos); g.setAttribute('uv', new BufferAttribute(uv, 2)); g.setIndex(index); g.computeVertexNormals();
+    // rolled, it is a smooth curve of paper; in the fist it is all creases. A little of its own light: in the hall's dark the cream read khaki
+    const paper = { map, side: DoubleSide, roughness: 0.9, metalness: 0, envMapIntensity: 0.5, emissive: '#FFF1D6', emissiveMap: map, emissiveIntensity: 0.42 };
+    const smooth = new MeshStandardMaterial(paper), creased = new MeshStandardMaterial({ ...paper, flatShading: true });
+    const sheet = new Mesh(g, smooth);
+    // the ribbon: a band round the roll, a black line down its middle, a knot, two loops of a bow and two tails
+    const strip = (pts: Vector3[], across: Vector3, w: number): BufferGeometry => {
+      const p: number[] = [], ix: number[] = [];
+      pts.forEach((q, i) => { p.push(q.x - (across.x * w) / 2, q.y - (across.y * w) / 2, q.z - (across.z * w) / 2, q.x + (across.x * w) / 2, q.y + (across.y * w) / 2, q.z + (across.z * w) / 2); if (i) ix.push(i * 2 - 2, i * 2 - 1, i * 2 + 1, i * 2 - 2, i * 2 + 1, i * 2); });
+      const sg = new BufferGeometry(); sg.setAttribute('position', new Float32BufferAttribute(p, 3)); sg.setIndex(ix); sg.computeVertexNormals();
+      return sg;
+    };
+    const ring = (rad: number): Vector3[] => Array.from({ length: 41 }, (_, i) => new Vector3(0, rad * Math.cos((i / 40) * TAU), rad * Math.sin((i / 40) * TAU)));
+    const gold = new MeshStandardMaterial({ color: '#C9A227', roughness: 0.38, metalness: 0.35, side: DoubleSide, emissive: '#6B520F', emissiveIntensity: 0.6 });
+    const black = new MeshStandardMaterial({ color: '#121212', roughness: 0.5, side: DoubleSide });
+    const Rr = R0 + grow * turns + 0.0012, X = new Vector3(1, 0, 0), Z = new Vector3(0, 0, 1), ribbon = new Group();
+    ribbon.add(new Mesh(strip(ring(Rr), X, 0.026), gold), new Mesh(strip(ring(Rr + 0.0004), X, 0.006), black));
+    for (const side of [-1, 1]) {
+      const loop = Array.from({ length: 25 }, (_, i) => { const t = i / 24, out = Math.sin(Math.PI * t); return new Vector3(side * 0.05 * out * (1 + 0.12 * out), Rr + 0.004 + 0.017 * Math.sin(TAU * t) + 0.012 * out, 0.004 * Math.sin(Math.PI * t)); });
+      const tail = Array.from({ length: 15 }, (_, i) => { const t = i / 14; return new Vector3(side * (0.008 + 0.03 * t + 0.004 * Math.sin(5 * t)), Rr + 0.002 - 0.012 * t - 0.03 * t * t, 0.006 + 0.07 * t - 0.012 * t * t); });
+      ribbon.add(new Mesh(strip(loop, Z, 0.022), gold), new Mesh(strip(tail, new Vector3(side * 0.9, 0.2, -0.38).normalize(), 0.02), gold));
+    }
+    const knot = new Mesh(new SphereGeometry(0.0085, 12, 8), gold);
+    knot.position.set(0, Rr + 0.005, 0.002); knot.scale.set(1.2, 0.8, 1.3);
+    ribbon.add(knot);
+    const mesh = new Group();
+    mesh.add(sheet, ribbon);
+    mesh.traverse((o) => { if (o instanceof Mesh) { o.frustumCulled = false; o.castShadow = false; o.receiveShadow = false; } });
+    const crush = (c: number, fist: number) => {
+      const t = c * c * (3 - 2 * c), fold = Math.sin(Math.PI * Math.min(1, c * 1.15)) * 0.011 + 0.003 * t, a = pos.array as Float32Array;
+      for (let k = 0; k < n * 3; k++) a[k] = rolled[k] + (ball[k] - rolled[k]) * t + crease[k] * fold * (1 + 0.25 * fist);
+      pos.needsUpdate = true;
+      sheet.material = c > 0.03 ? creased : smooth;
+      ribbon.visible = c < 0.4; // the fist closes over it
+      ribbon.scale.setScalar(1 - 0.5 * Math.min(1, c / 0.4)); ribbon.position.set(0.05 * c, -0.03 * c, 0);
+    };
+    return { mesh, crush };
+  };
   const buildHeldLaptop = (parts: Built[]) => {
     const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' }, false, parts);
     obj.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
@@ -1104,11 +1164,40 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     kick();
   };
 
+  /**
+   * Toronto's skyline out of Floqer's windows (walk.ts TORONTO_SKYLINE, docs/rebuild/42-toronto-view-research.md): the
+   * photograph on a wall curved round the first window, two kilometres out and fixed in the world, so the street and
+   * the roofs before it slide across it as he walks and it does not. Its own light: it is a photograph of a day.
+   * Past the photograph's south end it runs on mirrored, so no window shows where it stops.
+   */
+  const buildSkyline = async (set: number): Promise<void> => {
+    const K = TORONTO_SKYLINE, map = await texLoader.loadAsync(`/assets/stage/sky/toronto-skyline${tier ? '' : '-s'}.webp`);
+    checkActive();
+    map.colorSpace = SRGBColorSpace; map.wrapS = MirroredRepeatWrapping; map.anisotropy = maxAniso;
+    const span = K.span * K.magnify, deg = Math.PI / 180, u0 = -0.2, n = 96, eyeY = FLOQER.floor + 1.6;
+    const top = eyeY + K.radius * Math.tan(K.eye * K.tall * K.magnify * deg), foot = eyeY - K.radius * Math.tan((1 - K.eye) * K.tall * K.magnify * deg);
+    const pos: number[] = [], uv: number[] = [], index: number[] = [];
+    for (let i = 0; i <= n; i++) {
+      const u = u0 + ((1 - u0) * i) / n, a = (-K.bearing + (u - K.tower) * span) * deg; // the angle from straight out of the glass, to the right of it (toward -z)
+      const x = FLOQER.x[0] - K.radius * Math.cos(a), z = FLOQER_WINDOWS[0] - K.radius * Math.sin(a);
+      pos.push(x, foot, z, x, top, z); uv.push(u, 0, u, 1);
+      if (i < n) index.push(i * 2, i * 2 + 1, i * 2 + 3, i * 2, i * 2 + 3, i * 2 + 2);
+    }
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new Float32BufferAttribute(uv, 2)); g.setIndex(index);
+    const mesh = new Mesh(g, new MeshBasicMaterial({ map, transparent: true, depthWrite: false, fog: false, side: DoubleSide }));
+    mesh.name = 'torontoSkyline'; mesh.frustumCulled = false; mesh.renderOrder = -1; // behind the glass and everything else that is clear
+    mesh.visible = curSet === set;
+    groups[set].add(mesh);
+    live.backdrops.push({ root: mesh, sets: [set] });
+  };
+
   const loadSet = async (i: number): Promise<void> => {
     const S = SETS[i];
     if (S.baked && exportSet !== i && !LIVE_ALL) {
       await loadBaked(i);
       if (S.id === 'convocation') await buildCrowd(i);
+      if (S.id === 'floqer') await buildSkyline(i);
       await Promise.all(scanning); // cloned surface maps must have pixels before this group can render
       groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
       scene.add(groups[i]);
@@ -1129,6 +1218,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     await placeProps(S.props, i);
     if (S.id === 'convocation' && exportSet !== i) await buildCrowd(i); // never in the bake: it is drawn, not lit
+    if (S.id === 'floqer' && exportSet !== i) await buildSkyline(i);
     await Promise.all(scanning);
     groups[i].visible = curSet < 0 || Math.abs(i - curSet) <= 1;
     scene.add(groups[i]);
@@ -1706,24 +1796,19 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const e = ease(unit((q - DEGREE.raise) / (DEGREE.held - DEGREE.raise))), crush = ease(unit((q - DEGREE.crush[0]) / (DEGREE.crush[1] - DEGREE.crush[0]))), thrown = unit((q - DEGREE.thrown[0]) / (DEGREE.thrown[1] - DEGREE.thrown[0]));
       const inHall = mainFrame.set === 11 || mainFrame.from === 11 || mainFrame.into === 11;
       heldDegree.visible = mainFrame.set === 11 && e > 0 && thrown <= 0;
-      heldDegree.position.set(0.16 - 0.03 * crush, -0.5 + 0.4 * e - 0.05 * crush, -0.42);
-      heldDegree.rotation.set(0.35 + 0.25 * (1 - e), 0.35, -0.75);
-      if (degreeScroll && degreeBall) {
-        const fist = Math.sin(now / 45) * 0.04 * Math.sin(Math.PI * crush); // the fist working at it
-        degreeScroll.visible = crush < 0.55;
-        degreeScroll.scale.set(1 - 0.72 * Math.min(1, crush / 0.55), 1 + 0.9 * crush + fist, 1 + 0.9 * crush - fist);
-        degreeScroll.rotation.set(crush * 1.4, 0, 0);
-        degreeBall.visible = crush >= 0.55;
-        degreeBall.scale.setScalar(1.35 - 0.35 * unit((crush - 0.55) / 0.45) + fist);
-        degreeBall.rotation.set(crush * 3, crush * 2, 0);
-      }
+      // held out low on the right, its length across the hand; as the fist closes it comes in to the middle and the hand works at it
+      const fist = Math.sin(now / 60) * Math.sin(Math.PI * crush);
+      heldDegree.position.set(0.12 - 0.02 * crush, -0.52 + 0.4 * e - 0.04 * crush, -0.44);
+      heldDegree.rotation.set(0.5 + 0.25 * (1 - e) + 0.6 * crush + 0.05 * fist, 0.35 + 0.8 * crush, -0.62 + 0.3 * crush + 0.08 * fist);
+      degreeSheet?.crush(crush, fist);
       if (thrownBall) {
         thrownBall.visible = inHall && groups[11].visible && thrown > 0;
         if (thrownBall.visible) {
-          const t = thrown, rest = t >= 1;
-          thrownBall.position.lerpVectors(release, binMouth, t);
-          thrownBall.position.y += rest ? -0.5 : 0.55 * 4 * t * (1 - t); // an easy lob; then it lies in the bin
-          thrownBall.rotation.set(t * 9, t * 6, t * 4);
+          // an easy lob to the mouth of the bin over the first four fifths, then down inside it, where it lies
+          const fly = Math.min(1, thrown / 0.8), drop = unit((thrown - 0.8) / 0.2);
+          thrownBall.position.lerpVectors(release, binMouth, fly);
+          thrownBall.position.y += 0.5 * 4 * fly * (1 - fly) * (1 - 0.35 * fly) - 0.5 * drop * drop;
+          thrownBall.rotation.set(thrown * 11, thrown * 7, thrown * 5);
         }
       }
     }
@@ -1787,21 +1872,19 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       report(`Loading the journey · ${++loaded} of ${SETS.length}`);
     });
     await Promise.all(artwork);
-    const [laptop, degree, coffee, ball] = await Promise.all([geometrySource.load('laptopTour'), geometrySource.load('degreeScroll'), geometrySource.load('paperCup'), geometrySource.load('degreeBall')]);
+    const [laptop, coffee] = await Promise.all([geometrySource.load('laptopTour'), geometrySource.load('paperCup')]);
     buildMarks();
     checkActive();
     buildHeldLaptop(laptop);
-    degreeScroll = placeBuilt('degreeScroll', { build: 'degreeScroll', at: [0, 0, 0] }, false, degree);
-    degreeBall = placeBuilt('degreeBall', { build: 'degreeBall', at: [0, 0, 0] }, false, ball);
-    degreeBall.visible = false;
-    heldDegree.add(degreeScroll, degreeBall);
-    thrownBall = placeBuilt('degreeBall', { build: 'degreeBall', at: [0, 0, 0] }, false, ball);
+    degreeSheet = makeDegree();
+    heldDegree.add(degreeSheet.mesh);
+    { const ball = makeDegree(); ball.crush(1, 0); thrownBall = ball.mesh; } // the same sheet, crushed: what flies to the bin
     thrownBall.visible = false;
     scene.add(thrownBall);
     { // where it leaves the hand: the held place at the chapter the throw begins, in the world
       const f = dolly(DEGREE.thrown[0]), eye = new PerspectiveCamera();
       eye.position.set(...f.cam); eye.lookAt(new Vector3(...f.look)); eye.updateMatrixWorld();
-      release.set(0.13, -0.15, -0.42).applyMatrix4(eye.matrixWorld);
+      release.set(0.12, -0.18, -0.46).applyMatrix4(eye.matrixWorld);
     }
     const mug = placeBuilt('paperCup', { build: 'paperCup', at: [0, 0, 0] }, false, coffee);
     mug.scale.setScalar(0.82);

@@ -47,6 +47,6 @@ test('every baked set has its file and lightmap, under 5 MB each', { skip: !exis
 test("the door at the top of the house's stair is marked a door: raised, the bake would light it as a window", () => {
   const house = SETS[12].shell!;
   const raised = house.openings.filter((o) => (o.sill ?? 0) > 0);
-  for (const o of raised) assert.ok(o.door || o.h < 2.0, `a raised opening ${o.w} by ${o.h} on ${o.wall} is neither a window nor marked a door`);
+  for (const o of raised) assert.ok(o.door || o.h <= 2.0, `a raised opening ${o.w} by ${o.h} on ${o.wall} is neither a window nor marked a door`); // the house's windows are 2.0 tall since 2026-10-02; a door is 2.1 and more
   assert.ok(raised.some((o) => o.door), 'the stair door is raised and marked');
 });

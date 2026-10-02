@@ -9,9 +9,10 @@ type Props = {
   article?: { published: string; updated?: string };
   wide?: boolean;
   topbar?: boolean;
+  footer?: boolean; // false on the home page: its scroll ends in the journey's last room, nothing under it
 };
 
-const { title, description, article, topbar = true } = Astro.props;
+const { title, description, article, topbar = true, footer = true } = Astro.props;
 const pageTitle = title ? `${title} | ${profile.name}` : `${profile.name}`;
 const desc = description ?? site.description;
 // build.format is 'file', so pathname is "/archive.html" at build time.
@@ -126,13 +127,15 @@ const path = Astro.url.pathname.replace(/\/$/, '');
       <slot />
     </main>
 
-    <footer class="site">
-      <span>&copy; {new Date().getFullYear()} {profile.name}</span>
-      <a href="/rss.xml">rss</a>
-      <a href="/llms.txt">llms.txt</a>
-      <a href="/humans.txt">humans.txt</a>
-      <span style="margin-left:auto">try: curl vanshsood.com</span>
-    </footer>
+    {footer && (
+      <footer class="site">
+        <span>&copy; {new Date().getFullYear()} {profile.name}</span>
+        <a href="/rss.xml">rss</a>
+        <a href="/llms.txt">llms.txt</a>
+        <a href="/humans.txt">humans.txt</a>
+        <span style="margin-left:auto">try: curl vanshsood.com</span>
+      </footer>
+    )}
 
     <Menu />
 

@@ -38,13 +38,6 @@ export const ASSETS: Asset[] = [
     // modelled for a night scene: the shells and the podium take daylight colours here, and nothing glows
     skin: { FINS: { color: '#EDE7DA', map: false, emissive: false, rough: 0.45 }, STONE: { color: '#B9AE9A', map: false, emissive: false, rough: 0.85 }, GLASS: { color: '#3C4A56', map: false, rough: 0.2 }, BRONZE: { color: '#8A6A3F', rough: 0.5, metal: 0.6 }, LIGHT: { emissive: false }, LIGHTPOLE: { color: '#4A4A4A', map: false } } },
   // now, Toronto
-  // the people in the hall: Quaternius's Animated Base Character (CC-BY 3.0, via Poly Pizza), a rigged human of real proportions,
-  // dressed by bone at runtime and given one of four idle loops; only those loops are kept
-  {
-    id: 'base_character', kind: 'model', source: 'url', url: 'https://static.poly.pizza/0b65e14d-a349-44cc-836c-efdeb6933d48.glb',
-    res: '1k', licence: 'CC-BY-3.0', author: 'Quaternius', use: 'the people in the hall (Animated Base Character, via Poly Pizza)', maxTex: 256,
-    anims: ['Rig|Idle_Loop', 'Rig|Idle_Talking_Loop', 'Rig|Sitting_Idle_Loop', 'Rig|Sitting_Talking_Loop'],
-  },
   // Floqer's hacker house: the mess of a rented place people ship from
   model('cardboard_box_01', 'Rahul Chaudhary', 'moving boxes in the hacker house', 256, 0.004),
   model('vintage_suitcase', 'Maximilian Schuster', 'a suitcase in the hacker house', 256, 0.004),
@@ -103,6 +96,9 @@ export const ASSETS: Asset[] = [
   { ...kit('volta_stool', 721174, 'BlenderKit (GLL3D Gill)', "the stools at Volta's high tables", 256), skin: { M_Metal: { color: '#E6E3DC', rough: 0.4, metal: 0.2 }, M_Plastic: { color: '#EDEBE6', map: false, rough: 0.5 } } }, // white
   { ...kit('volta_backpack', 1211780, 'BlenderKit (Fasolka 3D)', "a backpack by a table at Volta", 256), skin: { 'school subjects colors': { color: '#2E3440', rough: 0.9 } } },
   { ...kit('volta_bottle', 989625, 'BlenderKit (3D Studio)', "a water bottle on a table at Volta", 256, 0.004), skin: { 'Circle.009_Baked': { color: '#3D6E8C', map: false, rough: 0.35 } } },
+  // Floqer's house: the grey sofa and the brown bean bag of its photographs
+  kit('floqer_sofa', 611934, 'BlenderKit (Sixelis)', "the sofa in Floqer's house", 256, 0.01), // in the corner by the door, never close
+  { ...kit('floqer_beanbag', 540549, 'BlenderKit (Russo 3D)', "the bean bag in Floqer's house", 256, 0.006), skin: { 'Fluffy Velvet': { color: '#3A2420', rough: 0.95 } } }, // dark brown, as theirs is
   // scanned surfaces: floors take the whole set, walls and cloth take only the relief and keep their designed colour
   texture('herringbone_parquet', 'Jenelle van Heerden', 'the condo floor', 3.4, ['diff', 'nor', 'arm'], 1024),
   texture('dark_brick_wall', 'Dario Barresi', 'the wall behind the desk', 1.05, ['diff', 'nor', 'arm']),

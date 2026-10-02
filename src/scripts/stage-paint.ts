@@ -240,6 +240,25 @@ export const SURFACE_PAINT: Record<string, Paint> = {
     x.strokeRect(40, h / 2 - 150, 150, 300); x.strokeRect(w - 190, h / 2 - 150, 150, 300);
     x.strokeRect(40, h / 2 - 66, 56, 132); x.strokeRect(w - 96, h / 2 - 66, 56, 132);
   }] },
+  /**
+   * A brick front, pale so each building's own brick can colour it: courses of brick, four bays of windows on each of
+   * three storeys, a stone sill and lintel to each, glass that holds the sky, a blind drawn here and there. One
+   * repeat is 12 m by 10.8.
+   */
+  brickFront: { w: 512, h: 512, frames: [(x, w, h) => {
+    let seed = 91;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    x.fillStyle = '#DAD3CD'; x.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 5) for (let bx = (y / 5) % 2 ? -8 : 0; bx < w; bx += 16) { const v = 200 + Math.floor(rnd() * 44); x.fillStyle = `rgb(${v}, ${v - 6}, ${v - 10})`; x.fillRect(bx + 1, y + 1, 14, 3.4); }
+    const bays = 4, floors = 3, bw = w / bays, fh = h / floors;
+    for (let f = 0; f < floors; f++) for (let b = 0; b < bays; b++) {
+      const wx = b * bw + bw * 0.29, wy = f * fh + fh * 0.2, ww = bw * 0.42, wh = fh * 0.56;
+      x.fillStyle = '#F1EEE8'; x.fillRect(wx - 5, wy - 9, ww + 10, 9); x.fillRect(wx - 6, wy + wh, ww + 12, 7); // the lintel and the sill
+      const g = x.createLinearGradient(0, wy, 0, wy + wh); g.addColorStop(0, '#8FA6BF'); g.addColorStop(1, '#3E4A58'); x.fillStyle = g; x.fillRect(wx, wy, ww, wh);
+      if (rnd() < 0.3) { x.fillStyle = 'rgba(236, 232, 222, 0.85)'; x.fillRect(wx, wy, ww, wh * (0.3 + rnd() * 0.5)); } // a blind
+      x.fillStyle = '#2A2C30'; x.fillRect(wx + ww / 2 - 1.5, wy, 3, wh); x.fillRect(wx, wy + wh * 0.5 - 1.5, ww, 3); // the sash
+    }
+  }] },
   planksPale: {
     w: 512, h: 512,
     frames: [(x, w, h) => {
@@ -933,6 +952,52 @@ export const beanPaint = (images: Images): Record<string, Paint> => ({
     if (images.collect) x.drawImage(images.collect, 0, 0, w, h);
     x.fillStyle = 'rgba(176, 168, 156, 0.16)'; x.fillRect(0, 0, w, h); // thrown on a grey wall in a lit room, not shown on a screen
   }] },
+  /**
+   * The paper of the degree's scroll: cream parchment, mottled, a few long fibres in it. It tiles: the mottle is laid
+   * on four times, once past each edge.
+   */
+  degreeParchment: { w: 512, h: 512, frames: [(x, w, h) => {
+    x.fillStyle = '#F1E4C3'; x.fillRect(0, 0, w, h);
+    let seed = 27;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let i = 0; i < 150; i++) {
+      const cx = rnd() * w, cy = rnd() * h, rx = 18 + rnd() * 60, ry = 10 + rnd() * 34, turn = rnd() * 3.1;
+      x.fillStyle = `rgba(${150 + Math.floor(rnd() * 70)}, ${130 + Math.floor(rnd() * 60)}, ${90 + Math.floor(rnd() * 50)}, 0.06)`;
+      for (const dx of [0, -w, w]) for (const dy of [0, -h, h]) { x.beginPath(); x.ellipse(cx + dx, cy + dy, rx, ry, turn, 0, Math.PI * 2); x.fill(); }
+    }
+    x.strokeStyle = 'rgba(120, 100, 70, 0.14)'; x.lineWidth = 1;
+    for (let i = 0; i < 60; i++) { const fx = rnd() * w, fy = rnd() * h, len = 20 + rnd() * 50, t = rnd() * 6.3; x.beginPath(); x.moveTo(fx, fy); x.quadraticCurveTo(fx + Math.cos(t) * len * 0.5 + (rnd() - 0.5) * 12, fy + Math.sin(t) * len * 0.5 + (rnd() - 0.5) * 12, fx + Math.cos(t) * len, fy + Math.sin(t) * len); x.stroke(); }
+  }] },
+  /**
+   * The whiteboard on wheels in Floqer's house, as its photograph has it: marker in a quick hand and neon sticky
+   * notes in clumps. The upper board: his name over his column of notes. The lower: to do, failed, passed, prod,
+   * and a sketch of the flow along the foot. Only his own name: his teammates' are theirs.
+   */
+  whiteboardSticky: { w: 900, h: 600, frames: [0, 1].map((board) => (x: Ctx, w: number, h: number) => {
+    x.fillStyle = '#F6F6F3'; x.fillRect(0, 0, w, h);
+    const g = x.createLinearGradient(0, 0, w, h); g.addColorStop(0, 'rgba(255,255,255,0.5)'); g.addColorStop(1, 'rgba(200,204,208,0.25)'); x.fillStyle = g; x.fillRect(0, 0, w, h); // the board's sheen, and what was wiped
+    let seed = 41 + board * 97;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    const hand = (c: string, size: number) => { x.fillStyle = c; x.strokeStyle = c; x.lineWidth = 3; x.font = `500 ${size}px "Bradley Hand", "Chalkboard SE", "Comic Sans MS", cursive`; };
+    const NOTES = ['#3FD08A', '#FF4F9A', '#FF9A2E', '#3FD08A', '#F4E640', '#3FD08A', '#FF9A2E'];
+    const notes = (cx: number, cy: number, n: number, spread: number) => { for (let i = 0; i < n; i++) {
+      const nx = cx + (rnd() - 0.5) * spread, ny = cy + (rnd() - 0.5) * spread * 0.8, s = 34 + rnd() * 8;
+      x.save(); x.translate(nx, ny); x.rotate((rnd() - 0.5) * 0.3);
+      x.fillStyle = 'rgba(0,0,0,0.12)'; x.fillRect(-s / 2 + 2, -s / 2 + 3, s, s);
+      x.fillStyle = NOTES[Math.floor(rnd() * NOTES.length)]; x.fillRect(-s / 2, -s / 2, s, s);
+      x.strokeStyle = 'rgba(20,20,30,0.55)'; x.lineWidth = 1.2; for (let l = 0; l < 3; l++) { x.beginPath(); x.moveTo(-s / 2 + 5, -s / 2 + 9 + l * 8); x.lineTo(-s / 2 + 5 + (s - 12) * (0.5 + rnd() * 0.5), -s / 2 + 9 + l * 8 + (rnd() - 0.5) * 2); x.stroke(); }
+      x.restore();
+    } };
+    if (board === 0) {
+      hand('#15171C', 44); x.fillText('Vansh', 600, 78);
+      notes(660, 190, 9, 190); notes(250, 210, 8, 200); notes(470, 330, 4, 120);
+      hand('#D2262E', 40); x.save(); x.translate(330, 150); x.rotate(-0.5); x.fillText('scale', 0, 0); x.restore();
+    } else {
+      hand('#15171C', 30); x.fillText('Redis testing (to do)', 40, 56); x.fillText('Failed', 560, 60); x.fillText('Passed', 40, 300); x.fillText('Prod', 330, 300);
+      notes(130, 150, 7, 170); notes(640, 170, 11, 220); notes(120, 400, 8, 150); notes(380, 380, 5, 120); notes(520, 400, 3, 80);
+      hand('#15171C', 22); x.beginPath(); x.moveTo(470, 520); x.lineTo(640, 520); x.lineTo(630, 512); x.moveTo(640, 520); x.lineTo(630, 528); x.stroke(); x.strokeRect(390, 500, 80, 40); x.beginPath(); x.ellipse(730, 520, 84, 28, 0, 0, Math.PI * 2); x.stroke(); x.fillText('all: completed', 668, 527);
+    }
+  }) },
   /** VOLTA on the reception's planks: the mark itself, in black, cut out by its own edge. */
   voltaLetters: { w: 1200, h: 312, frames: [(x, w, h) => {
     x.clearRect(0, 0, w, h);
