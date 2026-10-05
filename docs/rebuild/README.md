@@ -40,6 +40,8 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [42-toronto-view-research.md](./42-toronto-view-research.md) | Why the view out of Floqer's windows did not read as Toronto, what does, how window views are made, the photographs and data with their licences |
 | [43-hacker-house-reference.md](./43-hacker-house-reference.md) | Floqer's real house from 16 photographs, other hacker houses, what makes a room read as one, free models for it |
 | [44-degree-floqer-house-toronto.md](./44-degree-floqer-house-toronto.md) | The degree as Dalhousie's parchment, crumpled and binned; the house's details from its photographs; a real skyline with Old Town built in front of it |
+| [45-walk-mode-research.md](./45-walk-mode-research.md) | How a first-person walk is made smooth in a browser: mouse look, frame pacing, feel, collision, keys, prior art |
+| [46-walk-mode.md](./46-walk-mode.md) | The Walk mode: the switch, the keys, doors, the flight as a ride, how it is built, what the world needed |
 
 ## The one-paragraph verdict
 

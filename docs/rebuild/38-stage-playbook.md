@@ -79,6 +79,7 @@ Dev server up. Do not run `npm run check` or `build` while the export step start
 | 5 | `npm run stage:bake -- 5 128 2048 512 0` |
 | 6, 7 | `npm run stage:bake -- <i> 128 2048 512 0.002` |
 | 10 | `npm run stage:bake -- 10 128 2048 512 0`, then `blender -b -P scripts/stage-bake.py -- 10 256 2048 1 env` |
+| 11 | `npm run stage:bake -- 11 128 2048 512 0` |
 
 - About 5 minutes each. Copy the old `set<i>.glb` and `set<i>_lm.webp` to `.cache/` first.
 - The driver may leave a stray `set<i>_env.webp` for a set that declares no panorama. Delete it (a test fails on it).
@@ -116,6 +117,8 @@ Dev server up. Do not run `npm run check` or `build` while the export step start
 | `burst.mjs <out> <chapter> [x y w h] [gap] [n]` | A few frames a moment apart, side by side: what moves |
 | `scripts/stage-skyline.mjs`, `scripts/stage-crowd.mjs` | Remake the Toronto skyline strip; the crowd's atlases |
 | `crop.mjs` | Enlarges part of a frame |
+| `roam.mjs <dir> <chapter> <steps>` | The Walk mode by hand: keys held or tapped (`w:1500,left:400,e`), a frame and his position after each |
+| `roam-bot.mjs <dir> [from] [to]` | Walks the story in the Walk mode and stops where it cannot get on. `BACK=1` the other way. After any wall, door or furniture change |
 
 URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,smaa`, `&tm=`, `&set=i&cam=...`, `&export=i`.
 
@@ -159,6 +162,8 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Things placed by rule, not by use | Monitors stood face to face, each chair looking at a back; the T's stem stopped short of its bar | Stand at each seat (a `pin.mjs` frame) and look: the screen must face it |
 | A model placed unseen | A BlenderKit chair came without textures, black and faceted | Render each new model in Blender before placing it; `map: false` in its `skin` when the texture is missing |
 | Big lamps overhead | Ring lights two metres across bloomed a pale veil over a black ceiling | Draw them dimmer than they light the bake (`bakePower`); a matt black takes `env: 0.04` |
+| A wall turned inward across a door | The hall's south wall had no hole: unseen from Volta (its back is not drawn), a black panel from the wing, and solid to a walker both ways | A door is cut through every wall on its line, the far room's too; `roam-bot.mjs` both ways |
+| Rays that miss what stops him | three's Raycaster skips the backs of faces; the walker's collision does not | Cast from both sides before saying nothing is there |
 | A window view that the walk would see | Changing the world outside a room also changes the walk | Swap it only while the building fills the frame (`indoor` placements), and prove it with rays |
 
 ## His standing rules
@@ -176,6 +181,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 |---|---|
 | 39, 40, 41 | The crowd's research, Volta's photographs and what they show, the room and the hall rebuilt from them |
 | 42, 43, 44 | Toronto's view researched, the real hacker house's photographs, and the degree, the house and the view rebuilt |
+| 45, 46 | The Walk mode: research, and what was built |
 | 34 | The walk, rounds one to five |
 | 36 | Google without the boardroom |
 | 37 | Nits, round one: apartment, photographs, marks, the lamp, the passage |
