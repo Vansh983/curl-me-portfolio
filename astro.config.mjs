@@ -16,7 +16,7 @@ export default defineConfig({
     // esbuild leaves the longhands alone.
     build: { cssMinify: 'esbuild' },
     // the bake's exporter is imported on demand: pre-bundle it, or Vite re-optimises mid-session and answers 504 (Outdated Optimize Dep)
-    optimizeDeps: { include: ['three/examples/jsm/exporters/GLTFExporter.js'] },
+    optimizeDeps: { include: ['three/examples/jsm/exporters/GLTFExporter.js', 'three-mesh-bvh'] },
   },
   markdown: {
     // css-variables keeps code blocks on the brand tokens in both themes.

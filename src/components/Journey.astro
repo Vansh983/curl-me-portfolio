@@ -21,6 +21,13 @@ const n = chapters.length;
     <button type="button" data-retry-stage hidden>Try 3D again</button>
   </div>
 
+  <div class="mode" role="group" aria-label="How to move through the journey">
+    <button type="button" data-mode="scroll" aria-pressed="true">Scroll</button>
+    <button type="button" data-mode="walk" aria-pressed="false">Walk</button>
+  </div>
+  <p class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <kbd>Click</kbd> look <kbd>E</kbd> open <kbd>Shift</kbd> run <kbd>Esc</kbd> leave</p>
+  <p class="prompt" data-roam-prompt hidden></p>
+
   <div class="wall">
     {chapters.map((m, i) => (
       <article class="ch" id={`ch-${i + 1}`} data-i={i}>
@@ -106,6 +113,72 @@ const n = chapters.length;
   @media (prefers-reduced-motion: reduce) { .gl { transition: none; } }
   .gl.on {
     opacity: 1;
+  }
+  /* the switch up top: read the story down the page, or walk it with the keys. Only where there is a keyboard and a mouse */
+  .mode, .keys, .prompt { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .journey[data-stage='ready'] .mode {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 6;
+      display: flex;
+      border: 1px solid var(--tx);
+      background: var(--bg);
+    }
+    .mode button {
+      font-family: var(--f-mono);
+      font-size: var(--t-label);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--tx);
+      background: none;
+      border: 0;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    .mode button[aria-pressed='true'] { color: var(--bg); background: var(--tx); }
+    .mode button:focus-visible { outline: 2px solid var(--tx); outline-offset: 3px; }
+    .journey[data-mode='preparing'] .mode { opacity: 0.6; pointer-events: none; }
+    .journey[data-mode='walk'] .keys {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      z-index: 6;
+      display: block;
+      margin: 0;
+      padding: 7px 12px;
+      font-family: var(--f-mono);
+      font-size: var(--t-label);
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      color: var(--tx);
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      pointer-events: none;
+    }
+    .keys kbd { margin: 0 2px 0 10px; }
+    .keys kbd:first-child { margin-left: 0; }
+    .keys kbd + kbd { margin-left: 0; }
+    .journey[data-mode='walk'] .prompt:not([hidden]) {
+      position: fixed;
+      left: 50%;
+      top: 62%;
+      transform: translateX(-50%);
+      z-index: 6;
+      display: block;
+      margin: 0;
+      padding: 8px 14px;
+      font-family: var(--f-mono);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: var(--tx);
+      background: var(--bg);
+      border: 1px solid var(--tx);
+      pointer-events: none;
+    }
+    .prompt::before { content: 'E'; margin-right: 10px; padding: 1px 6px; border: 1px solid var(--tx); }
   }
   /* the wall lets pointer events through to the stage everywhere except on the text itself */
   .wall {

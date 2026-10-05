@@ -44,6 +44,7 @@ import { createWeather } from './stage-weather.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
 import { stageProgress, STAGE_SPAN, LAST_SPAN, CARD_SPAN, chapterStart } from '../lib/stage/shot.ts';
+import { createRoam, type Roam } from './stage-roam.ts';
 import { showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
 import { painters, loadImage, canvas2d, tourLive, SURFACE_PAINT, CITY_PAINT, SCREEN_PAINT, WINDOW_PAINT, BADGE_PAINT, CLOUD_PAINT, beanPaint, type Paint, type Images } from './stage-paint.ts';
@@ -1407,6 +1408,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   let homeNight = false; // whether what is outside is the apartment's own night (on the stair, his door about to open)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   let raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1, shown = false;
+  let roam: Roam | undefined, lastQ = 0; // the Walk mode (stage-roam.ts): while it is on, where he stands is the progress, not the scroll
+  let roamY = -1, roamLayout: { tops: number[]; base: number } | undefined; // the cards' places, measured once while he walks: no layout is read in a walking frame
   const kick = () => { if (!stopped && !raf) raf = requestAnimationFrame(tick); };
 
   const applyTheme = () => {
@@ -1459,7 +1462,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   /** The document scroll that puts the stage at progress q: the audit scripts use it (window.__stage.yFor). */
   function yFor(q: number): number { // hoisted: __stage takes it before this line runs
     const c = Math.min(1, Math.max(0, q)) * STAGE_SPAN, last = articles.length - 1;
-    const tops = articles.map((a) => a.offsetTop), base = root.getBoundingClientRect().top + scrollY;
+    const { tops, base } = roamLayout ?? { tops: articles.map((a) => a.offsetTop), base: root.getBoundingClientRect().top + scrollY };
     const lastStart = chapterStart(last);
     if (c >= lastStart) return base + tops[last] + (c - lastStart) * (tops[last] - tops[last - 1]); // the last card runs LAST_SPAN chapter lengths down its own height (it is a viewport taller than that, so the stage stays pinned to its end)
     let i = 0;
@@ -1598,9 +1601,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (scene.environment !== env) scene.environment = env;
       // in the hall beyond Volta's far wall the crowd is on its feet: the door into the wing fits its case, so nothing of
       // the hall is drawn until the door is about to open
-      if (f.set === 10) groups[11].visible = chapter > VOLTA_DOOR[0] - 0.08;
+      if (f.set === 10) groups[11].visible = chapter > VOLTA_DOOR[0] - 0.08 || !!roam?.active; // walked, the door is his to open whenever he reaches it
       // a walk, not a glide: the eye rises and falls a centimetre with each step and the head rolls a breath, by the distance walked, so it rests when the scroll does
-      if (a.inside < 0.5 && !reduce.matches && !pinned) {
+      if (a.inside < 0.5 && !reduce.matches && !pinned && !roam?.active) {
         const step = (walkZ(chapter) / 0.75) * Math.PI;
         camera.position.y += 0.011 * Math.sin(step * 2) * (1 - a.inside);
         camera.rotateZ(0.0022 * Math.sin(step));
@@ -1672,13 +1675,14 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     cap.style.top = `${Math.max(8, y - cap.offsetHeight - 14)}px`;
   };
   const onMove = (ev: PointerEvent) => {
-    if (ev.pointerType === 'touch') return;
+    if (ev.pointerType === 'touch' || roam?.active) return; // walked, the pointer is his head
     pointer = { x: ev.clientX, y: ev.clientY };
     setHover(pick(ev.clientX, ev.clientY));
     placeCap();
   };
   const onLeave = () => { pointer = undefined; setHover(undefined); };
   const onClick = (ev: PointerEvent) => {
+    if (roam?.active) return;
     const b = pick(ev.clientX, ev.clientY);
     if (ev.pointerType === 'touch') {
       pointer = { x: ev.clientX, y: ev.clientY };
@@ -1706,11 +1710,23 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     let q = stageProgress(cur, chapters, STAGE_SPAN);
     if (reduce.matches) q = Math.round(q * (SETS.length - 1)) / Math.max(1, SETS.length - 1);
+    let mainFrame: Frame;
+    if (roam?.active) {
+      // walked: the frame is the scroll's at the place on the path nearest him, with his own eye; the page follows, so the story's cards come up as he reaches them
+      mainFrame = roam.step(dt);
+      q = roam.q;
+      frame(mainFrame);
+      const settled = roam.settle(mainFrame);
+      if (settled !== mainFrame) { mainFrame = settled; frame(mainFrame); }
+      roamHud();
+    } else {
+      mainFrame = dolly(q);
+      frame(mainFrame);
+    }
+    lastQ = q;
     if (AUDIT) diagnostics.q = q;
-    const mainFrame = dolly(q);
     root.classList.toggle('phone-focus', phoneAt(q, reduce.matches).visible);
-    frame(mainFrame);
-    for (const d of live.doors) {
+    if (!roam?.active) for (const d of live.doors) {
       const k = Math.min(1, Math.max(0, (q - d.from) / (d.to - d.from))), s = d.shut ? Math.min(1, Math.max(0, (q - d.shut[0]) / (d.shut[1] - d.shut[0]))) : 0;
       d.obj.rotation.y = d.base + (Math.PI / 2) * k * k * (3 - 2 * k) * (1 - s * s * (3 - 2 * s));
     }
@@ -1849,10 +1865,101 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // scrolling renders every frame; at rest, the live things (fan, video, curtains, water) run at
     // thirty, which is what a laptop on battery can give all day
     const running = visible && !still;
-    if (cur !== target) raf = requestAnimationFrame(tick);
+    if (cur !== target || roam?.active) raf = requestAnimationFrame(tick);
     else if (running) { raf = -1; setTimeout(() => { if (!stopped) raf = requestAnimationFrame(tick); }, 33); }
   };
-  const onScroll = () => { target = progress(); kick(); };
+  const onScroll = () => {
+    if (roam?.active) { roamY = -1; return; } // walked, the page follows him: a scroll from the keys or the bar is put back on the next frame
+    target = progress(); kick();
+  };
+
+  // ---- the Walk mode: the switch up top, the keys, the mouse
+  const modeButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-mode]')], prompt = root.querySelector<HTMLElement>('[data-roam-prompt]');
+  let roamPrompt = '', dragging = false, ghosts: Set<Object3D> | undefined;
+  /** What is not solid to a walker: what stands for the far distance, what moves by itself, water, light. */
+  const ghost = (mesh: Mesh): boolean => {
+    const flag = mesh.name.split('|')[3] ?? '';
+    if (['city', 'sky', 'flight', 'mover', 'curtain', 'person', 'walk', 'walkLamp', 'glow', 'fan'].includes(flag) || mesh.name.startsWith('crowd:') || mesh.name === 'torontoSkyline') return true;
+    ghosts ??= new Set<Object3D>([flightRoll, ...live.backdrops.map((b) => b.root), ...live.doors.map((d) => d.obj), ...live.movers.map((m) => m.obj), ...live.cues.map((k) => k.obj), ...live.drops.map((d) => d.obj), ...live.rises.map((r) => r.obj), ...live.indoor.map((v) => v.obj), ...live.fans, ...marks.map((k) => k.mesh)]);
+    for (let o: Object3D | null = mesh; o; o = o.parent) if (ghosts.has(o)) return true;
+    const m = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as MeshStandardMaterial;
+    return live.water.includes(m) || m.alphaTest > 0 || (m instanceof MeshBasicMaterial && m.transparent);
+  };
+  const roamHud = () => {
+    if (!roam) return;
+    if (roam.prompt !== roamPrompt && prompt) { roamPrompt = roam.prompt; prompt.textContent = roamPrompt; prompt.hidden = !roamPrompt; }
+    const y = Math.round(yFor(roam.q));
+    if (y !== roamY) { roamY = y; scrollTo({ top: y, behavior: 'instant' }); }
+  };
+  const measureRoam = () => { if (roam?.active) { roamLayout = { tops: articles.map((a) => a.offsetTop), base: root.getBoundingClientRect().top + scrollY }; roamY = -1; } };
+  const setMode = async (walk: boolean) => {
+    if (!ready || stopped || walk === !!roam?.active) return;
+    if (walk) {
+      roam ??= createRoam({ groups, dolly, span: STAGE_SPAN, doors: live.doors, skip: ghost });
+      root.dataset.mode = 'preparing';
+      await roam.prepare();
+      if (stopped) return;
+      roam.enter(lastQ);
+      measureRoam();
+      root.dataset.mode = 'walk';
+      lastT = performance.now();
+    } else if (roam) {
+      const q = roam.exit();
+      if (document.pointerLockElement === canvas) document.exitPointerLock();
+      root.dataset.mode = 'scroll';
+      roamLayout = undefined;
+      scrollTo({ top: yFor(q), behavior: 'instant' });
+      target = progress(); cur = target; vel = 0; roamY = -1;
+      if (prompt) prompt.hidden = true;
+      roamPrompt = '';
+    }
+    for (const b of modeButtons) b.setAttribute('aria-pressed', String((b.dataset.mode === 'walk') === walk));
+    pointer = undefined;
+    setHover(undefined);
+    kick();
+  };
+  const typing = (e: KeyboardEvent) => e.metaKey || e.ctrlKey || e.altKey || (e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)));
+  // macOS sends no keyup for a key let go while Command is down: with Command, every held key is let go
+  const meta = (e: KeyboardEvent) => e.code === 'MetaLeft' || e.code === 'MetaRight';
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (roam?.active && meta(e)) roam.release();
+    if (!roam?.active || typing(e)) return;
+    if (roam.key(e.code, true)) { e.preventDefault(); return; }
+    if (e.repeat) return;
+    if (e.code === 'KeyE' || e.code === 'Enter') { e.preventDefault(); roam.use(); }
+    else if (e.code === 'KeyR') roam.home();
+    else if (e.code === 'Escape') void setMode(false);
+    else if (e.code === 'Space') e.preventDefault();
+  };
+  const onKeyUp = (e: KeyboardEvent) => { if (meta(e)) roam?.release(); else roam?.key(e.code, false); };
+  const onBlur = () => roam?.release();
+  const onWheel = (e: WheelEvent) => { if (roam?.active) e.preventDefault(); }; // walked, the page does not scroll: it follows him
+  // the mouse as the hand moves it, without the system's acceleration, where the browser has it; refused (a click too soon after Escape), dragging still looks
+  const lock = async () => {
+    try { await canvas.requestPointerLock({ unadjustedMovement: true }); }
+    catch (err) { if (err instanceof DOMException && err.name === 'NotSupportedError') await Promise.resolve(canvas.requestPointerLock()).catch(() => {}); }
+  };
+  const onRoamDown = () => { if (!roam?.active) return; dragging = true; if (document.pointerLockElement !== canvas) void lock(); };
+  const onRoamUp = () => { dragging = false; };
+  const onRoamMove = (e: PointerEvent) => {
+    if (!roam?.active || !(document.pointerLockElement === canvas || dragging)) return;
+    if (Math.abs(e.movementX) > innerWidth / 3 || Math.abs(e.movementY) > innerHeight / 3) return; // a locked pointer now and then reports a leap of hundreds of pixels: dropped, the view does not jump
+    roam.look(e.movementX, e.movementY);
+  };
+  const onLockChange = () => { roam?.release(); }; // the mouse let go (Escape): no key stays held
+  const onHidden = () => { if (document.hidden) roam?.release(); };
+  for (const b of modeButtons) b.addEventListener('click', () => { void setMode(b.dataset.mode === 'walk'); b.blur(); });
+  addEventListener('keydown', onKeyDown);
+  addEventListener('keyup', onKeyUp);
+  addEventListener('blur', onBlur);
+  addEventListener('wheel', onWheel, { passive: false });
+  canvas.addEventListener('pointerdown', onRoamDown);
+  addEventListener('pointerup', onRoamUp);
+  addEventListener('pointermove', onRoamMove);
+  addEventListener('resize', measureRoam);
+  document.addEventListener('pointerlockchange', onLockChange);
+  document.addEventListener('visibilitychange', onHidden);
+  if (AUDIT) Object.assign(diagnostics, { setMode, roam: () => roam });
   const io = new IntersectionObserver(([e]) => {
     visible = e.isIntersecting;
     if (visible) { video.play().catch(() => {}); kick(); } else video.pause();
@@ -1976,6 +2083,18 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (raf > 0) cancelAnimationFrame(raf);
     raf = -1;
     removeEventListener('scroll', onScroll);
+    removeEventListener('keydown', onKeyDown);
+    removeEventListener('keyup', onKeyUp);
+    removeEventListener('blur', onBlur);
+    removeEventListener('wheel', onWheel);
+    canvas.removeEventListener('pointerdown', onRoamDown);
+    removeEventListener('pointerup', onRoamUp);
+    removeEventListener('pointermove', onRoamMove);
+    removeEventListener('resize', measureRoam);
+    document.removeEventListener('pointerlockchange', onLockChange);
+    document.removeEventListener('visibilitychange', onHidden);
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+    delete root.dataset.mode;
     canvas.removeEventListener('pointermove', onMove);
     canvas.removeEventListener('pointerleave', onLeave);
     canvas.removeEventListener('pointerup', onClick);

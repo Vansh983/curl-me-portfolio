@@ -58,11 +58,11 @@ function auditoriumSeat(study = false): BuiltPart {
 }
 
 /** A room's six faces turned inward (a hall seen only from inside): invisible from outside, since faces are single-sided. */
-function inward(sink: Sink, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, skipZ1 = false): void {
+function inward(sink: Sink, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, skipZ1 = false, skipZ0 = false): void {
   sink.quad([x0, y0, z0], [x0, y0, z1], [x1, y0, z1], [x1, y0, z0]); // the floor faces up
   sink.quad([x0, y1, z1], [x0, y1, z0], [x1, y1, z0], [x1, y1, z1]); // the ceiling faces down
   if (!skipZ1) sink.quad([x0, y0, z1], [x0, y1, z1], [x1, y1, z1], [x1, y0, z1]); // the z1 wall faces -z
-  sink.quad([x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z0]); // the z0 wall faces +z
+  if (!skipZ0) sink.quad([x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z0]); // the z0 wall faces +z
   sink.quad([x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [x0, y0, z1]); // the x0 wall faces +x
   sink.quad([x1, y0, z1], [x1, y1, z1], [x1, y1, z0], [x1, y0, z0]); // the x1 wall faces -x
 }
@@ -772,7 +772,11 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const lane = WALK.x - 0.8; // the legs mask the back of the stage; the lane along its front, where the walk comes in from the wing, stays open
     for (const z of [z0 + 0.6, z1 - 0.6]) drape.box((x0 + lane) / 2, S + 4.3, z, lane - x0, 8.6, 0.6); // the wings' legs
     // the room round it all, its faces turned inward so nothing shows from the terrace outside: floor, ceiling, four walls
-    inward(dark, x0 - 0.2, h1, 0, H, hz0 - 0.5, hz1 + 1.5, true); // the south wall on the door line: nothing of the room south of the terrace's end
+    inward(dark, x0 - 0.2, h1, 0, H, hz0 - 0.5, hz1 + 1.5, true, true); // the south wall on the door line: nothing of the room south of the terrace's end
+    { // that wall, with the door in from Volta cut through it: turned round in the wing, the door he came by is there, and he can go back through it
+      const zs = hz0 - 0.5, da = WALK.x - 0.6, db = WALK.x + 0.6, dh = 2.1;
+      const q = (xx0: number, xx1: number, yy0: number, yy1: number) => dark.quad([xx1, yy0, zs], [xx1, yy1, zs], [xx0, yy1, zs], [xx0, yy0, zs]);
+      q(x0 - 0.2, da, 0, H); q(db, h1, 0, H); q(da, db, dh, H); }
     // the north wall, with the door out behind the stage: three faces round it, turned into the hall
     { const { x: dx, w: dw, h: dh, floor: df } = STAGE.door, zb = hz1 + 1.5, xa = x0 - 0.2;
       const q = (xx0: number, xx1: number, yy0: number, yy1: number) => dark.quad([xx0, yy0, zb], [xx0, yy1, zb], [xx1, yy1, zb], [xx1, yy0, zb]);

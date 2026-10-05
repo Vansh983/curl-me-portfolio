@@ -23,6 +23,7 @@
     "astro": "^7.2.0",
     "n8ao": "^2.0.1",
     "three": "^0.185.1",
+    "three-mesh-bvh": "^0.9.15",
     "zod": "^4.4.3"
   },
   "devDependencies": {
