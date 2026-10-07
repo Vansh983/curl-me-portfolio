@@ -11,13 +11,14 @@ export const ROAM = {
   clear: 0.27, // what passes under the body: a stair's step, a threshold
   step: 0.27, // the most the floor may rise in one stride: the wing's steps up to the stage are 0.25
   drop: 0.6, // the most it may fall: past that the edge holds him (a stage's front, a quay)
-  walk: 2.4, run: 4.4, // a walk; Shift
-  ease: 10, // how fast the pace follows the keys (1/s)
-  turn: 2.2, // the arrow keys' turn, radians a second
+  walk: 3.5, run: 6.5, // a brisk walk; Shift (he asked for faster than 2.4 and 4.4)
+  ease: 14, // how fast the pace follows the keys (1/s)
+  turn: 2.8, // the arrow keys' turn, radians a second
   look: 0.0022, // the mouse, radians a pixel
   reach: 2.1, // how far a door is opened from
+  seat: 2.6, // how far the seat on the flight, and the way back to it, are offered from
   /** Where the scroll's camera does not walk: he takes his seat and the flight plays to its end in the hall. Chapters. */
-  rides: [{ from: 5.648, to: 6.4, rate: 0.09, prompt: 'Take your seat' }],
+  rides: [{ from: 5.648, to: 6.4, rate: 0.12, prompt: 'Take your seat', back: 'Back to the flight', again: 5.6 }], // `again`: the chapter he is put at when he comes back
   fov: 74, // the frame's width in degrees, as the scroll's camera mostly has it
 } as const;
 

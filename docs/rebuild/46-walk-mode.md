@@ -10,7 +10,7 @@ Research: `45-walk-mode-research.md`.
 - Walk: W A S D or the arrows move, Shift runs, the mouse looks after a click on the stage (the arrows turn without it), E opens and shuts the door in front of him, R puts him back on the story's path, Esc leaves.
 - The story stays. Where he stands is the stage's progress: the light, the weather, the laptop, the coffee, the degree, the crowd and the text cards all come as he reaches them. The page scrolls itself to match, so switching back to Scroll lands on the same place.
 - Doors are his to open. They swing away from him, whichever side he stands. Doors the scroll had already passed stand open.
-- The flight is not walked. At his row the stage offers "Take your seat" (E): the descent and the phone play for eight seconds and he stands up in the lecture hall. E again hurries it.
+- The flight is not walked. At his row the stage offers "Take your seat" (E): his eye eases into the seat, the descent and the phone play for six seconds, and he stands up at the top row of the lecture hall. E again hurries it. At that top row the stage offers "Back to the flight" (E): a cut to the cabin, as the story's own cut is.
 - Walls, furniture and glass stop him. Stairs and the steps to the stage lift him. A drop of more than 0.6 m (the stage's front, the quay) and the end of what is built hold him at the edge.
 
 ## How it is built
@@ -25,7 +25,7 @@ Research: `45-walk-mode-research.md`.
 - Collision: one mesh a set, in the set's own frame, built on the first switch to Walk (under a second for all thirteen). `three-mesh-bvh` (MIT), the one new dependency.
 - Body: a capsule, radius 0.26, pushed out of walls across the floor only. Floor: five rays down. Up to six steps of 7 cm a frame, so a fast frame cannot pass through a wall.
 - Solid is what is drawn: every visible set collides. Not solid (`ghost`): backdrops, skies, water, the crowd's cards, what moves by itself, swinging doors (they are lines that turn).
-- Numbers (`ROAM`): eye 1.6 m, walk 2.4 m/s, run 4.4, pace eased at 10 a second, step up 0.27 m, drop 0.6 m, reach for a door 2.1 m, frame 74 degrees wide.
+- Numbers (`ROAM`): eye 1.6 m, walk 3.5 m/s, run 6.5, pace eased at 14 a second, step up 0.27 m, drop 0.6 m, reach for a door 2.1 m, the seat offered from 2.6 m, frame 74 degrees wide.
 - A set that stands in two places (the 2020 room, his apartment) moves when the progress says so; he is carried with it, so the cut is not seen.
 - His feet are on the floor at once; only the eye is eased (12 a second), so a stair taken at a run does not lose its next step.
 
@@ -52,10 +52,18 @@ Not taken: collision meshes built in a worker (the switch blocks 0.6 to 0.8 s on
 - The round trip: Scroll, Walk, wheel and PageDown held off, Esc, Scroll again from the same place.
 - Headless Chrome only. Pointer lock (the mouse look) cannot be tried there: it needs his Chrome.
 
+## Round two (the same day)
+
+His words: "moving around needs to be faster, the keys movement, also how do we transport between the flight and dalhousie? that is broken".
+
+- Walk 2.4 to 3.5 m/s, run 4.4 to 6.5, the pace following the keys at 14 a second, the arrows turning at 2.8 rad/s.
+- The seat: offered from 2.6 m instead of 1.6; his eye eases into the scroll's camera over 0.7 s instead of a cut; the ride plays at 0.12 chapters a second (six seconds).
+- The way back: at the top row where the ride lands him, E is "Back to the flight" and puts him in the cabin at chapter 5.6.
+- His Chrome tab stayed hidden, so this round is headless too: the seat flow by real key presses, the bot both ways at the new speeds.
+
 ## Known limits
 
 - Beats that play while the scroll's camera stands still (the throw to the bin) play only as he walks through that place.
-- Going back from the lecture hall to the aircraft is not offered: they join by the phone, not a door.
 - Behind the Bean house and off the path on the walk the ground is open to him; where nothing is built the edge holds him.
 - No touch controls.
 

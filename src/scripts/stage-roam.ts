@@ -5,7 +5,8 @@
 // He is a body 1.6 m to the eye. Walls and furniture stop it (a capsule against each set's own collision mesh,
 // three-mesh-bvh); the floor carries it (rays down: stairs lift him, a drop of more than 0.6 m holds him at its
 // edge, and so does the end of what is built). A door's leaf is a line that turns on its hinge, away from him.
-// Where the scroll's camera does not walk (the flight), he takes his seat and it plays.
+// Where the scroll's camera does not walk (the flight), he takes his seat and it plays, his eye easing into the
+// scroll's camera first; from the hall it lands him in, E takes him back to the aircraft.
 import { Box3, BufferAttribute, BufferGeometry, DoubleSide, Line3, Matrix4, Ray, Vector3, type Group, type Mesh, type Object3D } from 'three';
 import { MeshBVH, type ExtendedTriangle } from 'three-mesh-bvh';
 import type { Frame } from '../lib/stage/dolly.ts';
@@ -53,7 +54,7 @@ export function createRoam(ctx: RoamContext): Roam {
   const { groups, dolly, span } = ctx, path: RoamPath = roamPath(dolly, span);
   const colliders: Array<MeshBVH | null | undefined> = groups.map(() => undefined);
   const pos = new Vector3(), vel = new Vector3(), held = new Set<string>();
-  let yaw = 0, pitch = 0, run = 0, idx = 0, feet = NaN, under: number | null = null, heldBy = '', riding: { to: number; rate: number } | null = null, moved: { set: number; before: Matrix4 } | null = null;
+  let yaw = 0, pitch = 0, run = 0, idx = 0, feet = NaN, under: number | null = null, heldBy = '', riding: { to: number; rate: number; from: Frame; blend: number } | null = null, moved: { set: number; before: Matrix4 } | null = null;
   const solids: Solid[] = [];
   const setOf = (o: Object3D): number => { let k: Object3D | null = o; while (k && !groups.includes(k as Group)) k = k.parent; return k ? groups.indexOf(k as Group) : -1; };
   const doors = ctx.doors.map((d) => ({ ...d, set: setOf(d.obj), open: 0, target: 0, way: 1, far: new Vector3(), a: new Vector3(), b: new Vector3() }));
@@ -218,7 +219,11 @@ export function createRoam(ctx: RoamContext): Roam {
       run -= 1; idx = prev.b;
     } else idx = roamNearest(path, r, pos.x, feet + ROAM.eye, pos.z, idx);
   };
-  const seatNear = (): number => { const r = path.runs[run]; return r.next === 'ride' && Math.hypot(pos.x - path.x[r.b], pos.z - path.z[r.b]) < 1.6 ? r.ride! : -1; };
+  const seatNear = (): number => { const r = path.runs[run]; return r.next === 'ride' && Math.hypot(pos.x - path.x[r.b], pos.z - path.z[r.b]) < ROAM.seat ? r.ride! : -1; };
+  /** Where a ride put him down: within reach of his leg's start, the way back is offered. */
+  const landedNear = (): number => { const r = path.runs[run], prev = path.runs[run - 1]; return prev?.next === 'ride' && Math.hypot(pos.x - path.x[r.a], pos.z - path.z[r.a]) < ROAM.seat ? prev.ride! : -1; };
+  const board = (k: number): void => { const ride = ROAM.rides[k]; riding = { to: ride.to / span, rate: ride.rate / span, from: eye(dolly(api.q)), blend: 0 }; held.clear(); };
+  const mix = (a: Frame, b: Frame, t: number): Frame => ({ ...b, cam: [0, 1, 2].map((i) => a.cam[i] + (b.cam[i] - a.cam[i]) * t) as Frame['cam'], look: [0, 1, 2].map((i) => a.look[i] + (b.look[i] - a.look[i]) * t) as Frame['look'], fov: a.fov + (b.fov - a.fov) * t });
 
   const aim = (f: Frame): void => {
     pos.set(...f.cam);
@@ -247,7 +252,7 @@ export function createRoam(ctx: RoamContext): Roam {
       if (run < 0) run = Math.max(0, path.runs.findIndex((r) => r.a > i) - 1); // inside a ride: the leg it leaves
       idx = Math.max(path.runs[run].a, Math.min(path.runs[run].b, i));
       aim(dolly(q));
-      riding = ride ? { to: ride.to / span, rate: ride.rate / span } : null;
+      riding = ride ? { to: ride.to / span, rate: ride.rate / span, from: dolly(q), blend: 1 } : null;
       api.q = q; api.active = true; held.clear(); moved = null;
       for (const d of doors) { // as the scroll left them
         const k = Math.min(1, Math.max(0, (q - d.from) / (d.to - d.from))), s = d.shut ? Math.min(1, Math.max(0, (q - d.shut[0]) / (d.shut[1] - d.shut[0]))) : 0;
@@ -264,10 +269,16 @@ export function createRoam(ctx: RoamContext): Roam {
     look(dx, dy) { yaw -= dx * ROAM.look; pitch = Math.max(-1.2, Math.min(1.2, pitch - dy * ROAM.look)); },
     release() { held.clear(); },
     use() {
-      if (riding) { riding.rate = Math.max(riding.rate, (ROAM.rides[0].rate * 3) / span); return; } // again, to hurry it
-      const seat = seatNear();
+      if (riding) { riding.rate = Math.max(riding.rate, (ROAM.rides[0].rate * 3) / span); riding.blend = 1; return; } // again, to hurry it
+      const seat = seatNear(), landed = landedNear();
       doorsNear();
-      if (seat >= 0) { const ride = ROAM.rides[seat]; riding = { to: ride.to / span, rate: ride.rate / span }; return; }
+      if (seat >= 0) { board(seat); return; }
+      if (landed >= 0) { // back to the aircraft: a cut, as the story's own is
+        const c = ROAM.rides[landed].again / span;
+        run = path.runs.findIndex((r) => path.q[r.a] <= c && path.q[r.b] >= c);
+        idx = Math.round(c * path.n); api.q = c; aim(dolly(c));
+        return;
+      }
       const d = facing();
       if (!d) return;
       if (d.open === 0) { leaf(d); d.way = (pos.x - d.a.x) * (d.b.z - d.a.z) - (pos.z - d.a.z) * (d.b.x - d.a.x) > 0 ? -1 : 1; } // it swings away from him, whichever side he stands
@@ -277,7 +288,14 @@ export function createRoam(ctx: RoamContext): Roam {
     step(dt) {
       for (const d of doors) if (d.open !== d.target) { d.open = d.target > d.open ? Math.min(d.target, d.open + dt / 0.5) : Math.max(d.target, d.open - dt / 0.5); swing(d); }
       if (riding) {
-        api.q = Math.min(riding.to, Math.max(api.q, path.q[path.runs[run].b]) + riding.rate * dt);
+        const start = path.q[path.runs[run].b];
+        if (riding.blend < 1) { // his eye eases into the seat before anything plays
+          riding.blend = Math.min(1, riding.blend + dt / 0.7);
+          const t = riding.blend * riding.blend * (3 - 2 * riding.blend);
+          api.q = Math.max(api.q, start); api.prompt = '';
+          return mix(riding.from, dolly(start), t);
+        }
+        api.q = Math.min(riding.to, Math.max(api.q, start) + riding.rate * dt);
         const f = dolly(api.q);
         if (api.q >= riding.to) {
           riding = null; aim(f);
@@ -319,8 +337,8 @@ export function createRoam(ctx: RoamContext): Roam {
       pos.y += (feet + ROAM.eye - pos.y) * (1 - Math.exp(-12 * dt));
       place();
       api.q = roamProgress(path, path.runs[run], idx, pos.x, pos.z);
-      const d = facing(), seat = seatNear();
-      api.prompt = seat >= 0 ? ROAM.rides[seat].prompt : d ? (d.target > 0.5 ? 'Close' : 'Open') : '';
+      const d = facing(), seat = seatNear(), landed = landedNear();
+      api.prompt = seat >= 0 ? ROAM.rides[seat].prompt : landed >= 0 ? ROAM.rides[landed].back : d ? (d.target > 0.5 ? 'Close' : 'Open') : '';
       return eye(dolly(api.q));
     },
     settle(f) {
