@@ -18,7 +18,7 @@ test('the descent: high and level at the start, low and level at the end, a bank
   assert.ok(b.veil < 0.02 && a.veil < 0.05, 'clear above and below it');
   assert.ok(FLIGHT.low > 100, 'never lands: the phone transition happens airborne');
   for (const q of [PHONE.raise, PHONE.transfer]) assert.ok(flightAt(q).altitude >= FLIGHT.low);
-  const dolly = makeDolly(DOLLY);
+  const dolly = makeDolly(DOLLY, false);
   assert.equal(dolly(PHONE.raise).set, 5);
   assert.equal(dolly(ch(6.95)).set, 6);
   assert.equal(dolly(ch(7.64)).set, 6);
@@ -79,7 +79,7 @@ test('phone covers the viewport before the sole portal cut and is gone at the cl
   assert.equal(phoneAt(PHONE.reveal).visible, false);
   assert.equal(phoneAt(PHONE.framed, true).visible, false);
   assert.equal(DOLLY.filter((k) => k.portal && k.blend !== undefined).length, 1); // the phone's; the way home is walked, and the 2020 room's return to its place changes no set
-  const dolly = makeDolly(DOLLY);
+  const dolly = makeDolly(DOLLY, false);
   assert.equal(dolly(PHONE.transfer - 1e-6).set, 5);
   assert.equal(dolly(PHONE.transfer).set, 6);
   assert.deepEqual(dolly(PHONE.transfer).cam, dolly(PHONE.reveal).cam);
@@ -99,7 +99,7 @@ test('the phone has viewport coverage and a pixel-aligned destination crop on de
 });
 
 test('arrival is seated in the highest row, then the walk down the aisle ends behind the lectern facing the hall', () => {
-  const dolly=makeDolly(DOLLY);
+  const dolly=makeDolly(DOLLY, false);
   for(let q=PHONE.transfer;q<=ch(6.33);q+=.001) assert.deepEqual(dolly(q).cam,CLASSROOM_VIEW.cam);
   assert.ok(Math.abs(CLASSROOM_VIEW.cam[1]-TOP_ROW.height-1.28)<1e-9);
   assert.equal(CLASSROOM_VIEW.cam[0], AUDITORIUM.studyX);
@@ -123,7 +123,7 @@ test('arrival is seated in the highest row, then the walk down the aisle ends be
 });
 
 test('the podium hold keeps the lectern top and its laptop in the bottom of the frame, and the walk up never passes through the lectern', () => {
-  const dolly = makeDolly(DOLLY);
+  const dolly = makeDolly(DOLLY, false);
   const [lx, lz] = DAIS.lectern;
   for (let q = ch(7.2); q <= ch(7.64); q += 0.001) {
     const c = dolly(q).cam;

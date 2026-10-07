@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { WALK, WALK_SPEED, TURN, MIST, STRETCH, TRACK, LAPTOP, MARKS, walkZ, walkC, airAt, onWalk, cityAt, laptopAt, cueAt, markAt, seaplaneAt, streetcarAt, ferryAt } from '../../src/lib/stage/walk.ts';
-import { SETS, WALK_TREES, WALK_LAMPS, ORCA, VOLTA_FLOOR, TOUR_SHIFT, HOME, FLOQER, STAGE_BIN, STAGE } from '../../src/lib/stage/sets.ts';
+import { SETS, WALK_TREES, WALK_LAMPS, ORCA, VOLTA_FLOOR, TOUR_SHIFT, FLOQER, STAGE_BIN, STAGE } from '../../src/lib/stage/sets.ts';
+import { POSES, toWorld, turnDir, BRICK } from '../../src/lib/stage/world.ts';
 import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';
 import { STAGE_SPAN, CARD_SPAN, chapterStart, ch } from '../../src/lib/stage/shot.ts';
 import { BLOCK } from '../../src/lib/stage/walk-built.ts';
@@ -20,7 +21,7 @@ test('the walk is one straight line at one pace, and the cities turn where their
   assert.ok(STRETCH.halifax[1] - STRETCH.halifax[0] > 22, 'Halifax has the longest walk');
   assert.ok(STRETCH.vancouver[1] === STRETCH.toronto[0] && STRETCH.toronto[1] === STRETCH.halifax[0] && STRETCH.halifax[1] === WALK.volta.z[0]);
   for (const s of Object.values(STRETCH)) assert.ok(s[1] - s[0] > 12, `a city has room: ${s}`);
-  const dolly = makeDolly(DOLLY);
+  const dolly = makeDolly(DOLLY, false);
   for (let c = WALK.from.c + 0.1; c <= WALK.to.c; c += 0.01) { // a step or two after the corner the spline has settled on the line
     const f = dolly(ch(c));
     assert.ok(Math.abs(f.cam[0] - WALK.x) < 0.02 && Math.abs(f.cam[1] - 1.6) < 0.02, `off the line at ${c}: ${f.cam}`);
@@ -139,18 +140,18 @@ test('the walk stands in the Vancouver set; nothing stands on the walk or on the
   assert.ok(Math.abs(STAGE_SPAN - 19.2) < 1e-9);
 });
 
-test('the end is walked: the apartment stands behind the door at the top of the stair', () => {
+test('the end is walked: the door at the top of Floqer\'s stair is the far end of the passage behind the apartment\'s brick door, and the story ends in the room it began in', () => {
   assert.ok(!DOLLY.some((k) => k.portal && k.set === 0), 'no cut into the apartment');
   assert.equal(DOLLY.filter((k) => k.portal && k.blend !== undefined).length, 1, 'the phone is the only portal between two sets');
-  const last = DOLLY[DOLLY.length - 1], home = HOME.to([-5.45, 1.58, 1.9]);
-  assert.deepEqual(last.cam.map((v) => +v.toFixed(3)), home.map((v) => +v.toFixed(3)));
+  const last = DOLLY[DOLLY.length - 1];
   assert.equal(last.set, 0);
-  // the apartment's front door (own x -5.45, z 2.2) is on the stair's line, its passage's far end on the house's north wall
-  assert.ok(Math.abs(HOME.to([-5.45, 0, 2.2])[0] - FLOQER.door.x) < 1e-9);
-  const wall = FLOQER.z[1] + TOUR_SHIFT, far = HOME.to([-5.45, 0, 4.3])[2];
-  assert.ok(far > wall && far - wall < 0.3, `${far} against ${wall}`);
-  assert.ok(Math.abs(HOME.at[1] - (FLOQER.floor + FLOQER.stair.n * FLOQER.stair.rise)) < 1e-9, "its floor at the stair's top");
-  assert.ok(HOME.from > 14 && HOME.from < 16.1, 'moved while the story is in the hall: out of sight of both its places');
+  assert.ok(last.cam[0] > -8.9 && last.cam[0] < -4.2 && last.cam[2] > -2.8 && last.cam[2] < 2.2, `inside the apartment: ${last.cam}`);
+  // every set stands in one place: the apartment where the story began, Floqer's door at the brick passage's end, opening west into it
+  assert.deepEqual(POSES[0].at, [0, 0, 0]);
+  const door = toWorld(12, [FLOQER.door.x, FLOQER.floor + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + 0.23 + TOUR_SHIFT]);
+  assert.ok(Math.abs(door[0] - (BRICK.x + BRICK.length)) < 1e-9 && Math.abs(door[1]) < 1e-9 && Math.abs(door[2] - BRICK.z) < 1e-9, `${door}`);
+  const north = turnDir(12, [0, 0, 1]);
+  assert.ok(Math.abs(north[0] + 1) < 1e-9 && Math.abs(north[2]) < 1e-9, 'the house\'s north is the world\'s west');
   assert.ok(!SETS[0].props.some((p) => p.build === 'doorLeaf'), 'no white leaf in the apartment');
   assert.ok(SETS[12].props.some((p) => p.build === 'doorLeafHome') && !SETS[12].props.some((p) => p.build === 'landing'));
   assert.ok(STAGE_BIN[2] > STAGE.centre + 6 && STAGE_BIN[0] < WALK.x - 0.6, 'the bin backstage, off the walk on its right');

@@ -26,7 +26,8 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { N8AOPass } from 'n8ao';
-import { SETS, HALIFAX_CAMPUS, WALK_LAMPS, HOME, DELHI, STAGE_BIN, VOLTA_DOOR, FLOQER, FLOQER_WINDOWS, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
+import { SETS, HALIFAX_CAMPUS, WALK_LAMPS, HOME, STAGE_BIN, VOLTA_DOOR, FLOQER, FLOQER_WINDOWS, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
+import { toWorld, turnDir, yawOf } from '../lib/stage/world.ts';
 import { airAt, onWalk, laptopAt, cueAt, seaplaneAt, streetcarAt, ferryAt, walkZ, markAt, voltaViewAt, TORONTO_SKYLINE, MARKS, CITY_AIR, type Mark, WALK, type Air, type SkyName, type Pose } from '../lib/stage/walk.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
@@ -43,7 +44,7 @@ import { createPhone } from './stage-phone.ts';
 import { createWeather } from './stage-weather.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
 import { asset, assetUrl } from '../lib/stage/assets.ts';
-import { stageProgress, STAGE_SPAN, LAST_SPAN, CARD_SPAN, chapterStart } from '../lib/stage/shot.ts';
+import { stageProgress, STAGE_SPAN, LAST_SPAN, CARD_SPAN, chapterStart, ch, approach } from '../lib/stage/shot.ts';
 import { createRoam, type Roam } from './stage-roam.ts';
 import { showSetBackdrops, type SetScoped } from '../lib/stage/lifecycle.ts';
 import { detailMap, fbm, type Kind } from '../lib/stage/surface.ts';
@@ -116,7 +117,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   heldDegree.visible = false;
   camera.add(heldDegree);
   let degreeSheet: { mesh: Group; crush: (c: number, fist: number) => void } | undefined, thrownBall: Object3D | undefined;
-  const release = new Vector3(), binMouth = new Vector3(STAGE_BIN[0] + (SETS[11].at?.[0] ?? 0), STAGE_BIN[1] + 0.66 + (SETS[11].at?.[1] ?? 0), STAGE_BIN[2] + (SETS[11].at?.[2] ?? 0)); // where the crushed degree leaves the hand, and the mouth of the bin
+  const release = new Vector3(), binMouth = new Vector3(...toWorld(11, [STAGE_BIN[0] + (SETS[11].at?.[0] ?? 0), STAGE_BIN[1] + 0.66 + (SETS[11].at?.[1] ?? 0), STAGE_BIN[2] + (SETS[11].at?.[2] ?? 0)])); // where the crushed degree leaves the hand, and the mouth of the bin
   const heldCoffee = new Group(); // the coffee from Volta's bar, in its paper cup
   heldCoffee.name = 'heldCoffee';
   heldCoffee.visible = false;
@@ -169,7 +170,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const SKY_KEEP = 0.56, SKY_SUN: Record<SkyName, number> = { vancouver: 0.59, toronto: 0.582, halifax: 0.598 };
   // how each sky is shown: a gain, and a lift toward a pale blue. Vancouver's and Toronto's are lighter than the photographs
   const SKY_LOOK: Record<SkyName, [number, number]> = { vancouver: [1.22, 0.2], toronto: [1.12, 0.1], halifax: [1, 0] };
-  const skyTurn = (name: SkyName): number => { const d = CITY_AIR[name].sun.dir; return SKY_SUN[name] - (Math.atan2(d[2], d[0]) / (2 * Math.PI) + 0.5); };
+  const skyTurn = (name: SkyName): number => { const d = turnDir(8, CITY_AIR[name].sun.dir); return SKY_SUN[name] - (Math.atan2(d[2], d[0]) / (2 * Math.PI) + 0.5); }; // the sun as the walk is turned in the world (world.ts)
   const domeFragment = `
     uniform sampler2D mapA; uniform sampler2D mapB; uniform float mixAB; uniform float dim; uniform float mist; uniform vec3 mistColor; uniform float turnA; uniform float turnB; uniform float keep; uniform float drift; uniform vec2 lookA; uniform vec2 lookB;
     varying vec3 vDir;
@@ -670,7 +671,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // ---- live things
   const live = {
     fans: [] as Object3D[],
-    doors: [] as Array<{ obj: Object3D; from: number; to: number; base: number; shut?: [number, number] }>, // leaves that swing open with the stage progress, and some shut again behind him
+    doors: [] as Array<{ obj: Object3D; from: number; to: number; base: number; shut?: [number, number]; open: number }>, // leaves that swing open with the stage progress, and some shut again behind him; `open` is how far, this frame
     curtains: [] as MeshStandardMaterial[],
     water: [] as MeshStandardMaterial[],
     crowd: [] as Array<{ mat: MeshStandardMaterial; base: number }>, // the rows of the crowd: their two frames alternate while the hall is on
@@ -710,7 +711,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
 
   // ---- the sets
-  const groups: Group[] = SETS.map((S) => { const g = new Group(); if (S.at) g.position.set(...S.at); return g; }); // a set written about its own origin stands where `at` puts it
+  const groups: Group[] = SETS.map((S, i) => { const g = new Group(); g.position.set(...toWorld(i, S.at ?? [0, 0, 0])); g.rotation.y = yawOf(i); return g; }); // a set written about its own origin stands where `at` and the world (world.ts) put it, for good
   const hot: Placed[] = [];
 
   /** The street lights of downtown: a soft warm point every 28 m along every road, additive, no fog (the city is outside it). */
@@ -866,7 +867,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       g.add(mesh);
     }
     if (name === 'city') g.add(streetLightPoints()); // the streets below, a light every 28 m
-    if (p.live === 'door' && p.door) live.doors.push({ obj: g, from: p.door[0], to: p.door[1], base: (p.rot?.[1] ?? 0) * D, shut: p.shut });
+    if (p.live === 'door' && p.door) live.doors.push({ obj: g, from: p.door[0], to: p.door[1], base: (p.rot?.[1] ?? 0) * D, shut: p.shut, open: 0 });
     if (p.drop) live.drops.push({ obj: g, from: p.drop[0], to: p.drop[1], by: p.drop[2], base: p.at[1] });
     if (name === 'downlight' && p.live === 'downlight' && !baked) {
       const light = new PointLight('#FFF0DC', 28, 14, 1.6); // a recessed can six metres up: a pool on the tier below
@@ -1403,8 +1404,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const dolly = makeDolly(DOLLY);
   let walkAir: Air | undefined; // the air of the walk while the frame is on it
-  let atHome = false; // whether the apartment stands behind Floqer's stair door
-  let delhiAway: boolean | undefined; // whether the 2020 room stands behind the door in Google's block (DELHI)
   let homeNight = false; // whether what is outside is the apartment's own night (on the stair, his door about to open)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   let raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1, shown = false;
@@ -1503,6 +1502,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion
     scene.environment = roomEnvironments.get(i)?.texture ?? (i === 5 && flightEnvironment ? flightEnvironment.texture : S.env === 'sky' ? skyEnv : studioEnv);
+    scene.environmentRotation.set(0, yawOf(i), 0); // a room's map was baked where the room was written; the room is turned in the world (world.ts)
     const span = i === 5 ? 140 : WALK_SETS.has(i) ? 17 : 7; // out on the walk the low sun throws the rail and the lamps a long way across the paving
     Object.assign(sun.shadow.camera, { left: -span, right: span, top: span, bottom: -span, far: i === 5 ? 450 : WALK_SETS.has(i) ? 150 : 80 });
     sun.shadow.camera.updateProjectionMatrix();
@@ -1533,26 +1533,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const night = f.set === 0 || (f.set === 12 && f.q * STAGE_SPAN >= HOME.night);
     if (night !== homeNight) { homeNight = night; if (f.set === curSet) enter(curSet); }
     if (f.set !== curSet) enter(f.set);
-    // the apartment is one set in two places: from the hall on it stands behind the door at the top of Floqer's stair (HOME)
-    const home = f.q * STAGE_SPAN >= HOME.from;
-    if (home !== atHome) {
-      atHome = home;
-      groups[0].position.set(...(home ? HOME.at : ([0, 0, 0] as [number, number, number])));
-      groups[0].rotation.y = home ? Math.PI : 0;
-      groups[0].updateMatrixWorld(true);
-    }
-    // the 2020 room is one set in two places too: behind the door in Google's block until the walk is well inside it (DELHI)
-    const away = f.q < DELHI.back;
-    if (away !== delhiAway) {
-      delhiAway = away;
-      groups[4].position.set(...(away ? DELHI.at : ([0, 0, 0] as [number, number, number])));
-      groups[4].rotation.y = away ? DELHI.turn * D : 0;
-      groups[4].updateMatrixWorld(true);
-    }
-    if (f.set === 4) groups[5].visible = !away; // the jet bridge is on the room's west door only where the room was built
-    // These neighbours connect by the phone, not their shared wall. Keep cabin trim out of
-    // the theatre; its boarding corridor becomes visible again beyond the rear exit.
-    if (f.set === 6) groups[5].visible = f.cam[2] > -2;
+    // the flight and the hall of 2022 are joined by the phone, not a door: nothing of the aircraft is drawn from the hall
+    if (f.set === 6) groups[5].visible = false;
     // through a doorway the light of one set becomes the light of the next by degrees: exposure, fog,
     // sky and sun cross over the length of the passage, so the eye never sees a cut or a blink. Only
     // the environment map and the shadow strength switch, at the midpoint, inside enter()
@@ -1579,10 +1561,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     fog.far = mix(A.fog.far, B.fog.far);
     renderer.toneMappingExposure = mix(A.exposure, B.exposure);
     sun.shadow.intensity = mix(A.sun.shadow, B.sun.shadow);
-    const sunDir = new Vector3(...A.sun.dir).normalize().lerp(new Vector3(...B.sun.dir).normalize(), t).normalize(); // the shadows swing round with the light, never jump
+    const sunDir = new Vector3(...turnDir(f.from, A.sun.dir)).normalize().lerp(new Vector3(...turnDir(f.into, B.sun.dir)).normalize(), t).normalize(); // the shadows swing round with the light, never jump; a set turned in the world turns its sun with it (world.ts)
     // the sun follows the look, so the shadow map stays tight around what is in frame
     const fl = flightAt(f.q, reduce.matches);
-    const look = f.set === 5 ? new Vector3(flightRoll.position.x + HALIFAX_CAMPUS[0], -fl.altitude, flightRoll.position.z + HALIFAX_CAMPUS[1] + fl.travel - FLIGHT.distance) : new Vector3(...f.look);
+    const look = f.set === 5 ? groups[5].localToWorld(new Vector3(flightRoll.position.x + HALIFAX_CAMPUS[0], -fl.altitude, flightRoll.position.z + HALIFAX_CAMPUS[1] + fl.travel - FLIGHT.distance)) : new Vector3(...f.look);
     sun.position.copy(look).addScaledVector(sunDir, f.set === 5 ? 600 : WALK_SETS.has(f.set) ? 70 : 30);
     sun.target.position.copy(look);
     sun.target.updateMatrixWorld();
@@ -1716,8 +1698,6 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       mainFrame = roam.step(dt);
       q = roam.q;
       frame(mainFrame);
-      const settled = roam.settle(mainFrame);
-      if (settled !== mainFrame) { mainFrame = settled; frame(mainFrame); }
       roamHud();
     } else {
       mainFrame = dolly(q);
@@ -1728,7 +1708,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     root.classList.toggle('phone-focus', phoneAt(q, reduce.matches).visible);
     if (!roam?.active) for (const d of live.doors) {
       const k = Math.min(1, Math.max(0, (q - d.from) / (d.to - d.from))), s = d.shut ? Math.min(1, Math.max(0, (q - d.shut[0]) / (d.shut[1] - d.shut[0]))) : 0;
-      d.obj.rotation.y = d.base + (Math.PI / 2) * k * k * (3 - 2 * k) * (1 - s * s * (3 - 2 * s));
+      d.open = k * k * (3 - 2 * k) * (1 - s * s * (3 - 2 * s));
+      d.obj.rotation.y = d.base + (Math.PI / 2) * d.open;
     }
     for (const d of live.drops) { const k = Math.min(1, Math.max(0, (q - d.from) / (d.to - d.from))); d.obj.position.y = d.base - d.by * k * k * (3 - 2 * k); }
     { // the walk's things: what arrives, what goes up, what moves, what lights
@@ -1859,6 +1840,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       groups.forEach((g, i) => { g.visible = visibility[i]; });
     });
     frame(mainFrame);
+    // the 2020 room stands behind Google's door with the aircraft off its west door: the lawn and the aircraft would stand in
+    // one another's way outside it, so each shows only while its own door is open, and the two doors are never open together
+    if (mainFrame.set === 4) { groups[3].visible = (roomDoors().lawn?.open ?? 1) > 0.001; groups[5].visible = (roomDoors().bridge?.open ?? 0) > 0.001; }
     composer.render();
     phone.render();
     if (!shown) { shown = true; canvas.classList.add('on'); } // the first frame fades in over the page colour
@@ -1885,6 +1869,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const m = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as MeshStandardMaterial;
     return live.water.includes(m) || m.alphaTest > 0 || (m instanceof MeshBasicMaterial && m.transparent);
   };
+  // the 2020 room's two doors, known by when the scroll opens them: Google's off the lawn (sets.ts, `doorway('google')`) and the west door onto the bridge
+  let roomDoorsFound: { lawn?: (typeof live.doors)[number]; bridge?: (typeof live.doors)[number] } | undefined;
+  const roomDoors = () => {
+    if (roomDoorsFound?.lawn && roomDoorsFound.bridge) return roomDoorsFound;
+    return (roomDoorsFound = { lawn: live.doors.find((d) => Math.abs(d.from - approach(0.768)) < 1e-6), bridge: live.doors.find((d) => Math.abs(d.from - ch(4.745)) < 1e-6) });
+  };
   const roamHud = () => {
     if (!roam) return;
     if (roam.prompt !== roamPrompt && prompt) { roamPrompt = roam.prompt; prompt.textContent = roamPrompt; prompt.hidden = !roamPrompt; }
@@ -1895,7 +1885,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const setMode = async (walk: boolean) => {
     if (!ready || stopped || walk === !!roam?.active) return;
     if (walk) {
-      roam ??= createRoam({ groups, dolly, span: STAGE_SPAN, doors: live.doors, skip: ghost });
+      roam ??= createRoam({ groups, dolly, span: STAGE_SPAN, doors: live.doors, skip: ghost, exclusive: roomDoors().lawn && roomDoors().bridge ? [[roomDoors().lawn!, roomDoors().bridge!]] : [] });
       root.dataset.mode = 'preparing';
       await roam.prepare();
       if (stopped) return;

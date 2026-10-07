@@ -216,6 +216,7 @@ export const GOOGLE = {
  * built, its west door on the jet bridge: the camera's keys before `back` are written through `to`, the ones after
  * as they were, and the picture does not change. `cut` is that moment in the approach's own measure (dolly.ts).
  */
+/** The 2020 room behind the door in Google's block (its one place now, world.ts); `cut`, `back`: where the scroll's keys change frame (dolly.ts). */
 export const DELHI = (() => {
   const at: V3 = [GOOGLE.block.x[1], 0, GOOGLE.door.z + 0.7], cut = 0.852; // the room's door is at its own x -0.7, z 0
   return { at, turn: -90, cut, back: approach(cut + 0.0002), to: (p: V3): V3 => [at[0] - p[2], at[1] + p[1], at[2] + p[0]] } as const;
@@ -230,6 +231,7 @@ export const stairY = (z: number): number => FLOQER.floor + Math.min(FLOQER.stai
  * one set in two places: while the story is in Floqer's house and after, it stands turned half round behind that door
  * (`at`, a turn of 180 degrees about y first), its passage's far end on the house's north wall.
  */
+/** Where the apartment once stood at the end, behind Floqer's stair door. Every set stands in one place now (world.ts): only `night` is read. */
 export const HOME = (() => {
   const door = { x: -5.45, z: 2.2 }, passage = 2.1; // the apartment's front door in its own frame, and the passage north of it
   const y = FLOQER.floor + FLOQER.stair.n * FLOQER.stair.rise, z = FLOQER.z[1] + TOUR_SHIFT + 0.14 + passage + door.z; // own z 4.3, the passage's far end, a wall's thickness beyond the house's north wall
@@ -251,6 +253,7 @@ export const DOORS = {
   brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing' }, // the door in the apartment's brick wall: shut, the story no longer comes back through it
   google: { w: GOOGLE.door.w, h: GOOGLE.door.h, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the 2020 room's south door, which Google's block shows on the lawn: the room's own frame lines the hole
   front: { w: 1.2, h: 2.4, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'none', open: true }, // where the apartment's passage meets its room: the passage's whole section, cased, no leaf
+  rear: { w: 1.4, h: 2.2, depth: 0.3, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'bar', faces: 'swing' }, // the hall of 2022's back door, behind the top row: shut; the story came in by the phone
 } satisfies Record<string, Door>;
 /** The chapters over which the door out of Volta's room swings open: shut, it hides the hall behind it, which is not drawn until then. */
 export const VOLTA_DOOR: [number, number] = [11.78 + TOUR_GAIN, 11.92 + TOUR_GAIN];
@@ -262,6 +265,11 @@ const doorway = (name: keyof typeof DOORS, x: number, y: number, z: number, swin
   const at: V3 = [x + hingeOff(DOORS[name]), y, z], n = name[0].toUpperCase() + name.slice(1);
   const leaf: Placement = { build: `doorLeaf${n}`, at, rot: [0, -90, 0], live: 'door', door: swing, cap, ...(shut ? { shut } : {}) };
   return (DOORS[name] as Door).bare ? [leaf] : [{ build: `doorCase${n}`, at, rot: [0, -90, 0] }, leaf];
+};
+/** A door that stays shut in a wall that runs along x, like `doorway` but never swinging: its case and its leaf. */
+const shutDoorway = (name: keyof typeof DOORS, x: number, y: number, z: number, cap: string): Placement[] => {
+  const at: V3 = [x + hingeOff(DOORS[name]), y, z], n = name[0].toUpperCase() + name.slice(1);
+  return [{ build: `doorCase${n}`, at, rot: [0, -90, 0] }, { build: `doorLeaf${n}`, at, rot: [0, -90, 0], live: 'door', cap }];
 };
 /** A door that stays shut in a wall that runs along z, its face on the wall's west face at `x`: hinged on the north jamb. `z` is the hole's middle. */
 const shutDoor = (name: keyof typeof DOORS, x: number, y: number, z: number, cap: string): Placement[] => {
@@ -288,8 +296,8 @@ export const SETS: StageSet[] = [
     // now: a studio high over Toronto at night, 4.7 by 5.0 m (CONDO): the bed along the west wall, the desk
     // on the brick east wall, glass along the whole south side with the CN Tower in it. The walk
     // starts in the north-west corner looking across the room to the glass, turns on the spot to the
-    // front door in the north wall and goes straight out. The journey comes back in at that front
-    // door at the end (HOME); the door in the brick stays shut.
+    // front door in the north wall and goes straight out. The journey comes back in at the end by the
+    // door in the brick: the passage east of it ends at the door at the top of Floqer's stair (world.ts).
     id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035, baked: true,
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
@@ -340,11 +348,11 @@ export const SETS: StageSet[] = [
         { model: 'office_chair_black', at: [-5.3, 0, desk], rot: [0, 90, 0] }, // its back away from the desk
         { model: 'wall_art_circles', at: [-4.235, 1.3, 0.1], rot: [90, 0, 90] }, // on the brick, midway between the desk's end and the door
         { build: 'discLight', at: [mid, 2.8, 0.2], live: 'pendant' },
-        { model: 'shoe_rack_modern', at: [-4.53, 0, 2.0], scale: 0.8 }, // between the front door and the corner
+        { model: 'shoe_rack_modern', at: [-6.45, 0, 2.0], scale: 0.8 }, // by the front door, on its west side: the brick door's passage runs east of the door and wants its corner clear
         { build: 'passageDoor', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room; an end wall round the door there
         opening('front', -5.45, 0, 2.2 + DOORS.front.depth), // the passage's mouth on the room, cased: an edge where the two meet
-        ...shutDoor('brick', -4.2, 0, 1.6, 'A door in the brick. Shut.'),
-        { build: 'passage', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door: the return from Halifax
+        { build: 'doorCaseBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0] }, // the door in the brick: a cased hole onto the passage east, the way home (world.ts)
+        { build: 'passageDoor', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door, 1.8 m: at its end, the door at the top of Floqer's stair, his own front door
       ];
     })(),
   },
@@ -499,7 +507,7 @@ export const SETS: StageSet[] = [
     props: [
       { build: 'doorFrame', at: [-0.7, 0, 0] },
       // the leaf in it: the door Google's block shows on the lawn (DELHI), opening into the room as he comes to it
-      ...doorway('google', -0.7, 0, 0.15, [approach(0.768), approach(0.797)], 'The door off the lawn: Delhi, 2020.'), // it opens as he turns to it from the photographs
+      ...doorway('google', -0.7, 0, 0.15, [approach(0.768), approach(0.797)], 'The door off the lawn: Delhi, 2020.', [ch(4.68), ch(4.76)]), // it opens as he turns to it from the photographs, and shuts behind him before the west door opens: the lawn and the aircraft outside it are never in view together
       // the desk on the north wall, its back against it
       { build: 'deskWide', at: [-1.1, 0, 3.2], rot: [0, 180, 0], cap: 'Webcube. 45 companies, six countries, 25 people, from this desk.' },
       { build: 'monitor', at: [-1.45, 0.74, 3.38], rot: [0, 172, 0], live: 'screen' },
@@ -595,6 +603,7 @@ export const SETS: StageSet[] = [
       { build: 'doorLeafWide', at: [-1.4, 0, -15.2], rot: [0, 180, 0], live: 'door', door: [ch(7.86), ch(8)] }, // the front west door: hinged on the north jamb, it swings into Sydney ahead of the walk
       ...[-15.3, -11.6, -7.9, -4.2].flatMap((z) => [1.4, 4.9, 8.4].map((x): Placement => ({ build: 'tube', at: [x, 6.48, z], scale: 1.5, live: 'tube' }))),
       { build: 'halifaxSign', at: [-1.37, 2.68, -15.8], rot: [0, 90, 0], live: 'screen' },
+      ...shutDoorway('rear', 4.9, TOP_ROW.height, -2 + DOORS.rear.depth, 'The back door of the hall. The flight brought him in by the phone; in the Walk, the way back to it.'),
     ],
   },
   {

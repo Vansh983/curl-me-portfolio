@@ -23,13 +23,12 @@ export const ROAM = {
 } as const;
 
 /** A leg of the path a walker can be on: its samples `a` to `b`, the set it is in, and how it joins the next leg. */
-export interface RoamRun { a: number; b: number; set: number; next: 'door' | 'cut' | 'ride' | 'end'; ride?: number }
+export interface RoamRun { a: number; b: number; set: number; next: 'door' | 'ride' | 'end'; ride?: number }
 export interface RoamPath { n: number; q: Float64Array; x: Float32Array; y: Float32Array; z: Float32Array; runs: RoamRun[] }
 
 /**
  * The scroll's path, sampled, in legs. A leg ends where the camera passes into another set (a doorway: `door`),
- * where the picture is cut to another place (a set that stands in two places: `cut`), or where the camera stops walking
- * and something plays (`ride`). The last leg ends the story (`end`).
+ * or where the camera stops walking and something plays (`ride`). The last leg ends the story (`end`), in the room it began in.
  */
 export function roamPath(dolly: (q: number) => Frame, span: number, n = 6400): RoamPath {
   const q = new Float64Array(n + 1), x = new Float32Array(n + 1), y = new Float32Array(n + 1), z = new Float32Array(n + 1), set = new Uint8Array(n + 1), runs: RoamRun[] = [];
@@ -40,8 +39,7 @@ export function roamPath(dolly: (q: number) => Frame, span: number, n = 6400): R
     const inRide = rideOf(i) >= 0;
     if (inRide) { if (a >= 0) { runs.push({ a, b: i - 1, set: set[a], next: 'ride', ride: rideOf(i) }); a = -1; } continue; }
     if (a < 0) { a = i; continue; }
-    const jump = Math.hypot(x[i] - x[i - 1], y[i] - y[i - 1], z[i] - z[i - 1]) > 0.5;
-    if (set[i] !== set[i - 1] || jump) { runs.push({ a, b: i - 1, set: set[a], next: jump ? 'cut' : 'door' }); a = i; }
+    if (set[i] !== set[i - 1]) { runs.push({ a, b: i - 1, set: set[a], next: 'door' }); a = i; }
   }
   if (a >= 0) runs.push({ a, b: n, set: set[a], next: 'end' });
   return { n, q, x, y, z, runs };

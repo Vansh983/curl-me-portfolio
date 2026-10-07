@@ -6,7 +6,8 @@
 // blend 0 and blend 1 is a doorway: inside it the light dips, and at the halfway point the set
 // (environment, sky, sun, fog, exposure) is swapped while the frame is all door jamb.
 import { CatmullRomCurve3, Vector3 } from 'three';
-import { STAGE, AUDITORIUM, TOP_ROW, DAIS, aisleHeight, type V3, FLOQER, stairY, TOUR_SHIFT, HOME, DELHI, VOLTA_PODIUM } from './sets.ts';
+import { STAGE, AUDITORIUM, TOP_ROW, DAIS, aisleHeight, type V3, FLOQER, stairY, TOUR_SHIFT, DELHI, VOLTA_PODIUM } from './sets.ts';
+import { toWorld } from './world.ts';
 import { WALK, TURN, MIST, walkZ } from './walk.ts';
 import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
 import { ch, approach, TOUR_GAIN } from './shot.ts';
@@ -244,17 +245,23 @@ function walk(): DollyKey[] {
   keys.push(K(16.48 + T, P(ST.x, SY(Z1 - 0.9), Z1 - 0.9), P(ST.x, SY(Z1 - 0.9) - 0.1, Z1 + 0.2), 12)); // the top step: his door, opening
   keys.push(K(16.62 + T, P(ST.x, SY(Z1 - 0.4), Z1 - 0.4), P(ST.x, SY(Z1 - 0.4) - 0.12, Z1 + 1.6), 12)); // the door open, the passage beyond
   keys.push(K(16.72 + T, P(ST.x, SY(Z1 - 0.1), Z1 - 0.1), P(ST.x, SY(Z1 - 0.1) - 0.1, Z1 + 2.4), 12, { blend: 0 })); // the jamb
-  // home: along the apartment's own passage and in at its front door, to where the room is all in view, and the story stops
-  keys.push(K(16.84 + T, HOME.to([-5.45, 1.58, 3.3]), HOME.to([-5.5, 1.45, 0.4]), 0, { blend: 1 })); // in the passage
-  keys.push(K(16.96 + T, HOME.to([-5.45, 1.58, 2.5]), HOME.to([-5.9, 1.4, -0.4]), 0)); // the front door
-  keys.push(K(17.1 + T, HOME.to([-5.45, 1.58, 1.9]), HOME.to([-6.5, 1.35, -0.8]), 0)); // home: the bed, the window, the desk
-  keys.push(K(17.2 + T, HOME.to([-5.45, 1.58, 1.9]), HOME.to([-6.5, 1.35, -0.8]), 0)); // and the story stops here
+  // home: west along the passage behind the apartment's brick door and in through it, to where the room is all in view, and the
+  // story stops. The apartment stands where the story began (world.ts): these keys are in the world's own frame
+  keys.push(K(16.84 + T, [-3.3, 1.58, 1.6], [-6.6, 1.45, 1.35], 0, { blend: 1 })); // in the passage
+  keys.push(K(16.96 + T, [-4.25, 1.58, 1.6], [-7.3, 1.4, 0.7], 0)); // the door in the brick
+  keys.push(K(17.1 + T, [-4.8, 1.58, 1.52], [-7.6, 1.3, 0.1], 0)); // home: the bed, the glass, the desk
+  keys.push(K(17.2 + T, [-4.8, 1.58, 1.52], [-7.6, 1.3, 0.1], 0)); // and the story stops here
   return keys;
 }
 
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
 
-export function makeDolly(keys: DollyKey[]): (q: number) => Frame {
+export function makeDolly(written: DollyKey[], placed = true): (q: number) => Frame {
+  // the keys are written in each set's own place in the story; the sets stand where world.ts puts them (the 2020 room behind
+  // Google's door, the aircraft off it, the hall of 2022 to Floqer's house turned onto the apartment's brick door). The keys
+  // of the 2020 room before its old cut, and of the lawn's approach to it, were written through DELHI.to already
+  // `placed` false gives the path as written, set by set, for checks against each set's own geometry
+  const keys = !placed ? written : written.map((k) => (k.set <= 3 || (k.set === 4 && k.q < DELHI.back) ? k : { ...k, cam: toWorld(k.set, k.cam), look: toWorld(k.set, k.look) }));
   const n = keys.length;
   // A portal deliberately changes location only while its screen covers the viewport. Separate
   // curves prevent neighbouring control points from pulling the camera through intervening walls.

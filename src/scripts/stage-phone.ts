@@ -2,6 +2,7 @@
 import { Scene, OrthographicCamera, PerspectiveCamera, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, ShaderMaterial, PlaneGeometry, CircleGeometry, Group, WebGLRenderTarget, HalfFloatType, Vector2, DirectionalLight, HemisphereLight, Shape, ExtrudeGeometry, CanvasTexture, SRGBColorSpace, type WebGLRenderer } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { phoneAt, CLASSROOM_VIEW, phoneLayout } from '../lib/stage/flight.ts';
+import { toWorld } from '../lib/stage/world.ts';
 
 export function createPhone(renderer: WebGLRenderer) {
   const scene = new Scene(), camera = new OrthographicCamera(-1, 1, 1, -1, .01, 10);
@@ -81,7 +82,7 @@ export function createPhone(renderer: WebGLRenderer) {
       const state=phoneAt(q,reduced); visible=state.visible; if(!visible) return;
       fitTarget(aspect);
       camera.left=-aspect; camera.right=aspect; camera.updateProjectionMatrix();
-      captureCamera.position.set(...CLASSROOM_VIEW.cam); captureCamera.lookAt(...CLASSROOM_VIEW.look);
+      captureCamera.position.set(...toWorld(6, CLASSROOM_VIEW.cam)); captureCamera.lookAt(...toWorld(6, CLASSROOM_VIEW.look)); // the hall stands where the world puts it (world.ts)
       capture(captureCamera,target);
       screenExposure=renderer.toneMappingExposure;
       const layout=phoneLayout(aspect,state.raise,state.zoom);

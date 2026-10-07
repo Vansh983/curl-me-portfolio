@@ -9,7 +9,7 @@ import { BUILT } from '../../src/lib/stage/built.ts';
 import { PHONE, phoneAt, WINDOW_VIEW, CLASSROOM_VIEW } from '../../src/lib/stage/flight.ts';
 
 const cameraAt = (q: number) => {
-  const f = makeDolly(DOLLY)(q), aspect = 1440 / 900;
+  const f = makeDolly(DOLLY, false)(q), aspect = 1440 / 900;
   const camera = new PerspectiveCamera(2 * Math.atan(Math.tan(f.fov * Math.PI / 360) / aspect) * 180 / Math.PI, aspect, 0.05, 2600); // the stage's own range
   camera.position.set(...f.cam);
   camera.lookAt(new Vector3(...f.look));
@@ -47,7 +47,7 @@ test('keys are ordered in q from 0 to 1 and land on the thirteen sets', () => {
 });
 
 test('blend windows come in pairs, 0 then 1, and the set flips inside them', () => {
-  const dolly = makeDolly(DOLLY);
+  const dolly = makeDolly(DOLLY, false);
   const zeros = DOLLY.filter((k) => k.blend === 0), ones = DOLLY.filter((k) => k.blend === 1);
   assert.equal(zeros.length, 13);
   assert.equal(ones.length, 13);
@@ -71,7 +71,7 @@ test('blend windows come in pairs, 0 then 1, and the set flips inside them', () 
 
 test('equal scroll increments keep bounded walking and head turns; only the two covered portals cut', () => {
   // the stage runs over STAGE_SPAN chapters of scroll, so a thousandth of q is a fixed number of pixels per chapter: the bounds scale with the span
-  const dolly = makeDolly(DOLLY);
+  const dolly = makeDolly(DOLLY); // the path as walked, every set in its place in the world
   const dir = (f: { cam: number[]; look: number[] }) => {
     const v = [f.look[0] - f.cam[0], f.look[1] - f.cam[1], f.look[2] - f.cam[2]];
     const n = Math.hypot(...v);
@@ -93,7 +93,7 @@ test('equal scroll increments keep bounded walking and head turns; only the two 
 });
 
 test('the dolly is inside the doorway when it says it is', () => {
-  const dolly = makeDolly(DOLLY);
+  const dolly = makeDolly(DOLLY, false);
   // north out of the apartment, east out of the 2010 room, south out of the lab, down Google's lawn and left into
   // the 2020 room, west out of it
   const jambs = DOLLY.filter((k) => k.blend === 0);
