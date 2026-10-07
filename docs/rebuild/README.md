@@ -42,6 +42,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [44-degree-floqer-house-toronto.md](./44-degree-floqer-house-toronto.md) | The degree as Dalhousie's parchment, crumpled and binned; the house's details from its photographs; a real skyline with Old Town built in front of it |
 | [45-walk-mode-research.md](./45-walk-mode-research.md) | How a first-person walk is made smooth in a browser: mouse look, frame pacing, feel, collision, keys, prior art |
 | [46-walk-mode.md](./46-walk-mode.md) | The Walk mode: the switch, the keys, doors, the flight as a ride, how it is built, what the world needed |
+| [47-one-world.md](./47-one-world.md) | Every set in one place, the brick door the way home, the 2020 room's two doors a pair: the story walked as a circle |
 
 ## The one-paragraph verdict
 

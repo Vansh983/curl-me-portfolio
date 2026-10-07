@@ -35,18 +35,18 @@ For the next agent, and for the next session. Read this before touching the 3D j
 
 | i | id | What | Lit |
 |---|---|---|---|
-| 0 | now | The apartment, Toronto, night. Start and end | baked |
+| 0 | now | The apartment, Toronto, night. Start and end: out by the front door, home by the brick door | baked |
 | 1 | room | Delhi bedroom, 2010 | baked |
 | 2 | lab | School lab, 2013 | baked |
 | 3 | google | Googleplex lawn, 2019. No room | baked |
-| 4 | delhi | The 2020 room. Stands in two places (`DELHI`) | baked |
+| 4 | delhi | The 2020 room, behind Google's door (`DELHI`; the aircraft hangs off it there) | baked |
 | 5 | flight | Jet bridge, cabin, descent over Halifax | baked |
 | 6 | halifax | Dalhousie auditorium | baked |
 | 7 | sydney | Bean's hacker house | baked |
 | 8, 9 | vancouver, toronto | The walk. Light changes by chapter | live, on purpose |
 | 10 | halifaxVolta | The walk's end and Volta's coworking floor | baked, own panorama |
 | 11 | convocation | The stage and the degree; the crowd is live cards | baked |
-| 12 | floqer | Floqer's house, the stair home | baked, own panorama |
+| 12 | floqer | Floqer's house, the stair up to his door: the brick passage's far end (`world.ts`) | baked, own panorama |
 
 ## Conventions that bite
 
@@ -162,6 +162,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Things placed by rule, not by use | Monitors stood face to face, each chair looking at a back; the T's stem stopped short of its bar | Stand at each seat (a `pin.mjs` frame) and look: the screen must face it |
 | A model placed unseen | A BlenderKit chair came without textures, black and faceted | Render each new model in Blender before placing it; `map: false` in its `skin` when the texture is missing |
 | Big lamps overhead | Ring lights two metres across bloomed a pale veil over a black ceiling | Draw them dimmer than they light the bake (`bakePower`); a matt black takes `env: 0.04` |
+| A set in two places | The 2020 room and the apartment each stood in two places; the scroll hid the move, a walker saw the world change outside a door | Every set stands in one place (`world.ts`, `POSES`); a passage takes up the slack; two sets drawn together must not overlap, two never drawn together may |
 | A wall turned inward across a door | The hall's south wall had no hole: unseen from Volta (its back is not drawn), a black panel from the wing, and solid to a walker both ways | A door is cut through every wall on its line, the far room's too; `roam-bot.mjs` both ways |
 | Rays that miss what stops him | three's Raycaster skips the backs of faces; the walker's collision does not | Cast from both sides before saying nothing is there |
 | A window view that the walk would see | Changing the world outside a room also changes the walk | Swap it only while the building fills the frame (`indoor` placements), and prove it with rays |
@@ -182,6 +183,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | 39, 40, 41 | The crowd's research, Volta's photographs and what they show, the room and the hall rebuilt from them |
 | 42, 43, 44 | Toronto's view researched, the real hacker house's photographs, and the degree, the house and the view rebuilt |
 | 45, 46 | The Walk mode: research, and what was built |
+| 47 | One world: every set in one place, the story a circle |
 | 34 | The walk, rounds one to five |
 | 36 | Google without the boardroom |
 | 37 | Nits, round one: apartment, photographs, marks, the lamp, the passage |
