@@ -15,6 +15,7 @@ For the next agent, and for the next session. Read this before touching the 3D j
 - One scroll drives one camera through 13 sets. No free camera, no physics, no figure of him: the camera is his eyes at 1.6 m.
 - Stack: Astro page, three.js runtime, geometry written in TypeScript, a few licensed models, Blender Cycles lightmaps.
 - Chapter `c` is the unit. Stage progress `q = c / STAGE_SPAN` (19.2). `window.__stage.yFor(q)` gives the scroll for a `q`.
+- The canvas shows after sets 0 to 3 (the first three doorways stand open); the rest come in behind him in order and are warmed behind the frames (doc 49). A scroll past what is in waits a step before the next door begins to open; that door stays shut until the room is in. `?debug`: `__stage.readyMs` the canvas, `__stage.allMs` the whole world, `__stage.loaded` the count. Captures and the audit wait for the whole world.
 
 | File | What it holds |
 |---|---|
@@ -30,6 +31,7 @@ For the next agent, and for the next session. Read this before touching the 3D j
 | `src/scripts/stage-run.ts` | The runtime: loads, lights, moves, draws |
 | `src/scripts/stage-paint.ts` | Everything drawn on a canvas: screens, signs, photos, posters |
 | `src/data/timeline.ts` | The text cards |
+| `src/data/things.ts` | The things he picks up or looks at in the Walk (`THINGS`), by the `thing` key on a placement; his words only |
 
 ## The sets
 
@@ -115,10 +117,13 @@ Dev server up. Do not run `npm run check` or `build` while the export step start
 | `photos.mjs <dir>` | Cuts his photographs to 4:3, strips EXIF |
 | `collect.mjs` | Makes the slide on Volta's wall from Collect.'s banner and wordmark and Socratica's marks |
 | `burst.mjs <out> <chapter> [x y w h] [gap] [n]` | A few frames a moment apart, side by side: what moves |
-| `scripts/stage-skyline.mjs`, `scripts/stage-crowd.mjs` | Remake the Toronto skyline strip; the crowd's atlases |
+| `scripts/stage-skyline.mjs`, `scripts/stage-crowd.mjs` | Remake the Toronto skyline strip (the original lives in `.cache/toronto/`); the crowd's atlases |
 | `crop.mjs` | Enlarges part of a frame |
 | `roam.mjs <dir> <chapter> <steps>` | The Walk mode by hand: keys held or tapped (`w:1500,left:400,e`), a frame and his position after each |
 | `roam-bot.mjs <dir> [from] [to]` | Walks the story in the Walk mode and stops where it cannot get on. `BACK=1` the other way. After any wall, door or furniture change |
+| `stream.mjs <dir> [kbit/s]` | A slow line and a skimmer: where the camera waits as the sets land, a frame at each landing |
+| `leaks.mjs <dir> [set,set\|all]` | Where a set leaks from everywhere a walker stands: floods its floor, casts 96 rays a point, counts nothing hit and backs of one-sided faces; the six worst as frames. `LIVE=1` before a bake. After any wall, door, backdrop or place change (doc 50, 52) |
+| `pins.mjs <dir> '<json>'` | Walk-mode frames from anywhere, several from one page: a chapter, where he stands, where he looks; `probe` names what the eye hits through screen points. For what the scan cannot see (a ground drawn over a floor, a wall baked black). `LIVE=1` unbaked |
 
 URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,smaa`, `&tm=`, `&set=i&cam=...`, `&export=i`.
 
@@ -129,6 +134,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Resize a room | Give it a named constant (`CONDO`). Derive shell, props and builders from it. Keep the walls that carry doors to other sets. Re-key the camera's first and last frames. Rebake. `void.mjs` |
 | Recolour a model | `glb.mjs` for material names, `skin` in `assets.ts`, rebake |
 | Change what a window shows | A view builder like `voltaView` or `torontoView`, live `city`; if the world there is the walk's, swap with `indoor: 'in'/'out'` at a chapter when the window's side is out of frame |
+| Hang a photograph of a skyline | Cut the strip with `stage-skyline.mjs` (it prints the numbers), keep them in a constant (`TORONTO_SKYLINE`), add a `SKYLINES` entry in stage-run.ts: the window's centre and normal, the eye height, the tower's angle to the right of straight out, the eye line's drop, the u range. Build only what stays under the eye in front of it. Look from the window itself, not only from the keys. Ask first whether he wants a photograph at all (doc 51) |
 | Hang his photograph | Real file, 4:3, no EXIF, in `photos/`. Image key in `Images`, a paint frame, a builder, a placement, the builder's name in `CONTEXT_PROP` (both lists). Credit line in `stage-assets.mjs` |
 | Add or move a mark on the walk | `SIGNS` in `walk.ts`. Then `marks.mjs`: clear of the card, nothing across it, no overlap with the next. Trees keep 4.5 m before a mark and 2.4 m after |
 | Add a door | `DOORS` entry, `doorway()`. Leaf open before the camera reaches the jamb |
@@ -143,6 +149,9 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Model placed blind | The pendant stood on its rose, shade in the ceiling, for weeks | `glb.mjs` first |
 | Lightmap on thin bars | Black picture frames came back white at the edges | `CONTEXT_PROP` |
 | Stale opening picture | First screen showed the old room while loading | `poster.mjs` |
+| A set warmed alone | 284 programs, five stalls on the walk: the ring draws a set's neighbours with it, and their lamps change the programs | Warm the ring under the ring's lights once both neighbours are in (`warmSet`) |
+| Lights cloned per batch | Shadow samplers without a map, `GL_INVALID_OPERATION` twenty times | One warm scene a set, its lights added once |
+| Measured on the dev server | 76 s cold, 2 s warm: neither is the site | `npm run build`, `astro preview`, `stage:audit` |
 | Corridor wider than the room it meets | A sliver of nothing past the room's wall | End wall round a door's hole (`passageDoor`) |
 | Things in one line | Marks overlapped each other seen from far down the walk | Stagger `x` |
 | Street furniture on a sight line | A bench across Web Summit's mark | `marks.mjs` names what hides it. He wanted it removed, not moved |
@@ -159,13 +168,22 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | A real place built from memory | Volta was a white box with a coffee counter: "it doesn't seem like Volta... everything just looks kind of fake" | Collect photographs of the place first (`docs/rebuild/ref/`), list what makes it read as itself, build that (doc 40, 41) |
 | People as rigged game figures | 72 copies of one mannequin in a wide stance: "the people underneath don't [look fine]" | A crowd is cards cut from renders of real figures, dense, in rows, lit by the room (`crowd.ts`, `stage-crowd.mjs`, doc 39) |
 | A city of coded boxes out of a window | Every block one grid, the CN Tower a stick behind them: "it doesn't seem like Toronto" | A real photograph of the skyline on a curved wall far out (`buildSkyline`, `stage-skyline.mjs`), real-looking streets and blocks built in front of it, the landmark where he looks |
+| A photograph where he wanted the close-up | The apartment's coded tower swapped for a night photograph hung like Floqer's: "too fake... very, very close to me... the same color as it was in the background... not the white" | "Make it similar" can mean one property (the colour). Change that on the thing he has before swapping the thing (doc 51; the degree, doc 44) |
 | Things placed by rule, not by use | Monitors stood face to face, each chair looking at a back; the T's stem stopped short of its bar | Stand at each seat (a `pin.mjs` frame) and look: the screen must face it |
 | A model placed unseen | A BlenderKit chair came without textures, black and faceted | Render each new model in Blender before placing it; `map: false` in its `skin` when the texture is missing |
 | Big lamps overhead | Ring lights two metres across bloomed a pale veil over a black ceiling | Draw them dimmer than they light the bake (`bakePower`); a matt black takes `env: 0.04` |
 | A set in two places | The 2020 room and the apartment each stood in two places; the scroll hid the move, a walker saw the world change outside a door | Every set stands in one place (`world.ts`, `POSES`); a passage takes up the slack; two sets drawn together must not overlap, two never drawn together may |
+| Styles for what the runtime builds | The words beside a thing (`aside.thing`'s children) are made in `stage-run.ts`; Astro scopes `.thing h3` to the component, so nothing matched and the browser's defaults showed | Selectors for runtime-built elements take `:global()`, as `.cap` and `.veil` do |
 | A wall turned inward across a door | The hall's south wall had no hole: unseen from Volta (its back is not drawn), a black panel from the wing, and solid to a walker both ways | A door is cut through every wall on its line, the far room's too; `roam-bot.mjs` both ways |
 | Rays that miss what stops him | three's Raycaster skips the backs of faces; the walker's collision does not | Cast from both sides before saying nothing is there |
 | A window view that the walk would see | Changing the world outside a room also changes the walk | Swap it only while the building fills the frame (`indoor` placements), and prove it with rays |
+| A set built for one camera line | The blocks on the lawn had only the faces the scroll passes; off the path he looked through the block into the 2020 room | Every face, from everywhere a walker stands; `leaks.mjs` after every change, zero before a bake |
+| A corridor's open end on a room's door | The passage's section is bigger than the door's hole: slivers of the room's wall seen from behind | `corridor()` with a wall round the door at that end (`passageBoth`, `passageNear`, `passageHome`); the hole the shell's size |
+| A slab under a room | The Bean house's plinth filled its footprint, 14 cm proud of the room's floor: he walked on concrete | A plinth under the walls only; `leaks.mjs` reports floors on one plane and where the flood cannot start |
+| A room seen through a neighbour's glass | Floqer's house stood outside the apartment's glass (it stands where the lawn is): seen from the bed at night | Sets that stand in one another's view are drawn only while a door between them is open: the door pairs are airlocks (`roomDoors()`, `exclusive`) |
+| A thing in hand smeared by its lightmap | | A thing is built live for the hand (`pickUp`), its baked meshes hidden, under its own key light; the frame behind is one blurred still |
+| Grass drawn over a floor | From the lab, the 2010 room's floor was grass: the lawn's material carried a `layer` (a polygon offset meant for the city's ground kilometres off), and 12 mm under the floor it won the depth test at a grazing angle; the lawn's low region also sloped, since its grid corners on the boundary took the level height | No `layer` on any ground a room stands on; a lowered region of a ground takes its own grid lines inclusively. `leaks.mjs` cannot see this (the grass is a front face): look from inside the room toward the next (`pins`, a walk frame) |
+| A passage's end wall baked black | The wall round the door at a passage's end stood on the room's own wall plane; Cycles baked half of it black (the room's coplanar back face took the rays) | `corridor()` stands that wall as a partition about 2 cm inside the end (`END_IN`). Never two faces on one plane across a bake, even back to back |
 
 ## His standing rules
 
@@ -184,6 +202,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | 42, 43, 44 | Toronto's view researched, the real hacker house's photographs, and the degree, the house and the view rebuilt |
 | 45, 46 | The Walk mode: research, and what was built |
 | 47 | One world: every set in one place, the story a circle |
+| 50, 52 | A perfect film set: the leak tool and the sets sealed; the things in hand (the design, then the build); his first judgement: only things answer the pointer, the words beside the thing with no box, the photograph in the hand |
 | 34 | The walk, rounds one to five |
 | 36 | Google without the boardroom |
 | 37 | Nits, round one: apartment, photographs, marks, the lamp, the passage |

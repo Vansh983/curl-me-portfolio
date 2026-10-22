@@ -236,6 +236,18 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
    * The land beside the walk and away behind it: lawn from the kerb out. Its season is the walk's: the material
    * takes it green in May, gone to gold by October, and under Halifax's snow (stage-run.ts).
    */
+  /**
+   * The hedge that bounds the walk's land side: 1.2 m high, 0.7 thick, along x 7.5 behind the second row of trees from the
+   * south end to Volta's block, across the south end past the Bean house, and from the block's east face to the land hedge
+   * at the block's south face. The lawn runs on beyond it to the city; it is never walked.
+   */
+  walkHedge: () => {
+    const s = new Sink(), X = 7.5, t = 0.7, h = 1.2, zs = SOUTH - 1.0, zn = BLOCK.z0;
+    s.rbox(X, h / 2, (zs + zn) / 2, t, h, zn - zs + t, 0.12, 1); // the land side
+    s.rbox((P0 + X) / 2, h / 2, zs, X - P0 + t, h, t, 0.12, 1); // the south end, from the quay's edge
+    s.rbox((BLOCK.x1 + X) / 2, h / 2, zn, X - BLOCK.x1 + t, h, t, 0.12, 1); // the north end, from the block's east face
+    return [piece(s.out(), M('hedge'), { smooth: true, metres: 'xz' })];
+  },
   walkLand: () => {
     const lawn = new Sink(), x0 = P1 + 0.14;
     const strip = (s: Sink, xa: number, xb: number, za: number, zb: number, y: number) => s.quad([xa, y, zb], [xb, y, zb], [xb, y, za], [xa, y, za]);
@@ -261,7 +273,8 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
     wallX(boards, trim, x1, 1, z0, z1, 0.14, h);
     wallZ(boardsZ, trim, z0, -1, x0, x1, 0.14, h, [[-7.32, 0, -6.38, 2.07]], 0.13); // the south wall: the door
     wallZ(boardsZ, trim, z1, 1, x0, x1, 0.14, h);
-    plinth.box((x0 + x1) / 2, 0.07, (z0 + z1) / 2, x1 - x0 + 0.06, 0.14, z1 - z0 + 0.06);
+    // the plinth under the walls only: a slab over the whole footprint stood 14 cm proud of the room's own floor inside (leaks.mjs: he walked on it)
+    for (const [cx, cz, w, d] of [[x0 + 0.04, (z0 + z1) / 2, 0.14, z1 - z0 + 0.06], [x1 - 0.04, (z0 + z1) / 2, 0.14, z1 - z0 + 0.06], [(x0 + x1) / 2, z0 + 0.04, x1 - x0 + 0.06, 0.14], [(x0 + x1) / 2, z1 - 0.04, x1 - x0 + 0.06, 0.14]] as const) plinth.box(cx, 0.07, cz, w, 0.14, d);
     roof.rbox((x0 + x1) / 2, h + 0.13, (z0 + z1) / 2, x1 - x0 + 1.1, 0.26, z1 - z0 + 1.1, 0.02, 1);
     soffit.quad([x0 - 0.5, h, z0 - 0.5], [x1 + 0.5, h, z0 - 0.5], [x1 + 0.5, h, z1 + 0.5], [x0 - 0.5, h, z1 + 0.5]);
     return [piece(boards.out(), M('houseBoards'), { metres: 'yz' }), piece(boardsZ.out(), M('houseBoards'), { metres: 'yx' }), piece(trim.out(), M('windowFrame')),

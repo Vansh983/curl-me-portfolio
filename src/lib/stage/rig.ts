@@ -265,7 +265,7 @@ export class Sink {
    * given (into `cap`, which may be this). The ring may run either way. uv on the sides: u along the
    * perimeter and v up, in units of `per` metres, from (u0, v0), so a window tile keeps its size.
    */
-  extrude(ring: Array<[number, number]>, y0: number, y1: number, uvs?: { u0: number; v0: number; perU: number; perV: number }, cap?: Sink): this {
+  extrude(ring: Array<[number, number]>, y0: number, y1: number, uvs?: { u0: number; v0: number; perU: number; perV: number }, cap?: Sink, bottom?: Sink): this {
     let area = 0;
     for (let i = 0; i < ring.length; i++) { const a = ring[i], b = ring[(i + 1) % ring.length]; area += a[0] * b[1] - b[0] * a[1]; }
     const pts = area > 0 ? [...ring].reverse() : ring; // sides face out and the roof faces up in this order
@@ -278,6 +278,7 @@ export class Sink {
       along += l;
     }
     if (cap) for (const [i, j, k] of earcut(pts)) cap.tri([pts[i][0], y1, pts[i][1]], [pts[j][0], y1, pts[j][1]], [pts[k][0], y1, pts[k][1]]);
+    if (bottom) for (const [i, j, k] of earcut(pts)) bottom.tri([pts[k][0], y0, pts[k][1]], [pts[j][0], y0, pts[j][1]], [pts[i][0], y0, pts[i][1]]); // the floor of the solid, facing down
     return this;
   }
   /** Rotate every vertex from index `start` (in vertices) around the vertical line through (cx, cz). */

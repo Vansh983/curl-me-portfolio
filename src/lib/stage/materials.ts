@@ -216,8 +216,8 @@ export const MATS: Record<string, Mat> = {
   towerReflect: { color: '#3A4666', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
   towerTop: { color: '#0A0D18', rough: 1, unlit: true, tile: 1, fog: false },
   lake: { color: '#070A16', rough: 1, unlit: true, tile: 1, fog: false },
-  cnShaft: { color: '#D6D8DE', rough: 1, unlit: true, tint: true, tile: 1, fog: false }, // floodlit concrete
-  cnPod: { color: '#F4F1EA', rough: 1, unlit: true, tint: true, tile: 1, fog: false },
+  cnShaft: { color: '#7E8CA2', rough: 1, unlit: true, tint: true, tile: 1, fog: false }, // the concrete as it stands in Floqer's photograph (doc 51): a cool grey, #8393ab at the SkyPod to #45607e low down; it was white (#D6D8DE) until 2026-10-19, and red for an hour
+  cnPod: { color: '#A9B3C2', rough: 1, unlit: true, tint: true, tile: 1, fog: false }, // the pod's pale decks and radome (#788ba4 in the photograph)
   cnLight: { color: '#FF4A4A', rough: 0.5, emissive: '#FF3030', emissivePower: 4, tile: 1, fog: false },
   cnShaftDay: { color: '#B9BCC2', rough: 0.9, tile: 1 }, // the same tower by day from Front Street, lit by the sun and the sky
   cnPodDay: { color: '#E8E6E0', rough: 0.8, tile: 1 },
@@ -266,7 +266,7 @@ export const MATS: Record<string, Mat> = {
   tubeGlass: { color: '#F6FAFF', rough: 0.3, tile: 1 },
   bulb: { color: '#FFE6B0', rough: 0.4, tile: 1 },
   // 2019, the Googleplex: the lawn, the statues in their candy colours, the letters, the blocks
-  lawn: { color: '#FFFFFF', rough: 1, tex: 'leafy_grass', amp: 0.55, tile: 2.0, layer: 2 },
+  lawn: { color: '#FFFFFF', rough: 1, tex: 'leafy_grass', amp: 0.55, tile: 2.0 }, // no layer: with a polygon offset the grass 12 mm under the 2010 room's floor drew over it, seen from the lab (2026-10-22)
   tableWhite: { color: '#F3F2EE', rough: 0.35, clearcoat: 0.3, clearcoatRough: 0.2, tile: 1 }, // white laminate: Volta's lectern
   campusWall: { color: '#D2CBBB', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 }, // the blocks' render, cream; a shade down since the 2020 room's block faces the sun and the walk comes up to it: lighter, it burned out
   campusPane: { color: '#2C3A46', rough: 0.15, metal: 0.3, clearcoat: 0.8, clearcoatRough: 0.05, tile: 1 }, // the upper windows, dark glass

@@ -64,12 +64,13 @@ try {
     else {
       await page.waitForFunction(() => ['ready', 'error'].includes(document.querySelector('.journey')?.getAttribute('data-stage')), null, { timeout: 120000 });
       if (await page.locator('.journey').getAttribute('data-stage') === 'error') throw new Error(`Preparation failed: ${errors.join('; ')}`);
+      await page.waitForFunction(() => window.__stage.allMs > 0, null, { timeout: 120000 }); // the whole world in: the walk below must start no download
     }
     const ready = await page.evaluate(() => {
       const s = window.__stage, textures = new Map(), sources = new Map();
       s.scene.traverse((o) => { for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) for (const t of Object.values(m)) if (t?.isTexture) { textures.set(t.uuid, t); if (t.image?.width) sources.set(t.source.uuid, t.image); } });
       const resources = performance.getEntriesByType('resource').filter((e) => e.name.includes('/assets/'));
-      return { readyMs: s.readyMs ?? null, assetMB: resources.reduce((n, e) => n + e.encodedBodySize, 0) / 1e6, requests: resources.length, textureObjects: textures.size, imageSources: sources.size, approximateImageMB: [...sources.values()].reduce((n, i) => n + i.width * i.height * 4 * 4 / 3, 0) / 1e6, preparationTasks: window.__audit.tasks, programs: s.renderer.info.programs.length };
+      return { readyMs: s.readyMs ?? null, allMs: s.allMs ?? null, assetMB: resources.reduce((n, e) => n + e.encodedBodySize, 0) / 1e6, requests: resources.length, textureObjects: textures.size, imageSources: sources.size, approximateImageMB: [...sources.values()].reduce((n, i) => n + i.width * i.height * 4 * 4 / 3, 0) / 1e6, preparationTasks: window.__audit.tasks, programs: s.renderer.info.programs.length };
     });
     if (process.argv.includes('--poster')) {
       await page.addStyleTag({ content: '.wall, .cap { visibility:hidden !important; }' });

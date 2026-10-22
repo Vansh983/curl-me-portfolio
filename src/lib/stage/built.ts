@@ -9,7 +9,7 @@ import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { buildShell } from './shell.ts';
-import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, STAGE, CABIN, FLOQER, GOOGLE, CONDO } from './sets.ts';
+import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, STAGE, CABIN, FLOQER, GOOGLE, CONDO, type InnerWall } from './sets.ts';
 import { WALK } from './walk.ts';
 
 import { piece, M, type Built, type BuiltPart, type BuiltSurface } from './part.ts';
@@ -175,10 +175,22 @@ const CABIN_SECTION: Array<[number, number]> = [[1.15, 0], [1.32, 0.12], [1.37, 
  * near end, and at its far end when `through`: its whole section, or a door's hole (`door`) in an end wall, where the room
  * it meets is narrower than the corridor's far corner and the eye would pass the room's wall on the outside.
  */
-function corridor(through: boolean, door?: { w: number; h: number }): BuiltPart {
+/**
+ * A corridor 3 m long, 1.2 wide, 2.4 high along +x from the origin, open at both ends (`through`) or closed at the far one. An
+ * end that meets a room's door gets a wall round the door's hole (`ends`): the corridor is wider and taller than a door, and
+ * without it the room's wall is seen from behind, a sliver of nothing round the hole (the playbook's trap; leaks.mjs finds it).
+ */
+type Hole = { w: number; h: number };
+const ROOM_DOOR: { w: number; h: number } = { w: 0.9, h: 2.05 }; // the first rooms' doors, as their shells cut them
+function corridor(through: boolean, ends: { near?: Hole; far?: Hole } = {}): BuiltPart {
+  // the wall round a door stands as a partition a little inside the corridor's end (END_IN, about 2 cm at the passages' scale), never on
+  // the room's own wall plane: baked on one plane with the 2010 room's east wall, half of the passage's end wall came back black (2026-10-22)
+  const END_IN = 0.03, END_T = 0.04;
+  const part = (x: number, d: Hole): InnerWall => ({ from: [x, 0], to: [x, 1.2], t: END_T, doors: [{ at: 0.6, w: d.w, h: d.h }] });
   const sh = buildShell({
     x: [0, 3], z: [0, 1.2], h: 2.4, floor: 'passageFloor', wall: 'passageWall',
-    openings: [{ wall: 'x-', at: 0.6, w: 1.2, h: 2.4 }, ...(through ? [{ wall: 'x+' as const, at: 0.6, w: door?.w ?? 1.2, h: door?.h ?? 2.4 }] : [])],
+    openings: [{ wall: 'x-', at: 0.6, w: 1.2, h: 2.4 }, ...(through ? [{ wall: 'x+' as const, at: 0.6, w: 1.2, h: 2.4 }] : [])], // the ends open their whole section
+    walls: [...(ends.near ? [part(END_IN + END_T / 2, ends.near)] : []), ...(through && ends.far ? [part(3 - END_IN - END_T / 2, ends.far)] : [])],
   });
   const wc = {
     pos: new Float32Array([...sh.walls.pos, ...sh.ceiling.pos]), nor: new Float32Array([...sh.walls.nor, ...sh.ceiling.nor]), uv: new Float32Array([...sh.walls.uv, ...sh.ceiling.uv]),
@@ -435,7 +447,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   boardingPassage: () => {
     const sections = [
       { x: [-4.2, -2.4] as [number, number], z: [1, 2.2] as [number, number], openings: [{ wall: 'x+' as const, at: 1.6, w: 0.9, h: 2.05 }, { wall: 'z-' as const, at: -3.35, w: 1.2, h: 2.4 }] }, // the brick door west is walled up: the ring left through the flight
-      { x: [-3.95, -2.75] as [number, number], z: [-4.8, 1] as [number, number], openings: [{ wall: 'z+' as const, at: -3.35, w: 1.2, h: 2.4 }, { wall: 'z-' as const, at: -3.4, w: 1.1, h: 2.4 }] },
+      { x: [-3.95, -2.75] as [number, number], z: [-4.8, 1] as [number, number], openings: [{ wall: 'z+' as const, at: -3.35, w: 1.2, h: 2.4 }, { wall: 'z-' as const, at: -3.4, w: CABIN.door.w, h: CABIN.door.h }] }, // its far end a wall round the cabin's door: wider, the cabin's panels showed their backs beside the door (leaks.mjs)
     ];
     const ribs = new Sink(), strip = new Sink();
     for (let z = 0.4; z > -4.6; z -= 0.6) for (const x of [-3.93, -2.77]) ribs.box(x, 1.2, z, 0.04, 2.4, 0.05);
@@ -588,7 +600,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   badge: () => {
     const lanyard = new Sink().box(0, -0.08, 0, 0.004, 0.16, 0.014).box(0, -0.165, 0, 0.012, 0.012, 0.02);
     const card = new Sink().box(0, -0.235, 0, 0.004, 0.12, 0.085);
-    const face = new Sink().quad([0.0025, -0.295, -0.0425], [0.0025, -0.295, 0.0425], [0.0025, -0.175, 0.0425], [0.0025, -0.175, -0.0425], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+    const face = new Sink().quad([-0.0025, -0.295, -0.0425], [-0.0025, -0.295, 0.0425], [-0.0025, -0.175, 0.0425], [-0.0025, -0.175, -0.0425], [[0, 0], [1, 0], [1, 1], [0, 1]]); // the print on the card's west face, the side it faces (-x); it stood behind the card
     return [piece(lanyard.out(), M('lanyard')), piece(card.out(), M('board')), piece(face.out(), { paint: 'badge' })];
   },
   /** A small PC tower under the desk, 0.2 × 0.38 × 0.36, a power light. */
@@ -1019,9 +1031,11 @@ export const BUILT: Record<string, () => BuiltPart> = {
    * Toronto at night, in metres, the condo at the origin and the window looking toward -z (south).
    * The real downtown from OpenStreetMap (city.ts): every building with a height, pulled up from
    * its footprint with lit windows (uv in bays and floors, so the tile keeps its size), the
-   * financial district a kilometre down Yonge, the CN Tower 1.7 km off with its legs, pod, SkyPod
-   * and antenna, the Rogers Centre dome at its foot, the lake beyond as dark ground. The street
-   * lights are points the runtime adds (stage-run.ts). Deterministic.
+   * financial district a kilometre down Yonge, the CN Tower close with its legs, pod, SkyPod
+   * and antenna, its concrete the cool grey of Floqer's photograph (cnShaft, cnPod in materials.ts),
+   * the Rogers Centre dome at its foot, the lake beyond as dark ground. The street lights are points
+   * the runtime adds (stage-run.ts). Deterministic. A photograph of the skyline stood here for a day
+   * (2026-10-18, doc 51): "too fake"; he wants the tower close, in Floqer's photograph's colour.
    */
   city: () => {
     const near = new Sink(), far = new Sink(), tops = new Sink(), domes = new Sink();
@@ -1187,8 +1201,14 @@ export const BUILT: Record<string, () => BuiltPart> = {
   doorFrame: () => [piece(new Sink().box(-0.5, 1.025, 0, 0.1, 2.05, 0.3).box(0.5, 1.025, 0, 0.1, 2.05, 0.3).box(0, 2.1, 0, 1.1, 0.1, 0.3).out(), M('frameWood'))],
   /** The passage: 3 m long, 1.2 wide, 2.4 high, open at both ends, a bulb halfway. Built with its floor at the origin corner. */
   passage: () => corridor(true),
-  /** The same, its far end a wall round a door's hole, 1.0 by 2.1: the apartment's, whose far corner stands 10 cm outside the 2010 room's east wall. */
-  passageDoor: () => corridor(true, { w: 1.0, h: 2.1 }),
+  /** The same, its far end a wall round a room's door (0.9 by 2.05): the apartment's passage north, meeting the 2010 room's south door. */
+  passageDoor: () => corridor(true, { far: ROOM_DOOR }),
+  /** Walls round a room's door at both ends: the passage from the 2010 room to the lab. */
+  passageBoth: () => corridor(true, { near: ROOM_DOOR, far: ROOM_DOOR }),
+  /** A wall round a room's door at the near end, open at the far: the lab's mouth onto the lawn. */
+  passageNear: () => corridor(true, { near: ROOM_DOOR }),
+  /** The brick door's passage east: the brick door's hole at the near end, Floqer's door (DOORS.home, 1.0 by 2.1) at the far. */
+  passageHome: () => corridor(true, { near: ROOM_DOOR, far: { w: 1.0, h: 2.1 } }),
   /** The landing behind the door at the top of the house's stair: the same corridor, its far end closed, so the door opens onto it and not the sky. */
   landing: () => corridor(false),
   /** A beige keyboard: a slab and 6 rows of 15 keys. */
@@ -1251,60 +1271,82 @@ export const BUILT: Record<string, () => BuiltPart> = {
   },
   // ---- 2019, Google: the Googleplex, the Android lawn (docs/rebuild/30-googleplex-options.md; the boardroom went on 2026-09-27)
   /**
-   * The outside of the rooms as the lawn sees them, world coordinates, y 0 to the roof (GOOGLE.top): the lab's block
-   * (its south face round the passage's mouth, its east face), the passage's own sides and top, the 2020 room's block
-   * (its east face round the bed's window, its north face), and Google's block on the lawn (its east face round the
-   * door, dark glass along the ground floor either side of it, the jog north of it, its south and west faces); dark
-   * panes in a band on the upper storey; one roof over all. Cream render. A centimetre outside every interior shell:
-   * coplanar faces bake a room black.
+   * The outside of the rooms as the lawn sees them, world coordinates, y 0 to the roof (GOOGLE.top): one building from
+   * Google's block on the lawn to the lab's far corner, every face built (a walker stands anywhere on the lawn since the
+   * Walk, doc 50): the lab's block (its south face round the passage's mouth, its east face, its north face round the
+   * high window strip), the passage's own sides and top, the old 2020 block's east face (where the room stood; its
+   * window went with the room), the jog to Google's block, Google's block's east face round the door with dark glass
+   * along the ground floor north of it, the south face, one west face the whole length, one roof over all; dark panes
+   * in a band on the upper storey. Cream render. A centimetre outside every interior shell: coplanar faces bake a room black.
    */
   facade: () => {
-    const wall = new Sink(), pane = new Sink(), t = 0.06, H = GOOGLE.top, R = GOOGLE.block, D = GOOGLE.door, g = 0.01;
+    const wall = new Sink(), pane = new Sink(), stub = new Sink(), t = 0.06, H = GOOGLE.top, R = GOOGLE.block, D = GOOGLE.door, g = 0.01;
     const face = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number) => wall.box((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, x1 - x0, y1 - y0, z1 - z0);
     // the lab's block: x -4.14..2.25, z 4.6..9.9; the south face round the passage's mouth (x 0.8..2.0, 2.4 high), the east face
-    face(-4.14, 0.8, 0, H, 4.6 - t, 4.6); face(2.0, 2.25, 0, H, 4.6 - t, 4.6); face(0.8, 2.0, 2.5, H, 4.6 - t, 4.6);
+    face(2.0, 2.25, 0, H, 4.6 - t, 4.6); face(0.8, 2.0, 2.5, H, 4.6 - t, 4.6); // west of the passage the block is solid to the west face: nothing of the slot between the lab and the old 2020 block is seen
     face(2.25, 2.25 + t, 0, H, 4.6 - t, 9.9);
+    // the lab's north face round the high window strip (the shell's z+ opening: x -2.55..1.45, y 2.1..2.8), the strip's reveal through to the shell
+    face(-4.14 - t, -2.55, 0, H, 9.9, 9.9 + t); face(1.45, 2.25 + t, 0, H, 9.9, 9.9 + t); face(-2.55, 1.45, 0, 2.1, 9.9, 9.9 + t); face(-2.55, 1.45, 2.8, H, 9.9, 9.9 + t);
+    face(-2.55 - t, -2.55, 2.1, 2.8, 9.7, 9.9); face(1.45, 1.45 + t, 2.1, 2.8, 9.7, 9.9); face(-2.55, 1.45, 2.1 - t, 2.1, 9.7, 9.9); face(-2.55, 1.45, 2.8, 2.8 + t, 9.7, 9.9);
     // the passage's outside: its two sides and its top, 2.5 high
     face(2.0, 2.0 + t, 0, 2.5, 2.6, 4.6 - t); face(0.8 - t, 0.8, 0, 2.5, 2.6, 4.6 - t); face(0.8 - t, 2.0 + t, 2.44, 2.5, 2.6, 4.6 - t);
-    // the 2020 room's block: x -4.14..0.7, z 0..3.6; its east face round the bed's window (z 0.9..2.1, sill 0.9, head 2.1), its north face, the jog to Google's block
-    face(0.7 + g, 0.7 + g + t, 0, 0.9, 0, 3.6); face(0.7 + g, 0.7 + g + t, 2.1, H, 0, 3.6); face(0.7 + g, 0.7 + g + t, 0.9, 2.1, 0, 0.9); face(0.7 + g, 0.7 + g + t, 0.9, 2.1, 2.1, 3.6);
-    face(-4.14, 0.8 - t, 0, H, 3.6 + g, 3.6 + g + t);
+    // the old 2020 block's east face (x 0.7, z 0..3.6: the nook by the passage's mouth), the jog to Google's block
+    face(0.7 + g, 0.7 + g + t, 0, H, 0, 3.6);
     face(0.7 + g, R.x[1] + g + t, 0, H, R.z[1] + g, R.z[1] + g + t);
     // Google's block: the east face round the door (the 2020 room's own frame stands in the hole), the south face, the west face
     const e0 = R.x[1] + g, e1 = R.x[1] + g + t, z0 = R.z[0] - g - t, z1 = R.z[1] + g + t, d0 = D.z - D.w / 2, d1 = D.z + D.w / 2;
     face(e0, e1, 0, H, z0, d0); face(e0, e1, 0, H, d1, z1); face(e0, e1, D.h, H, d0, d1);
-    face(R.x[0] - g - t, R.x[1] + g + t, 0, H, z0, R.z[0] - g);
-    face(R.x[0] - g - t, R.x[0] - g, 0, H, R.z[0] - g, R.z[1] + g);
-    face(-4.14, 2.25 + t, H, H + 0.12, z0, 9.9); // the roof
-    // the bed's window, dark glass in its reveal; the ground floor's glass north of the door (south of it the wall is plain: his two photographs hang there); the upper storey's band of panes on the faces the walk sees
-    pane.box(0.7 + g + 0.008, 1.5, 1.5, 0.012, 1.2, 1.2);
+    face(-4.14 - t, R.x[1] + g + t, 0, H, z0, R.z[0] - g); // the south face
+    // the west face, the building's whole length: a walker on the lawn's west side sees a wall, not into the rooms. The passage from the 2010 room
+    // to the lab pierces it (x -4.95..-3.15, z 6.0..7.2, 2.4 high): round it a stub, its sides and top outside the passage's own walls, its west
+    // end a face toward the lawn only (one-sided: from the lab, down the passage, the 2010 room is seen through it; the room's own wall stands
+    // on the same plane, and is drawn in its stead whenever the room is)
+    const [p0, p1, pt, px] = [5.9, 7.3, 2.5, -4.95]; // 4 cm clear of the passage's own walls and ceiling (z 6.0..7.2, 2.4 high): on their planes the two fought
+    face(-4.14 - t, -4.14, 0, H, z0, p0); face(-4.14 - t, -4.14, 0, H, p1, 9.9 + t); face(-4.14 - t, -4.14, pt, H, p0, p1);
+    face(px, -4.14, 0, pt, p0, p0 + t); face(px, -4.14, 0, pt, p1 - t, p1); face(px, -4.14, pt - t, pt, p0, p1);
+    stub.quad([px, 0, p0], [px, 0, p1], [px, pt, p1], [px, pt, p0]);
+    face(-4.14 - t, 2.25 + t, H, H + 0.12, z0, 9.9 + t); // the roof
+    // the ground floor's glass north of the door (south of it the wall is plain: his two photographs hang there); the upper storey's band of panes on the faces the walk sees
     for (const [a, b] of [[d1 + 0.5, R.z[1] - 0.4]]) pane.box(e1 + 0.006, 1.5, (a + b) / 2, 0.012, 2.2, b - a);
     for (let z = R.z[0] + 0.7; z < R.z[1] - 0.6; z += 1.5) pane.box(e1 + 0.006, 5.0, z, 0.012, 1.5, 1.1); // Google's block, east
     for (let z = 0.6; z < 3.4; z += 1.5) pane.box(0.7 + g + t + 0.006, 5.0, z, 0.012, 1.5, 1.1); // the 2020 room's block, east
     for (let z = 5.2; z < 9.7; z += 1.5) pane.box(2.25 + t + 0.006, 5.0, z, 0.012, 1.5, 1.1); // the lab's block, east
     for (let x = R.x[0] + 0.6; x < R.x[1] - 0.5; x += 1.5) pane.box(x, 5.0, z0 - 0.006, 1.1, 1.5, 0.012); // Google's block, south
     for (let x = -3.6; x < 2.0; x += 1.5) pane.box(x, 5.0, 4.6 - t - 0.006, 1.1, 1.5, 0.012); // the lab's block, south, over the mouth
-    return [piece(wall.out(), M('campusWall'), { metres: 'xy' }), piece(pane.out(), M('campusPane'))];
+    return [piece(wall.out(), M('campusWall'), { metres: 'xy' }), piece(stub.out(), M('campusWall'), { metres: 'zy' }), piece(pane.out(), M('campusPane'))];
   },
   /**
    * The lawn, world coordinates: grass east of the path to 61 m, west of the blocks, and south of them; never under a
    * room's floor (CONTEXT: baked for the shadows, drawn live). At the door in Google's block it runs 25 cm in under
    * the 2020 room's floor, 12 mm low, and at the passage's mouth 20 cm in under the passage's: the floors meet the
-   * grass with nothing between them. The corner by the mouth had no ground at all until 2026-09-27.
+   * grass with nothing between them. The corner by the mouth had no ground at all until 2026-09-27. West of the blocks,
+   * north of the 2010 room's south wall, it lies 12 mm low: the room and its passage east stand on it when the lab is
+   * the set, and two floors on one plane flicker (leaks.mjs, doc 50). A hedge stands at its edge (lawnHedge) and the
+   * ground runs on to the fog beyond it (lawnFar).
    */
   lawn: () => {
     // one grid: every line an edge lies on runs the lawn's whole length, so no quad's corner sits on another's side (a hairline showed there)
     const R = GOOGLE.block, D = GOOGLE.door, d0 = D.z - D.w / 2, d1 = D.z + D.w / 2, E = R.x[1] + 0.05, W = R.x[0] - 0.05, S = R.z[0] - 0.05, L = R.x[1] - 0.2;
-    const s = new Sink(), low = -0.012, N = R.z[1], xs = [-40, W, 0.7, L, E, 61.55], zs = [-42, S, d0, d1, N, 2.6, 2.8, 14];
-    const y = (x: number, z: number): number => ((x > W && x < E && z < N) || (x < E && z > 2.6 && z < 3) ? low : 0);
+    const s = new Sink(), low = -0.012, N = R.z[1], LAB = 2.3, xs = [-40, W, 0.7, L, E, LAB, 61.55], zs = [-42, S, d0, d1, N, 2.6, 2.8, 4.2, 9.95, 14];
+    const y = (x: number, z: number): number => ((x > W && x < E && z < N) || (x < LAB && z > 2.6 && z < 3) || (x <= W && z >= 4.2) ? low : 0); // west of the blocks the low region takes its own grid lines (x = W, z = 4.2): with `<` the 36 m quad under the 2010 room sloped from 12 mm low to level, and the grass met the room's floor (2026-10-22)
     for (let i = 0; i + 1 < xs.length; i++) for (let k = 0; k + 1 < zs.length; k++) {
       const x0 = xs[i], x1 = xs[i + 1], z0 = zs[k], z1 = zs[k + 1], mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
-      const door = mx > L && mx < E && mz > d0 && mz < d1, nook = mx > 0.7 && mx < E && mz > N && mz < 2.8; // the lip at the door; the corner between the 2020 room's block and the passage's mouth, and a lip under the passage's floor
-      if (!(mx > E || mx < W || mz < S || door || nook)) continue; // under the blocks
+      const door = mx > L && mx < E && mz > d0 && mz < d1, nook = mx > 0.7 && mx < LAB && mz > N && mz < 2.8; // the lip at the door; the corner between the old 2020 block and the passage's mouth, and a lip under the passage's floor
+      const lab = mx > W && mx < LAB && mz > 2.8 && mz < 9.95; // the lab's block and the slot west of its passage: the lab's own floor is there
+      if (lab || !(mx > E || mx < W || mz < S || door || nook)) continue; // under the blocks
       s.quad([x0, y(x0, z1), z1], [x1, y(x1, z1), z1], [x1, y(x1, z0), z0], [x0, y(x0, z0), z0]);
     }
     return [piece(s.out(), M('lawn'), { metres: 'xz' })];
   },
+  /** The hedge at the grass's edge, world coordinates: 1.2 m high, 0.7 thick, round the four sides of the lawn. What stops a walker is seen (doc 50). */
+  lawnHedge: () => {
+    const s = new Sink(), x0 = -40, x1 = 61.55, z0 = -42, z1 = 14, t = 0.7, h = 1.2;
+    s.rbox(x0 + t / 2, h / 2, (z0 + z1) / 2, t, h, z1 - z0, 0.12, 1).rbox(x1 - t / 2, h / 2, (z0 + z1) / 2, t, h, z1 - z0, 0.12, 1);
+    s.rbox((x0 + x1) / 2, h / 2, z0 + t / 2, x1 - x0, h, t, 0.12, 1).rbox((x0 + x1) / 2, h / 2, z1 - t / 2, x1 - x0, h, t, 0.12, 1);
+    return [piece(s.out(), M('hedge'), { smooth: true, metres: 'xz' })];
+  },
+  /** The ground beyond the hedge, to the fog and past it: grass 3 cm under the lawn's, never walked (CONTEXT: drawn live, too wide for the atlas). */
+  lawnFar: () => [piece(slab(1200, 1200, -0.03), M('lawn'), { metres: 'xz' })],
   /** The concrete paths, world coordinates, 1.4 wide: down the block's face from the mouth, and its spur left to the door. */
   lawnPath: () => {
     const s = new Sink(), X = GOOGLE.walkX, D = GOOGLE.door, R = GOOGLE.block;
@@ -1406,7 +1448,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const rect = (x0: number, x1: number, y0: number, y1: number): Array<[number, number]> => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
     const letter = (mat: string, ...polys: Array<Array<[number, number]>>) => {
       const s = new Sink();
-      for (const p of polys) s.extrude(p.map(([x, y]): [number, number] => [x, -y]), 0, T, undefined, s); // built flat with the letter's up toward -z, the cap on top
+      for (const p of polys) s.extrude(p.map(([x, y]): [number, number] => [x, -y]), 0, T, undefined, s, s); // built flat with the letter's up toward -z, the cap on top and a back underneath: from behind the letters were open (leaks.mjs)
       s.rotateX(0, 0, Math.PI / 2); // stood up: the cap faces +z
       out.push(piece(s.out(), M(mat)));
     };
@@ -1452,7 +1494,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   /** A redwood: the trunk and a conifer's tiers of canopy from 3 m up, 23 m tall, on the origin. */
   redwood: () => {
     const trunk = new Sink().cylinder(0, 1.8, 0, 0.42, 3.6, 8);
-    const canopy = new Sink().lathe([[3.6, 3.0], [3.9, 3.6], [2.6, 8], [3.0, 8.4], [1.6, 13.5], [2.0, 14], [0.75, 19], [1.0, 19.4], [0, 23]], 0, 0, 0, 1, 1, 0, 10);
+    const canopy = new Sink().lathe([[0, 3.0], [3.6, 3.0], [3.9, 3.6], [2.6, 8], [3.0, 8.4], [1.6, 13.5], [2.0, 14], [0.75, 19], [1.0, 19.4], [0, 23]], 0, 0, 0, 1, 1, 0, 10); // closed underneath: from under the tree the eye looked up into a hollow cone (leaks.mjs)
     return [piece(trunk.out(), M('treeTrunk')), piece(canopy.out(), M('conifer'))];
   },
   /** Clouds: a few flattened white puffs, far up and far off, unlit. */

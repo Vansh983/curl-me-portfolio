@@ -66,6 +66,7 @@ export interface Placement {
   live?: Live;
   cap?: string;
   href?: string;
+  thing?: string; // a thing he can pick up or look at in the Walk: its words in src/data/things.ts (THINGS), by this key
   shadow?: boolean; // default true
 }
 
@@ -252,6 +253,7 @@ export const DOORS = {
   home: { w: FLOQER.door.w, h: FLOQER.door.h, depth: 0.23, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'both' },
   brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing' }, // the door in the apartment's brick wall: shut, the story no longer comes back through it
   google: { w: GOOGLE.door.w, h: GOOGLE.door.h, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the 2020 room's south door, which Google's block shows on the lawn: the room's own frame lines the hole
+  lab: { w: 0.9, h: 2.05, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the lab's door onto the lawn, in the frame at its mouth: shut whenever he is in neither the lab nor the lawn, so from the 2010 room the lawn is never seen through two doorways (doc 50)
   front: { w: 1.2, h: 2.4, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'none', open: true }, // where the apartment's passage meets its room: the passage's whole section, cased, no leaf
   rear: { w: 1.4, h: 2.2, depth: 0.3, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'bar', faces: 'swing' }, // the hall of 2022's back door, behind the top row: shut; the story came in by the phone
 } satisfies Record<string, Door>;
@@ -305,7 +307,7 @@ export const SETS: StageSet[] = [
       x: CONDO.x, z: CONDO.z, h: CONDO.h,
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
-        { wall: 'z+', at: -5.45, w: 0.9, h: 2.05 }, // the front door, north into the passage
+        { wall: 'z+', at: -5.45, w: 1.2, h: 2.4 }, // the front door, north into the passage: the passage's whole section, which its case (DOORS.front) lines; a smaller hole showed this wall's back beside the case from the passage (leaks.mjs)
         { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the door in the brick: shut (DOORS.brick fills it)
         { wall: 'z-', at: (CONDO.x[0] + CONDO.x[1]) / 2, w: CONDO.glass, h: CONDO.h, sill: 0 }, // the glass, floor to ceiling
       ],
@@ -313,7 +315,7 @@ export const SETS: StageSet[] = [
     props: ((): Placement[] => {
       const W = CONDO.x[0], S = CONDO.z[0], mid = (CONDO.x[0] + CONDO.x[1]) / 2, bed = S + 1.78, desk = S + 0.95; // the west wall, the glass, the room's middle; the bed's and the desk's middles along z
       return [
-        { build: 'mullions', at: [mid, 0, S], scale: [CONDO.glass / 5, 1.4, 1] },
+        { build: 'mullions', at: [mid, 0, S], scale: [CONDO.glass / 5, 1.4, 1] }, // not a thing: the tower is obvious (his word, 2026-10-22)
         { build: 'city', at: [mid, -185, S], live: 'city', cap: 'Toronto. The CN Tower from the 51st floor.', shadow: false },
         { build: 'nightSky', at: [mid, 0, S], live: 'city', shadow: false },
         { build: 'condoBrick', at: [CONDO.x[1], 0, 0] },
@@ -332,13 +334,13 @@ export const SETS: StageSet[] = [
         { model: 'potted_plant_01', at: [W + 0.45, 0, S + 0.3], scale: 0.9 },
         // the desk on the brick, by the glass
         { build: 'rugGrey', at: [-5.1, 0, desk] },
-        { build: 'desk', at: [-4.58, 0, desk], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.' },
+        { build: 'desk', at: [-4.58, 0, desk], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.', thing: 'floqerDesk' },
         { build: 'deskHutch', at: [-4.34, 0.74, desk] },
         { build: 'hutchLed', at: [-4.34, 0.74, desk] },
         { model: 'coffee_mug', at: [-4.7, 0.74, desk + 0.42], rot: [0, 40, 0] },
         { build: 'books', at: [-4.34, 1.71, desk - 0.15], cap: 'The shelf. Mostly systems and design.' },
         { build: 'books', at: [-4.34, 1.21, desk + 0.4] },
-        { build: 'badge', at: [-4.5, 1.69, desk - 0.65], cap: 'Google Code-in 2018. Grand prize.' },
+        { build: 'badge', at: [-4.5, 1.69, desk - 0.65], cap: 'Google Code-in 2018. Grand prize.', thing: 'award' },
         { build: 'monitor', at: [-4.56, 0.74, desk - 0.35], rot: [0, -100, 0], live: 'screen' },
         { build: 'monitorApp', at: [-4.56, 0.74, desk + 0.32], rot: [0, -80, 0], live: 'screen' },
         { model: 'laptop_14_aluminium', at: [-4.73, 0.74, desk + 0.65], rot: [0, -120, 0] },
@@ -351,13 +353,16 @@ export const SETS: StageSet[] = [
         { model: 'shoe_rack_modern', at: [-6.45, 0, 2.0], scale: 0.8 }, // by the front door, on its west side: the brick door's passage runs east of the door and wants its corner clear
         { build: 'passageDoor', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room; an end wall round the door there
         opening('front', -5.45, 0, 2.2 + DOORS.front.depth), // the passage's mouth on the room, cased: an edge where the two meet
-        { build: 'doorCaseBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0] }, // the door in the brick: a cased hole onto the passage east, the way home (world.ts)
-        { build: 'passageDoor', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door, 1.8 m: at its end, the door at the top of Floqer's stair, his own front door
+        { build: 'doorCaseBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0] }, // the door in the brick: the way home (world.ts), its case
+        // its leaf, hinged on the north jamb, swinging west into the room as he comes along the passage; Floqer's door shuts behind him as it opens, so the
+        // house and the apartment are never seen together (doc 50: the house stood outside the glass): the pair is an airlock, as the 2020 room's doors are
+        { build: 'doorLeafBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0], live: 'door', door: [ch(18.76), ch(18.9)], shut: [ch(19.0), ch(19.12)], cap: 'The door in the brick. Home.' }, // and shut again behind him, home: the house is never drawn from the room
+        { build: 'passageHome', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door, 1.8 m: at its end, the door at the top of Floqer's stair, his own front door; a wall round each door's hole
       ];
     })(),
   },
   {
-    id: 'room', env: 'studio', tint: { sky: '#FFE6C6', ground: '#9C7B5A', power: 0.3 }, exposure: 0.8, envPower: 0.3, baked: true,
+    id: 'room', env: 'studio', outlook: true, tint: { sky: '#FFE6C6', ground: '#9C7B5A', power: 0.3 }, exposure: 0.8, envPower: 0.3, baked: true, // outlook: the sky stands beyond the window (a steep look up out of it found nothing, leaks.mjs)
     sun: { dir: [-0.3, 0.5, -0.8], color: '#FFD9A8', power: 3.2, shadow: 0.9 },
     fog: { color: '#EFE3D0', near: 12, far: 60 },
     shell: {
@@ -376,8 +381,8 @@ export const SETS: StageSet[] = [
       { build: 'bedroomMonitor', at: [-8.85, 0.8, 6.35], rot: [0, 90, 0], live: 'tv', cap: 'Call of Duty: World at War, Nazi Zombies. Every evening.', href: 'https://www.youtube.com/results?search_query=nazi+zombies+world+at+war' },
       { build: 'keyboard', at: [-8.55, 0.8, 6.35], rot: [0, 90, 0] },
       { build: 'mouse', at: [-8.55, 0.8, 6.02], rot: [0, 90, 0] },
-      { build: 'xbox360', at: [-8.85, 0.8, 6.85], rot: [0, 90, 0], cap: 'The Xbox 360. White, standing, always on.' },
-      { model: 'xbox_controller', at: [-8.6, 0.8, 6.85], rot: [0, 60, 0], cap: 'The pad. Zombies until the power cut.' },
+      { build: 'xbox360', at: [-8.85, 0.8, 6.85], rot: [0, 90, 0], cap: 'The Xbox 360. White, standing, always on.', thing: 'xbox360' },
+      { model: 'xbox_controller', at: [-8.6, 0.8, 6.85], rot: [0, 60, 0], cap: 'The pad. Zombies until the power cut.', thing: 'xboxPad' },
       { build: 'pcTower', at: [-8.85, 0.0, 7.05], rot: [0, 90, 0] },
       { model: 'alarm_clock_01', at: [-8.95, 0.8, 5.85], rot: [0, 90, 0] },
       { model: 'painted_wooden_chair_01', at: [-7.95, 0.0, 6.35], rot: [0, -90, 0] },
@@ -385,12 +390,12 @@ export const SETS: StageSet[] = [
       // the north wall: the bookshelf in the corner, the poster, the clock by the door
       { model: 'wooden_bookshelf_worn', at: [-8.55, 0.0, 7.64], rot: [0, 180, 0], scale: 0.8 },
       { model: 'book_encyclopedia_set_01', at: [-8.85, 0.99, 7.55], rot: [0, 180, 0], scale: 0.55 },
-      { build: 'figures', at: [-8.55, 0.74, 7.55], rot: [0, 180, 0], cap: 'The shelf. Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta.' },
+      { build: 'figures', at: [-8.55, 0.74, 7.55], rot: [0, 180, 0], cap: 'The shelf. Naruto, Goku, Luffy, Ichigo, Saitama, Levi, Vegeta.', thing: 'figures' },
       { build: 'figures', at: [-8.55, 0.51, 7.55], rot: [0, 172, 0] },
       { model: 'hanging_picture_frame_01', at: [-6.3, 1.72, 7.885], rot: [0, 180, 0] }, // a framed print, 59 by 84
-      { build: 'jobsPrint', at: [-6.3, 1.72, 7.885], rot: [0, 180, 0], cap: "Here's to the crazy ones. Think different, 1997: the whole of it." },
+      { build: 'jobsPrint', at: [-6.3, 1.72, 7.885], rot: [0, 180, 0], cap: "Here's to the crazy ones. Think different, 1997: the whole of it.", thing: 'jobsPrint' },
       { model: 'wall_clock', at: [-5.15, 1.9, 7.88], rot: [0, 180, 0] }, // in the corner by the door out, where the turn looks
-      { model: 'football', at: [-7.4, 0.11, 7.3], rot: [0, 50, 0], cap: 'Barcelona. Messi.' },
+      { model: 'football', at: [-7.4, 0.11, 7.3], rot: [0, 50, 0], cap: 'Barcelona. Messi.', thing: 'football' },
       { model: 'ceiling_fan', at: [-7.05, 2.7, 6.1], rot: [0, 90, 0], live: 'fan', cap: 'The ceiling fan. Delhi summers.' },
       // the window: an aluminium two-track slider in the wall with the safety grille outside and a marble sill inside; the
       // curtains on their rod; outside, the neighbour's house across the lane, a neem, and the haze of a Delhi afternoon
@@ -399,7 +404,7 @@ export const SETS: StageSet[] = [
       { build: 'neighbourHouse', at: [0, 0, 0], shadow: false },
       { model: 'island_tree_01', at: [-13.4, -3.2, 7.6], rot: [0, 40, 0], scale: 1.15, shadow: false },
       { build: 'skyline', at: [-30, 6, 5.0], rot: [0, 90, 0], scale: 10 },
-      { build: 'passage', at: [-4.95, 0, 6.0], scale: [0.6, 1, 1], live: 'bulb' }, // east, 1.8 m, to the lab
+      { build: 'passageBoth', at: [-4.95, 0, 6.0], scale: [0.6, 1, 1], live: 'bulb' }, // east, 1.8 m, to the lab; a wall round the door's hole at each end
     ],
   },
   {
@@ -422,7 +427,7 @@ export const SETS: StageSet[] = [
       { build: 'labBenchShort', at: [-1.5, 0, 5.05], rot: [0, 0, 0] },
       ...STATIONS_A.map((x, i): Placement => ({
         build: i === 1 ? 'labMonitorNotepad' : 'labMonitor', at: [x, 0.74, 9.5], rot: [0, 180, 0], live: 'screen',
-        ...(i === 1 ? { cap: 'index.html in Notepad. The first website.' } : {}),
+        ...(i === 1 ? { cap: 'index.html in Notepad. The first website.', thing: 'firstWebsite' } : {}),
       })),
       ...STATIONS_A.map((x): Placement => ({ build: 'keyboard', at: [x, 0.74, 9.18], rot: [0, 180, 0] })),
       ...STATIONS_A.map((x): Placement => ({ build: 'mouse', at: [x - 0.3, 0.74, 9.18], rot: [0, 180, 0] })),
@@ -435,13 +440,15 @@ export const SETS: StageSet[] = [
       ...STATIONS_B.map((x): Placement => ({ build: 'pcTower', at: [x + 0.3, 0, 5.0] })),
       ...STATIONS_B.map((x): Placement => ({ model: 'office_chair_black', at: [x, 0, 5.78], rot: [0, 180, 0] })),
       ...[-1.975, -1.025].map((x): Placement => ({ build: 'partition', at: [x, 0.74, 5.05] })),
-      { build: 'whiteboard', at: [-3.12, 1.5, 8.5], rot: [0, 90, 0], cap: 'Wireframes sketched in class.' },
+      { build: 'whiteboard', at: [-3.12, 1.5, 8.5], rot: [0, 90, 0], cap: 'Wireframes sketched in class.', thing: 'wireframes' },
       { build: 'banner', at: [-3.12, 2.55, 7.9], rot: [0, 90, 0], cap: 'Converge Clan.' },
       { build: 'teamPhoto', at: [2.02, 1.55, 7.6], rot: [0, 270, 0] },
       { model: 'wall_clock', at: [2.02, 2.4, 8.9], rot: [0, 270, 0] },
       ...[[-1.85, 8.1], [0.75, 8.1], [-1.85, 6.0], [0.75, 6.0]].map(([x, z]): Placement => ({ build: 'tube', at: [x, 2.95, z], live: 'tube' })),
       { build: 'doorFrame', at: [1.4, 0, 4.7] },
-      { build: 'passage', at: [0.8, 0, 4.7], rot: [0, 90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // south, 2.1 m, to the plaza
+      // the leaf in that frame, hinged on the west jamb, swinging south out of the lab as the camera turns to the door; it is open before the jamb at q 0.578
+      { build: 'doorLeafLab', at: [1.4 - hingeOff(DOORS.lab), 0, 4.55], rot: [0, 90, 0], live: 'door', door: [approach(0.538), approach(0.57)], cap: 'The lab door, onto the lawn.' },
+      { build: 'passageNear', at: [0.8, 0, 4.7], rot: [0, 90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // south, 2.1 m, to the lawn; a wall round the door's hole where it leaves the lab
     ],
   },
   {
@@ -458,6 +465,8 @@ export const SETS: StageSet[] = [
         out.push({ build: 'facade', at: [0, 0, 0], cap: 'Google. Mountain View, June 2019.', href: 'https://codein.withgoogle.com/archive/2018/' }); // the outside of the rooms we came through, and the block on the lawn
         // the lawn and the path down the block's face, its spur to the door
         out.push({ build: 'lawn', at: [0, 0, 0] });
+        out.push({ build: 'lawnHedge', at: [0, 0, 0] }); // what stops him at the grass's edge
+        out.push({ build: 'lawnFar', at: [0, 0, 0], shadow: false }); // and the ground beyond it, to the fog
         out.push({ build: 'lawnPath', at: [0, 0.015, 0] });
         // the Android lawn: the statues in a row to the east of the path, each facing it (docs/rebuild/30-googleplex-options.md)
         out.push({ build: 'bugdroid', at: [6.4, 0, 1.6], rot: [0, -90, 0], cap: 'The Android lawn at the Googleplex.' });
@@ -465,7 +474,7 @@ export const SETS: StageSet[] = [
         out.push({ build: 'statueDonut', at: [6.6, 0, -2.8], rot: [0, -90, 0] });
         out.push({ build: 'statueGingerbread', at: [7.8, 0, -5.0], rot: [0, -90, 0] });
         out.push({ build: 'statueJellyBean', at: [6.4, 0, -7.0], rot: [0, -90, 0] });
-        out.push({ model: 'android_honeycomb', at: [8.6, 0, -7.6], rot: [0, 90, 0], cap: 'Honeycomb, on the lawn since 2011.' });
+        out.push({ model: 'android_honeycomb', at: [8.6, 0, -7.6], rot: [0, 90, 0], cap: 'Honeycomb, on the lawn since 2011.', thing: 'honeycomb' });
         out.push({ build: 'statueKitKat', at: [6.6, 0, -9.6], rot: [0, -90, 0] });
         out.push({ build: 'statueLollipop', at: [7.4, 0, -11.8], rot: [0, -90, 0] });
         out.push({ build: 'statueMarshmallow', at: [6.6, 0, -14.0], rot: [0, -90, 0] });
@@ -474,11 +483,11 @@ export const SETS: StageSet[] = [
         out.push({ build: 'googleLetters', at: [3.9, 0, -11.6], cap: 'Google.' }); // at the end of the path, facing back up it
         // his own photographs of the trip, framed on the block's face by the door: he asked for them there (2026-09-27)
         const wall = GOOGLE.block.x[1] + 0.07;
-        out.push({ build: 'tripPhotoAward', at: [wall, GOOGLE.photos.y, GOOGLE.photos.z[0]], rot: [0, 90, 0], cap: 'The award. Google Code-in 2018, grand prize winner, June 27, 2019.', href: 'https://codein.withgoogle.com/archive/2018/' });
-        out.push({ build: 'tripPhotoSign', at: [wall, GOOGLE.photos.y, GOOGLE.photos.z[1]], rot: [0, 90, 0], cap: 'Google, San Francisco. June 2019.' });
+        out.push({ build: 'tripPhotoAward', at: [wall, GOOGLE.photos.y, GOOGLE.photos.z[0]], rot: [0, 90, 0], cap: 'The award. Google Code-in 2018, grand prize winner, June 27, 2019.', href: 'https://codein.withgoogle.com/archive/2018/', thing: 'tripAward' });
+        out.push({ build: 'tripPhotoSign', at: [wall, GOOGLE.photos.y, GOOGLE.photos.z[1]], rot: [0, 90, 0], cap: 'Google, San Francisco. June 2019.', thing: 'tripSign' });
         // the bikes by the mouth, the trees, the far blocks of the campus, redwoods behind
         out.push({ build: 'bikeRack', at: [3.5, 0, 1.0] });
-        out.push({ build: 'gbike', at: [3.2, 0, 1.0], cap: 'A Google bike.' });
+        out.push({ build: 'gbike', at: [3.2, 0, 1.0], cap: 'A Google bike.', thing: 'gbike' });
         out.push({ build: 'gbike', at: [3.85, 0, 1.0], rot: [0, 4, 0] });
         out.push({ build: 'campusFar', at: [0, 0, 0], cap: 'The campus, Mountain View.' });
         for (const [x, z, s] of [[17.5, -1, 0.85], [19, 8, 0.9], [16, -21, 0.9], [14, -30, 1.0], [22, -33, 1.15], [30, -31, 0.9], [38, -26, 1.1], [42, -12, 1.0], [40, 4, 0.95], [34, 14, 1.05], [22, 17, 0.9], [-8, -18, 1.0], [-2, -22, 1.1]] as const)
@@ -509,11 +518,11 @@ export const SETS: StageSet[] = [
       // the leaf in it: the door Google's block shows on the lawn (DELHI), opening into the room as he comes to it
       ...doorway('google', -0.7, 0, 0.15, [approach(0.768), approach(0.797)], 'The door off the lawn: Delhi, 2020.', [ch(4.68), ch(4.76)]), // it opens as he turns to it from the photographs, and shuts behind him before the west door opens: the lawn and the aircraft outside it are never in view together
       // the desk on the north wall, its back against it
-      { build: 'deskWide', at: [-1.1, 0, 3.2], rot: [0, 180, 0], cap: 'Webcube. 45 companies, six countries, 25 people, from this desk.' },
+      { build: 'deskWide', at: [-1.1, 0, 3.2], rot: [0, 180, 0], cap: 'Webcube. 45 companies, six countries, 25 people, from this desk.', thing: 'webcubeDesk' },
       { build: 'monitor', at: [-1.45, 0.74, 3.38], rot: [0, 172, 0], live: 'screen' },
       { build: 'monitorBoard', at: [-0.8, 0.74, 3.38], rot: [0, 190, 0], live: 'screen', cap: 'Webcube. A team of 25, working across multiple countries.' },
       { model: 'laptop_14_aluminium', at: [-2.0, 0.74, 3.08], rot: [0, 205, 0] },
-      { build: 'laptop', at: [-0.37, 0.74, 2.98], rot: [0, 160, 0], live: 'screen', cap: 'Covid Leads Delhi. 20,000 people, beds and oxygen, two months.' },
+      { build: 'laptop', at: [-0.37, 0.74, 2.98], rot: [0, 160, 0], live: 'screen', cap: 'Covid Leads Delhi. 20,000 people, beds and oxygen, two months.', thing: 'covidLeads' },
       { model: 'keyboard_mouse_black', at: [-1.15, 0.74, 2.9], rot: [0, 180, 0] },
       { build: 'pcTower', at: [-0.15, 0.74, 3.35], rot: [0, 180, 0] },
       { build: 'cables', at: [-0.55, 0, 3.45] },
@@ -529,7 +538,7 @@ export const SETS: StageSet[] = [
       { build: 'books', at: [-0.91, 1.5, 3.48], rot: [0, 90, 0], cap: 'Books on the shelf above the desk.' },
       { model: 'book_encyclopedia_set_01', at: [-0.05, 1.5, 3.44], rot: [0, 180, 0], scale: 0.7 },
       { build: 'wallShelf', at: [-1.1, 2.0, 3.48], rot: [0, 180, 0] },
-      { build: 'awards', at: [-1.1, 2.0, 3.5], rot: [0, 180, 0], cap: 'Awards of different shapes and sizes, on the top shelf.' },
+      { build: 'awards', at: [-1.1, 2.0, 3.5], rot: [0, 180, 0], cap: 'Awards of different shapes and sizes, on the top shelf.', thing: 'awards' },
       // the bed along the east wall under the drawn curtain
       { model: 'bed_single', at: [0.28, 0, 1.3], rot: [0, 90, 0], cap: 'The single bed beside the desk.' },
       { build: 'curtainDrawn', at: [0.66, 2.4, 1.5], rot: [0, -90, 0], scale: [1, 0.85, 1], cap: 'The curtain, drawn. 2020.' },
@@ -586,10 +595,10 @@ export const SETS: StageSet[] = [
     props: [
       { build: 'lectureBoard', at: [4.9, 2.45, -17.22], scale: 1.55, live: 'screen', cap: 'Computer science at Dalhousie University. Halifax, Nova Scotia.' },
       { build: 'dalhousieSign', at: [4.9, 4.34, -17.2], scale: 1.3, live: 'screen' },
-      { build: 'projectorScreen', at: [4.9, 6.3, -16.85], live: 'drop', drop: [ch(6.53), ch(7.06), 2.2], cap: 'Generative AI. The lecture: transformers, attention, what a model is and is not.' },
+      { build: 'projectorScreen', at: [4.9, 6.3, -16.85], live: 'drop', drop: [ch(6.53), ch(7.06), 2.2], cap: 'Generative AI. The lecture: transformers, attention, what a model is and is not.', thing: 'lecture' },
       { build: 'lectureTiers', at: [0, 0, 0] },
       { build: 'auditoriumInterior', at: [0, 0, 0] },
-      { build: 'lectern', at: [DAIS.lectern[0], DAIS.height, DAIS.lectern[1]], cap: 'The lectern. ShiftKey Labs: curriculums, certificates in hundreds of hands.' },
+      { build: 'lectern', at: [DAIS.lectern[0], DAIS.height, DAIS.lectern[1]], cap: 'The lectern. ShiftKey Labs: curriculums, certificates in hundreds of hands.', thing: 'shiftkey' },
       { build: 'laptopSlide', at: [DAIS.lectern[0], DAIS.height + 1.12, DAIS.lectern[1] + 0.02], rot: [0, 180, 0], live: 'screen' },
       ...[0, 2, 4, 6].flatMap((i) => [2.1, 4.9, 7.7].map((x): Placement => ({ build: 'downlight', at: [x, 6.6, LECTURE_ROWS[i].seat + 0.6], live: 'downlight' }))),
       ...[2.6, 4.9, 7.2].map((x): Placement => ({ build: 'downlight', at: [x, 6.6, -16.0], live: 'downlight' })),
@@ -637,13 +646,13 @@ export const SETS: StageSet[] = [
       { build: 'hackerTable', at: [-4.6, 0, -15.7], cap: 'The hacker house table. Bean was built here: pantry, recipes, the week, the shopping list.' },
       { build: 'monitorOldApp', at: [-5.3, 0.74, -15.55], rot: [0, 2, 0], live: 'screen', cap: 'The app in a design tool: pantry, this week, shopping.' },
       { build: 'monitorOldCode', at: [-3.95, 0.74, -15.55], rot: [0, -4, 0], live: 'screen' },
-      { build: 'monitorOldPH', at: [-4.6, 0.74, -15.85], rot: [0, 177, 0], live: 'screen', cap: 'Launch day on Product Hunt. Number four Product of the Day.' },
+      { build: 'monitorOldPH', at: [-4.6, 0.74, -15.85], rot: [0, 177, 0], live: 'screen', cap: 'Launch day on Product Hunt. Number four Product of the Day.', thing: 'productHunt' },
       { build: 'monitorOldBeanCode', at: [-5.85, 0.74, -15.85], rot: [0, 184, 0], live: 'screen', cap: 'Recipe adapt: tell Bean what to change and it rewrites the recipe as you type.' },
       { model: 'keyboard_mouse_black', at: [-5.3, 0.74, -15.15], rot: [0, 0, 0] },
       { model: 'keyboard_mouse_black', at: [-4.6, 0.74, -16.2], rot: [0, 180, 0] },
       { build: 'laptopBean', at: [-3.45, 0.74, -15.4], rot: [0, -8, 0], live: 'screen', cap: 'Bean on the laptop.' },
       { model: 'laptop_14_aluminium', at: [-3.6, 0.74, -16.05], rot: [0, 172, 0] },
-      { build: 'phoneBean', at: [-4.55, 0.74, -15.25], rot: [0, 25, 0], live: 'screen', cap: 'Bean on the phone: your kitchen assistant.' },
+      { build: 'phoneBean', at: [-4.55, 0.74, -15.25], rot: [0, 25, 0], live: 'screen', cap: 'Bean on the phone: your kitchen assistant.', thing: 'beanPhone' },
       { build: 'wires', at: [-4.6, 0, -15.7], cap: 'The wires.' },
       { model: 'coffee_mug', at: [-5.95, 0.74, -16.3], rot: [0, 40, 0] },
       { model: 'coffee_mug', at: [-3.2, 0.74, -16.35], rot: [0, -60, 0] },
@@ -656,13 +665,13 @@ export const SETS: StageSet[] = [
       { model: 'pendant_tense', at: [-5.4, 1.86, -15.7], live: 'pendant' },
       { model: 'pendant_tense', at: [-3.8, 1.86, -15.7], live: 'pendant' },
       // the floor: two air mattresses along the walls
-      { build: 'airMattress', at: [-3.4, 0, -13.66], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.' },
+      { build: 'airMattress', at: [-3.4, 0, -13.66], rot: [0, 0, 0], cap: 'An air mattress. A hacker house: you sleep where you ship.', thing: 'airMattress' },
       { build: 'airMattress', at: [-3.2, 0, -17.7], rot: [0, 4, 0] },
       { model: 'throw_pillows_01', at: [-1.9, 0.0, -17.3], rot: [0, 30, 0], scale: 0.7 },
       ...doorway('sydney', -6.85, 0, -18.2, [ch(8.56), ch(8.7)], 'The door out of the Bean house.'), // the south door beside the window: it opens into the room, clear of the walk down the west side
       { build: 'bin', at: [-1.85, 0, -14.7] },
       // the walls
-      { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.' },
+      { build: 'whiteboardBean', at: [-4.4, 1.5, -13.26], rot: [0, 180, 0], live: 'screen', scale: 0.85, cap: 'The whiteboard. How Bean works, and launch week.', thing: 'beanBoard' },
       { model: 'wall_clock', at: [-1.44, 2.3, -17.4], rot: [0, -90, 0] },
       { build: 'discLight', at: [-2.4, 2.9, -14.3], live: 'pendant' },
     ],
@@ -678,6 +687,7 @@ export const SETS: StageSet[] = [
       water(),
       { build: 'promenade', at: [0, 0, 0], cap: 'The promenade along the harbour.' },
       { build: 'walkLand', at: [0, 0, 0], shadow: false },
+      { build: 'walkHedge', at: [0, 0, 0] }, // the land side's edge behind the trees, the ends of the walk: what stops him is seen; the land runs on beyond it (doc 50)
       { build: 'beanHouse', at: [0, 0, 0], cap: 'The Bean house from outside.' },
       { build: 'quayRail', at: [0, 0, 0] },
       { build: 'tramTrack', at: [0, 0, 0], cap: 'The streetcar track along Queens Quay.' },
@@ -685,7 +695,7 @@ export const SETS: StageSet[] = [
       ...WALK_LAMPS.map((z): Placement => ({ build: 'walkLamp', at: [WALK.path[0] + 0.55, 0, z], live: 'walkLamp' })),
       // the walk's trees; the two that would stand in the street out of Volta's side window are gone once it is there
       ...WALK_TREES.map((t): Placement => ({ build: `walkTree${t.kind}`, at: [t.x, 0, t.z], rot: [0, t.turn, 0], scale: t.size, ...(t.x > VOLTA_VIEW.east[0] && t.x < VOLTA_VIEW.east[3] + 30 && t.z > VOLTA_VIEW.eastRow[0] ? { indoor: 'out' as const } : {}) })),
-      ...SIGNS.map((g, i): Placement => ({ build: `logoSign${i}`, at: [g.x, 0, g.z], rot: [0, 40, 0], live: 'glow', cap: g.name })), // each city's mark, standing on his left, turned to him as he comes
+      ...SIGNS.map((g, i): Placement => ({ build: `logoSign${i}`, at: [g.x, 0, g.z], rot: [0, 40, 0], live: 'glow', cap: g.name, thing: `sign${i}` })), // each city's mark, standing on his left, turned to him as he comes
       // the benches along the land side's kerb face the walk and the water, their backs to the land
       // no bench by Web Summit's mark: the one there stood across it, and he had it taken out (2026-09-27)
       { build: 'walkBench', at: [WALK.path[1] - 0.45, 0, 9.0], rot: [0, 90, 0] },
@@ -784,8 +794,8 @@ export const SETS: StageSet[] = [
       { model: 'volta_fig', at: [-15.6, 0, 40.95], scale: 0.85 },
       { model: 'volta_fig', at: [-15.55, 0, 51.2], rot: [0, 150, 0], scale: 0.8 },
       // the north end: Collect.'s slide thrown on the wall, the high table he speaks at, a stack of the event chairs, the call booth
-      { build: 'voltaSlide', at: [-13.7, 1.95, WALK.volta.z[1] - 0.012], live: 'screen', cap: "Collect. at Volta: Halifax's Socratica node." },
-      { build: 'voltaHighTable', at: VOLTA_PODIUM, cap: 'The high table he spoke at.' }, // his: he goes up to it, stands behind it and turns to the room
+      { build: 'voltaSlide', at: [-13.7, 1.95, WALK.volta.z[1] - 0.012], live: 'screen', cap: "Collect. at Volta: Halifax's Socratica node.", thing: 'collect' },
+      { build: 'voltaHighTable', at: VOLTA_PODIUM, cap: 'The high table he spoke at.', thing: 'highTable' }, // his: he goes up to it, stands behind it and turns to the room
       { build: 'laptop', at: [VOLTA_PODIUM[0], 1.05, VOLTA_PODIUM[2] - 0.1] },
       ...Array.from({ length: 6 }, (_, i): Placement => ({ model: 'volta_stack_chair', at: [-11.75, i * 0.085, WALK.volta.z[1] - 0.45 - i * 0.012], rot: [0, 180, 0] })),
       { build: 'voltaBooth', at: [WALK.volta.x[1] - 0.58, 0, WALK.volta.z[1] - 0.62], rot: [0, 90, 0], cap: 'A call booth.' }, // its back to the east wall, its glass door to the room
@@ -805,7 +815,7 @@ export const SETS: StageSet[] = [
       { build: 'downlight', at: [WALK.x, 3.1, STAGE.wing[1] - 0.6], live: 'downlight' },
       { build: 'stageHall', at: [0, 0, 0], cap: 'The hall: the stage a metre up, the drapes behind it in black and gold, the house beyond the proscenium.' },
       // the crowd on its feet is not placed here: crowd.ts seats it and the runtime draws it as cards (buildCrowd in stage-run.ts)
-      { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], cap: 'The lectern.' },
+      { build: 'lectern', at: [STAGE.x[1] - 2.2, STAGE.height, STAGE.z[1] - 2.2], rot: [0, 90, 0], cap: 'The lectern.', thing: 'stageLectern' },
       { build: 'stageBin', at: STAGE_BIN, cap: 'The bin backstage.' },
       // the door out behind the stage is the hall's: shut, it closes the hall's wall from wherever the hall is seen
       ...doorway('floqer', STAGE.door.x, STAGE.door.floor, FLOQER.z[0], [ch(13.94 + TOUR_GAIN), ch(14.1 + TOUR_GAIN)], 'The door out of the hall: Floqer.'),
@@ -877,7 +887,7 @@ export const SETS: StageSet[] = [
         out.push({ build: 'deskCans', at: [SX[0] - 0.5, D, bar + 0.42] }, { build: 'deskCan', at: [SX[1] + 0.55, D, bar - 0.5] }, { build: 'deskCanSlim', at: [SX[2] - 0.5, D, bar + 0.5] }, { build: 'deskCans', at: [SX[3] + 0.45, D, bar - 0.45], rot: [0, 140, 0] });
         out.push({ build: 'deskCanSlim', at: [SX[3] - 0.5, D + 0.06, bar + 0.5] }, { build: 'deskCan', at: [TX + 0.5, D, stem + 0.55] }, { build: 'deskCanSlim', at: [TX - 0.55, D, stem - 0.2] });
         out.push({ model: 'coffee_mug', at: [SX[1] - 0.55, D, bar + 0.48], rot: [0, 40, 0] }, { model: 'coffee_mug', at: [SX[2] + 0.2, D, bar - 0.55], rot: [0, 200, 0] }, { model: 'volta_bottle', at: [SX[0] + 0.5, D, bar - 0.5] }, { model: 'volta_bottle', at: [TX + 0.55, D, stem - 0.3] });
-        out.push({ build: 'floqerBox', at: [TX + 0.42, D, stem + 0.85], rot: [0, 100, 0], cap: "Floqer's box." });
+        out.push({ build: 'floqerBox', at: [TX + 0.42, D, stem + 0.85], rot: [0, 100, 0], cap: "Floqer's box.", thing: 'floqerBox' });
         // the leads off the back of every desk, the strips they run to, the extension lead across the floor
         out.push({ build: 'floqerLeads', at: [0, F, 0] }, { build: 'powerStrip', at: [SX[3] + 1.05, F, bar + 0.3], rot: [0, 25, 0] }, { build: 'powerStrip', at: [TX + 0.2, F, stem - 1.8], rot: [0, 80, 0] });
         // the chairs, mismatched, nobody in them, none pushed in straight: the bar's south side faces +z, its north side -z, the stem's sides face across it
@@ -891,15 +901,15 @@ export const SETS: StageSet[] = [
         for (const x of [-13.7, -10.7]) out.push({ model: 'pendant_tense', at: [x, F + 1.86, bar], live: 'pendant' });
         out.push({ model: 'pendant_tense', at: [TX, F + 1.86, stem], live: 'pendant' });
         // the east wall, on the way to the stair: the whiteboards, and the mark as the house has it, made of acoustic foam tiles
-        out.push({ build: 'whiteboardFloqerA', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 1.4], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the engine and who runs on it.' });
+        out.push({ build: 'whiteboardFloqerA', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 1.4], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the engine and who runs on it.', thing: 'floqerBoardA' });
         out.push({ build: 'whiteboardFloqerB', at: [FLOQER.x[1] - 0.04, F + 1.5, Z + 3.9], rot: [0, -90, 0], live: 'screen', cap: 'The whiteboard: the year, and Disrupt.' });
-        out.push({ build: 'foamMark', at: [FLOQER.x[1] - 0.01, F + 0.6, Z + 7.1], rot: [0, -90, 0], cap: 'The F, in acoustic foam tiles, as it hangs in the house.' });
+        out.push({ build: 'foamMark', at: [FLOQER.x[1] - 0.01, F + 0.6, Z + 7.1], rot: [0, -90, 0], cap: 'The F, in acoustic foam tiles, as it hangs in the house.', thing: 'foamF' });
         // the whiteboard on wheels, thick with sticky notes, against the brick past the mark, where he walks by it on the way to the stair
-        out.push({ build: 'rollingWhiteboard', at: [-8.3, F, FLOQER.z[1] - 1.0], rot: [0, -142, 0], live: 'screen', cap: 'The whiteboard on wheels: to do, failed, passed, prod.' });
+        out.push({ build: 'rollingWhiteboard', at: [-8.3, F, FLOQER.z[1] - 1.0], rot: [0, -142, 0], live: 'screen', cap: 'The whiteboard on wheels: to do, failed, passed, prod.', thing: 'rollingBoard' });
         // the stair up the east wall, straight at the door in the north wall, its rail on the open side, a light over it; the landing behind the door
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
         // the door at the top of the stair is his own: dark oak in a dark case, from the brick's face to the apartment's passage behind it (HOME), opening into the passage
-        out.push(...doorway('home', FLOQER.door.x, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + DOORS.home.depth, [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], 'His own front door.'));
+        out.push(...doorway('home', FLOQER.door.x, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + DOORS.home.depth, [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], 'His own front door.', [ch(18.8), ch(18.94)])); // and it shuts behind him in the passage, before the brick door is through
         out.push({ build: 'discLight', at: [FLOQER.stair.x, F + 3.6, FLOQER.stair.z0 + 1.2], live: 'pendant' });
         // a house people ship from: boxes still packed, a suitcase, a bin bag, a crate, the shoes by the door, cases of drinks against the wall, a torchiere in the corner
         out.push({ model: 'cardboard_box_01', at: [-15.0, F, Z + 0.9], rot: [0, 12, 0] });

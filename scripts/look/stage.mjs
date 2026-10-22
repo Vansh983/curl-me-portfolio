@@ -21,6 +21,7 @@ export async function open({ query = '', width = 1456, height = 829, cards = fal
   await page.goto(`${process.env.URL ?? 'http://localhost:4321/'}?debug&tier=1${query}`, { waitUntil: 'networkidle' });
   await page.evaluate(() => scrollTo(0, document.querySelector('section.journey').getBoundingClientRect().top + scrollY + 10));
   await page.waitForFunction(() => window.__stage?.yFor && document.querySelector('section.journey').dataset.stage === 'ready', null, { timeout: 240000 });
+  await page.waitForFunction(() => window.__stage.allMs > 0, null, { timeout: 240000 }); // the canvas shows after two sets; a capture wants the whole world in
   await page.waitForTimeout(settle);
   if (!cards) await page.addStyleTag({ content: HIDE });
   const go = async (c, wait = 2200) => { await page.evaluate((q) => scrollTo(0, window.__stage.yFor(q)), c / SPAN); await page.waitForTimeout(wait); };

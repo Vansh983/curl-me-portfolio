@@ -10,6 +10,9 @@ const n = chapters.length;
 ---
 
 <section class="journey" data-n={n}>
+  {/* the sets the canvas waits for come down with the page, not after the renderer: the apartment, the bedroom, the lab and the lawn (stage-run.ts, FIRST) */}
+  {[0, 1, 2, 3].map((i) => <link rel="preload" as="fetch" crossorigin="anonymous" fetchpriority={i === 0 ? 'high' : 'auto'} href={deliveryUrl(`/assets/stage/baked/set${i}.glb`)} />)}
+  {[0, 1, 2, 3].map((i) => <link rel="preload" as="image" crossorigin="anonymous" fetchpriority={i === 0 ? 'high' : 'auto'} href={deliveryUrl(`/assets/stage/baked/set${i}_lm.webp`)} />)}
   <div class="stage" aria-hidden="true">
     <img class="opening" src={deliveryUrl('/assets/stage/preview.webp')} width="1440" height="900" alt="" fetchpriority="high" />
     <canvas class="gl"></canvas>
@@ -25,8 +28,10 @@ const n = chapters.length;
     <button type="button" data-mode="scroll" aria-pressed="true">Scroll</button>
     <button type="button" data-mode="walk" aria-pressed="false">Walk</button>
   </div>
-  <p class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <kbd>Click</kbd> look <kbd>E</kbd> open <kbd>Shift</kbd> run <kbd>Esc</kbd> leave</p>
+  <p class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <kbd>Click</kbd> look <kbd>E</kbd> open <kbd>Shift</kbd> run <kbd>Esc</kbd> leave<span class="found" data-found></span></p>
   <p class="prompt" data-roam-prompt hidden></p>
+  {/* a thing picked up: its words beside it (stage-run.ts fills it); the lane, the title, the lines, his photographs, a link */}
+  <aside class="thing" data-thing role="dialog" tabindex="-1" hidden></aside>
 
   <div class="wall">
     {chapters.map((m, i) => (
@@ -179,7 +184,42 @@ const n = chapters.length;
       pointer-events: none;
     }
     .prompt::before { content: 'E'; margin-right: 10px; padding: 1px 6px; border: 1px solid var(--tx); }
+    .keys .found { margin-left: 18px; color: var(--mut); }
+    .keys .found:empty { display: none; }
   }
+  /* the words beside a thing in hand (built in stage-run.ts, so their selectors are global): the right half of the frame, no box, a soft fade to the page behind them; upright, the lower half under the thing */
+  .thing {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    padding: 72px clamp(24px, 6vw, 96px) 72px clamp(24px, 4vw, 64px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    color: var(--tx);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 82%, transparent) 30%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    outline: 0;
+  }
+  .thing.on { opacity: 1; }
+  .thing[hidden] { display: none; }
+  .thing > :global(:first-child) { margin-top: auto; }
+  .thing > :global(:last-child) { margin-bottom: auto; }
+  .thing :global(h3) { font-size: clamp(22px, 2.1vw, 30px); line-height: 1.2; margin: 0 0 18px; }
+  .thing :global(p) { max-width: 44ch; margin: 0 0 12px; line-height: 1.55; }
+  .thing :global(img) { display: block; width: min(100%, 420px); height: auto; aspect-ratio: 4 / 3; object-fit: cover; margin: 6px 0 18px; }
+  .thing :global(a) { display: inline-block; margin-top: 8px; font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; text-transform: uppercase; color: var(--tx); text-decoration: underline; text-underline-offset: 3px; }
+  .thing :global(a:focus-visible) { outline: 2px solid var(--tx); outline-offset: 3px; }
+  @media (max-width: 48rem) {
+    .thing { top: 50%; left: 0; padding: 28px var(--pad) 28px; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg) 82%, transparent) 24%); }
+    .thing > :global(:first-child) { margin-top: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .thing { transition: none; } }
   /* the wall lets pointer events through to the stage everywhere except on the text itself */
   .wall {
     position: relative;
@@ -189,7 +229,7 @@ const n = chapters.length;
     pointer-events: none;
     transition: opacity 0.25s ease;
   }
-  .journey:global(.phone-focus) .wall { opacity: 0; }
+  .journey:global(.phone-focus) .wall, .journey:global(.held) .wall { opacity: 0; }
   .tx {
     pointer-events: auto;
   }

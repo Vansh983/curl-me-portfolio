@@ -43,6 +43,12 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [45-walk-mode-research.md](./45-walk-mode-research.md) | How a first-person walk is made smooth in a browser: mouse look, frame pacing, feel, collision, keys, prior art |
 | [46-walk-mode.md](./46-walk-mode.md) | The Walk mode: the switch, the keys, doors, the flight as a ride, how it is built, what the world needed |
 | [47-one-world.md](./47-one-world.md) | Every set in one place, the brick door the way home, the 2020 room's two doors a pair: the story walked as a circle |
+| [48-deployment-plan.md](./48-deployment-plan.md) | Vercel as it is, what makes the first visit slow (32 MB, GPU memory), the order of work, the plan's bandwidth cap |
+| [49-the-world-comes-in-behind-him.md](./49-the-world-comes-in-behind-him.md) | The canvas after two sets; the rest stream in the story's order, warmed behind the frames; the camera held at a station and doors shut until the room is in |
+| [50-a-perfect-film-set-and-the-things-in-hand.md](./50-a-perfect-film-set-and-the-things-in-hand.md) | Design: every set sealed from everywhere a walker stands (a leak tool, fixes set by set), then things picked up and read as in The Last of Us |
+| [52-the-film-set-sealed-and-the-things-in-hand.md](./52-the-film-set-sealed-and-the-things-in-hand.md) | Built from doc 50: the leak tool's table before and after, the faces, leaves, airlocks and hedges added, the rebakes; the hand, the look, the panel, the count; what he judges |
+| [53-grass-in-the-lab-and-the-passage-ends.md](./53-grass-in-the-lab-and-the-passage-ends.md) | Grass over the 2010 room's floor from the lab (the lawn's polygon offset and its sloped low region) and the passages' end walls baked black on the rooms' wall planes (partitions 2 cm in, sets 0 to 2 rebaked); `pins.mjs` |
+| [51-the-apartment-skyline.md](./51-the-apartment-skyline.md) | The apartment's CN Tower: a night photograph hung the way Floqer's is, rejected in a day ("too fake"); the close-up coded tower back, lit red in the photograph's colour |
 
 ## The one-paragraph verdict
 

@@ -13,16 +13,18 @@ import { MeshBVH, type ExtendedTriangle } from 'three-mesh-bvh';
 import type { Frame } from '../lib/stage/dolly.ts';
 import { ROAM, roamPath, roamNearest, roamHeading, roamProgress, type RoamPath, type RoamRun } from '../lib/stage/roam.ts';
 
-export interface RoamDoor { obj: Object3D; base: number; from: number; to: number; shut?: [number, number]; open: number }
+export interface RoamDoor { obj: Object3D; base: number; from: number; to: number; shut?: [number, number]; open: number; sides?: [number, number] } // sides: the sets the door joins
 export interface RoamContext {
   groups: Group[];
   dolly: (q: number) => Frame;
   span: number;
   doors: RoamDoor[];
-  /** Doors never open together: opening one shuts the other (the 2020 room's two: the lawn outside one, the aircraft outside the other). */
-  exclusive: Array<[RoamDoor, RoamDoor]>;
+  /** Doors never open together: opening one shuts the other (the 2020 room's two: the lawn outside one, the aircraft outside the other). Read when E is pressed: a pair's doors may land after the Walk begins. */
+  exclusive: () => Array<[RoamDoor, RoamDoor]>;
   /** What is not solid: backdrops, the sky, water, what moves on its own. */
   skip: (o: Mesh) => boolean;
+  /** Whether a set is in yet: a door onto a room still coming does not open. */
+  landed: (set: number) => boolean;
 }
 export interface Roam {
   active: boolean;
@@ -30,8 +32,12 @@ export interface Roam {
   q: number;
   /** What E would do here: '' when nothing. */
   prompt: string;
+  /** How far away what E would do is, metres; Infinity when nothing. A thing nearer than this wins the prompt (stage-run.ts). */
+  near: number;
   /** Builds each set's collision mesh, a set a frame. */
   prepare(): Promise<void>;
+  /** A set has come in since prepare: its collision mesh is built now. */
+  landed(set: number): void;
   enter(q: number): void;
   exit(): number;
   /** A frame of walking: moves him by the keys held and gives the stage its frame (the scroll's, with his eye). */
@@ -44,6 +50,10 @@ export interface Roam {
   release(): void;
   /** Review only: where he is. */
   state(): { pos: [number, number, number]; yaw: number; set: number; run: number; riding: boolean; doors: number[]; ground: number | null; held: string; solids: number };
+  /** Review only (scripts/look/leaks.mjs): the floor under a point as the walker finds it, from a height near his feet; null where nothing is built. */
+  floorAt(x: number, z: number, from: number): number | null;
+  /** Review only: puts him down at a point (his feet at `y`), facing `yaw`, looking `pitch`. */
+  teleport(x: number, y: number, z: number, yaw: number, pitch: number): void;
 }
 
 const KEYS = { fwd: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['KeyA'], right: ['KeyD'], turnL: ['ArrowLeft'], turnR: ['ArrowRight'], fast: ['ShiftLeft', 'ShiftRight'] } as const;
@@ -58,7 +68,8 @@ export function createRoam(ctx: RoamContext): Roam {
   let yaw = 0, pitch = 0, run = 0, idx = 0, feet = NaN, under: number | null = null, heldBy = '', riding: { to: number; rate: number; from: Frame; blend: number } | null = null;
   const solids: Solid[] = [];
   const setOf = (o: Object3D): number => { let k: Object3D | null = o; while (k && !groups.includes(k as Group)) k = k.parent; return k ? groups.indexOf(k as Group) : -1; };
-  const doors = ctx.doors.map((d) => ({ ...d, src: d, set: setOf(d.obj), open: 0, target: 0, way: 1, far: new Vector3(), a: new Vector3(), b: new Vector3() }));
+  const adopt = (d: RoamDoor) => ({ ...d, src: d, set: setOf(d.obj), open: 0, target: 0, way: 1, far: new Vector3(), a: new Vector3(), b: new Vector3() });
+  const doors = ctx.doors.map(adopt);
   type Door = (typeof doors)[number];
 
   // ---- what is solid: one mesh a set, in the set's own frame (a set that stands in two places takes its mesh along)
@@ -159,7 +170,7 @@ export function createRoam(ctx: RoamContext): Roam {
   };
 
   // ---- doors: each leaf a line from its hinge, turned by how far it stands open
-  for (const d of doors) {
+  const measure = (d: Door): void => {
     const b = new Box3(), inv = new Matrix4(), v = new Vector3();
     d.obj.updateMatrixWorld(true);
     inv.copy(d.obj.matrixWorld).invert();
@@ -171,7 +182,20 @@ export function createRoam(ctx: RoamContext): Roam {
     });
     const c = b.getCenter(new Vector3());
     d.far.set(c.x * 2, 1, c.z * 2); // the leaf runs from its hinge, at its own origin, through its middle
-  }
+  };
+  for (const d of doors) measure(d);
+  /** The doors of a set that landed after the Walk began (doc 49): known now, as the scroll left them, before its collider is built without them. */
+  const adoptNew = (): void => {
+    for (const src of ctx.doors) {
+      if (doors.some((d) => d.src === src)) continue;
+      const d = adopt(src);
+      measure(d);
+      const k = Math.min(1, Math.max(0, (api.q - d.from) / (d.to - d.from))), s = d.shut ? Math.min(1, Math.max(0, (api.q - d.shut[0]) / (d.shut[1] - d.shut[0]))) : 0;
+      d.open = d.target = k > 0.5 && s < 0.5 ? 1 : 0;
+      swing(d);
+      doors.push(d);
+    }
+  };
   const leaf = (d: Door): void => { d.obj.updateMatrixWorld(true); d.a.set(0, 1, 0).applyMatrix4(d.obj.matrixWorld); d.b.copy(d.far).applyMatrix4(d.obj.matrixWorld); };
   const swing = (d: Door): void => { const e = d.open * d.open * (3 - 2 * d.open); d.obj.rotation.y = d.base + d.way * (Math.PI / 2) * e; d.src.open = e; };
   const close: Door[] = []; // the doors of his set and the ones next to it, their leaves placed: once a frame
@@ -189,16 +213,19 @@ export function createRoam(ctx: RoamContext): Roam {
       if (dist < r && dist > 1e-5) { p.x = cx + (dx / dist) * r; p.z = cz + (dz / dist) * r; }
     }
   };
-  /** The door he would open: the nearest within reach, in front of him. */
+  /** The door he would open: the nearest within reach, in front of him; `facingDist` how far it is. */
+  let facingDist = Infinity;
   const facing = (): Door | null => {
     let best: Door | null = null, bd: number = ROAM.reach;
+    facingDist = Infinity;
     const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
     for (const d of close) {
       const mx = (d.a.x + d.b.x) / 2 - pos.x, mz = (d.a.z + d.b.z) / 2 - pos.z, dist = Math.hypot(mx, mz);
-      if (dist > bd || !sameFloor(d)) continue;
+      if (dist > bd || !sameFloor(d) || !(d.sides?.every((s) => ctx.landed(s)) ?? true)) continue; // a door onto a room not yet in is not his to open
       if (dist > 0.8 && (mx * fx + mz * fz) / dist < 0.2) continue;
       best = d; bd = dist;
     }
+    if (best) facingDist = bd;
     return best;
   };
 
@@ -244,7 +271,7 @@ export function createRoam(ctx: RoamContext): Roam {
   const trial = new Vector3();
 
   const api: Roam = {
-    active: false, q: 0, prompt: '',
+    active: false, q: 0, prompt: '', near: Infinity,
     async prepare() {
       for (let i = 0; i < groups.length; i++) {
         if (colliders[i] !== undefined) continue;
@@ -252,6 +279,7 @@ export function createRoam(ctx: RoamContext): Roam {
         await new Promise((r) => requestAnimationFrame(() => r(null)));
       }
     },
+    landed(i) { adoptNew(); if (colliders[i] !== undefined) colliders[i] = collider(i); },
     enter(q) {
       const i = Math.round(Math.max(0, Math.min(1, q)) * path.n), c = (i / path.n) * span, ride = ROAM.rides.find((r) => c > r.from && c < r.to);
       run = path.runs.findIndex((r) => i >= r.a && i <= r.b);
@@ -266,7 +294,7 @@ export function createRoam(ctx: RoamContext): Roam {
         swing(d);
       }
     },
-    exit() { api.active = false; held.clear(); api.prompt = ''; riding = null; return api.q; },
+    exit() { api.active = false; held.clear(); api.prompt = ''; api.near = Infinity; riding = null; return api.q; },
     key(code, down) {
       if (!HELD.has(code)) return false;
       if (down) held.add(code); else held.delete(code);
@@ -289,7 +317,7 @@ export function createRoam(ctx: RoamContext): Roam {
       if (!d) return;
       if (d.open === 0) { leaf(d); d.way = (pos.x - d.a.x) * (d.b.z - d.a.z) - (pos.z - d.a.z) * (d.b.x - d.a.x) > 0 ? -1 : 1; } // it swings away from him, whichever side he stands
       d.target = d.target > 0.5 ? 0 : 1;
-      if (d.target) for (const [a, b] of ctx.exclusive) { const other = a === d.src ? b : b === d.src ? a : null; if (other) for (const o of doors) if (o.src === other) o.target = 0; } // the other door of the pair shuts
+      if (d.target) for (const [a, b] of ctx.exclusive()) { const other = a === d.src ? b : b === d.src ? a : null; if (other) for (const o of doors) if (o.src === other) o.target = 0; } // the other door of the pair shuts
     },
     home() { if (riding) return; idx = roamNearest(path, path.runs[run], pos.x, feet + ROAM.eye, pos.z, -1); aim(dolly(path.q[idx])); },
     step(dt) {
@@ -299,7 +327,7 @@ export function createRoam(ctx: RoamContext): Roam {
         if (riding.blend < 1) { // his eye eases into the seat before anything plays
           riding.blend = Math.min(1, riding.blend + dt / 0.7);
           const t = riding.blend * riding.blend * (3 - 2 * riding.blend);
-          api.q = Math.max(api.q, start); api.prompt = '';
+          api.q = Math.max(api.q, start); api.prompt = ''; api.near = Infinity;
           return mix(riding.from, dolly(start), t);
         }
         api.q = Math.min(riding.to, Math.max(api.q, start) + riding.rate * dt);
@@ -310,7 +338,7 @@ export function createRoam(ctx: RoamContext): Roam {
           if (run < 0) run = path.runs.length - 1;
           idx = path.runs[run].a;
         }
-        api.prompt = '';
+        api.prompt = ''; api.near = Infinity;
         return f;
       }
       gather();
@@ -344,10 +372,15 @@ export function createRoam(ctx: RoamContext): Roam {
       pos.y += (feet + ROAM.eye - pos.y) * (1 - Math.exp(-12 * dt));
       place();
       api.q = roamProgress(path, path.runs[run], idx, pos.x, pos.z);
+      // a leaf is drawn shut whenever he is in neither of the two sets it joins: through two doorways he would see into a set that is not drawn
+      { const s = path.runs[run].set; for (const d of doors) if (d.sides && !d.sides.includes(s) && d.target > 0) d.target = 0; }
       const d = facing(), seat = seatNear(), landed = landedNear();
       api.prompt = seat >= 0 ? ROAM.rides[seat].prompt : landed >= 0 ? ROAM.rides[landed].back : d ? (d.target > 0.5 ? 'Close' : 'Open') : '';
+      api.near = seat >= 0 || landed >= 0 ? 0 : d ? facingDist : Infinity;
       return eye(dolly(api.q));
     },
+    floorAt(x, z, from) { gather(); if (Number.isNaN(feet)) feet = stand(); return floor(x, z, from); },
+    teleport(x, y, z, yw, pt) { pos.set(x, y + ROAM.eye, z); feet = y; yaw = yw; pitch = pt; vel.set(0, 0, 0); held.clear(); },
     state: () => ({ pos: [pos.x, pos.y, pos.z], yaw, set: path.runs[run].set, run, riding: !!riding, doors: doors.map((d) => d.open), ground: under, held: heldBy, solids: solids.length }),
   };
   return api;

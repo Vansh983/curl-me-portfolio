@@ -17,11 +17,12 @@ await s.page.click('[data-mode="walk"]');
 await s.page.waitForFunction(() => document.querySelector('section.journey').dataset.mode === 'walk', null, { timeout: 60000 });
 const result = await s.page.evaluate(({ path, N, span, to, run, back, every }) => new Promise((done) => {
   const roam = window.__stage.roam(), LOOK = 0.0022;
-  let last = performance.now(), best = roam.q, bestAt = last, said = last, used = 0, frames = 0, slow = 0, t0 = last;
+  let last = performance.now(), best = roam.q, bestAt = last, said = last, used = 0, homed = 0, frames = 0, slow = 0, t0 = last;
   roam.key('KeyW', true);
   if (run) roam.key('ShiftLeft', true);
   const tick = (now) => {
     const st = roam.state(), q = roam.q, c = q * span;
+    if (!st.riding) { roam.key('KeyW', true); if (run) roam.key('ShiftLeft', true); } // held again each frame: a ride lets every key go
     frames++; if (now - last > 34) slow++;
     last = now;
     if (back ? q < best - 1e-5 : q > best + 1e-5) { best = q; bestAt = now; }
@@ -29,9 +30,9 @@ const result = await s.page.evaluate(({ path, N, span, to, run, back, every }) =
       // aim at the path 1.1 m ahead by its own length; past a cut, keep the way he is going
       let i = Math.min(N, Math.round(q * N)), d = 0;
       const dir = back ? -1 : 1;
-      while (i + dir >= 0 && i + dir <= N && d < 1.1) { const step = Math.hypot(path[i + dir][0] - path[i][0], path[i + dir][1] - path[i][1]); if (step > 0.5) break; d += step; i += dir; }
+      while (i + dir >= 0 && i + dir <= N && d < 1.1) { const step = Math.hypot(path[i + dir][0] - path[i][0], path[i + dir][1] - path[i][1]); if (step > 0.5) { if (d < 0.3) i += dir; break; } d += step; i += dir; } // at a cut with nowhere nearer to aim at, aim across it (the hall's top row after the flight)
       const dx = path[i][0] - st.pos[0], dz = path[i][1] - st.pos[2];
-      if (Math.hypot(dx, dz) > 0.25 && Math.hypot(dx, dz) < 4) {
+      if (Math.hypot(dx, dz) > 0.25 && Math.hypot(dx, dz) < 8) { // within 8 m: the cut at the hall's top row is 4.4
         let turn = Math.atan2(-dx, -dz) - st.yaw;
         turn = Math.atan2(Math.sin(turn), Math.cos(turn));
         roam.look(-Math.max(-0.12, Math.min(0.12, turn)) / LOOK, 0);
@@ -39,8 +40,9 @@ const result = await s.page.evaluate(({ path, N, span, to, run, back, every }) =
       if ((roam.prompt === 'Open' || (roam.prompt === 'Take your seat' && !back)) && now - used > 900) { used = now; roam.use(); console.log('bot use', roam.prompt, 'c', c.toFixed(3)); }
       else if (roam.prompt === 'Close' && now - bestAt > 1500 && now - used > 1500) { used = now; roam.use(); console.log('bot use Close (in its way)', 'c', c.toFixed(3)); } // an open leaf across his way: shut it and open it from here
     }
-    // against a prop the path runs close by: a step to one side, then the other, as a person would
+    // against a prop the path runs close by: a step to one side, then the other, as a person would; still stuck after a while, R, as he would (back onto the path)
     const stuck = now - bestAt, side = stuck > 1200 && !st.riding ? (Math.floor(stuck / 800) % 2 ? 'KeyA' : 'KeyD') : '';
+    if (stuck > 3000 && !st.riding && now - homed > 6000) { homed = now; bestAt = now; roam.home(); console.log('bot home', 'c', c.toFixed(3)); }
     roam.key('KeyA', side === 'KeyA'); roam.key('KeyD', side === 'KeyD');
     if (now - said > every) { said = now; console.log('bot c', c.toFixed(3), 'set', st.set, 'at', st.pos.map((v) => v.toFixed(2)).join(','), st.riding ? 'riding' : ''); }
     if (back ? c <= to + 0.02 : c >= to - 0.02) return done({ ok: true, c, secs: (now - t0) / 1000, frames, slow });

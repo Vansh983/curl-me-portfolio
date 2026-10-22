@@ -38,7 +38,7 @@ EMIT = {"paint:screenCode": 4.0, "paint:screenFloqer": 4.0, "paint:screenBoard":
         "mat:stripLight": 26.0, "mat:ringLight": 22.0}  # Volta: the long strips under the slab, the ring pendants
 LIVE_SURFACE = {"mat:tubeGlass", "mat:bulb", "mat:curtain", "mat:cabinGlass", "mat:handrail"}  # runtime keeps building these pieces
 # in the scene for shadow and bounce, not baked, not exported: the wide ground, the leafy models (bake.ts CONTEXT_*)
-CONTEXT_PROP = {"lawn", "aircraftSkin", "aircraftWing", "stageBin", "doorCaseSydney", "doorCaseVolta", "doorCaseFloqer", "doorCaseHome", "doorCaseFront", "doorCaseBrick", "tripPhotoAward", "tripPhotoSign"}
+CONTEXT_PROP = {"lawn", "lawnFar", "aircraftSkin", "aircraftWing", "stageBin", "doorCaseSydney", "doorCaseVolta", "doorCaseFloqer", "doorCaseHome", "doorCaseFront", "doorCaseBrick", "doorCaseRear", "tripPhotoAward", "tripPhotoSign"}
 CONTEXT_MODEL = {"island_tree_01", "volta_fig"}
 
 

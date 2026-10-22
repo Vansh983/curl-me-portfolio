@@ -30,6 +30,9 @@ export default function stageDelivery() {
           await mkdir(dirname(destination), { recursive: true });
           await writeFile(destination, file.content);
         }
+        // the renderer is imported on demand (Journey.astro); the home page names its chunk up front, so it comes down with the page
+        const out = fileURLToPath(dir), chunk = readdirSync(join(out, '_astro')).find((name) => /^stage-run\..*\.js$/.test(name));
+        if (chunk) { const page = join(out, 'index.html'); await writeFile(page, readFileSync(page, 'utf8').replace('</head>', `<link rel="modulepreload" href="/_astro/${chunk}">\n</head>`)); }
       },
     },
   };
