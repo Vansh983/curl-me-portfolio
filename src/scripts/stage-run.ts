@@ -1774,7 +1774,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const showFound = () => { if (foundEl) foundEl.textContent = `${found.size} of ${totalThings} found`; };
   showFound();
   interface HandPose { pos: Vector3; quat: Quaternion; scale: number }
-  interface Held { h: Placed; thing: Thing; kind: 'hand' | 'look'; built: boolean; pivot?: Group; card?: { mesh: Mesh; model: Object3D; mats: Material[]; map: Texture; t: number }; from?: HandPose; to?: HandPose; t: number; dir: 1 | -1; ready: boolean; yaw: number; pitch: number; yawV: number; pitchV: number; flip: number; flipTo: number; eye?: { cam: Vector3; look: Vector3 }; y: number }
+  interface Held { h: Placed; thing: Thing; kind: 'hand' | 'look'; built: boolean; pivot?: Group; card?: { mesh: Mesh; model: Object3D; mats: Material[]; map: Texture; t: number }; from?: HandPose; to?: HandPose; t: number; dir: 1 | -1; ready: boolean; yaw: number; pitch: number; age: number; flip: number; flipTo: number; eye?: { cam: Vector3; look: Vector3 }; y: number } // yaw, pitch: the mouse's nudge, small and settling; age: seconds in hand, for the sway
   let held: Held | undefined, dragged = false, lastPt: { x: number; y: number } | undefined, rimmed: Placed | undefined;
   const LIFT = 0.45, DROP = 0.35, LOOK = 0.6, HAND_D = 0.5; // seconds up, down, to the eye's view; how far out the hand holds it
   /** A thing's bounding sphere in the world, from its baked meshes or its built root; kept once found. */
@@ -1848,7 +1848,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (!thing || held || (roam?.active && roam.state().riding)) return;
     setHover(undefined); setRim(undefined); roam?.release();
     const count = () => { if (h.p.thing && !found.has(h.p.thing)) { found.add(h.p.thing); try { localStorage.setItem(FOUND_KEY, JSON.stringify([...found])); } catch { /* a private window: the count is for this visit */ } showFound(); } };
-    const H: Held = { h, thing, kind: thing.kind, built: !!h.p.build, t: 0, dir: 1, ready: false, yaw: 0, pitch: 0, yawV: 0, pitchV: 0, flip: 0, flipTo: 0, y: scrollY };
+    const H: Held = { h, thing, kind: thing.kind, built: !!h.p.build, t: 0, dir: 1, ready: false, yaw: 0, pitch: 0, age: 0, flip: 0, flipTo: 0, y: scrollY };
     held = H;
     root.classList.add('held'); // the story's cards off the frame while a thing is in hand
     if (thing.kind === 'look') {
@@ -1933,7 +1933,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     canvas.style.touchAction = '';
     if (!roam?.active && pointer) setHover(pick(pointer.x, pointer.y));
   };
-  const turnHeld = (dx: number, dy: number) => { if (!held?.pivot) return; held.yaw += dx * 0.006; held.pitch += dy * 0.006; held.yawV = dx * 0.06; held.pitchV = dy * 0.06; dragged = true; kick(); };
+  /** The mouse nudges the thing a little in 3D (a tilt of at most NUDGE each way), and it settles back; it turns on its own in a slow sway (heldFrame). R turns it over. */
+  const NUDGE = 0.2, NUDGE_GAIN = 0.0015;
+  const turnHeld = (dx: number, dy: number) => { if (!held?.pivot) return; held.yaw = Math.max(-NUDGE, Math.min(NUDGE, held.yaw + dx * NUDGE_GAIN)); held.pitch = Math.max(-NUDGE, Math.min(NUDGE, held.pitch + dy * NUDGE_GAIN)); if (Math.abs(dx) + Math.abs(dy) > 2) dragged = true; kick(); };
   const flipHeld = () => { if (held?.pivot) { held.flipTo += Math.PI; kick(); } };
   const lerp3 = (a: Frame['cam'], b: Vector3, t: number): Frame['cam'] => [a[0] + (b.x - a[0]) * t, a[1] + (b.y - a[1]) * t, a[2] + (b.z - a[2]) * t];
   /** A frame of the thing: the lift or the drop, the mouse's turn with weight; for a looked-at thing, the frame eased to the eye's view. */
@@ -1946,12 +1948,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       if (H.dir < 0 && H.t <= 0) { finishHeld(); return f; }
       return { ...f, cam: lerp3(f.cam, H.eye!.cam, e), look: lerp3(f.look, H.eye!.look, e) };
     }
-    H.yaw += H.yawV * dt; H.pitch += H.pitchV * dt;
-    const k = Math.exp(-5 * dt);
-    H.yawV *= k; H.pitchV *= k;
+    H.age += dt;
+    const k = Math.exp(-1.8 * dt); // the nudge settles in about a second and a half
+    H.yaw *= k; H.pitch *= k;
+    const swayYaw = 0.14 * Math.sin((H.age * 2 * Math.PI) / 7), swayPitch = 0.05 * Math.sin((H.age * 2 * Math.PI) / 9 + 1); // 8 degrees each way over 7 s, 3 degrees over 9 s: it moves a little on its own, never spins
     H.flip += (H.flipTo - H.flip) * (1 - Math.exp(-9 * dt));
     if (H.card && H.card.t < 1) { H.card.t = Math.min(1, H.card.t + dt / 0.3); for (const m of H.card.mats) m.opacity = H.card.t; } // the photograph comes up over a third of a second
-    const pv = H.pivot!, turn = new Quaternion().setFromEuler(new Euler(H.pitch, H.yaw + H.flip, 0, 'YXZ'));
+    const pv = H.pivot!, turn = new Quaternion().setFromEuler(new Euler(H.pitch + swayPitch, H.yaw + swayYaw + H.flip, 0, 'YXZ'));
     pv.position.lerpVectors(H.from!.pos, H.to!.pos, e);
     pv.quaternion.copy(H.from!.quat).slerp(H.to!.quat, e).premultiply(new Quaternion().slerp(turn, e));
     pv.scale.setScalar(H.from!.scale + (H.to!.scale - H.from!.scale) * e);
@@ -2177,7 +2180,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // the nearest of a door and a thing wins the prompt; the thing gets the accent rim while it is his
     const near = held ? undefined : nearestThing(), thing = near && near.dist < roam.near && near.h.p.thing ? THINGS[near.h.p.thing] : undefined;
     setRim(thing ? near!.h : undefined);
-    const text = held ? '' : thing ? (thing.kind === 'hand' ? 'Pick up' : 'Look') : roam.prompt;
+    const text = held ? (held.dir > 0 && held.ready ? (held.kind === 'hand' ? 'Put back · R turn over' : 'Back') : '') : thing ? (thing.kind === 'hand' ? 'Pick up' : 'Look') : roam.prompt;
     if (text !== roamPrompt && prompt) { roamPrompt = text; prompt.textContent = roamPrompt; prompt.hidden = !roamPrompt; }
     const y = Math.round(yFor(roam.q));
     if (y !== roamY) { roamY = y; scrollTo({ top: y, behavior: 'instant' }); }
@@ -2221,9 +2224,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // macOS sends no keyup for a key let go while Command is down: with Command, every held key is let go
   const meta = (e: KeyboardEvent) => e.code === 'MetaLeft' || e.code === 'MetaRight';
   const onKeyDown = (e: KeyboardEvent) => {
-    if (held && !typing(e)) { // a thing in hand: Esc, E or Enter puts it back, R turns it over; the keys do not move him; inside the panel the keys are the panel's (its link, its button)
+    if (held && !typing(e)) { // a thing in hand: E or Enter puts it back (walked, the mouse stays his), R turns it over; Escape is the walk's own key and puts a thing back only in the scroll; the keys do not move him; inside the panel the keys are the panel's (its link, its button)
       if (e.target instanceof Node && e.target !== panel && panel.contains(e.target) && e.code !== 'Escape') return; // on its link, the keys are the link's
-      if (e.code === 'Escape' || e.code === 'KeyE' || e.code === 'Enter') { e.preventDefault(); if (!e.repeat) putBack(); }
+      if (e.code === 'KeyE' || e.code === 'Enter' || (e.code === 'Escape' && !roam?.active)) { e.preventDefault(); if (!e.repeat) putBack(); }
       else if (e.code === 'KeyR') { e.preventDefault(); if (!e.repeat) flipHeld(); }
       else if (roam?.active) e.preventDefault();
       return;
@@ -2266,7 +2269,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (Math.abs(e.movementX) > innerWidth / 3 || Math.abs(e.movementY) > innerHeight / 3) return; // a locked pointer now and then reports a leap of hundreds of pixels: dropped, the view does not jump
     roam.look(e.movementX, e.movementY);
   };
-  const onLockChange = () => { roam?.release(); if (held && document.pointerLockElement !== canvas) putBack(); }; // the mouse let go (Escape): no key stays held; the browser keeps that Escape, so a thing in hand is put back here
+  const onLockChange = () => { roam?.release(); }; // the mouse let go (Escape): no key stays held; a thing in hand stays in hand (E puts it back, a click too)
   const onHidden = () => { if (document.hidden) roam?.release(); };
   for (const b of modeButtons) b.addEventListener('click', () => { void setMode(b.dataset.mode === 'walk'); b.blur(); });
   addEventListener('keydown', onKeyDown);

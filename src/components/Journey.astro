@@ -183,6 +183,7 @@ const n = chapters.length;
       border: 1px solid var(--tx);
       pointer-events: none;
     }
+    .journey:global(.held)[data-mode='walk'] .prompt:not([hidden]) { top: auto; bottom: 58px; } /* a thing in hand: the prompt sits above the keys line, clear of the words and their link */
     .prompt::before { content: 'E'; margin-right: 10px; padding: 1px 6px; border: 1px solid var(--tx); }
     .keys .found { margin-left: 18px; color: var(--mut); }
     .keys .found:empty { display: none; }
