@@ -49,6 +49,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [52-the-film-set-sealed-and-the-things-in-hand.md](./52-the-film-set-sealed-and-the-things-in-hand.md) | Built from doc 50: the leak tool's table before and after, the faces, leaves, airlocks and hedges added, the rebakes; the hand, the look, the panel, the count; what he judges |
 | [53-grass-in-the-lab-and-the-passage-ends.md](./53-grass-in-the-lab-and-the-passage-ends.md) | Grass over the 2010 room's floor from the lab (the lawn's polygon offset and its sloped low region) and the passages' end walls baked black on the rooms' wall planes (partitions 2 cm in, sets 0 to 2 rebaked); `pins.mjs` |
 | [51-the-apartment-skyline.md](./51-the-apartment-skyline.md) | The apartment's CN Tower: a night photograph hung the way Floqer's is, rejected in a day ("too fake"); the close-up coded tower back, lit red in the photograph's colour |
+| [54-the-content-round.md](./54-the-content-round.md) | The content round: his LinkedIn, the old site, the resume and the Floqer press read on 2026-10-22; every card from Converge Clan to Floqer drafted with sources (MSIT dropout, Bean exited, Floqer from Halifax, Disrupt Top 20); the starting left to him; his open calls |
 
 ## The one-paragraph verdict
 
