@@ -8,11 +8,12 @@ type Props = {
   description?: string;
   article?: { published: string; updated?: string };
   wide?: boolean;
+  noindex?: boolean; // keep a working page out of search
   topbar?: boolean;
   footer?: boolean; // false on the home page: its scroll ends in the journey's last room, nothing under it
 };
 
-const { title, description, article, topbar = true, footer = true } = Astro.props;
+const { title, description, article, noindex = false, topbar = true, footer = true } = Astro.props;
 const pageTitle = title ? `${title} | ${profile.name}` : `${profile.name}`;
 const desc = description ?? site.description;
 // build.format is 'file', so pathname is "/archive.html" at build time.
@@ -66,6 +67,7 @@ const path = Astro.url.pathname.replace(/\/$/, '');
     <title>{pageTitle}</title>
     <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="alternate" type="application/rss+xml" title={profile.name} href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

@@ -50,6 +50,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [53-grass-in-the-lab-and-the-passage-ends.md](./53-grass-in-the-lab-and-the-passage-ends.md) | Grass over the 2010 room's floor from the lab (the lawn's polygon offset and its sloped low region) and the passages' end walls baked black on the rooms' wall planes (partitions 2 cm in, sets 0 to 2 rebaked); `pins.mjs` |
 | [51-the-apartment-skyline.md](./51-the-apartment-skyline.md) | The apartment's CN Tower: a night photograph hung the way Floqer's is, rejected in a day ("too fake"); the close-up coded tower back, lit red in the photograph's colour |
 | [54-the-content-round.md](./54-the-content-round.md) | The content round: his LinkedIn, the old site, the resume and the Floqer press read on 2026-10-22; every card from Converge Clan to Floqer drafted with sources (MSIT dropout, Bean exited, Floqer from Halifax, Disrupt Top 20); the starting left to him; his open calls |
+| [55-the-content-page.md](./55-the-content-page.md) | The content page and the phone rooms, 2026-10-25: the story as plain text on /content from `src/data/story.ts`, rewritten in the voice of his LinkedIn posts; six quick phone variants rejected; the phone journey as 2D dark rooms in CSS at /v/rooms, built for old phones and in-app browsers |
 
 ## The one-paragraph verdict
 
