@@ -1,25 +1,30 @@
 ---
-// The phone journey: the words up top, one continuous text; the bottom two
-// fifths of the screen a side scroller, him walking right through the places
-// of the story as the page scrolls, a door between each. The places are
-// src/lib/phone/walk.ts. He is twelve colours of pixels, four frames.
+// The phone journey: the words in the top seven tenths, one continuous text on
+// black; the bottom three tenths one picture that turns into the next as the
+// page scrolls. Every place is flat shapes by role; between places each shape
+// morphs into its next (the glass into the Delhi window, the desk into the
+// bench, the pendant into the sun), what leaves shrinks away first, what comes
+// grows last, and inside a place things move on their own. He walks in place
+// below the words and jumps when tapped. The places and the geometry are
+// src/lib/phone/morph.ts.
 //
 // Built for the phones people open links on, old ones and the Instagram and
-// LinkedIn browsers: window scroll, one frame per scroll event, transforms
-// only, no WebGL, no scroll-driven CSS, nothing newer than 2019 WebKit
-// without a fallback. Without JavaScript the words stand alone.
+// LinkedIn browsers: window scroll, one frame per scroll event, a dozen SVG
+// paths rewritten only while a morph is under way, CSS transforms for what
+// moves on its own, no WebGL, no scroll-driven CSS, nothing newer than 2019
+// WebKit without a fallback. Without JavaScript the words stand alone.
 import '../../styles/global.css';
 import { profile } from '../../data/profile';
 import { lead, openings, chapters } from '../../data/story';
-import { PHASES } from '../../lib/phone/walk';
+import { SCENES, ROLES } from '../../lib/phone/morph';
 
 type Words = { paras: string[] };
 const byId = new Map<string, Words>();
 byId.set('now', { paras: [lead.now] });
 for (const c of [...openings, ...chapters]) byId.set(c.id, c);
-const words = PHASES.map((p) => {
-  const w = byId.get(p.chapter);
-  if (!w) throw new Error(`no words for phase ${p.id}`);
+const words = SCENES.map((s) => {
+  const w = byId.get(s.chapter);
+  if (!w) throw new Error(`no words for scene ${s.id}`);
   return w;
 });
 
@@ -101,141 +106,143 @@ const frames = {
       </footer>
     </main>
 
-    <div class="strip" id="strip" aria-hidden="true">
-      <div class="layer" data-l="far"></div>
-      <div class="layer" data-l="mid"></div>
-      <div class="layer" data-l="near"></div>
+    <div class="world" id="world" data-scene="0" aria-hidden="true"></div>
+    <div class="foot" aria-hidden="true">
+      <svg id="pic" viewBox="0 0 390 260" preserveAspectRatio="xMidYMax slice">
+        <rect id="sky" x="0" y="0" width="390" height="260" fill="#1C2133" />
+        {ROLES.map((r) => <path data-r={r} d="" />)}
+      </svg>
       <div class="me idle" id="me"><i class="px"></i></div>
     </div>
 
     <script>
-      import { PHASES, PARALLAX, GROUND } from '../../lib/phone/walk';
-      import type { Layer, Prop } from '../../lib/phone/walk';
+      import { SCENES, ROLES, N, resample, align, centroid, hex } from '../../lib/phone/morph';
+      import type { Pt, Role } from '../../lib/phone/morph';
 
-      const N = PHASES.length;
-      const SPEED = 1.1; // world px per page px
+      const K = SCENES.length;
       const root = document.documentElement;
-      const strip = document.getElementById('strip')!;
+      const world = document.getElementById('world')!;
+      const sky = document.getElementById('sky')!;
       const me = document.getElementById('me')!;
-      const layers: Record<Layer, HTMLElement> = {
-        far: strip.querySelector('[data-l="far"]')!,
-        mid: strip.querySelector('[data-l="mid"]')!,
-        near: strip.querySelector('[data-l="near"]')!,
-      };
+      const paths = new Map<Role, SVGPathElement>();
+      const pic = document.getElementById('pic')!;
+      for (const el of Array.from(pic.querySelectorAll<SVGPathElement>('path[data-r]'))) paths.set(el.dataset.r as Role, el);
       const texts = Array.from(document.querySelectorAll<HTMLElement>('.tx'));
-      const hex = (c: string): [number, number, number] => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
-      const skies = PHASES.map((p) => hex(p.sky));
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const skies = SCENES.map((s) => hex(s.sky));
 
-      let vh = innerHeight, vw = innerWidth, W = 390, CX = 110, ticking = false;
-      // s[k]: the page scroll at which he enters phase k; b[k]: where phase k begins in the world
-      // (near-layer px). A short chapter still gets MIN px of world: he walks faster through it.
-      const MIN = 560;
-      const s: number[] = [];
-      const b: number[] = [];
-
-      // the world ends where he stands at the page's end, ten px past the last place's edge
-      const origin = (k: number, pl: number) => (k === 0 ? 0 : CX + ((k === N ? b[N] + CX + 10 : b[k]) - CX) * pl);
-
-      const place = (seg: HTMLElement, p: Prop, x: number) => {
-        const el = document.createElement('i');
-        el.className = 'p' + (p.s ? ' s-' + p.s : '');
-        const st = el.style;
-        st.left = x + 'px';
-        st.bottom = GROUND + p.y + 'px';
-        st.width = p.w + 'px';
-        st.height = p.h + 'px';
-        st.backgroundColor = p.c;
-        st.color = p.c;
-        if (p.r) st.borderRadius = p.r + '%';
-        if (p.o !== undefined) st.opacity = String(p.o);
-        seg.appendChild(el);
-      };
-
-      // the world is built once per width, from where the chapters stand on the page: each phase a
-      // clipped segment in each layer, so one place's far hills never show behind the next
-      const build = () => {
-        for (const k of Object.keys(layers) as Layer[]) layers[k].innerHTML = '';
-        for (let k = 0; k < N; k++) {
-          const ph = PHASES[k];
-          for (const L of ['far', 'mid', 'near'] as Layer[]) {
-            const pl = PARALLAX[L];
-            const o = origin(k, pl), span = origin(k + 1, pl) - o;
-            const seg = document.createElement('div');
-            seg.className = 'seg';
-            seg.style.left = o + 'px';
-            seg.style.width = span + (k === N - 1 ? W : 0) + 'px';
-            layers[L].appendChild(seg);
-            if (L === 'near') {
-              if (ph.wall) place(seg, { x: 0, y: -GROUND, w: span + W, h: 2000, c: ph.sky }, 0);
-              place(seg, { x: 0, y: -GROUND, w: span + (k === N - 1 ? W : 0), h: GROUND, c: ph.ground }, 0);
-            }
-            for (const p of ph[L] || []) {
-              const x0 = p.x < 0 ? span + p.x : p.x; // a negative x stands from the end of the place
-              if (p.every) {
-                for (let x = x0; x < span - 20; x += p.every) place(seg, p, x);
-              } else place(seg, p, x0);
-            }
-            // the door at the end of a place, the way into the next
-            if (L === 'near' && k < N - 1) place(seg, { x: 0, y: 0, w: 44, h: 92, c: '#1E1A18', s: 'door' }, span - 60);
-          }
+      // every role in every place: its outline resampled; absent, a point at the centre of the
+      // nearest outline it has in the story, so it grows from there and shrinks back into it
+      type Form = { pts: Pt[]; fill: [number, number, number]; anim: string; there: boolean };
+      const forms: Record<string, Form[]> = {};
+      for (const r of ROLES) {
+        const row: Form[] = [];
+        for (let k = 0; k < K; k++) {
+          const sh = SCENES[k].shapes[r];
+          if (sh) row.push({ pts: resample(sh.pts, N), fill: hex(sh.fill), anim: sh.anim || '', there: true });
+          else row.push({ pts: [], fill: [0, 0, 0], anim: '', there: false });
         }
-      };
+        for (let k = 0; k < K; k++) {
+          if (row[k].there) continue;
+          let near = -1;
+          for (let d = 1; d < K && near < 0; d++) {
+            if (k + d < K && row[k + d].there) near = k + d;
+            else if (k - d >= 0 && row[k - d].there) near = k - d;
+          }
+          const c = near < 0 ? ([195, 226] as Pt) : centroid(row[near].pts);
+          row[k].pts = Array.from({ length: N }, () => [c[0], c[1]] as Pt);
+          row[k].fill = near < 0 ? [0, 0, 0] : row[near].fill;
+        }
+        // align each outline to the one before it, so the morph turns without twisting
+        for (let k = 1; k < K; k++) row[k].pts = align(row[k - 1].pts, row[k].pts);
+        forms[r] = row;
+      }
 
+      let vh = innerHeight, vw = innerWidth, W = 390, ticking = false;
+      const s: number[] = []; // the page scroll at which place k has arrived
       const measure = () => {
         vh = innerHeight;
         root.style.setProperty('--vh', vh / 100 + 'px');
         W = root.clientWidth;
-        CX = Math.round(W * 0.3);
-        me.style.left = CX - 28 + 'px';
+        // the picture is 390 wide by 260 tall, sliced to the world's box; he stands on its ground
+        const H = pic.clientHeight;
+        const scale = Math.max(W / 390, H / 260);
+        me.style.left = Math.round(W / 2 - 195 * scale + 92 * scale) + 'px';
+        me.style.bottom = Math.round(34 * scale) + 'px';
+        me.style.transform = 'scale(' + (scale * 0.9).toFixed(3) + ')';
         s.length = 0;
-        b.length = 0;
         s.push(0);
-        b.push(0);
-        for (let k = 1; k < N; k++) {
-          s.push(Math.max(s[k - 1] + 1, texts[k].offsetTop - vh * 0.35));
-          b.push(b[k - 1] + Math.max(MIN, (s[k] - s[k - 1]) * SPEED));
-        }
-        s.push(Math.max(s[N - 1] + 1, document.documentElement.scrollHeight - vh));
-        b.push(b[N - 1] + Math.max(MIN, (s[N] - s[N - 1]) * SPEED) + W);
-        build();
+        for (let k = 1; k < K; k++) s.push(Math.max(s[k - 1] + 1, texts[k].offsetTop - vh * 0.4));
       };
       measure();
 
-      // the world position for a page scroll: linear within each phase
-      const worldX = (y: number) => {
-        let k = 0;
-        while (k < N - 1 && y >= s[k + 1]) k++;
-        const t = (y - s[k]) / (s[k + 1] - s[k]);
-        return b[k] + (b[k + 1] - b[k]) * (t < 0 ? 0 : t > 1 ? 1 : t);
+      const clamp = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
+      const ramp = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
+      const smooth = (x: number) => x * x * (3 - 2 * x);
+      const lerp = (a: number, b: number, m: number) => a + (b - a) * m;
+      const rgb = (a: number[], b: number[], t: number) => 'rgb(' + Math.round(lerp(a[0], b[0], t)) + ',' + Math.round(lerp(a[1], b[1], t)) + ',' + Math.round(lerp(a[2], b[2], t)) + ')';
+      const dOf = (pts: Pt[]) => {
+        let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+        for (let i = 1; i < pts.length; i++) d += 'L' + pts[i][0].toFixed(1) + ' ' + pts[i][1].toFixed(1);
+        return d + 'Z';
       };
 
-      const clamp = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
-      const lerp = (a: number, c: number, m: number) => a + (c - a) * m;
-      let frame = -1, idleTimer = 0, lastSx = -1;
+      let lastK = -1, lastM = -1, lastScene = -1, frame = -1, idleTimer = 0, lastY = -1;
+      const draw = (k: number, m: number) => {
+        const n = Math.min(k + 1, K - 1);
+        for (const r of ROLES) {
+          const a = forms[r][k], b = forms[r][n], el = paths.get(r)!;
+          if (!a.there && !b.there) {
+            if (el.getAttribute('d')) el.setAttribute('d', '');
+            continue;
+          }
+          // what leaves shrinks away in the first half; what arrives grows in the second
+          const t = a.there && b.there ? m : a.there ? smooth(ramp(m, 0, 0.55)) : smooth(ramp(m, 0.45, 1));
+          const pts: Pt[] = [];
+          for (let i = 0; i < N; i++) pts.push([lerp(a.pts[i][0], b.pts[i][0], t), lerp(a.pts[i][1], b.pts[i][1], t)]);
+          el.setAttribute('d', dOf(pts));
+          el.setAttribute('fill', rgb(a.fill, b.fill, t));
+        }
+        const c = rgb(skies[k], skies[n], m);
+        sky.setAttribute('fill', c);
+        world.style.backgroundColor = c;
+      };
+
       const paint = () => {
         ticking = false;
-        const sx = worldX(scrollY);
-        if (sx === lastSx) return;
-        lastSx = sx;
-        layers.far.style.transform = 'translateX(' + -sx * PARALLAX.far + 'px)';
-        layers.mid.style.transform = 'translateX(' + -sx * PARALLAX.mid + 'px)';
-        layers.near.style.transform = 'translateX(' + -sx + 'px)';
-        // his feet: a frame every 22 px of ground, standing still once the page stops
-        const f = Math.floor(sx / 22) % 4;
-        if (f !== frame) {
-          frame = f;
-          me.className = 'me f' + f;
-        }
-        clearTimeout(idleTimer);
-        idleTimer = window.setTimeout(() => (me.className = 'me idle'), 160);
-        // the sky, or the wall, turns to the next place's over the last stretch before its door
-        const cx = sx + CX;
+        const y = scrollY;
+        // the place the words are in: a line 40% down the screen reads the chapter; the picture turns
+        // into the next place over the last stretch before the next chapter's top crosses that line
         let k = 0;
-        while (k < N - 1 && cx >= b[k + 1]) k++;
-        let t = 0;
-        if (k < N - 1) t = clamp((cx - (b[k + 1] - 140)) / 110);
-        const a = skies[k], c = skies[Math.min(k + 1, N - 1)];
-        strip.style.backgroundColor = 'rgb(' + Math.round(lerp(a[0], c[0], t)) + ',' + Math.round(lerp(a[1], c[1], t)) + ',' + Math.round(lerp(a[2], c[2], t)) + ')';
+        while (k < K - 1 && y >= s[k + 1]) k++;
+        const span = k < K - 1 ? s[k + 1] - s[k] : 1;
+        const f = k < K - 1 ? clamp((y - s[k]) / span) : 0;
+        const m = reduce ? (f < 0.9 ? 0 : 1) : smooth(ramp(f, 0.3, 1));
+        if (k !== lastK || m !== lastM) {
+          lastK = k;
+          lastM = m;
+          draw(k, m);
+          const scene = m < 0.5 ? k : Math.min(k + 1, K - 1);
+          if (scene !== lastScene) {
+            lastScene = scene;
+            world.dataset.scene = String(scene);
+            for (const r of ROLES) {
+              const el = paths.get(r)!, anim = forms[r][scene].anim;
+              el.setAttribute('class', anim ? 'a-' + anim : '');
+            }
+          }
+        }
+        // his feet: a frame every 22 px of page, standing once the page stops
+        if (y !== lastY) {
+          lastY = y;
+          const fr = Math.floor(y / 22) % 4;
+          if (fr !== frame) {
+            frame = fr;
+            me.className = 'me f' + fr;
+          }
+          clearTimeout(idleTimer);
+          idleTimer = window.setTimeout(() => (me.className = 'me idle'), 160);
+        }
       };
       const onScroll = () => {
         if (!ticking) {
@@ -245,17 +252,46 @@ const frames = {
       };
       addEventListener('scroll', onScroll, { passive: true });
       addEventListener('resize', () => {
-        // an in-app browser's bar sliding away is not a new phone: only a new width rebuilds
+        // an in-app browser's bar sliding away is not a new phone: only a new width re-measures
         if (innerWidth !== vw) {
           vw = innerWidth;
           measure();
-          lastSx = -1;
         }
         onScroll();
       });
-      addEventListener('orientationchange', () => setTimeout(() => ((vw = innerWidth), measure(), (lastSx = -1), onScroll()), 300));
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => (measure(), (lastSx = -1), onScroll()));
+      addEventListener('orientationchange', () => setTimeout(() => ((vw = innerWidth), measure(), onScroll()), 300));
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => (measure(), onScroll()));
       paint();
+
+      // a tap on a thing makes it jump; a tap on him or on the ground makes him jump; the words are left alone
+      const bump = (el: Element, cls: string, ms: number) => {
+        el.classList.remove(cls);
+        void (el as HTMLElement).getBoundingClientRect();
+        el.classList.add(cls);
+        setTimeout(() => el.classList.remove(cls), ms);
+      };
+      const tap = (x: number, yy: number, target: EventTarget | null) => {
+        const t = target as HTMLElement | null;
+        if (t && t.closest && t.closest('a, .end')) return;
+        if (yy < vh * 0.68) return;
+        const under: Element[] = document.elementsFromPoint ? document.elementsFromPoint(x, yy) : [document.elementFromPoint(x, yy) as Element];
+        for (const el of under) {
+          if (el === me || el.parentElement === me) {
+            bump(me, 'jump', 620);
+            return;
+          }
+          if (el instanceof SVGPathElement && el.dataset.r !== 'ground' && el.dataset.r !== 'far' && el.dataset.r !== 'far2') {
+            bump(el, 'bump', 700);
+            return;
+          }
+        }
+        bump(me, 'jump', 620);
+      };
+      if ('onpointerdown' in window) addEventListener('pointerdown', (e) => tap(e.clientX, e.clientY, e.target), { passive: true });
+      else {
+        addEventListener('touchstart', (e) => tap(e.touches[0].clientX, e.touches[0].clientY, e.target), { passive: true });
+        addEventListener('mousedown', (e) => tap(e.clientX, e.clientY, e.target));
+      }
     </script>
   </body>
 </html>
@@ -270,17 +306,19 @@ const frames = {
   html,
   body {
     margin: 0;
-    background: var(--ink);
-    color: var(--paper);
+    background: #1c2133;
+    color: #111111;
   }
   body {
     -webkit-text-size-adjust: 100%;
   }
 
-  /* the words: one continuous text, the top of the screen, room left under for the walk */
+  /* the words: one continuous text in black, the top seven tenths, the place's own colour behind */
   .j {
-    padding: 8vh 0 48vh;
-    padding: calc(var(--vh) * 8) 0 calc(var(--vh) * 48);
+    position: relative;
+    z-index: 1;
+    padding: 8vh 0 36vh;
+    padding: calc(var(--vh) * 8) 0 calc(var(--vh) * 36);
   }
   .tx {
     padding: 0 8% 0 7%;
@@ -292,7 +330,7 @@ const frames = {
     margin: 0 0 8px;
   }
   .tx .role {
-    color: var(--dim);
+    opacity: 0.7;
     margin-bottom: 22px;
   }
   .tx p {
@@ -310,55 +348,54 @@ const frames = {
     letter-spacing: 0.06em;
   }
   .end a {
-    color: var(--dim);
-    border-bottom-color: #333;
+    color: inherit;
+    opacity: 0.8;
+    border-bottom-color: currentColor;
     margin: 0 18px 8px 0;
   }
 
-  /* the walk: the bottom two fifths, fixed */
-  .strip {
+  /* the world: the whole screen, fixed behind the words; the picture along its foot */
+  .world {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 40vh;
-    height: calc(var(--vh) * 40);
+    height: 100vh;
+    height: calc(var(--vh) * 100 + 120px);
     overflow: hidden;
     background: #1c2133;
+    z-index: 0;
+  }
+  /* the foot: the bottom three tenths, in front of the words, so they never cover the picture */
+  .foot {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30vh;
+    height: calc(var(--vh) * 30);
+    overflow: hidden;
     z-index: 2;
   }
-  .layer {
+  .foot svg {
     position: absolute;
     left: 0;
     top: 0;
-    bottom: 0;
     width: 100%;
-    will-change: transform;
-  }
-  .seg {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    overflow: hidden;
-  }
-  .p {
-    position: absolute;
+    height: 100%;
     display: block;
   }
-  .p > i,
-  .p::before,
-  .p::after {
-    position: absolute;
-    display: block;
-    pointer-events: none;
+  .foot path {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
   }
 
   /* him */
   .me {
     position: absolute;
-    bottom: 34px;
     width: 56px;
     height: 80px;
+    transform-origin: 50% 100%;
     z-index: 3;
   }
   .me .px {
@@ -385,210 +422,206 @@ const frames = {
     box-shadow: var(--f3);
     top: -2px;
   }
+  .me.jump .px {
+    animation: jump 0.62s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  @keyframes jump {
+    0% {
+      transform: scale(4) translateY(0);
+    }
+    45% {
+      transform: scale(4) translateY(-18px);
+    }
+    100% {
+      transform: scale(4) translateY(0);
+    }
+  }
 
-  /* what the props wear */
-  .s-door::before {
-    content: '';
-    left: 6px;
-    right: 6px;
-    top: 6px;
-    bottom: 0;
-    background: #0a0a0a;
+  /* what moves on its own in a place, and what a tap does */
+  .a-sway {
+    transform-origin: 50% 0;
+    animation: sway 5s ease-in-out infinite alternate;
   }
-  .s-city {
-    -webkit-clip-path: polygon(0 100%, 0 55%, 6% 55%, 6% 35%, 11% 35%, 11% 60%, 18% 60%, 18% 25%, 24% 25%, 24% 50%, 31% 50%, 31% 40%, 38% 40%, 38% 65%, 45% 65%, 45% 30%, 52% 30%, 52% 55%, 58% 55%, 58% 20%, 66% 20%, 66% 50%, 72% 50%, 72% 35%, 80% 35%, 80% 60%, 88% 60%, 88% 42%, 94% 42%, 94% 58%, 100% 58%, 100% 100%);
-    clip-path: polygon(0 100%, 0 55%, 6% 55%, 6% 35%, 11% 35%, 11% 60%, 18% 60%, 18% 25%, 24% 25%, 24% 50%, 31% 50%, 31% 40%, 38% 40%, 38% 65%, 45% 65%, 45% 30%, 52% 30%, 52% 55%, 58% 55%, 58% 20%, 66% 20%, 66% 50%, 72% 50%, 72% 35%, 80% 35%, 80% 60%, 88% 60%, 88% 42%, 94% 42%, 94% 58%, 100% 58%, 100% 100%);
-    background-image: repeating-linear-gradient(90deg, rgba(255, 220, 160, 0.22) 0 2px, transparent 2px 9px), repeating-linear-gradient(180deg, rgba(255, 220, 160, 0.22) 0 2px, transparent 2px 10px);
+  .a-flicker {
+    animation: flicker 4s ease-in-out infinite;
   }
-  .s-glass {
-    background-image: linear-gradient(180deg, #151b2e, rgba(62, 84, 132, 0) 70%), repeating-linear-gradient(90deg, transparent 0 56px, #1a1f2e 56px 59px);
-    box-shadow: inset 0 0 0 3px #1a1f2e;
+  .a-breathe {
+    animation: breathe 3s ease-in-out infinite alternate;
   }
-  .s-pendant {
-    background: transparent !important;
+  .a-tube {
+    animation: tube 7s linear infinite;
   }
-  .s-pendant::before {
-    content: '';
-    left: 48%;
-    width: 2px;
-    top: 0;
-    height: 78%;
-    background: currentColor;
+  .a-blink {
+    animation: blink 2.4s steps(1) infinite;
   }
-  .s-pendant::after {
-    content: '';
-    left: 0;
-    right: 0;
-    top: 76%;
-    height: 24%;
-    background: currentColor;
-    border-radius: 50% 50% 8% 8%;
-    box-shadow: 0 10px 28px 6px rgba(255, 231, 194, 0.35);
+  .a-bob {
+    animation: bob 1.6s ease-in-out infinite alternate;
   }
-  .s-lcd {
-    box-shadow: inset 0 0 0 2px #1a1a1a;
+  .a-bob2 {
+    animation: bob 1.6s ease-in-out -0.8s infinite alternate;
   }
-  .s-game {
-    background-image: radial-gradient(ellipse at 50% 60%, rgba(120, 170, 255, 0.55), rgba(120, 170, 255, 0) 70%);
-    box-shadow: inset 0 0 0 2px #0d1016;
+  .a-roll {
+    animation: roll 6s ease-in-out infinite alternate;
   }
-  .s-on {
-    background-image: radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 70%);
+  .a-drift {
+    animation: drift 9s ease-in-out infinite alternate;
   }
-  .s-bed::before {
-    content: '';
-    left: 6%;
-    top: 14%;
-    width: 22%;
-    height: 34%;
-    background: #e8e8e8;
-    border-radius: 18%;
+  .a-fly {
+    animation: fly 14s linear infinite;
   }
-  .s-curtain {
-    background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 3px, transparent 3px 14px);
+  .a-tram {
+    animation: tram 16s linear infinite;
   }
-  .s-grille {
-    background-image: repeating-linear-gradient(90deg, rgba(60, 45, 30, 0.75) 0 2px, transparent 2px 22px), repeating-linear-gradient(180deg, rgba(60, 45, 30, 0.75) 0 2px, transparent 2px 22px);
+  .a-cross {
+    animation: cross 24s ease-in-out infinite alternate;
   }
-  .s-poster::before {
-    content: '';
-    left: 15%;
-    right: 15%;
-    top: 78%;
-    height: 7%;
-    background: #eee;
+  .a-twinkle {
+    animation: twinkle 3s steps(2) infinite;
   }
-  .s-tube {
-    box-shadow: 0 0 28px 8px rgba(255, 255, 255, 0.45);
+  .foot path.bump {
+    animation: bump 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) !important;
   }
-  .s-sun {
-    box-shadow: 0 0 40px 14px rgba(255, 243, 196, 0.55);
+  @keyframes sway {
+    from {
+      transform: rotate(-2.5deg);
+    }
+    to {
+      transform: rotate(2.5deg);
+    }
   }
-  .s-trees {
-    -webkit-clip-path: polygon(0 100%, 0 40%, 8% 20%, 16% 45%, 24% 10%, 32% 40%, 40% 25%, 48% 50%, 56% 15%, 64% 40%, 72% 20%, 80% 45%, 88% 10%, 96% 35%, 100% 50%, 100% 100%);
-    clip-path: polygon(0 100%, 0 40%, 8% 20%, 16% 45%, 24% 10%, 32% 40%, 40% 25%, 48% 50%, 56% 15%, 64% 40%, 72% 20%, 80% 45%, 88% 10%, 96% 35%, 100% 50%, 100% 100%);
+  @keyframes flicker {
+    0%,
+    86%,
+    100% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 0.6;
+    }
+    94% {
+      opacity: 0.95;
+    }
   }
-  .s-android::before,
-  .s-android::after {
-    content: '';
-    top: 28%;
-    width: 10%;
-    height: 8%;
-    background: #fff;
-    border-radius: 50%;
+  @keyframes breathe {
+    from {
+      opacity: 0.72;
+    }
+    to {
+      opacity: 1;
+    }
   }
-  .s-android::before {
-    left: 30%;
+  @keyframes tube {
+    0%,
+    91%,
+    100% {
+      opacity: 1;
+    }
+    93% {
+      opacity: 0.4;
+    }
+    95% {
+      opacity: 1;
+    }
+    97% {
+      opacity: 0.5;
+    }
   }
-  .s-android::after {
-    left: 60%;
+  @keyframes blink {
+    0%,
+    60% {
+      opacity: 1;
+    }
+    70%,
+    100% {
+      opacity: 0.4;
+    }
   }
-  .s-spines {
-    background-image: repeating-linear-gradient(90deg, #b85c3a 0 6px, #3a5a8a 6px 10px, #d9b24a 10px 13px, transparent 13px 19px);
+  @keyframes bob {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-6px);
+    }
   }
-  .s-porthole {
-    box-shadow: inset 0 0 0 4px #c7cad1;
+  @keyframes roll {
+    from {
+      transform: translateX(0) rotate(0deg);
+    }
+    to {
+      transform: translateX(-90px) rotate(-540deg);
+    }
   }
-  .s-porthole::before {
-    content: '';
-    left: 10%;
-    right: 10%;
-    bottom: 12%;
-    height: 24%;
-    background: #7a8a66;
-    border-radius: 40%;
+  @keyframes drift {
+    from {
+      transform: translateX(-3px);
+    }
+    to {
+      transform: translateX(3px);
+    }
   }
-  .s-map {
-    background-image: linear-gradient(22deg, transparent 48%, #7fb1ff 48% 52%, transparent 52%);
+  @keyframes fly {
+    from {
+      transform: translateX(-200px);
+    }
+    to {
+      transform: translateX(300px);
+    }
   }
-  .s-slide::before {
-    content: '';
-    left: 10%;
-    top: 16%;
-    width: 48%;
-    height: 11%;
-    background: #fff;
+  @keyframes tram {
+    0% {
+      transform: translateX(-340px);
+    }
+    40% {
+      transform: translateX(0);
+    }
+    55% {
+      transform: translateX(2px);
+    }
+    100% {
+      transform: translateX(300px);
+    }
   }
-  .s-tiers {
-    background-image: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0 2px, transparent 2px 10px), repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0 2px, transparent 2px 12px);
+  @keyframes cross {
+    from {
+      transform: translateX(-60px);
+    }
+    to {
+      transform: translateX(120px);
+    }
   }
-  .s-sails {
-    -webkit-clip-path: polygon(0 100%, 10% 30%, 20% 100%, 30% 20%, 40% 100%, 50% 25%, 60% 100%, 70% 30%, 80% 100%, 90% 20%, 100% 100%);
-    clip-path: polygon(0 100%, 10% 30%, 20% 100%, 30% 20%, 40% 100%, 50% 25%, 60% 100%, 70% 30%, 80% 100%, 90% 20%, 100% 100%);
+  @keyframes twinkle {
+    from {
+      opacity: 0.9;
+    }
+    to {
+      opacity: 1;
+    }
   }
-  .s-mountains {
-    -webkit-clip-path: polygon(0 100%, 0 60%, 12% 30%, 22% 55%, 34% 10%, 46% 50%, 58% 25%, 70% 60%, 82% 20%, 92% 50%, 100% 40%, 100% 100%);
-    clip-path: polygon(0 100%, 0 60%, 12% 30%, 22% 55%, 34% 10%, 46% 50%, 58% 25%, 70% 60%, 82% 20%, 92% 50%, 100% 40%, 100% 100%);
+  @keyframes bump {
+    0% {
+      transform: translateY(0) scale(1);
+    }
+    35% {
+      transform: translateY(-12px) scale(1.06);
+    }
+    70% {
+      transform: translateY(0) scale(0.97);
+    }
+    100% {
+      transform: translateY(0) scale(1);
+    }
   }
-  .s-skyline {
-    -webkit-clip-path: polygon(0 100%, 0 50%, 6% 50%, 6% 30%, 12% 30%, 12% 55%, 20% 55%, 20% 20%, 28% 20%, 28% 45%, 36% 45%, 36% 35%, 44% 35%, 44% 60%, 52% 60%, 52% 25%, 60% 25%, 60% 50%, 68% 50%, 68% 15%, 74% 15%, 74% 45%, 82% 45%, 82% 30%, 90% 30%, 90% 55%, 100% 55%, 100% 100%);
-    clip-path: polygon(0 100%, 0 50%, 6% 50%, 6% 30%, 12% 30%, 12% 55%, 20% 55%, 20% 20%, 28% 20%, 28% 45%, 36% 45%, 36% 35%, 44% 35%, 44% 60%, 52% 60%, 52% 25%, 60% 25%, 60% 50%, 68% 50%, 68% 15%, 74% 15%, 74% 45%, 82% 45%, 82% 30%, 90% 30%, 90% 55%, 100% 55%, 100% 100%);
-  }
-  .s-tower::before {
-    content: '';
-    left: -14px;
-    right: -14px;
-    top: 28%;
-    height: 10%;
-    background: currentColor;
-    border-radius: 50%;
-  }
-  .s-hill {
-    -webkit-clip-path: polygon(0 100%, 0 70%, 20% 55%, 40% 35%, 60% 25%, 80% 15%, 100% 10%, 100% 100%);
-    clip-path: polygon(0 100%, 0 70%, 20% 55%, 40% 35%, 60% 25%, 80% 15%, 100% 10%, 100% 100%);
-    background-image: repeating-linear-gradient(90deg, rgba(255, 210, 122, 0.3) 0 2px, transparent 2px 11px), repeating-linear-gradient(180deg, rgba(255, 210, 122, 0.3) 0 2px, transparent 2px 13px);
-  }
-  .s-ferry::before {
-    content: '';
-    left: 0;
-    right: 0;
-    top: 30%;
-    height: 40%;
-    background-image: repeating-linear-gradient(90deg, #ffd27a 0 3px, transparent 3px 8px);
-  }
-  .s-volta {
-    background-image: linear-gradient(180deg, transparent 8%, #ffe7c2 8% 24%, transparent 24%), repeating-linear-gradient(90deg, rgba(255, 231, 194, 0.18) 0 3px, transparent 3px 12px);
-  }
-  .s-lit {
-    box-shadow: 0 0 24px 8px rgba(255, 210, 122, 0.45);
-  }
-  .s-banner::before {
-    content: '';
-    left: 15%;
-    right: 15%;
-    top: 60%;
-    height: 4%;
-    background: #c9a227;
-  }
-  .s-chairs {
-    background: transparent !important;
-    background-image: repeating-linear-gradient(90deg, currentColor 0 18px, transparent 18px 26px) !important;
-  }
-  .s-brick {
-    background-image: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 11px), repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 22px);
-  }
-  .s-fmark::before {
-    content: 'F';
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    font: 700 44px/50px var(--f-display);
-    text-align: center;
-    color: #8a5a48;
-  }
-  .s-skyline-w {
-    box-shadow: inset 0 0 0 3px #e4e0d8;
-    background-image: linear-gradient(180deg, transparent 55%, rgba(60, 70, 90, 0.35) 55%), repeating-linear-gradient(90deg, transparent 0 14px, rgba(60, 70, 90, 0.5) 14px 20px, transparent 20px 30px, rgba(60, 70, 90, 0.35) 30px 34px);
-  }
-  .s-stair {
-    -webkit-clip-path: polygon(0 100%, 100% 0, 100% 100%);
-    clip-path: polygon(0 100%, 100% 0, 100% 100%);
-    background-image: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 13px);
+  @media (prefers-reduced-motion: reduce) {
+    .foot path,
+    .me.jump .px {
+      animation: none !important;
+    }
   }
 
   /* no JavaScript: the words alone */
-  html:not(.js) .strip {
+  html:not(.js) .world,
+  html:not(.js) .foot {
     display: none;
   }
   html:not(.js) .j {
