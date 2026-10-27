@@ -1,50 +1,83 @@
 # Site content draft
 
-Working copy of every word on vanshsood.com. Edit in place, from anywhere, with anything. Vansh's words win. When a section is settled it goes into `src/data/timeline.ts`, `src/data/things.ts`, `src/data/profile.ts` and `src/pages/now.astro`. Draft of 2026-10-23; sources at the end and in `docs/rebuild/54-the-content-round.md`.
+Working copy of every word on vanshsood.com. Edit in place, from anywhere, with anything. Vansh's words win. When a section is settled it goes into `src/data/timeline.ts`, `src/data/things.ts`, `src/data/profile.ts` and `src/pages/now.astro`. Draft of 2026-10-23, phone page rewritten 2026-10-27; sources at the end and in `docs/rebuild/54-the-content-round.md`.
 
-## The page, as written 2026-10-25
+## The phone page, as written 2026-10-27
 
-The text on `/content` and the phone variants under `/v`, in the voice of his LinkedIn posts. The starting (2010, the first website) is his to write and is not here yet.
+His structure of 2026-10-27: name, a subtitle that is not "Head of Engineering", "Hi I'm Vansh" and two intro paragraphs that carry the big things, then My story, then a list of things done, then what he is doing now. The graphics stay. Replaces the page of 2026-10-25, which was the wrong flow.
 
-I'm the Head of Engineering at Floqer. Most of my time goes into building the agents that research companies and people so sales teams don't have to. The rest goes into hiring for the hacker house we work out of in downtown Toronto, and lately into writing here again.
+### Name
 
-The journey began when I won Google Code-in at 17. For three months after school I did open source tasks for Drupal: a t-shirt and a logo first, then modules, Twig themes, a blog distribution, patches. Out of 3,500 students Drupal picked two grand prize winners and I was one of them.
+Vansh Sood
 
-Google flew me and my dad to San Francisco in June 2019. Mountain View, the Cloud office in Sunnyvale, Stanford. It was my first flight out of India, and it is the reason I moved across the world to study computer science.
+### Subtitle (call 9: his pick, or his own line)
 
-Back in Delhi I started a B.Tech at MSIT and dropped out six months in to build Webcube. Startups brought the ideas, we built the software. I was 17 and solo. It grew to 45 companies across six countries, $200K in revenue and 25 developers at the peak, and I kept running it through university.
+1. building useful software and empowering others to do the same (his GitHub bio, recommended)
+2. I like building incredible products that people around me use and love. (his LinkedIn about)
+3. Engineer, two-time founder, one exit. Toronto.
+4. Builds things, sells some, teaches the rest.
 
-When Covid hit Delhi we built Covid Leads Delhi: 52 volunteers connecting patients with beds, oxygen and plasma. 20,000 people used it in two months.
+### Intro
 
-In January 2022 I moved to Halifax for computer science at Dalhousie. Within the year I was a Student Ambassador at ShiftKey Labs, a research assistant in the Emerging Wireless Technologies Lab under Dr. Srinivas Sampalli, and interim CTO at Re-Defined, which reached 30,000 people in five countries.
+Hi, I'm Vansh. I'm an engineer and a two-time founder with one exit. I run engineering at Floqer from a hacker house in downtown Toronto, where eight of us build the agents that research companies and people so sales teams don't have to.
 
-I stayed at ShiftKey Labs for three years doing everything tech, AI, teaching and open source. We built the biggest open source tech community in Atlantic Canada: 8 hackathons, 45 workshops, 3,500 people, and a Generative AI course I taught to 130 students.
+I won Google Code-in at 17 and Google flew me to San Francisco. I dropped out of university the same year to found Webcube, and grew it to $200K across 45 companies in six countries. I co-founded Bean, hit number four on Product Hunt and sold it. In between I built the biggest open source tech community in Atlantic Canada, taught 3,500 people, and barely attended a class at Dalhousie, where I still somehow graduated.
 
-On the side I built a placement dashboard 30 professors use daily, a cancer risk system off legacy code, a community app for a few thousand people, and Gig Empower so international students could freelance. LinkedIn made me a Top Voice for that one. I also won 10 of the 25 hackathons I entered.
+### My story
 
-In 2024 Pankrit Jindal and I started Bean, him in Sydney and me in Halifax. It began as "what is in your fridge" and became a cooking assistant for busy parents who were tired of deciding what to make. 700 parents, 250 interviews, thousands of users.
+One paragraph per place the pixel walker passes: Delhi, Google, Webcube, Dalhousie, ShiftKey Labs, Bean, Collect., Floqer.
 
-We got into Invest Nova Scotia's Accelerate and hit number four on Product Hunt. Two years, then an exit.
+I wrote my first website at 13, in the school computer lab in Delhi: a W3Schools template with the colours changed and wireframes sketched in class. Before that it was an Xbox 360 and Call of Duty zombies until the power cut. I ran Converge Clan at Montfort School. The code never really stopped. (the 13 line and Converge Clan are his: calls 1 and 8)
 
-May 2025, Web Summit Vancouver, my first tech conference. We showed Bean for a day: more than 500 conversations, 120 signups, three investors interested, an MOU signed, bugs fixed in every queue.
+At 17 I spent three months after school doing open source tasks for Drupal in Google Code-in: a t-shirt and a logo first, then modules, Twig themes, patches. Drupal picked two grand prize winners out of 3,500 students and I was one. Google flew me and my dad to San Francisco in June 2019. My first flight out of India, and the reason I moved across the world for computer science.
 
-I also sat in on my first Socratica session and left thinking Halifax needed one.
+Back in Delhi I started a B.Tech and dropped out six months in to build Webcube. Startups brought the ideas, we built the software. Solo at 17, then 25 developers, 45 companies, six countries, $200K, and I kept it running through university. When Covid hit Delhi, 52 of us built Covid Leads Delhi to connect patients with beds, oxygen and plasma. 20,000 people used it in two months.
 
-October 2025, Elevate in Toronto with the Startup Atlantic delegation. On day zero I messaged every investor in reach and booked eight calls. By day two I was tired of the shiny meetings and went to a cafe to work on churn instead.
+January 2022, Halifax, computer science at Dalhousie. I did not attend many classes and did not learn much CS from the degree. It was never about that. Every opportunity I got started with "I'm doing CS at Dal", and four and a half years later I walked the stage with Tobi, Prannat and Théo.
 
-Then Startup Open House: DMZ, and a hacker house downtown called Floqer. Zaaheda told me if someone offers you a seat on a rocket, you take it. I booked flights and moved in ten days.
+ShiftKey Labs is where most of my time went. Three years of everything tech, AI, teaching and open source: 8 hackathons, 45 workshops, 3,500 people, the biggest open source tech community in Atlantic Canada. I taught Generative AI to 130 students, TA'd four courses, built a placement dashboard 30 professors use daily, and won 10 of the 25 hackathons I entered. LinkedIn made me a Top Voice for Gig Empower, which helped international students freelance.
 
-Back in Halifax, Bean got into Invest Nova Scotia Accelerate: one of twelve startups, one of two consumer companies, $40k over five months.
+In 2024 Pankrit Jindal and I started Bean, him in Sydney, me in Halifax. It began as "what is in your fridge" and became a cooking assistant for busy parents tired of deciding what to make. 250 interviews, 700 parents, thousands of users, Invest Nova Scotia's Accelerate, number four on Product Hunt. We showed it at Web Summit Vancouver, my first tech conference: 500 conversations in a day, 120 signups, an MOU. Two years, then we sold it.
 
-Noah, Sam and I started Collect., Halifax's Socratica node, at Volta every Thursday. It went from a handful of builders to almost a hundred, and the Demo Day packed the space.
+At Web Summit I also sat in on my first Socratica session and left thinking Halifax needed one. Noah, Sam and I started Collect. at Volta, every Thursday. A handful of builders became almost a hundred, and the Demo Day packed the space.
 
-Bean's Product Hunt launch fired a week early on a Saturday and still finished at number four with 242 upvotes.
+October 2025, Elevate in Toronto. At Startup Open House I walked into a hacker house downtown called Floqer. Zaaheda told me if someone offers you a seat on a rocket, you take it. I moved in ten days. Founding engineer, then Head of Engineering since April. Floqer is the autonomous customer knowledge platform: a $2M pre seed, a thousand customers including Perplexity, Wise and AngelList, cash flow positive, eight of us in the house. This October we made the Top 20 at TechCrunch Disrupt and pitched in San Francisco, my first time back in six years.
 
-In 2026 I walked the stage at Dalhousie with Tobi, Prannat and Théo. Four and a half years, not many classes, and I did not learn much CS from the degree. It was never about that. Every opportunity I got started with "I'm doing CS at Dal", and the degree is the reason I came to Halifax in the first place.
+Off the laptop: [music and whatnot, his words: call 10].
 
-I joined Floqer as a founding engineer in October 2025 and have been Head of Engineering since April 2026. Floqer started in Halifax, two Dal grads, and is now the autonomous customer knowledge platform: a $2M pre seed, a thousand customers including Perplexity, Wise and AngelList, cash flow positive, eight of us in the house.
+### Some things I've done over time
 
-This October we made the Top 20 at TechCrunch Disrupt Startup Battlefield and pitched in San Francisco, my first time back in six years.
+- Google Code-in grand prize, 2018. One of Drupal's two, out of 3,500 students.
+- Founded Webcube at 17. $200K, 45 companies, six countries, 25 developers.
+- Covid Leads Delhi. 52 volunteers, 20,000 people in two months.
+- Built Atlantic Canada's biggest open source tech community at ShiftKey Labs. 8 hackathons, 45 workshops, 3,500 people.
+- Taught Generative AI to 130 students, and AI2Market: how to build an AI-driven business.
+- Head TA for Mobile Computing, Server Side Scripting, Data Structures and Algorithms, Web Development.
+- Fractional CTO to 25+ startups and small businesses. Helped them raise millions.
+- Applied AI research: sovereign AI for post secondary institutes in Canada.
+- Co-founded Bean. Number four on Product Hunt, Invest Nova Scotia Accelerate, sold.
+- Started Collect., Halifax's Socratica node, with Noah and Sam.
+- 10 hackathon wins out of 25. LinkedIn Top Voice 2024. AWS Solutions Architect Associate.
+- BSc Computer Science, Dalhousie, 2026.
+- Top 20, TechCrunch Disrupt Startup Battlefield 2026, with Floqer.
+
+Cut what reads small. Eight to ten lines is enough.
+
+### What am I doing now? (call 11: his picks)
+
+Written like his GitHub README. Three or four lines.
+
+- Head of Engineering at Floqer, building the agents that research companies and people so sales teams don't have to.
+- Hiring for the hacker house in downtown Toronto.
+- Writing here again, after two quiet years.
+- Open source when I can. (which repos: his call)
+- Building products for the people around me.
+- Hosting Collect. (still, from Toronto? his call)
+- [a side project, the music: his call]
+
+### Footer
+
+vanshsood@dal.ca (call 5) · GitHub Vansh983 · LinkedIn in/vanshsood
 
 ## Open calls
 
@@ -60,6 +93,10 @@ Only Vansh has these. Answer in the right column or edit the card itself.
 | 6 | Graduation month: May 2026? | |
 | 7 | Covid Leads: 2020 or 2021? "Beds, oxygen and plasma" or your words? | |
 | 8 | The starting (card 1, card 2's first website): you write it. | |
+| 9 | Subtitle: which of the four, or your own line? | |
+| 10 | "Music and whatnot": what goes off the laptop? | |
+| 11 | What am I doing now: which three or four lines? | |
+| 12 | "Sold companies": Bean, and which other? | |
 
 ## Profile
 

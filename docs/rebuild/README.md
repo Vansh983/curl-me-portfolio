@@ -51,6 +51,11 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [51-the-apartment-skyline.md](./51-the-apartment-skyline.md) | The apartment's CN Tower: a night photograph hung the way Floqer's is, rejected in a day ("too fake"); the close-up coded tower back, lit red in the photograph's colour |
 | [54-the-content-round.md](./54-the-content-round.md) | The content round: his LinkedIn, the old site, the resume and the Floqer press read on 2026-10-22; every card from Converge Clan to Floqer drafted with sources (MSIT dropout, Bean exited, Floqer from Halifax, Disrupt Top 20); the starting left to him; his open calls |
 | [55-the-content-page.md](./55-the-content-page.md) | The content page and the phone rooms, 2026-10-25: the story as plain text on /content from `src/data/story.ts`, rewritten in the voice of his LinkedIn posts; six quick phone variants rejected; the phone journey as 2D dark rooms in CSS at /v/rooms, built for old phones and in-app browsers |
+| [56-phone-svg-story.md](./56-phone-svg-story.md) | The mobile walk: 22 personal SVG scenes from the story and saved Floqer/Volta references, slower reversible transitions, midpoint review fix, phone-width and fallback checks; existing words and global identity retained |
+| [57-one-continuous-phone-path.md](./57-one-continuous-phone-path.md) | The phone walk regrouped into eight permanent landmarks on one pavement; ordinary paragraph gaps, all university/ShiftKey/Bean/Floqer work together, Disrupt inside Floqer, all 22 source paragraphs preserved |
+| [58-phone-walk-activities.md](./58-phone-walk-activities.md) | The taller phone character walks, flies, teaches, sells and presents; four scroll hops, three sourced flights, distinct activity settings and a grounded ending, preserving the eight groups and source words |
+| [59-one-flight-and-refined-svg.md](./59-one-flight-and-refined-svg.md) | One university flight across open travel space, one low childhood hop, and all eight SVG landmarks refined from saved references; existing text spacing, groups and words retained |
+| [60-graduation-before-floqer.md](./60-graduation-before-floqer.md) | Graduation moves directly before Floqer, with cap, gown and degree; Bean's easel shows the current story's $40k Invest Nova Scotia funding; all 22 source paragraphs retained |
 
 ## The one-paragraph verdict
 

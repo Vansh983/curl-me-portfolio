@@ -1,75 +1,11 @@
 ---
-// The phone journey: the words in the top seven tenths, one continuous text on
-// black; the bottom three tenths one picture that turns into the next as the
-// page scrolls. Every place is flat shapes by role; between places each shape
-// morphs into its next (the glass into the Delhi window, the desk into the
-// bench, the pendant into the sun), what leaves shrinks away first, what comes
-// grows last, and inside a place things move on their own. He walks in place
-// below the words and jumps when tapped. The places and the geometry are
-// src/lib/phone/morph.ts.
-//
-// Built for the phones people open links on, old ones and the Instagram and
-// LinkedIn browsers: window scroll, one frame per scroll event, a dozen SVG
-// paths rewritten only while a morph is under way, CSS transforms for what
-// moves on its own, no WebGL, no scroll-driven CSS, nothing newer than 2019
-// WebKit without a fallback. Without JavaScript the words stand alone.
 import '../../styles/global.css';
 import { profile } from '../../data/profile';
-import { lead, openings, chapters } from '../../data/story';
-import { SCENES, ROLES } from '../../lib/phone/morph';
-
-type Words = { paras: string[] };
-const byId = new Map<string, Words>();
-byId.set('now', { paras: [lead.now] });
-for (const c of [...openings, ...chapters]) byId.set(c.id, c);
-const words = SCENES.map((s) => {
-  const w = byId.get(s.chapter);
-  if (!w) throw new Error(`no words for scene ${s.id}`);
-  return w;
-});
-
-// him, 14 by 20, drawn as one box-shadow per pixel
-const INK: Record<string, string> = { h: '#1A1410', s: '#C99A6B', k: '#1A1410', o: '#2B2B2B', j: '#2F3A55', w: '#EDEDED' };
-const head = [
-  '....hhhhhh....',
-  '...hhhhhhhh...',
-  '...hhhhhhhh...',
-  '...hhssssss...',
-  '...ssskssks...',
-  '...ssssssss...',
-  '....ssssss....',
-  '....oooooo....',
-  '...oooooooo...',
-  '..oooooooooo..',
-  '..soooooooos..',
-  '...oooooooo...',
-  '...oooooooo...',
-  '....jjjjjj....',
-  '....jjjjjj....',
-];
-const legs = {
-  stand: ['....jj..jj....', '....jj..jj....', '....jj..jj....', '....jj..jj....', '...www..www...'],
-  mid: ['....jj..jj....', '...jj....jj...', '...jj....jj...', '...jj....jj...', '..www....www..'],
-  step: ['...jjj..jjj...', '..jjj....jjj..', '..jj......jj..', '.jj........jj.', 'www........www'],
-};
-const mirror = (rows: string[]) => rows.map((r) => r.split('').reverse().join(''));
-const shadow = (rows: string[]) => {
-  const out: string[] = [];
-  rows.forEach((row, y) => {
-    if (row.length !== 14) throw new Error(`row ${y} is ${row.length} wide`);
-    row.split('').forEach((ch, x) => {
-      if (ch !== '.') out.push(`${x}px ${y}px 0 0 ${INK[ch]}`);
-    });
-  });
-  return out.join(',');
-};
-const frames = {
-  idle: shadow([...head, ...legs.stand]),
-  f0: shadow([...head, ...legs.mid]),
-  f1: shadow([...head, ...legs.step]),
-  f2: shadow([...head, ...legs.mid]),
-  f3: shadow([...head, ...mirror(legs.step)]),
-};
+import { lead } from '../../data/story';
+import { LANDMARKS, AEROPLANE, transitArtwork } from '../../lib/phone/artwork';
+import { STOPS, PATH_LENGTH, TRANSIT, paragraphsFor } from '../../lib/phone/story-path';
+import Walker from '../../components/phone/Walker.astro';
+const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
 ---
 
 <!doctype html>
@@ -78,553 +14,170 @@ const frames = {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="theme-color" content="#e5e8dc" />
     <title>The walk | Vansh Sood</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/space-grotesk.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter.woff2" crossorigin />
-    <script is:inline>
-      if ('noModule' in HTMLScriptElement.prototype) document.documentElement.className += ' js';
-    </script>
   </head>
   <body>
-    <main class="j" id="j">
-      {
-        words.map((w, i) => (
-          <section class="tx" data-s={i}>
-            {i === 0 && <h1>{profile.name}</h1>}
-            {i === 0 && <p class="role">{lead.role}</p>}
-            {w.paras.map((p) => (
-              <p>{p}</p>
-            ))}
-          </section>
-        ))
-      }
+    <main class="journey" id="j">
+      <header class="intro">
+        <h1>{profile.name}</h1>
+        <p class="role">{lead.role}</p>
+      </header>
+      {STOPS.map((stop, i) => (
+        <section class="story-block" data-stop={i} id={stop.id} aria-label={stop.name}>
+          {paragraphsFor(stop).map((paragraph, j) => <p data-source={stop.paragraphs[j].join(':')}>{paragraph}</p>)}
+        </section>
+      ))}
       <footer class="end">
         <a href={`mailto:${profile.email}`}>{profile.email}</a>
-        {profile.links.map((l) => <a href={l.href}>{l.handle}</a>)}
+        {profile.links.map((link) => <a href={link.href}>{link.handle}</a>)}
       </footer>
     </main>
 
-    <div class="world" id="world" data-scene="0" aria-hidden="true"></div>
-    <div class="foot" aria-hidden="true">
-      <svg id="pic" viewBox="0 0 390 260" preserveAspectRatio="xMidYMax slice">
-        <rect id="sky" x="0" y="0" width="390" height="260" fill="#1C2133" />
-        {ROLES.map((r) => <path data-r={r} d="" />)}
+    <div class="foot">
+      <svg id="pic" viewBox="0 0 390 260" preserveAspectRatio="xMidYMax meet" role="img" aria-labelledby="scene-description">
+        <title id="scene-description">{STOPS[0].description}</title>
+        <g id="landscape">
+          <g data-transit set:html={transitArtwork(TRANSIT.start, TRANSIT.end)} />
+          {STOPS.map(stop => (
+            <g data-landmark={stop.id} transform={`translate(${stop.x + 20} ${234 * (1 - stop.scale)}) scale(${stop.scale})`} set:html={LANDMARKS[stop.id]} />
+          ))}
+          {ground.map(([start, end]) => <g>
+            <path d={`M${start} 234H${end}V260H${start}Z`} fill="#cdd2bd" />
+            <path d={`M${start} 234H${end}M${start} 252H${end}`} fill="none" stroke="#a8b49b" stroke-width="1" />
+            {Array.from({length: Math.floor((end - start) / 48)}, (_, i) => <path d={`M${start + (i + 1) * 48} 234l-7 18`} stroke="#b3bda4" stroke-width="0.65" />)}
+          </g>)}
+        </g>
+        <ellipse id="flight-shadow" cy="235" rx="45" ry="3" fill="#87967b" opacity="0" />
+        <g id="flight" opacity="0" aria-hidden="true" set:html={AEROPLANE} />
       </svg>
-      <div class="me idle" id="me"><i class="px"></i></div>
+      <Walker />
     </div>
-
+    <script id="path-data" type="application/json" is:inline set:html={JSON.stringify({ stops: STOPS.map(({ paragraphs, ...stop }) => stop), length: PATH_LENGTH })} />
     <script>
-      import { SCENES, ROLES, N, resample, align, centroid, hex } from '../../lib/phone/morph';
-      import type { Pt, Role } from '../../lib/phone/morph';
-
-      const K = SCENES.length;
-      const root = document.documentElement;
-      const world = document.getElementById('world')!;
-      const sky = document.getElementById('sky')!;
-      const me = document.getElementById('me')!;
-      const paths = new Map<Role, SVGPathElement>();
-      const pic = document.getElementById('pic')!;
-      for (const el of Array.from(pic.querySelectorAll<SVGPathElement>('path[data-r]'))) paths.set(el.dataset.r as Role, el);
-      const texts = Array.from(document.querySelectorAll<HTMLElement>('.tx'));
-      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const skies = SCENES.map((s) => hex(s.sky));
-
-      // every role in every place: its outline resampled; absent, a point at the centre of the
-      // nearest outline it has in the story, so it grows from there and shrinks back into it
-      type Form = { pts: Pt[]; fill: [number, number, number]; anim: string; there: boolean };
-      const forms: Record<string, Form[]> = {};
-      for (const r of ROLES) {
-        const row: Form[] = [];
-        for (let k = 0; k < K; k++) {
-          const sh = SCENES[k].shapes[r];
-          if (sh) row.push({ pts: resample(sh.pts, N), fill: hex(sh.fill), anim: sh.anim || '', there: true });
-          else row.push({ pts: [], fill: [0, 0, 0], anim: '', there: false });
-        }
-        for (let k = 0; k < K; k++) {
-          if (row[k].there) continue;
-          let near = -1;
-          for (let d = 1; d < K && near < 0; d++) {
-            if (k + d < K && row[k + d].there) near = k + d;
-            else if (k - d >= 0 && row[k - d].there) near = k - d;
-          }
-          const c = near < 0 ? ([195, 226] as Pt) : centroid(row[near].pts);
-          row[k].pts = Array.from({ length: N }, () => [c[0], c[1]] as Pt);
-          row[k].fill = near < 0 ? [0, 0, 0] : row[near].fill;
-        }
-        // align each outline to the one before it, so the morph turns without twisting
-        for (let k = 1; k < K; k++) row[k].pts = align(row[k - 1].pts, row[k].pts);
-        forms[r] = row;
-      }
-
-      let vh = innerHeight, vw = innerWidth, W = 390, ticking = false;
-      const s: number[] = []; // the page scroll at which place k has arrived
-      const measure = () => {
-        vh = innerHeight;
-        root.style.setProperty('--vh', vh / 100 + 'px');
-        W = root.clientWidth;
-        // the picture is 390 wide by 260 tall, sliced to the world's box; he stands on its ground
-        const H = pic.clientHeight;
-        const scale = Math.max(W / 390, H / 260);
-        me.style.left = Math.round(W / 2 - 195 * scale + 92 * scale) + 'px';
-        me.style.bottom = Math.round(34 * scale) + 'px';
-        me.style.transform = 'scale(' + (scale * 0.9).toFixed(3) + ')';
-        s.length = 0;
-        s.push(0);
-        for (let k = 1; k < K; k++) s.push(Math.max(s[k - 1] + 1, texts[k].offsetTop - vh * 0.4));
-      };
-      measure();
-
-      const clamp = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
-      const ramp = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
-      const smooth = (x: number) => x * x * (3 - 2 * x);
-      const lerp = (a: number, b: number, m: number) => a + (b - a) * m;
-      const rgb = (a: number[], b: number[], t: number) => 'rgb(' + Math.round(lerp(a[0], b[0], t)) + ',' + Math.round(lerp(a[1], b[1], t)) + ',' + Math.round(lerp(a[2], b[2], t)) + ')';
-      const dOf = (pts: Pt[]) => {
-        let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
-        for (let i = 1; i < pts.length; i++) d += 'L' + pts[i][0].toFixed(1) + ' ' + pts[i][1].toFixed(1);
-        return d + 'Z';
-      };
-
-      let lastK = -1, lastM = -1, lastScene = -1, frame = -1, idleTimer = 0, lastY = -1;
-      const draw = (k: number, m: number) => {
-        const n = Math.min(k + 1, K - 1);
-        for (const r of ROLES) {
-          const a = forms[r][k], b = forms[r][n], el = paths.get(r)!;
-          if (!a.there && !b.there) {
-            if (el.getAttribute('d')) el.setAttribute('d', '');
-            continue;
-          }
-          // what leaves shrinks away in the first half; what arrives grows in the second
-          const t = a.there && b.there ? m : a.there ? smooth(ramp(m, 0, 0.55)) : smooth(ramp(m, 0.45, 1));
-          const pts: Pt[] = [];
-          for (let i = 0; i < N; i++) pts.push([lerp(a.pts[i][0], b.pts[i][0], t), lerp(a.pts[i][1], b.pts[i][1], t)]);
-          el.setAttribute('d', dOf(pts));
-          el.setAttribute('fill', rgb(a.fill, b.fill, t));
-        }
-        const c = rgb(skies[k], skies[n], m);
-        sky.setAttribute('fill', c);
-        world.style.backgroundColor = c;
-      };
-
-      const paint = () => {
-        ticking = false;
-        const y = scrollY;
-        // the place the words are in: a line 40% down the screen reads the chapter; the picture turns
-        // into the next place over the last stretch before the next chapter's top crosses that line
-        let k = 0;
-        while (k < K - 1 && y >= s[k + 1]) k++;
-        const span = k < K - 1 ? s[k + 1] - s[k] : 1;
-        const f = k < K - 1 ? clamp((y - s[k]) / span) : 0;
-        const m = reduce ? (f < 0.9 ? 0 : 1) : smooth(ramp(f, 0.3, 1));
-        if (k !== lastK || m !== lastM) {
-          lastK = k;
-          lastM = m;
-          draw(k, m);
-          const scene = m < 0.5 ? k : Math.min(k + 1, K - 1);
-          if (scene !== lastScene) {
-            lastScene = scene;
-            world.dataset.scene = String(scene);
-            for (const r of ROLES) {
-              const el = paths.get(r)!, anim = forms[r][scene].anim;
-              el.setAttribute('class', anim ? 'a-' + anim : '');
-            }
-          }
-        }
-        // his feet: a frame every 22 px of page, standing once the page stops
-        if (y !== lastY) {
-          lastY = y;
-          const fr = Math.floor(y / 22) % 4;
-          if (fr !== frame) {
-            frame = fr;
-            me.className = 'me f' + fr;
-          }
-          clearTimeout(idleTimer);
-          idleTimer = window.setTimeout(() => (me.className = 'me idle'), 160);
-        }
-      };
-      const onScroll = () => {
-        if (!ticking) {
-          ticking = true;
-          requestAnimationFrame(paint);
-        }
-      };
-      addEventListener('scroll', onScroll, { passive: true });
-      addEventListener('resize', () => {
-        // an in-app browser's bar sliding away is not a new phone: only a new width re-measures
-        if (innerWidth !== vw) {
-          vw = innerWidth;
-          measure();
-        }
-        onScroll();
-      });
-      addEventListener('orientationchange', () => setTimeout(() => ((vw = innerWidth), measure(), onScroll()), 300));
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => (measure(), onScroll()));
-      paint();
-
-      // a tap on a thing makes it jump; a tap on him or on the ground makes him jump; the words are left alone
-      const bump = (el: Element, cls: string, ms: number) => {
-        el.classList.remove(cls);
-        void (el as HTMLElement).getBoundingClientRect();
-        el.classList.add(cls);
-        setTimeout(() => el.classList.remove(cls), ms);
-      };
-      const tap = (x: number, yy: number, target: EventTarget | null) => {
-        const t = target as HTMLElement | null;
-        if (t && t.closest && t.closest('a, .end')) return;
-        if (yy < vh * 0.68) return;
-        const under: Element[] = document.elementsFromPoint ? document.elementsFromPoint(x, yy) : [document.elementFromPoint(x, yy) as Element];
-        for (const el of under) {
-          if (el === me || el.parentElement === me) {
-            bump(me, 'jump', 620);
-            return;
-          }
-          if (el instanceof SVGPathElement && el.dataset.r !== 'ground' && el.dataset.r !== 'far' && el.dataset.r !== 'far2') {
-            bump(el, 'bump', 700);
-            return;
-          }
-        }
-        bump(me, 'jump', 620);
-      };
-      if ('onpointerdown' in window) addEventListener('pointerdown', (e) => tap(e.clientX, e.clientY, e.target), { passive: true });
-      else {
-        addEventListener('touchstart', (e) => tap(e.touches[0].clientX, e.touches[0].clientY, e.target), { passive: true });
-        addEventListener('mousedown', (e) => tap(e.clientX, e.clientY, e.target));
-      }
+      import '../../scripts/phone-walk';
     </script>
   </body>
 </html>
 
-<style is:global define:vars={{ idle: frames.idle, f0: frames.f0, f1: frames.f1, f2: frames.f2, f3: frames.f3 }}>
+<style is:global>
   :root {
-    --ink: #0a0a0a;
-    --paper: #ededed;
-    --dim: #9a9a9a;
     --vh: 1vh;
+    --walk-ink: #111111;
+    background: #e5e8dc;
   }
-  html,
-  body {
+  html, body {
     margin: 0;
-    background: #1c2133;
-    color: #111111;
+    background: #e5e8dc;
+    color: var(--walk-ink);
   }
-  body {
-    -webkit-text-size-adjust: 100%;
-  }
-
-  /* the words: one continuous text in black, the top seven tenths, the place's own colour behind */
-  .j {
+  body { -webkit-text-size-adjust: 100%; }
+  ::selection { color: #f4f0dc; background: #3a6253; }
+  .journey {
     position: relative;
     z-index: 1;
-    padding: 8vh 0 36vh;
-    padding: calc(var(--vh) * 8) 0 calc(var(--vh) * 36);
+    padding: 7vh 7.2% 38vh;
+    padding: calc(var(--vh) * 7 + env(safe-area-inset-top, 0px)) 7.2% calc(var(--vh) * 38 + env(safe-area-inset-bottom, 0px));
+    max-width: 560px;
+    margin: 0 auto;
   }
-  .tx {
-    padding: 0 8% 0 7%;
-    margin: 0 0 36px;
-  }
-  .tx h1 {
-    font-size: 26px;
+  .story-block { margin: 0; }
+  .intro h1 {
+    font-size: 32px;
     line-height: 1.1;
-    margin: 0 0 8px;
+    letter-spacing: -0.035em;
+    margin: 0 0 11px;
   }
-  .tx .role {
-    opacity: 0.7;
-    margin-bottom: 22px;
+  .story-block p {
+    font-size: 16px;
+    line-height: 1.65;
+    max-width: 36em;
+    margin: 0 0 18px;
   }
-  .tx p {
-    font-size: 15.5px;
-    line-height: 1.55;
-    margin: 0 0 12px;
-    max-width: 34em;
+  .intro .role {
+    color: #536253;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 27px;
+    max-width: 27em;
   }
   .end {
+    padding: 6px 0 20px;
     display: flex;
     flex-wrap: wrap;
-    padding: 10px 7% 0;
-    font-family: var(--f-mono);
-    font-size: var(--t-label);
-    letter-spacing: 0.06em;
+    font-size: 13px;
+    line-height: 1.8;
   }
   .end a {
-    color: inherit;
-    opacity: 0.8;
-    border-bottom-color: currentColor;
-    margin: 0 18px 8px 0;
+    color: var(--walk-ink);
+    margin: 0 20px 12px 0;
+    border-bottom: 1px solid #819280;
+    text-decoration: none;
   }
-
-  /* the world: the whole screen, fixed behind the words; the picture along its foot */
-  .world {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 100vh;
-    height: calc(var(--vh) * 100 + 120px);
-    overflow: hidden;
-    background: #1c2133;
-    z-index: 0;
+  .end a:focus-visible, .me:focus-visible {
+    outline: 2px solid #365d4c;
+    outline-offset: 6px;
+    border-radius: 2px;
   }
-  /* the foot: the bottom three tenths, in front of the words, so they never cover the picture */
   .foot {
+    display: none;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     height: 30vh;
     height: calc(var(--vh) * 30);
-    overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+    background: #e5e8dc;
   }
-  .foot svg {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  .foot path {
-    transform-box: fill-box;
-    transform-origin: 50% 50%;
-  }
-
-  /* him */
+  .walk-ready .foot { display: block; }
+  #pic { display: block; width: 100%; height: 100%; overflow: visible; }
   .me {
     position: absolute;
-    width: 56px;
-    height: 80px;
-    transform-origin: 50% 100%;
-    z-index: 3;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
-  .me .px {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 1px;
-    height: 1px;
-    transform: scale(4);
-    transform-origin: 0 0;
-    box-shadow: var(--idle);
-  }
-  .me.f0 .px {
-    box-shadow: var(--f0);
-  }
-  .me.f1 .px {
-    box-shadow: var(--f1);
-    top: -2px;
-  }
-  .me.f2 .px {
-    box-shadow: var(--f2);
-  }
-  .me.f3 .px {
-    box-shadow: var(--f3);
-    top: -2px;
-  }
-  .me.jump .px {
-    animation: jump 0.62s cubic-bezier(0.2, 0.8, 0.3, 1);
-  }
+  .me::before { content: ''; position: absolute; top: -8px; right: -8px; bottom: -8px; left: -8px; }
+  .sprite { display: block; width: 100%; height: 100%; overflow: visible; }
+  .legs { display: none; }
+  [data-step="idle"] .legs-0,
+  [data-step="0"] .legs-1,
+  [data-step="1"] .legs-2,
+  [data-step="2"] .legs-1,
+  [data-step="3"] .legs-3 { display: block; }
+  [data-direction="back"] .sprite { transform: scaleX(-1); }
+  .me:disabled { pointer-events: none; }
+  .me.jump { animation: jump 720ms cubic-bezier(0.2, 0.65, 0.3, 1); }
   @keyframes jump {
-    0% {
-      transform: scale(4) translateY(0);
-    }
-    45% {
-      transform: scale(4) translateY(-18px);
-    }
-    100% {
-      transform: scale(4) translateY(0);
+    0%, 100% { translate: 0 0; }
+    43% { translate: 0 -28px; }
+  }
+  /* Transform fallback for older in-app browsers. */
+  @supports not (translate: 0 0) {
+    @keyframes jump {
+      0%, 100% { transform: translateY(0); }
+      43% { transform: translateY(-28px); }
     }
   }
-
-  /* what moves on its own in a place, and what a tap does */
-  .a-sway {
-    transform-origin: 50% 0;
-    animation: sway 5s ease-in-out infinite alternate;
-  }
-  .a-flicker {
-    animation: flicker 4s ease-in-out infinite;
-  }
-  .a-breathe {
-    animation: breathe 3s ease-in-out infinite alternate;
-  }
-  .a-tube {
-    animation: tube 7s linear infinite;
-  }
-  .a-blink {
-    animation: blink 2.4s steps(1) infinite;
-  }
-  .a-bob {
-    animation: bob 1.6s ease-in-out infinite alternate;
-  }
-  .a-bob2 {
-    animation: bob 1.6s ease-in-out -0.8s infinite alternate;
-  }
-  .a-roll {
-    animation: roll 6s ease-in-out infinite alternate;
-  }
-  .a-drift {
-    animation: drift 9s ease-in-out infinite alternate;
-  }
-  .a-fly {
-    animation: fly 14s linear infinite;
-  }
-  .a-tram {
-    animation: tram 16s linear infinite;
-  }
-  .a-cross {
-    animation: cross 24s ease-in-out infinite alternate;
-  }
-  .a-twinkle {
-    animation: twinkle 3s steps(2) infinite;
-  }
-  .foot path.bump {
-    animation: bump 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) !important;
-  }
-  @keyframes sway {
-    from {
-      transform: rotate(-2.5deg);
-    }
-    to {
-      transform: rotate(2.5deg);
-    }
-  }
-  @keyframes flicker {
-    0%,
-    86%,
-    100% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 0.6;
-    }
-    94% {
-      opacity: 0.95;
-    }
-  }
-  @keyframes breathe {
-    from {
-      opacity: 0.72;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  @keyframes tube {
-    0%,
-    91%,
-    100% {
-      opacity: 1;
-    }
-    93% {
-      opacity: 0.4;
-    }
-    95% {
-      opacity: 1;
-    }
-    97% {
-      opacity: 0.5;
-    }
-  }
-  @keyframes blink {
-    0%,
-    60% {
-      opacity: 1;
-    }
-    70%,
-    100% {
-      opacity: 0.4;
-    }
-  }
-  @keyframes bob {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-6px);
-    }
-  }
-  @keyframes roll {
-    from {
-      transform: translateX(0) rotate(0deg);
-    }
-    to {
-      transform: translateX(-90px) rotate(-540deg);
-    }
-  }
-  @keyframes drift {
-    from {
-      transform: translateX(-3px);
-    }
-    to {
-      transform: translateX(3px);
-    }
-  }
-  @keyframes fly {
-    from {
-      transform: translateX(-200px);
-    }
-    to {
-      transform: translateX(300px);
-    }
-  }
-  @keyframes tram {
-    0% {
-      transform: translateX(-340px);
-    }
-    40% {
-      transform: translateX(0);
-    }
-    55% {
-      transform: translateX(2px);
-    }
-    100% {
-      transform: translateX(300px);
-    }
-  }
-  @keyframes cross {
-    from {
-      transform: translateX(-60px);
-    }
-    to {
-      transform: translateX(120px);
-    }
-  }
-  @keyframes twinkle {
-    from {
-      opacity: 0.9;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  @keyframes bump {
-    0% {
-      transform: translateY(0) scale(1);
-    }
-    35% {
-      transform: translateY(-12px) scale(1.06);
-    }
-    70% {
-      transform: translateY(0) scale(0.97);
-    }
-    100% {
-      transform: translateY(0) scale(1);
-    }
+  @media (max-width: 350px) {
+    .journey { padding-left: 6.5%; padding-right: 6.5%; }
+    .story-block p { font-size: 15px; line-height: 1.6; }
+    .intro h1 { font-size: 29px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .foot path,
-    .me.jump .px {
-      animation: none !important;
-    }
-  }
-
-  /* no JavaScript: the words alone */
-  html:not(.js) .world,
-  html:not(.js) .foot {
-    display: none;
-  }
-  html:not(.js) .j {
-    padding: 28px 0;
+    .me.jump { animation: none; }
   }
 </style>

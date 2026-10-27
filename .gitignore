@@ -27,3 +27,6 @@ yarn-error.log*
 
 # stage asset sources (outputs under public/assets/stage are committed)
 .cache/
+
+# local design review captures
+.impeccable/review/
