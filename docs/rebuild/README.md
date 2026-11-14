@@ -56,6 +56,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [58-phone-walk-activities.md](./58-phone-walk-activities.md) | The taller phone character walks, flies, teaches, sells and presents; four scroll hops, three sourced flights, distinct activity settings and a grounded ending, preserving the eight groups and source words |
 | [59-one-flight-and-refined-svg.md](./59-one-flight-and-refined-svg.md) | One university flight across open travel space, one low childhood hop, and all eight SVG landmarks refined from saved references; existing text spacing, groups and words retained |
 | [60-graduation-before-floqer.md](./60-graduation-before-floqer.md) | Graduation moves directly before Floqer, with cap, gown and degree; Bean's easel shows the current story's $40k Invest Nova Scotia funding; all 22 source paragraphs retained |
+| [61-text-on-top.md](./61-text-on-top.md) | One homepage with shared text and tag rows: graphic below 1025px, switchable in-page 3D above; variant routes removed |
 
 ## The one-paragraph verdict
 

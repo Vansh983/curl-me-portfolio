@@ -1,10 +1,12 @@
 import type { PathStop } from '../lib/phone/story-path';
 import { pathDistance, follow } from '../lib/phone/pacing';
-import { activityAt, flightsFor } from '../lib/phone/activities';
+import { activityAt } from '../lib/phone/activities';
+import { isLaptop, LAPTOP_QUERY } from '../lib/view-mode';
 
 const { stops, length }: { stops: Omit<PathStop, 'paragraphs'>[]; length: number } =
   JSON.parse(document.getElementById('path-data')!.textContent!);
 const root = document.documentElement;
+const view = document.querySelector<HTMLElement>('[data-graphic-view]')!;
 const pic = document.getElementById('pic') as unknown as SVGSVGElement;
 const landscape = document.getElementById('landscape')!;
 const plane = document.getElementById('flight')!;
@@ -21,8 +23,6 @@ let height = innerHeight;
 let scale = 1;
 let viewWidth = 390;
 let anchors: number[] = [];
-let routeAnchors: number[] = [];
-let routeDistances: number[] = [];
 const distances = [...stops.map(stop => stop.x + 100), length - 60];
 let current = 100;
 let frame = 0;
@@ -31,9 +31,11 @@ let active = -1;
 let jumping = false;
 let jumpTimer = 0;
 
-function measure() {
-  width = innerWidth;
-  height = innerHeight;
+function measure(viewportChanged = true) {
+  if (viewportChanged) {
+    width = innerWidth;
+    height = innerHeight;
+  }
   root.style.setProperty('--vh', `${height / 100}px`);
   scale = pic.clientHeight / 260;
   viewWidth = pic.clientWidth / scale;
@@ -42,17 +44,15 @@ function measure() {
   const lastReadable = Math.min(footer.getBoundingClientRect().top + scrollY - height * 0.2,
     document.documentElement.scrollHeight - height);
   anchors.push(Math.max(anchors[anchors.length - 1] + 1, lastReadable));
-  // Travel uses the existing university paragraph's reading time. It adds
-  // spatial separation without adding a blank spacer to the article.
-  const universityIndex = stops.findIndex(stop => stop.id === 'university');
-  const arrivalEnd = blocks[universityIndex + 1];
-  const flight = flightsFor(stops)[0];
-  routeAnchors = [...anchors];
-  routeDistances = [...distances];
-  routeAnchors[universityIndex] = Math.max(anchors[universityIndex - 1] + 1, anchors[universityIndex] - height * 0.22);
-  routeDistances[universityIndex] = flight.start;
-  routeAnchors.splice(universityIndex + 1, 0, arrivalEnd.getBoundingClientRect().top + scrollY - height * 0.32);
-  routeDistances.splice(universityIndex + 1, 0, stops[universityIndex].x + 100);
+  // A stop with no text still occupies its share of the path between readable stops.
+  for (let i = 1; i < blocks.length; i++) {
+    if (blocks[i].querySelector('[data-about-paragraph]')) continue;
+    let before = i - 1, after = i + 1;
+    while (before > 0 && !blocks[before].querySelector('[data-about-paragraph]')) before--;
+    while (after < blocks.length && !blocks[after].querySelector('[data-about-paragraph]')) after++;
+    const fraction = (distances[i] - distances[before]) / (distances[after] - distances[before]);
+    anchors[i] = anchors[before] + fraction * (anchors[after] - anchors[before]);
+  }
   me.style.width = `${44 * scale}px`;
   me.style.height = `${72.3 * scale}px`;
 }
@@ -76,7 +76,7 @@ function draw(distance: number) {
   me.disabled = action.boarding > 0.98;
   me.dataset.activity = action.activity;
   me.dataset.jumping = String(action.hop > 0.5);
-  plane.setAttribute('transform', `translate(${screenX} ${230 - action.altitude}) rotate(${action.pitch})`);
+  plane.setAttribute('transform', `translate(${screenX} ${230 - action.altitude}) rotate(${action.pitch}) scale(${me.dataset.direction === 'back' ? -1 : 1} 1)`);
   plane.setAttribute('opacity', String(action.boarding));
   planeGear.setAttribute('opacity', String(action.gear));
   planeShadow.setAttribute('cx', String(screenX));
@@ -93,17 +93,18 @@ function draw(distance: number) {
 
 function tick(time: number) {
   frame = 0;
+  if (view.hidden) { lastTime = 0; return; }
   const dt = lastTime ? Math.min(time - lastTime, 64) : 16.7;
   lastTime = time;
-  const target = reduce ? distances[readingStop()] : pathDistance(scrollY, routeAnchors, routeDistances);
+  const target = reduce ? distances[readingStop()] : pathDistance(scrollY, anchors, distances);
   const previous = current;
   if (reduce || Math.abs(target - current) > viewWidth * 3) current = target;
   else current = Math.abs(target - current) < 0.05 ? target : follow(current, target, dt);
-  draw(current);
   if (!reduce && Math.abs(current - previous) > 0.1) {
     me.dataset.step = String(Math.floor(current / 16) % 4);
     me.dataset.direction = current < previous ? 'back' : 'forward';
   } else me.dataset.step = 'idle';
+  draw(current);
   if (Math.abs(target - current) >= 0.05 && !document.hidden) frame = requestAnimationFrame(tick);
   else {
     lastTime = 0;
@@ -112,11 +113,13 @@ function tick(time: number) {
 }
 
 function schedule() {
-  if (!frame && !document.hidden) frame = requestAnimationFrame(tick);
+  if (!frame && !document.hidden && !view.hidden) frame = requestAnimationFrame(tick);
 }
 function place() {
+  root.dataset.laptop = String(isLaptop());
+  if (view.hidden) return;
   measure();
-  current = reduce ? distances[readingStop()] : pathDistance(scrollY, routeAnchors, routeDistances);
+  current = reduce ? distances[readingStop()] : pathDistance(scrollY, anchors, distances);
   draw(current);
 }
 
@@ -130,6 +133,16 @@ addEventListener('resize', () => {
 addEventListener('orientationchange', () => setTimeout(place, 250));
 addEventListener('pageshow', place);
 document.fonts?.ready.then(place);
+document.addEventListener('about:rowchange', () => {
+  if (view.hidden) return;
+  measure(false);
+  schedule();
+});
+addEventListener('graphic:show', place);
+addEventListener('graphic:hide', () => { cancelAnimationFrame(frame); frame = 0; lastTime = 0; });
+const layout = matchMedia(LAPTOP_QUERY);
+if (layout.addEventListener) layout.addEventListener('change', place);
+else layout.addListener(place);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { cancelAnimationFrame(frame); frame = 0; lastTime = 0; }
   else schedule();

@@ -1,49 +1,24 @@
 ---
 import Base from '../layouts/Base.astro';
-import Wordmark from '../components/Wordmark.astro';
-import Journey from '../components/Journey.astro';
-import { profile } from '../data/profile';
+import GraphicWalk from '../components/GraphicWalk.astro';
+import TextJourney from '../components/TextJourney.astro';
 ---
 
-<Base topbar={false} footer={false}>
-  <section class="story">
-    <Journey>
-      <div slot="hero" class="hero">
-        <Wordmark />
-        <p class="role">Shipping software since 13. Head of Engineering at <a href={profile.company.url}>Floqer</a>.</p>
-        <p class="mut">{profile.summary}</p>
-        <p class="links">
-          {profile.links.map((l) => <a href={l.href}>{l.label}</a>)}
-          <a href={`mailto:${profile.email}`}>Email</a>
-        </p>
-      </div>
-    </Journey>
-  </section>
+<Base topbar={false} footer={false} viewportFitCover>
+  <GraphicWalk />
+  {/* Template contents cannot request their images or preloads until first shown. */}
+  <template id="home-stage-template"><TextJourney /></template>
+  <div id="home-stage" hidden></div>
 </Base>
 
 <style>
-  .hero {
-    padding: 0;
-  }
-  .role {
-    font-size: 19px;
-    margin: 16px 0 12px;
-  }
-  .story {
-    margin-top: 0;
-  }
-  /* the scroll ends in the journey's last room: nothing under it, not even the shell's foot */
-  :global(main.shell) {
-    padding-bottom: 0;
-  }
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 18px;
-    margin-top: 22px;
-    font-family: var(--f-mono);
-    font-size: var(--t-label);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
+  :global(main.shell) { max-width: none; padding: 0; }
+  #home-stage { background: var(--bg); }
+  #home-stage[hidden] { display: none; }
+  /* Keep the fixed controls visible while the rest of the paused stage has no height. */
+  :global(html[data-home-view='graphic'] #home-stage .journey > :not(.mode)) { display: none; }
 </style>
+
+<script>
+  import '../scripts/home-view';
+</script>

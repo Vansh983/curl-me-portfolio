@@ -2,26 +2,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { STOPS, PATH_LENGTH, TRANSIT, paragraphsFor } from '../src/lib/phone/story-path.ts';
 import { LANDMARKS } from '../src/lib/phone/artwork.ts';
-import { lead, openings, chapters } from '../src/data/story.ts';
 import { pathDistance, follow } from '../src/lib/phone/pacing.ts';
 import { activityAt, flightsFor, hopsFor } from '../src/lib/phone/activities.ts';
 
-test('regrouping preserves every source paragraph exactly once', () => {
-  const expected = [lead.now, ...[...openings, ...chapters].flatMap(chapter => chapter.paras)];
-  assert.deepEqual(STOPS.flatMap(paragraphsFor).sort(), expected.sort());
-  const refs = STOPS.flatMap(stop => stop.paragraphs.map(ref => ref.join(':')));
-  assert.equal(new Set(refs).size, expected.length);
+test('phone paragraphs follow the shared about text by stop', () => {
+  assert.deepEqual(STOPS.map(stop => paragraphsFor(stop).length), [1, 1, 2, 1, 2, 1, 1, 0, 7]);
+  const paragraphs = STOPS.flatMap(paragraphsFor).map(paragraph => paragraph.id);
+  assert.equal(new Set(paragraphs).size, paragraphs.length);
 });
 
 test('related work stays together, with graduation immediately before Floqer', () => {
   assert.equal(STOPS.length, 9);
-  const refs = (id: string) => STOPS.find(stop => stop.id === id)!.paragraphs.map(ref => ref.join(':'));
-  assert.deepEqual(refs('university'), ['halifax:0']);
-  assert.deepEqual(refs('graduation'), ['degree:0']);
+  assert.deepEqual(STOPS.map(stop => stop.id), ['delhi', 'google', 'webcube', 'university', 'shiftkey', 'bean', 'collect', 'graduation', 'floqer']);
   assert.deepEqual(STOPS.slice(-2).map(stop => stop.id), ['graduation', 'floqer']);
-  assert.deepEqual(refs('shiftkey'), ['shiftkey:0', 'shiftkey:1']);
-  assert.deepEqual(refs('floqer'), ['toronto:1', 'floqer:0', 'floqer:1', 'now:0']);
-  assert.ok(refs('bean').includes('volta:2'));
   assert.ok(!STOPS.some(stop => stop.id === 'disrupt'));
   assert.equal(STOPS.at(-1)!.id, 'floqer');
 });

@@ -1,0 +1,88 @@
+---
+import Journey from './Journey.astro';
+import AboutText from './AboutText.astro';
+import Wordmark from './Wordmark.astro';
+import { ABOUT_OPENING, ABOUT_PARAGRAPHS } from '../data/about';
+import { profile } from '../data/profile';
+const introComma = ABOUT_OPENING.indexOf(',') + 1;
+---
+
+  <link rel="preload" as="font" type="font/ttf" href="/fonts/bebas-neue.ttf" crossorigin />
+  <Journey textOnTop>
+    {/* Hidden sizing copy of the home hero, used only to keep the first spacer exact. */}
+    <div slot="hero" class="hero">
+      <Wordmark />
+      <p class="role">Shipping software since 13. Head of Engineering at <a href={profile.company.url}>Floqer</a>.</p>
+      <p class="mut">{profile.summary}</p>
+      <p class="links">
+        {profile.links.map(link => <a href={link.href}>{link.label}</a>)}
+        <a href={`mailto:${profile.email}`}>Email</a>
+      </p>
+    </div>
+    <div slot="text" class="continuous-text">
+      <header class="intro">
+        <h1>{ABOUT_OPENING.slice(0, introComma)}</h1>
+        <p>{ABOUT_OPENING.slice(introComma).trimStart()}</p>
+      </header>
+      <AboutText paragraphs={ABOUT_PARAGRAPHS} prefix="stage" />
+      <footer class="contact-links">
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        {profile.links.map(link => <a href={link.href}>{link.handle}</a>)}
+      </footer>
+    </div>
+  </Journey>
+
+<style>
+  /* A title-only family keeps the stage's canvas font fallbacks unchanged. */
+  @font-face {
+    font-family: 'Bebas Neue Title';
+    src: url('/fonts/bebas-neue.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  :global(main.shell) { padding-bottom: 0; }
+  .continuous-text { padding: calc(30svh - 18px) 0 calc(90svh - 18px); }
+  .intro h1 { font-size: 32px; line-height: 1.1; letter-spacing: -0.035em; margin: 0 0 11px; }
+  @media (min-width: 1025px) {
+    .continuous-text { padding-top: calc(22svh - 18px); }
+    .intro h1 {
+      font-family: 'Bebas Neue Title', sans-serif;
+      font-weight: 400;
+      font-size: 88px;
+      line-height: 1;
+      letter-spacing: 0;
+      white-space: nowrap;
+      margin-bottom: 12px;
+    }
+    .continuous-text :global(.about-paragraph) { padding: 1.5em 0; }
+    .continuous-text :global(.about-tag) { padding: 0 .45em; border-radius: 1em; }
+    .continuous-text :global(.about-row) { margin: .4em 0 .7em; }
+    .continuous-text :global(.about-cards ul) { padding-bottom: .2em; }
+    .continuous-text :global(.about-card) {
+      font-size: .55em;
+      padding: calc(var(--reading-size) * .3);
+      border-radius: calc(var(--reading-size) * .3);
+    }
+    .continuous-text :global(.about-card + .about-card) { margin-left: calc(var(--reading-size) * .4); }
+    .continuous-text :global(.poster) { width: calc(var(--reading-size) * 3.9); height: calc(var(--reading-size) * 5.6); }
+    .continuous-text :global(.wide) { width: calc(var(--reading-size) * 6.8); height: calc(var(--reading-size) * 4.3); }
+    .continuous-text :global(.square) { width: calc(var(--reading-size) * 4.8); height: calc(var(--reading-size) * 4.8); }
+    .continuous-text :global(.photo) { padding: 0; width: calc(var(--reading-size) * 8); height: calc(var(--reading-size) * 6); }
+    .continuous-text :global(.about-row .about-note) { font-size: .65em; margin-top: calc(var(--reading-size) * .3); }
+    .contact-links { display: flex; flex-wrap: wrap; gap: .4em .8em; font-size: .65em; line-height: 1.6; }
+  }
+  .hero { padding: 0; }
+  .role { font-size: 19px; margin: 16px 0 12px; }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: 22px;
+    font-family: var(--f-mono);
+    font-size: var(--t-label);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>
+

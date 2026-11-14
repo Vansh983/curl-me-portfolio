@@ -67,20 +67,35 @@ interface Placed { root: Object3D; p: Placement; set: number; meshes: Mesh[]; sp
 const TV_SCREEN = { w: 0.3, h: 0.24, at: [0, 0.2, 0.178] as const };
 const GRAIN = 128; // pixels per grain tile: a faint normal, never a texture you would look at
 
-export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): () => void {
-  let stopped = false, ready = false;
+export type StageControls = (() => void) & { setActive(active: boolean): void };
+
+export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: number): StageControls {
+  let stopped = false, ready = false, active = true;
+  const waiting: Array<() => void> = [];
+  const waitActive = async () => {
+    if (!active && !stopped) await new Promise<void>(resolve => waiting.push(resolve));
+    checkActive();
+  };
   const status = root.querySelector<HTMLElement>('[data-load-status]');
   const report = (text: string) => { if (status) status.textContent = text; };
   const checkActive = () => { if (stopped) throw new Error('Scene preparation stopped'); };
   let sliceStart = performance.now();
   const breathe = async () => {
-    checkActive();
+    await waitActive();
     if (performance.now() - sliceStart < 6) return;
     await yieldToBrowser();
-    checkActive();
+    await waitActive();
     sliceStart = performance.now();
   };
   const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  // Preparation (including the handset) resumes before drawing its warmed shaders.
+  const compileAsync = renderer.compileAsync.bind(renderer);
+  renderer.compileAsync = async (...args) => {
+    await waitActive();
+    const result = await compileAsync(...args);
+    await waitActive();
+    return result;
+  };
   let geometrySource = createGeometrySource(), geometryGone = false; // the worker goes once the world is in; a thing picked up later brings a new one
   // two tiers: a phone (coarse pointer, few cores) gets half-resolution occlusion and plain
   // shadows; everything else gets the full pipeline. The pacer below still drops things if it stutters
@@ -331,7 +346,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return t;
   };
   for (const name of ['vancouver', 'toronto', 'halifax'] as SkyName[]) {
-    scanning.push(texLoader.loadAsync(`/assets/stage/sky/${name}.webp`).then((t) => {
+    scanning.push(texLoader.loadAsync(`/assets/stage/sky/${name}.webp`).then(async (t) => {
+      await waitActive();
       t.colorSpace = SRGBColorSpace; t.wrapS = RepeatWrapping; t.wrapT = ClampToEdgeWrapping; t.minFilter = LinearFilter; t.generateMipmaps = false;
       skyMaps[name] = t;
       // its light: the same sky on a small dome of its own, its sun where the script has it, as bright as its hour
@@ -406,7 +422,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (s.alpha !== undefined) { m.transparent = true; m.opacity = s.alpha; m.depthWrite = false; }
     if (name === 'flightSky') {
       const skyMaterial = m;
-      scanning.push(texLoader.loadAsync('/assets/stage/flight-sky.webp').then((texture) => {
+      scanning.push(texLoader.loadAsync('/assets/stage/flight-sky.webp').then(async (texture) => {
+        await waitActive();
         texture.colorSpace = SRGBColorSpace;
         skyMaterial.map = texture; skyMaterial.color.set('#FFFFFF'); skyMaterial.toneMapped = false; skyMaterial.needsUpdate = true;
         flightEnvironment = pmrem.fromEquirectangular(texture);
@@ -1056,7 +1073,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const [lightmap, g, env] = await Promise.all([texLoader.loadAsync(`/assets/stage/baked/set${i}_lm.webp`), gltf.loadAsync(`/assets/stage/baked/set${i}.glb`),
       S.bakedEnvironment ? texLoader.loadAsync(`/assets/stage/baked/set${i}_env.webp`) : undefined]);
     const lm: Texture<HTMLImageElement | HTMLCanvasElement> = lightmap;
-    checkActive();
+    await waitActive();
     // The phone tier does not need desktop-size room lightmaps resident in GPU memory.
     if (!tier && Math.max(lm.image.width, lm.image.height) > 1024) {
       const scale = 1024 / Math.max(lm.image.width, lm.image.height);
@@ -1437,7 +1454,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   let walkAir: Air | undefined; // the air of the walk while the frame is on it
   let homeNight = false; // whether what is outside is the apartment's own night (on the stair, his door about to open)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  let raf = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1, shown = false;
+  let raf = 0, idleTimer = 0, visible = false, target = 0, cur = 0, vel = 0, lastT = 0, curSet = -1, shown = false;
   let roam: Roam | undefined, lastQ = 0; // the Walk mode (stage-roam.ts): while it is on, where he stands is the progress, not the scroll
   // the world comes in behind him: the first two sets before the canvas shows, the rest in the story's order while he reads.
   // `landed` is which sets are in; `held` the scroll he may reach, the jamb before the first set still to come, in cur's units
@@ -1482,7 +1499,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   let warming: Promise<void> = Promise.resolve(); // the landed sets warm one after another, behind the frames
   const uploaded = new Set<Texture>(); // textures already on the GPU
   let roamY = -1, roamLayout: { tops: number[]; base: number } | undefined; // the cards' places, measured once while he walks: no layout is read in a walking frame
-  const kick = () => { if (!stopped && !raf) raf = requestAnimationFrame(tick); };
+  const kick = () => { if (active && !stopped && !raf) raf = requestAnimationFrame(tick); };
 
   const applyTheme = () => {
     renderer.setClearColor(new Color(cssVar('--bg')));
@@ -1494,6 +1511,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   scheme.addEventListener('change', applyTheme);
 
   const fit = () => {
+    if (!active) return;
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
@@ -1870,6 +1888,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (geometryGone) { geometrySource = createGeometrySource(); geometryGone = false; }
     try { copy = p.build ? placeBuilt(p.build, p, false, await geometrySource.load(p.build, false, p.live ?? '')) : (await loadModel(p.model!)).scene.clone(); }
     catch { if (held === H) { held = undefined; root.classList.remove('held'); } return; }
+    await waitActive();
     if (held !== H) return; // put back before it was built
     copy.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; o.frustumCulled = false; } });
     const box = new Box3().setFromObject(copy), centre = box.getCenter(new Vector3()), size = box.getSize(new Vector3()), big = Math.max(size.x, size.y, size.z, 0.01);
@@ -1969,7 +1988,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   const tick = (now: number) => {
     raf = 0;
-    if (!ready || stopped) return;
+    if (!active || !ready || stopped) return;
     const dt = Math.min(0.05, (now - lastT) / 1000 || 0);
     lastT = now;
     if (dt > 0) pace(dt);
@@ -2147,9 +2166,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // thirty, which is what a laptop on battery can give all day
     const running = visible && !still;
     if (cur !== Math.min(target, holdAt) || roam?.active || held) raf = requestAnimationFrame(tick);
-    else if (running) { raf = -1; setTimeout(() => { if (!stopped) raf = requestAnimationFrame(tick); }, 33); }
+    else if (running) { raf = -1; idleTimer = window.setTimeout(() => { raf = 0; kick(); }, 33); }
   };
   const onScroll = () => {
+    if (!active) return;
     if (held && !roam?.active) { scrollTo({ top: held.y, behavior: 'instant' }); return; } // a thing in hand: the scroll holds where it was
     if (roam?.active) { roamY = -1; return; } // walked, the page follows him: a scroll from the keys or the bar is put back on the next frame
     target = progress(); kick();
@@ -2185,9 +2205,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const y = Math.round(yFor(roam.q));
     if (y !== roamY) { roamY = y; scrollTo({ top: y, behavior: 'instant' }); }
   };
-  const measureRoam = () => { if (roam?.active) { roamLayout = { tops: articles.map((a) => a.offsetTop), base: root.getBoundingClientRect().top + scrollY }; roamY = -1; } };
+  const measureRoam = () => { if (active && roam?.active) { roamLayout = { tops: articles.map((a) => a.offsetTop), base: root.getBoundingClientRect().top + scrollY }; roamY = -1; } };
   const setMode = async (walk: boolean) => {
-    if (!ready || stopped || walk === !!roam?.active) return;
+    if (!active || !ready || stopped || walk === !!roam?.active) return;
     if (held) { putBack(); finishHeld(); }
     setRim(undefined);
     if (walk) {
@@ -2201,6 +2221,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       root.dataset.mode = 'preparing';
       await roam.prepare();
       if (stopped) return;
+      await waitActive();
       roam.enter(lastQ);
       measureRoam();
       root.dataset.mode = 'walk';
@@ -2224,6 +2245,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // macOS sends no keyup for a key let go while Command is down: with Command, every held key is let go
   const meta = (e: KeyboardEvent) => e.code === 'MetaLeft' || e.code === 'MetaRight';
   const onKeyDown = (e: KeyboardEvent) => {
+    if (!active) return;
     if (held && !typing(e)) { // a thing in hand: E or Enter puts it back (walked, the mouse stays his), R turns it over; Escape is the walk's own key and puts a thing back only in the scroll; the keys do not move him; inside the panel the keys are the panel's (its link, its button)
       if (e.target instanceof Node && e.target !== panel && panel.contains(e.target) && e.code !== 'Escape') return; // on its link, the keys are the link's
       if (e.code === 'KeyE' || e.code === 'Enter' || (e.code === 'Escape' && !roam?.active)) { e.preventDefault(); if (!e.repeat) putBack(); }
@@ -2246,7 +2268,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const onKeyUp = (e: KeyboardEvent) => { if (meta(e)) roam?.release(); else roam?.key(e.code, false); };
   const onBlur = () => roam?.release();
-  const onWheel = (e: WheelEvent) => { if ((roam?.active || held) && !(held && panel.contains(e.target as Node))) e.preventDefault(); }; // walked, the page does not scroll: it follows him; a thing in hand holds the scroll, the wheel scrolls its words
+  const onWheel = (e: WheelEvent) => { if (active && (roam?.active || held) && !(held && panel.contains(e.target as Node))) e.preventDefault(); }; // walked, the page does not scroll: it follows him; a thing in hand holds the scroll, the wheel scrolls its words
   // the mouse as the hand moves it, without the system's acceleration, where the browser has it; refused (a click too soon after Escape), dragging still looks
   const lock = async () => {
     try { await canvas.requestPointerLock({ unadjustedMovement: true }); }
@@ -2260,6 +2282,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const onRoamUp = () => { dragging = false; lastPt = undefined; };
   const onRoamMove = (e: PointerEvent) => {
+    if (!active) return;
     if (held) {
       if (document.pointerLockElement === canvas) { if (Math.abs(e.movementX) < innerWidth / 3 && Math.abs(e.movementY) < innerHeight / 3) turnHeld(e.movementX, e.movementY); }
       else if (dragging && lastPt) { turnHeld(e.clientX - lastPt.x, e.clientY - lastPt.y); lastPt = { x: e.clientX, y: e.clientY }; }
@@ -2271,6 +2294,23 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const onLockChange = () => { roam?.release(); }; // the mouse let go (Escape): no key stays held; a thing in hand stays in hand (E puts it back, a click too)
   const onHidden = () => { if (document.hidden) roam?.release(); };
+  const setActive = (value: boolean) => {
+    if (stopped || value === active) return;
+    active = value;
+    if (!active) {
+      if (raf > 0) cancelAnimationFrame(raf);
+      clearTimeout(idleTimer);
+      raf = 0;
+      roam?.release(); dragging = false; lastPt = undefined;
+      video.pause();
+      if (document.pointerLockElement === canvas) document.exitPointerLock();
+    } else {
+      lastT = performance.now();
+      waiting.splice(0).forEach(resume => resume());
+      fit(); measureRoam(); onScroll();
+      if (visible) video.play().catch(() => {});
+    }
+  };
   for (const b of modeButtons) b.addEventListener('click', () => { void setMode(b.dataset.mode === 'walk'); b.blur(); });
   addEventListener('keydown', onKeyDown);
   addEventListener('keyup', onKeyUp);
@@ -2286,7 +2326,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   if (AUDIT) Object.assign(diagnostics, { setMode, roam: () => roam });
   const io = new IntersectionObserver(([e]) => {
     visible = e.isIntersecting;
-    if (visible) { video.play().catch(() => {}); kick(); } else video.pause();
+    if (visible && active) { video.play().catch(() => {}); kick(); } else video.pause();
   });
   io.observe(root);
   addEventListener('scroll', onScroll, { passive: true });
@@ -2334,7 +2374,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         }
       }
       for (let offset = 0; offset < proxies.length; offset += 64) {
-        checkActive();
+        await waitActive();
         const batch = proxies.slice(offset, offset + 64);
         warm.add(...batch);
         const previous = renderer.getRenderTarget(), auto = renderer.shadowMap.autoUpdate;
@@ -2438,6 +2478,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
         }
         warmScene.traverse((object) => { if (object instanceof DirectionalLight || object instanceof PointLight) object.shadow.dispose(); });
         // Prime shadow and postprocessing variants too, while the static opening still covers the canvas.
+        await waitActive();
         composer.render();
         await yieldToBrowser();
       }
@@ -2473,6 +2514,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const dispose = () => {
     if (stopped) return;
     stopped = true;
+    waiting.splice(0).forEach(resume => resume());
+    clearTimeout(idleTimer);
     geometrySource.dispose();
     MeshoptDecoder.useWorkers(0);
     loadingManager.abort();
@@ -2527,5 +2570,5 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     report('The 3D journey could not load. You can still read the story.');
     console.warn('[journey] a set did not load', err);
   });
-  return dispose;
+  return Object.assign(dispose, { setActive });
 }

@@ -5,11 +5,13 @@
 import { timeline } from '../data/timeline';
 import { deliveryUrl } from '../lib/stage/delivery';
 
+type Props = { textOnTop?: boolean };
+const { textOnTop = false } = Astro.props;
 const chapters = timeline;
 const n = chapters.length;
 ---
 
-<section class="journey" data-n={n}>
+<section class="journey" data-n={n} data-text-on-top={textOnTop || undefined}>
   {/* the sets the canvas waits for come down with the page, not after the renderer: the apartment, the bedroom, the lab and the lawn (stage-run.ts, FIRST) */}
   {[0, 1, 2, 3].map((i) => <link rel="preload" as="fetch" crossorigin="anonymous" fetchpriority={i === 0 ? 'high' : 'auto'} href={deliveryUrl(`/assets/stage/baked/set${i}.glb`)} />)}
   {[0, 1, 2, 3].map((i) => <link rel="preload" as="image" crossorigin="anonymous" fetchpriority={i === 0 ? 'high' : 'auto'} href={deliveryUrl(`/assets/stage/baked/set${i}_lm.webp`)} />)}
@@ -25,17 +27,18 @@ const n = chapters.length;
   </div>
 
   <div class="mode" role="group" aria-label="How to move through the journey">
-    <button type="button" data-mode="scroll" aria-pressed="true">Scroll</button>
-    <button type="button" data-mode="walk" aria-pressed="false">Walk</button>
+    <button type="button" data-mode="scroll" data-view="scroll" aria-pressed="true">Scroll</button>
+    <button type="button" data-mode="walk" data-view="walk" aria-pressed="false">Walk</button>
+    <button type="button" data-view="graphic" aria-pressed="false">Graphic</button>
   </div>
   <p class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <kbd>Click</kbd> look <kbd>E</kbd> open <kbd>Shift</kbd> run <kbd>Esc</kbd> leave<span class="found" data-found></span></p>
   <p class="prompt" data-roam-prompt hidden></p>
   {/* a thing picked up: its words beside it (stage-run.ts fills it); the lane, the title, the lines, his photographs, a link */}
   <aside class="thing" data-thing role="dialog" tabindex="-1" hidden></aside>
 
-  <div class="wall">
+  <div class:list={['wall', { 'chapter-measure': textOnTop }]} aria-hidden={textOnTop || undefined} inert={textOnTop}>
     {chapters.map((m, i) => (
-      <article class="ch" id={`ch-${i + 1}`} data-i={i}>
+      <article class={textOnTop ? 'chapter-size' : 'ch'} id={textOnTop ? undefined : `ch-${i + 1}`} data-i={i}>
         <div class="tx">
           {i === 0 && Astro.slots.has('hero') ? (
             <slot name="hero" />
@@ -55,6 +58,14 @@ const n = chapters.length;
       </article>
     ))}
   </div>
+  {textOnTop && <div class="wall">
+    {chapters.map((_, i) => <article class="ch" id={`ch-${i + 1}`} data-i={i} />)}
+  </div>}
+  {textOnTop && <div class="text-wall">
+    <div class="text-viewport">
+      <div class="tx text-column"><slot name="text" /></div>
+    </div>
+  </div>}
 </section>
 
 <style>
@@ -119,33 +130,34 @@ const n = chapters.length;
   .gl.on {
     opacity: 1;
   }
-  /* the switch up top: read the story down the page, or walk it with the keys. Only where there is a keyboard and a mouse */
+  /* One laptop row, with the same selected treatment in either view and theme. */
   .mode, .keys, .prompt { display: none; }
-  @media (hover: hover) and (pointer: fine) {
-    .journey[data-stage='ready'] .mode {
+  @media (min-width: 1025px) {
+    .mode {
       position: fixed;
       top: 16px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 6;
       display: flex;
-      border: 1px solid var(--tx);
-      background: var(--bg);
+      border: 1px solid #111111;
+      background: #fdfdfc;
     }
     .mode button {
       font-family: var(--f-mono);
       font-size: var(--t-label);
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--tx);
+      color: #111111;
       background: none;
       border: 0;
       padding: 8px 16px;
       cursor: pointer;
     }
-    .mode button[aria-pressed='true'] { color: var(--bg); background: var(--tx); }
-    .mode button:focus-visible { outline: 2px solid var(--tx); outline-offset: 3px; }
-    .journey[data-mode='preparing'] .mode { opacity: 0.6; pointer-events: none; }
+    .mode button[aria-pressed='true'] { color: #fdfdfc; background: #111111; }
+    .mode button:focus-visible { outline: 2px solid #111111; outline-offset: 3px; box-shadow: 0 0 0 3px #fdfdfc; }
+  }
+  @media (hover: hover) and (pointer: fine) {
     .journey[data-mode='walk'] .keys {
       position: fixed;
       left: 50%;
@@ -231,6 +243,33 @@ const n = chapters.length;
     transition: opacity 0.25s ease;
   }
   .journey:global(.phone-focus) .wall, .journey:global(.held) .wall { opacity: 0; }
+  .chapter-measure {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    margin-top: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  /* A separate layer leaves every chapter spacer (and the stage timing) intact. */
+  .text-wall {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .text-viewport {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    padding: 0 var(--pad);
+    overflow: hidden;
+    overflow: clip;
+  }
+  .text-column { will-change: transform; }
+  .journey:global(.held) .text-wall { opacity: 0; }
+  .journey:global(.held) .text-column { pointer-events: none; }
   .tx {
     pointer-events: auto;
   }
@@ -259,7 +298,7 @@ const n = chapters.length;
     opacity: 1;
     transform: none;
   }
-  .ch {
+  .ch, .chapter-size {
     min-height: 100svh;
     padding-top: 18svh;
   }
@@ -271,18 +310,20 @@ const n = chapters.length;
   .ch[data-i='11'] {
     padding-top: 72svh;
   }
+  .chapter-size[data-i='8'], .chapter-size[data-i='9'],
+  .chapter-size[data-i='10'], .chapter-size[data-i='11'] { padding-top: 72svh; }
   /* the last card runs three chapter lengths: the walk out of the hall and into Floqer's office happens under it (LAST_SPAN in shot.ts) */
-  .ch[data-i='3'] {
+  .ch[data-i='3'], .chapter-size[data-i='3'] {
     min-height: 210svh; /* two chapter lengths: the Android lawn, the letters, back up the lawn to the 2020 room's door */
   }
   /* the tour's three cards run five chapter lengths between them (CARD_SPAN in shot.ts): the walk is 58 m, a city each, then Volta's room */
-  .ch[data-i='8'] { min-height: 150svh; }
-  .ch[data-i='10'] { min-height: 250svh; }
-  .ch[data-i='12'] {
+  .ch[data-i='8'], .chapter-size[data-i='8'] { min-height: 150svh; }
+  .ch[data-i='10'], .chapter-size[data-i='10'] { min-height: 250svh; }
+  .ch[data-i='12'], .chapter-size[data-i='12'] {
     min-height: 570svh; /* LAST_SPAN chapter lengths of walk (a chapter is a card, a little over a viewport) and a viewport more, so the stage stays pinned to the end of it */
   }
   @media (min-width: 48.001rem) {
-    .ch:first-child {
+    .ch:first-child, .chapter-size:first-child {
       padding-top: 13svh;
     }
   }
@@ -293,6 +334,21 @@ const n = chapters.length;
     background: color-mix(in srgb, var(--bg) 74%, transparent);
     -webkit-mask: linear-gradient(90deg, #000 86%, transparent);
     mask: linear-gradient(90deg, #000 86%, transparent);
+  }
+  @media (min-width: 1025px) {
+    .text-viewport { padding-left: 0; }
+    .text-column {
+      --reading-size: 22px;
+      width: 50vw;
+      max-width: calc(22.5em + var(--pad) + 1em);
+      font-size: var(--reading-size);
+      line-height: 1.5;
+      padding-left: var(--pad);
+      padding-right: 1em;
+      /* The same 74% backing; its fade stays beyond the words. */
+      -webkit-mask: linear-gradient(90deg, #000 calc(100% - 1em), transparent);
+      mask: linear-gradient(90deg, #000 calc(100% - 1em), transparent);
+    }
   }
   .yr {
     display: block;
@@ -324,7 +380,7 @@ const n = chapters.length;
     color: var(--mut);
   }
   @media (max-width: 48rem) {
-    .ch {
+    .ch, .chapter-size {
       padding-top: 52svh;
     }
     .tx {
@@ -336,6 +392,10 @@ const n = chapters.length;
     }
   }
   @media print {
+    .journey[data-text-on-top] .wall { display: none; }
+    .text-wall { position: static; }
+    .text-viewport { position: static; height: auto; overflow: visible; }
+    .text-column { transform: none !important; }
     .stage {
       display: none;
     }
@@ -348,39 +408,3 @@ const n = chapters.length;
     }
   }
 </style>
-
-<script>
-  // Load the renderer only when the journey is within one viewport. three is its own chunk.
-  const root = document.querySelector<HTMLElement>('.journey');
-  const canvas = root?.querySelector<HTMLCanvasElement>('canvas.gl');
-  if (root && canvas) {
-    const panel = root.querySelector<HTMLElement>('.preparation')!;
-    const skip = root.querySelector<HTMLButtonElement>('[data-skip-stage]')!;
-    const retry = root.querySelector<HTMLButtonElement>('[data-retry-stage]')!;
-    let dispose: (() => void) | undefined;
-    const fail = () => {
-      if (root.dataset.stage === 'skipped') return;
-      root.dataset.stage = 'error';
-      root.querySelector<HTMLElement>('[data-load-status]')!.textContent = 'The 3D journey could not load. You can still read the story.';
-      retry.hidden = false;
-    };
-    skip.addEventListener('click', () => { root.dataset.stage = 'skipped'; dispose?.(); });
-    retry.addEventListener('click', () => location.reload());
-    new MutationObserver(() => { if (root.dataset.stage === 'error') retry.hidden = false; }).observe(root, { attributes: true, attributeFilter: ['data-stage'] });
-    const n = Number(root.dataset.n) || 1;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        io.disconnect();
-        if (root.dataset.stage === 'skipped') return;
-        root.dataset.stage = 'loading';
-        panel.hidden = false;
-        import('../scripts/stage-run.ts')
-          .then((m) => { if (root.dataset.stage !== 'skipped') dispose = m.mount(root, canvas, n); })
-          .catch((err) => { fail(); console.warn('[journey] stage did not start', err); });
-      },
-      { rootMargin: '100% 0px' },
-    );
-    io.observe(root);
-  }
-</script>

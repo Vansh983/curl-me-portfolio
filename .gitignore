@@ -30,3 +30,6 @@ yarn-error.log*
 
 # local design review captures
 .impeccable/review/
+
+# brainstorm companion screens
+.superpowers/
