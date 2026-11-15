@@ -6,7 +6,7 @@ import { pathDistance, follow } from '../src/lib/phone/pacing.ts';
 import { activityAt, flightsFor, hopsFor } from '../src/lib/phone/activities.ts';
 
 test('phone paragraphs follow the shared about text by stop', () => {
-  assert.deepEqual(STOPS.map(stop => paragraphsFor(stop).length), [1, 1, 2, 1, 2, 1, 1, 0, 7]);
+  assert.deepEqual(STOPS.map(stop => paragraphsFor(stop).length), [1, 1, 2, 1, 1, 1, 1, 0, 7]);
   const paragraphs = STOPS.flatMap(paragraphsFor).map(paragraph => paragraph.id);
   assert.equal(new Set(paragraphs).size, paragraphs.length);
 });

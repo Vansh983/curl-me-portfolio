@@ -476,6 +476,7 @@ const n = chapters.length;
   @media (min-width: 1025px) {
     .text-viewport { padding-left: 0; }
     .text-column {
+      position: relative;
       --reading-size: 22px;
       width: 50vw;
       max-width: calc(22.5em + var(--pad) + 1em);
@@ -483,12 +484,24 @@ const n = chapters.length;
       font-weight: 300;
       font-size: var(--reading-size);
       line-height: 1.5;
+      color: #ededed; /* The approved fade stays dark in either page theme. */
       padding-left: var(--pad);
       padding-right: 1em;
-      /* The same 74% backing; its fade stays beyond the words. */
-      -webkit-mask: linear-gradient(90deg, #000 calc(100% - 1em), transparent);
-      mask: linear-gradient(90deg, #000 calc(100% - 1em), transparent);
+      text-shadow: 0 1px 3px rgba(6, 7, 10, .8), 0 0 12px rgba(6, 7, 10, .55);
+      background: none;
+      -webkit-mask: none;
+      mask: none;
     }
+    .text-column::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 122%; /* Mock B's 78:64 fade-to-column ratio, beyond the words. */
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(6, 7, 10, .62) 0%, rgba(6, 7, 10, .46) 55%, rgba(6, 7, 10, 0) 100%);
+    }
+    .text-column :global(.about-link), .text-column :global(.about-tag), .text-column :global(.about-card) { text-shadow: none; }
   }
   .yr {
     display: block;
