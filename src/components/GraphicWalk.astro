@@ -5,7 +5,8 @@ import { LANDMARKS, AEROPLANE, transitArtwork } from '../lib/phone/artwork';
 import { STOPS, PATH_LENGTH, TRANSIT, paragraphsFor } from '../lib/phone/story-path';
 import Walker from './phone/Walker.astro';
 import AboutText from './AboutText.astro';
-import { ABOUT_OPENING } from '../data/about';
+import AboutInline from './AboutInline.astro';
+import { ABOUT_OPENING_PARTS } from '../data/about';
 const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
 ---
 
@@ -13,7 +14,7 @@ const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
     <div class="journey" id="j">
       <header class="intro">
         <h1>{profile.name}</h1>
-        <p>{ABOUT_OPENING}</p>
+        <p><AboutInline parts={ABOUT_OPENING_PARTS} /></p>
       </header>
       {STOPS.map((stop, i) => (
         <section class="story-block" data-stop={i} id={stop.id} aria-label={stop.name}>

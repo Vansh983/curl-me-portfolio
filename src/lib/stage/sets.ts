@@ -1,7 +1,7 @@
 // The world as data: twelve sets in a chain, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
-//   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick door on x+ at z 1.6 (shut)
+//   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick opening on x+ at z 1.6
 //   Passage        x -4.85..     z  2.2..4.3           north, 2.1 m, to the 2010 room
 //   Set 1 ROOM     x -9.15..-4.95 z 4.3..7.9   h 2.7   2010, Delhi; in from the south at x -5.45, out east at z 6.6
 //   Set 2 LAB      x -3.15..2.05 z  4.7..9.7   h 3.0   2013; in from the west at z 6.6, out south at x 1.4
@@ -251,7 +251,7 @@ export const DOORS = {
   volta: { w: 1.2, h: 2.1, depth: 0.22, case: 'doorPaint', leaf: 'voltaDoor', sill: 'windowFrame', pull: 'lever', faces: 'both' },
   floqer: { w: STAGE.door.w, h: STAGE.door.h, depth: FLOQER.z[0] - STAGE.door.z, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'both' },
   home: { w: FLOQER.door.w, h: FLOQER.door.h, depth: 0.23, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'both' },
-  brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing' }, // the door in the apartment's brick wall: shut, the story no longer comes back through it
+  brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing', open: true }, // the cased opening into the apartment: no leaf
   google: { w: GOOGLE.door.w, h: GOOGLE.door.h, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the 2020 room's south door, which Google's block shows on the lawn: the room's own frame lines the hole
   lab: { w: 0.9, h: 2.05, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the lab's door onto the lawn, in the frame at its mouth: shut whenever he is in neither the lab nor the lawn, so from the 2010 room the lawn is never seen through two doorways (doc 50)
   front: { w: 1.2, h: 2.4, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'none', open: true }, // where the apartment's passage meets its room: the passage's whole section, cased, no leaf
@@ -308,7 +308,7 @@ export const SETS: StageSet[] = [
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
         { wall: 'z+', at: -5.45, w: 1.2, h: 2.4 }, // the front door, north into the passage: the passage's whole section, which its case (DOORS.front) lines; a smaller hole showed this wall's back beside the case from the passage (leaks.mjs)
-        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the door in the brick: shut (DOORS.brick fills it)
+        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the open, cased doorway in the brick
         { wall: 'z-', at: (CONDO.x[0] + CONDO.x[1]) / 2, w: CONDO.glass, h: CONDO.h, sill: 0 }, // the glass, floor to ceiling
       ],
     },
@@ -354,10 +354,11 @@ export const SETS: StageSet[] = [
         { build: 'passageDoor', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room; an end wall round the door there
         opening('front', -5.45, 0, 2.2 + DOORS.front.depth), // the passage's mouth on the room, cased: an edge where the two meet
         { build: 'doorCaseBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0] }, // the door in the brick: the way home (world.ts), its case
-        // its leaf, hinged on the north jamb, swinging west into the room as he comes along the passage; Floqer's door shuts behind him as it opens, so the
-        // house and the apartment are never seen together (doc 50: the house stood outside the glass): the pair is an airlock, as the 2020 room's doors are
-        { build: 'doorLeafBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0], live: 'door', door: [ch(18.76), ch(18.9)], shut: [ch(19.0), ch(19.12)], cap: 'The door in the brick. Home.' }, // and shut again behind him, home: the house is never drawn from the room
         { build: 'passageHome', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door, 1.8 m: at its end, the door at the top of Floqer's stair, his own front door; a wall round each door's hole
+        // The same stair door, at its unchanged world pose. Load/draw it with the passage so its closed leaf is there
+        // from the opening frame, even while Floqer's house is hidden outside the apartment's glass.
+        { build: 'doorCaseHome', at: [CONDO.x[1] + 1.8, 0, 1.6 + hingeOff(DOORS.home)], rot: [0, -180, 0] },
+        { build: 'doorLeafHome', at: [CONDO.x[1] + 1.8, 0, 1.6 + hingeOff(DOORS.home)], rot: [0, -180, 0], live: 'door', door: [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], shut: [ch(18.8), ch(18.94)], cap: 'His own front door.' },
       ];
     })(),
   },
@@ -908,8 +909,7 @@ export const SETS: StageSet[] = [
         out.push({ build: 'rollingWhiteboard', at: [-8.3, F, FLOQER.z[1] - 1.0], rot: [0, -142, 0], live: 'screen', cap: 'The whiteboard on wheels: to do, failed, passed, prod.', thing: 'rollingBoard' });
         // the stair up the east wall, straight at the door in the north wall, its rail on the open side, a light over it; the landing behind the door
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
-        // the door at the top of the stair is his own: dark oak in a dark case, from the brick's face to the apartment's passage behind it (HOME), opening into the passage
-        out.push(...doorway('home', FLOQER.door.x, F + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + DOORS.home.depth, [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], 'His own front door.', [ch(18.8), ch(18.94)])); // and it shuts behind him in the passage, before the brick door is through
+        // The door at the top of this stair is drawn with the apartment's passage (set 0), at the same world pose.
         out.push({ build: 'discLight', at: [FLOQER.stair.x, F + 3.6, FLOQER.stair.z0 + 1.2], live: 'pendant' });
         // a house people ship from: boxes still packed, a suitcase, a bin bag, a crate, the shoes by the door, cases of drinks against the wall, a torchiere in the corner
         out.push({ model: 'cardboard_box_01', at: [-15.0, F, Z + 0.9], rot: [0, 12, 0] });

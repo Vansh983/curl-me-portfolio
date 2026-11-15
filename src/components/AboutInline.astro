@@ -1,0 +1,55 @@
+---
+import { ABOUT_LINKS, ABOUT_ROWS, type AboutPart } from '../data/about';
+type Props = { parts: readonly AboutPart[]; prefix?: string };
+const { parts, prefix = 'about' } = Astro.props;
+---
+
+{parts.map(part => part.tag ? (
+  <button type="button" class="about-tag" id={`${prefix}-tag-${part.tag}`} data-about-tag={part.tag} aria-expanded="false" aria-controls={`${prefix}-row-${part.tag}`}>{ABOUT_ROWS[part.tag].label}</button>
+) : part.link ? (
+  <a class="about-link" href={ABOUT_LINKS[part.link].href} target="_blank" rel="noopener noreferrer" aria-label={`${ABOUT_LINKS[part.link].label} (opens in a new tab)`} style={`--link-fill:${ABOUT_LINKS[part.link].fill};--link-ink:${ABOUT_LINKS[part.link].ink}`}>
+    {ABOUT_LINKS[part.link].label}<svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3 9 9 3M3 3h6v6" /></svg>
+  </a>
+) : part.text)}
+
+<style>
+  .about-tag {
+    display: inline-block;
+    vertical-align: baseline;
+    padding: 0 9px;
+    border: 1px solid var(--about-border, var(--rule));
+    border-radius: 20px;
+    background: var(--about-fill, var(--raise));
+    color: inherit;
+    font: inherit;
+    font-size: 0.93em;
+    line-height: 1.4;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .about-tag[aria-expanded='true'] {
+    color: var(--about-paper, #ededed);
+    background: var(--about-ink, #111111);
+    border-color: var(--about-ink, #111111);
+  }
+  .about-link, .about-link:hover {
+    display: inline-block;
+    vertical-align: baseline;
+    padding: 0 .4em;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: var(--link-fill);
+    color: var(--link-ink);
+    font: inherit;
+    font-size: .93em;
+    line-height: 1.4;
+    text-decoration: none;
+  }
+  .about-link:hover { text-decoration: underline; text-underline-offset: .15em; }
+  .about-link svg { width: .6em; height: .6em; margin-left: .2em; }
+  .about-tag:focus, .about-link:focus {
+    outline: 2px solid var(--about-focus, var(--tx));
+    outline-offset: 3px;
+  }
+  .about-tag:focus:not(:focus-visible), .about-link:focus:not(:focus-visible) { outline: none; }
+</style>

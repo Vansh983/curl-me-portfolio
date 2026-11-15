@@ -27,11 +27,47 @@ const n = chapters.length;
   </div>
 
   <div class="mode" role="group" aria-label="How to move through the journey">
-    <button type="button" data-mode="scroll" data-view="scroll" aria-pressed="true">Scroll</button>
-    <button type="button" data-mode="walk" data-view="walk" aria-pressed="false">Walk</button>
-    <button type="button" data-view="graphic" aria-pressed="false">Graphic</button>
+    <svg width="0" height="0" class="mode-symbols" aria-hidden="true">
+      <symbol id="i-scroll" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="5" /><path d="M12 7v4" /></symbol>
+      <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8" /><path d="M9 21l2.5-6-2.5-3 1-5 3.5 1.5 2 3 3 1M11.5 15l3 2 1 4M10 7L7 9v3" /></symbol>
+      <symbol id="i-graphic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 15l5-4 4 3 3-2 6 4" /><circle cx="16" cy="9" r="1.3" /></symbol>
+      <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h10" /></symbol>
+    </svg>
+    <div class="mode-segments" data-on="0">
+      <span class="mode-thumb" aria-hidden="true"></span>
+      {[
+        ['scroll', 'Scroll', 'Scroll the page to move through the rooms.'],
+        ['walk', 'Walk', 'Walk the rooms yourself with W A S D.'],
+        ['graphic', 'Graphic', 'The flat drawn version of the story.'],
+      ].map(([mode, label, tip]) => (
+        <button type="button" data-mode={mode === 'graphic' ? undefined : mode} data-view={mode} aria-label={label} aria-pressed={mode === 'scroll' ? 'true' : 'false'} aria-describedby={`tip-${mode}`}>
+          <svg aria-hidden="true"><use href={`#i-${mode}`} /></svg>{label}
+          <span class="mode-tip" id={`tip-${mode}`} role="tooltip">{tip}</span>
+        </button>
+      ))}
+    </div>
+    <button type="button" class="text-toggle" data-text-toggle aria-label="Show text" aria-pressed="true" aria-describedby="tip-text">
+      <svg aria-hidden="true"><use href="#i-text" /></svg>
+      <span class="mode-tip" id="tip-text" role="tooltip">Hide or show the text.</span>
+    </button>
   </div>
-  <p class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <kbd>Click</kbd> look <kbd>E</kbd> open <kbd>Shift</kbd> run <kbd>Esc</kbd> leave<span class="found" data-found></span></p>
+  <div class="keys" data-roam-keys role="group" aria-label="Walk controls">
+    <span class="found" data-found></span>
+    <div class="keycaps">
+      {[
+        ['KeyW', 'W', 'Move forward'], ['KeyA', 'A', 'Move left'],
+        ['KeyS', 'S', 'Move backward'], ['KeyD', 'D', 'Move right'],
+        ['ShiftLeft', 'Shift', 'Run'], ['KeyE', 'E', 'Open or put back'],
+        ['Escape', 'Esc', 'Leave Walk'], ['MouseLook', '', 'Look with the mouse'],
+      ].map(([code, label, action]) => (
+        <button type="button" class="keycap" data-roam-key={code} aria-label={action} title={action}>
+          <span class="key-face">
+            {label ? <span data-key-label>{label}</span> : <svg width="18" height="24" viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="1" width="14" height="22" rx="7" /><path d="M9 1v8M2 9h14" /></svg>}
+          </span>
+        </button>
+      ))}
+    </div>
+  </div>
   <p class="prompt" data-roam-prompt hidden></p>
   {/* a thing picked up: its words beside it (stage-run.ts fills it); the lane, the title, the lines, his photographs, a link */}
   <aside class="thing" data-thing role="dialog" tabindex="-1" hidden></aside>
@@ -130,54 +166,147 @@ const n = chapters.length;
   .gl.on {
     opacity: 1;
   }
-  /* One laptop row, with the same selected treatment in either view and theme. */
+  /* Mock C: the same glass pill and light thumb in either view and theme. */
   .mode, .keys, .prompt { display: none; }
   @media (min-width: 1025px) {
     .mode {
       position: fixed;
       top: 16px;
-      left: 50%;
-      transform: translateX(-50%);
+      right: 16px;
       z-index: 6;
       display: flex;
-      border: 1px solid #111111;
-      background: #fdfdfc;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--f-body);
     }
+    .mode-symbols { position: absolute; }
+    .mode-segments, .text-toggle {
+      border-radius: 999px;
+      background: rgba(20, 21, 26, .72);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, .12);
+    }
+    .mode-segments { position: relative; display: flex; padding: 4px; }
+    .mode-thumb {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      height: 34px;
+      width: 96px;
+      border-radius: 999px;
+      background: #f3f3f1;
+      transition: transform .28s cubic-bezier(.3, 1.3, .5, 1);
+    }
+    .mode-segments[data-on='1'] .mode-thumb { transform: translateX(96px); }
+    .mode-segments[data-on='2'] .mode-thumb { transform: translateX(192px); }
     .mode button {
-      font-family: var(--f-mono);
-      font-size: var(--t-label);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #111111;
-      background: none;
-      border: 0;
-      padding: 8px 16px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font: 500 12px/1.3 var(--f-body);
+      letter-spacing: .02em;
+      color: #c9ccd3;
+      padding: 0;
       cursor: pointer;
+      transition: color .2s;
     }
-    .mode button[aria-pressed='true'] { color: #fdfdfc; background: #111111; }
-    .mode button:focus-visible { outline: 2px solid #111111; outline-offset: 3px; box-shadow: 0 0 0 3px #fdfdfc; }
+    .mode-segments button { width: 96px; height: 34px; border: 0; border-radius: 999px; background: none; z-index: 1; }
+    .mode button[aria-pressed='true'] { color: #111; }
+    .mode .text-toggle { width: 42px; height: 42px; }
+    .mode .text-toggle[aria-pressed='true'] { background: #f3f3f1; }
+    .mode .text-toggle:disabled { opacity: .45; cursor: default; }
+    .mode .text-toggle[hidden] { display: none; }
+    .mode button:focus-visible { outline: 2px solid #f3f3f1; outline-offset: 3px; box-shadow: 0 0 0 4px #111; }
+    .mode button svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
+    }
+    .mode-segments button svg { width: 15px; height: 15px; }
+    .mode button:not(:disabled):hover svg { transform: scale(1.18) translateY(-1px); }
+    .mode-tip {
+      position: absolute;
+      top: 46px;
+      right: 0;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: #f3f3f1;
+      color: #555;
+      font: 400 12px/1.3 var(--f-body);
+      letter-spacing: normal;
+      white-space: nowrap;
+      text-align: left;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity .16s, transform .16s;
+      z-index: 5;
+    }
+    .mode button:not(:disabled):hover .mode-tip,
+    .mode button:focus-visible .mode-tip { opacity: 1; transform: translateY(0); }
   }
-  @media (hover: hover) and (pointer: fine) {
+  @media (prefers-reduced-motion: reduce) {
+    .mode-thumb, .mode button, .mode button svg, .mode-tip { transition: none; }
+    .mode button:not(:disabled):hover svg, .mode-tip { transform: none; }
+  }
+  @media (min-width: 1025px) {
     .journey[data-mode='walk'] .keys {
       position: fixed;
-      left: 50%;
+      left: 20px;
       bottom: 20px;
-      transform: translateX(-50%);
       z-index: 6;
       display: block;
-      margin: 0;
-      padding: 7px 12px;
       font-family: var(--f-mono);
       font-size: var(--t-label);
       letter-spacing: 0.06em;
-      white-space: nowrap;
-      color: var(--tx);
-      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      color: #111111;
       pointer-events: none;
     }
-    .keys kbd { margin: 0 2px 0 10px; }
-    .keys kbd:first-child { margin-left: 0; }
-    .keys kbd + kbd { margin-left: 0; }
+    .keycaps { display: grid; grid-template-columns: repeat(3, 44px) 72px repeat(3, 44px); grid-template-rows: repeat(2, 44px); gap: 6px; }
+    .keycap {
+      appearance: none;
+      display: block;
+      position: relative;
+      grid-row: 2;
+      padding: 0;
+      border: 0;
+      border-radius: 2px;
+      background: #111111;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      pointer-events: auto;
+    }
+    .keycap[data-roam-key='KeyW'] { grid-column: 2; grid-row: 1; }
+    .key-face {
+      position: absolute;
+      inset: 0 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #111111;
+      border-radius: 2px;
+      background: #fdfdfc;
+      transition: transform 100ms ease-out;
+      isolation: isolate;
+    }
+    .key-face::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #c8c8c3; opacity: 0; transition: opacity 100ms ease-out; }
+    .keycap:global(.is-down) .key-face { transform: translateY(2px); transition-duration: 50ms; }
+    .keycap:global(.is-down) .key-face::before { opacity: 1; transition-duration: 50ms; }
+    .keycap:focus-visible { outline: 2px solid #111111; outline-offset: 3px; box-shadow: 0 0 0 3px #fdfdfc; }
+    .keys[data-locked] .keycap { pointer-events: none; }
+    .keys .found { display: block; width: fit-content; margin-bottom: 8px; padding: 4px 8px; background: #fdfdfc; }
+    .keys .found:empty { display: none; }
     .journey[data-mode='walk'] .prompt:not([hidden]) {
       position: fixed;
       left: 50%;
@@ -195,10 +324,12 @@ const n = chapters.length;
       border: 1px solid var(--tx);
       pointer-events: none;
     }
-    .journey:global(.held)[data-mode='walk'] .prompt:not([hidden]) { top: auto; bottom: 58px; } /* a thing in hand: the prompt sits above the keys line, clear of the words and their link */
+    .journey:global(.held)[data-mode='walk'] .prompt:not([hidden]) { top: auto; bottom: 150px; } /* above the keycaps and found count, clear of the words and their link */
     .prompt::before { content: 'E'; margin-right: 10px; padding: 1px 6px; border: 1px solid var(--tx); }
-    .keys .found { margin-left: 18px; color: var(--mut); }
-    .keys .found:empty { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .key-face, .key-face::before { transition: none; }
+    .keycap:global(.is-down) .key-face { transform: none; }
   }
   /* the words beside a thing in hand (built in stage-run.ts, so their selectors are global): the right half of the frame, no box, a soft fade to the page behind them; upright, the lower half under the thing */
   .thing {
@@ -270,6 +401,13 @@ const n = chapters.length;
   .text-column { will-change: transform; }
   .journey:global(.held) .text-wall { opacity: 0; }
   .journey:global(.held) .text-column { pointer-events: none; }
+  @media (min-width: 1025px) {
+    .journey[data-text-hidden] .text-wall,
+    .journey[data-mode='preparing'] .text-wall,
+    .journey[data-mode='walk'] .text-wall { visibility: hidden; }
+    /* Also cover a Walk choice made before the stage is ready. Keep layout for the slide. */
+    .journey:has(.mode [data-mode='walk'][aria-pressed='true']) .text-wall { visibility: hidden; }
+  }
   .tx {
     pointer-events: auto;
   }
@@ -341,6 +479,8 @@ const n = chapters.length;
       --reading-size: 22px;
       width: 50vw;
       max-width: calc(22.5em + var(--pad) + 1em);
+      font-family: var(--f-body);
+      font-weight: 300;
       font-size: var(--reading-size);
       line-height: 1.5;
       padding-left: var(--pad);

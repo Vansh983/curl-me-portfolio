@@ -1,5 +1,6 @@
 ---
 import { ABOUT_ROWS, type AboutParagraph } from '../data/about';
+import AboutInline from './AboutInline.astro';
 
 type Props = { paragraphs: readonly AboutParagraph[]; prefix?: string };
 const { paragraphs, prefix = 'about' } = Astro.props;
@@ -7,7 +8,7 @@ const { paragraphs, prefix = 'about' } = Astro.props;
 
 {paragraphs.map(paragraph => (
   <div class="about-paragraph" data-about-paragraph={paragraph.id}>
-    <p>{paragraph.parts.map(part => part.tag ? <button type="button" class="about-tag" id={`${prefix}-tag-${part.tag}`} data-about-tag={part.tag} aria-expanded="false" aria-controls={`${prefix}-row-${part.tag}`}>{ABOUT_ROWS[part.tag].label}</button> : part.text)}</p>
+    <p><AboutInline parts={paragraph.parts} prefix={prefix} /></p>
     {paragraph.parts.flatMap(part => part.tag ? [part.tag] : []).map(tag => {
       const row = ABOUT_ROWS[tag];
       return (
@@ -28,30 +29,11 @@ const { paragraphs, prefix = 'about' } = Astro.props;
 
 <style>
   .about-paragraph { padding: 18px 0; }
-  .about-tag {
-    display: inline-block;
-    vertical-align: baseline;
-    padding: 0 9px;
-    border: 1px solid var(--about-border, var(--rule));
-    border-radius: 20px;
-    background: var(--about-fill, var(--raise));
-    color: inherit;
-    font: inherit;
-    font-size: 0.93em;
-    line-height: 1.4;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-  .about-tag[aria-expanded='true'] {
-    color: var(--about-paper, #ededed);
-    background: var(--about-ink, #111111);
-    border-color: var(--about-ink, #111111);
-  }
-  .about-tag:focus, .about-cards:focus {
+  .about-cards:focus {
     outline: 2px solid var(--about-focus, var(--tx));
     outline-offset: 3px;
   }
-  .about-tag:focus:not(:focus-visible), .about-cards:focus:not(:focus-visible) { outline: none; }
+  .about-cards:focus:not(:focus-visible) { outline: none; }
   .about-row { margin: 8px 0 14px; }
   .about-row[hidden] { display: none; }
   .about-cards {

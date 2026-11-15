@@ -12,6 +12,7 @@ let active = '';
 let graphicY = 0;
 let stageY = 0;
 let journey: HTMLElement | undefined;
+let textVisible = true;
 let controller: ReturnType<typeof import('./journey-view').initJourney> | undefined;
 
 function syncControls() {
@@ -27,9 +28,18 @@ function syncControls() {
       pendingMode = false;
     }
   }
-  for (const button of journey.querySelectorAll<HTMLButtonElement>('.mode [data-view]')) {
-    button.setAttribute('aria-pressed', String(button.dataset.view === (active === 'graphic' ? 'graphic' : selected)));
+  const view = active === 'graphic' ? 'graphic' : selected;
+  const segments = journey.querySelector<HTMLElement>('.mode-segments')!;
+  segments.dataset.on = String(['scroll', 'walk', 'graphic'].indexOf(view));
+  for (const button of segments.querySelectorAll<HTMLButtonElement>('[data-view]')) {
+    button.setAttribute('aria-pressed', String(button.dataset.view === view));
   }
+  const textButton = journey.querySelector<HTMLButtonElement>('[data-text-toggle]')!;
+  textButton.hidden = view === 'graphic';
+  textButton.disabled = view === 'walk' || journey.dataset.mode === 'preparing';
+  textButton.setAttribute('aria-pressed', String(textVisible && !textButton.disabled));
+  journey.toggleAttribute('data-text-hidden', !textVisible);
+  journey.querySelector<HTMLElement>('.text-wall')!.inert = !textVisible;
 }
 
 function show() {
@@ -57,6 +67,11 @@ function show() {
       journey = stage.querySelector<HTMLElement>('section.journey')!;
       const controls = journey.querySelector<HTMLElement>('.mode')!;
       controls.addEventListener('click', event => {
+        if ((event.target as Element).closest('[data-text-toggle]')) {
+          textVisible = !textVisible;
+          syncControls();
+          return;
+        }
         const button = (event.target as Element).closest<HTMLButtonElement>('[data-view]');
         if (!button || applyingMode) return;
         selected = button.dataset.view as typeof selected;

@@ -66,3 +66,31 @@ Other touched files: home/view scripts and components, `view-mode.ts`, `stage-de
 "Just put it alongside in the same tab as scroll, walk, and graphic": at 1025px and up, one top-centre Scroll / Walk / Graphic row replaces the two switches; Scroll opens first, each 3D button returns in its named mode, and Graphic keeps the stage paused. The selected button always uses dark ink with light text in both themes. Existing stage handlers are reused without further changes to `stage-run.ts`; below 1025px remains graphic with no row or 3D requests.
 
 "This is way too big a text": dropped the scroll-speed target. Laptop 3D paragraphs use `--reading-size: clamp(26px, 2.05vw, 34px)` in `Journey.astro`, 1.5 line height, a 620px reading area at 1456px, and one line of padding above and below each paragraph. The name, tags, cards and existing contact links scale with it in `TextJourney.astro`. Kept the 74% backing, 30svh/90svh outer space and unchanged slide; phone-focus no longer hides the text, while holding a thing still does. Graphic, phone and stage code stay unchanged.
+
+## Follow-up: Walk keycaps
+
+"I need actual icons (WASD) at the bottom left. Whenever I click on W or hold it, it shows like a game." Built steps 1–3 of `docs/walk-hud-research.md`: Walk-only buttons in `Journey.astro`, 44px keys with a 72px Shift, 20px from the left and bottom. The found count sits above them; the held-object prompt sits above the HUD. Faces travel 2px in 50ms and release in 100ms, using transform and opacity; reduced motion keeps the fill change without travel.
+
+`stage-run.ts` shares keyboard, captured pointer and focused-button input, keeping each source independent. E uses the existing pickup/put-back/door decision, Esc leaves Walk, and the mouse button requests pointer lock. Locked keycaps are indicators only. Physical positions still use `event.code`; observed letter labels follow `event.key`. `stage-roam.ts` notifies the HUD from every existing release, including rides and pickups. No movement, camera, assets, sound or haptics changed.
+
+Headless Chrome checks covered overlapping holds, capture loss, resets, focused Enter/Space, reduced motion and pointer lock. The unchanged roam bot completed chapters 0–5 on port 4321. Existing blocker found during the E check: the global `.held { display: none }` in `src/components/phone/Walker.astro:72` hides the entire 3D journey when a thing opens, including its prompt and controls. That unrelated graphic rule remains unchanged. Evidence is in `.cache/walk-hud/`; these were not checks in his Chrome.
+
+With only a temporary browser override of that rule, pointer and keyboard E both picked up and put back a thing, with the count and prompt clear of the keycaps at 1025px. Two-pointer cancellation preserved a concurrent keyboard hold. A fresh 390px load requested no 3D files. Automation also caught the existing queued home-view switch re-entering Walk if Escape follows the Walk click immediately; Escape after the switch settles works. Neither separate issue was changed.
+
+Runtime input edit locations (current lines): `stage-run.ts` 1760, 2181–2196, 2237, 2264–2318, 2327–2348, 2350, 2354, 2356, 2368–2373, 2393–2398, 2608–2614; `stage-roam.ts` 28–29, 70, 261, 293, 300, 307, 386.
+
+## Follow-up: controls C, Inter Light, company links
+
+Vansh picked mock C in `controls.html`: a top-right glass pill with the four supplied icons, a 280ms sliding light thumb, hover/focus tooltips and a separate text toggle. Below 1025px nothing is mounted. The toggle hides the whole text layer without changing its measurements or the stage; its setting survives mode switches, it is disabled in Walk and absent in Graphic. The keycaps stay unchanged. `Journey.astro` and `home-view.ts` reuse the existing stage controls without a runtime edit.
+
+FontTools inspection of the shipped `inter.woff2` found a `wght` axis of 100–900 (default 400), including a named Light instance at 300. The 3D text inherits Inter 300 at the same 22px; Bebas Neue, widths and spacing stay.
+
+"Floqer needs to be an orange pill, which is like a link." Typed link parts in `about.ts` and shared `AboutInline.astro` cover the paragraphs and both introductions. All words and tag rows stay. Links open a new tab with `noopener noreferrer` and a small arrow:
+
+- Floqer: `https://floqer.com`, `profile.ts:11`; orange `#F83903`, `src/lib/stage/materials.ts:161` (its foam mark), dark text.
+- Bean: `https://beantheapp.com`, `profile.ts:12`; orange `#F26722`, `src/scripts/stage-paint.ts:546`, dark text.
+- The Good Neighbour App: its App Store URL, `projects.ts:31`; teal `#058078`, `curl-era:data/projects.ts:16`, white text. This is the darker end of its recorded gradient.
+
+No organisation-page link was recorded for Webcube, Dalhousie University, Shiftkey Labs, Invest Nova Scotia, Web Summit Vancouver or Product Hunt in the supplied data, draft or curl-era source. They stay plain. Shiftkey's commented-out app repository is not an organisation-page link. Google and the wireless lab also stay plain; Google Code In remains a tag.
+
+Headless checks on 4321 covered mode switches, hidden rendering, text visibility/focus/scroll geometry, keyboard tooltips, reduced motion and both views' links. Fresh 390px and 1024px loads requested no 3D files. Pill contrast is 5.02:1, 6.06:1 and 4.81:1 respectively. Evidence is in `.cache/home-controls/`. The unchanged `preview.webp` still contains an image of the old centre controls during loading. No assets or stage files changed in this follow-up; no tests added.

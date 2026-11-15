@@ -1757,6 +1757,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   };
   const onLeave = () => { pointer = undefined; setHover(undefined); };
   const onClick = (ev: PointerEvent) => {
+    if (capPointers.has(ev.pointerId)) return; // a HUD gesture must not pick up/put back after capture ends
     if (held) { if (!dragged) putBack(); return; } // a click outside the words puts the thing back; a drag turned it
     if (roam?.active) return;
     const b = pick(ev.clientX, ev.clientY);
@@ -2156,9 +2157,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // the 2020 room stands behind Google's door with the aircraft off its west door: the lawn and the aircraft would stand in
     // one another's way outside it, so each shows only while its own door is open, and the two doors are never open together
     if (mainFrame.set === 4) { groups[3].visible = (roomDoors().lawn?.open ?? 1) > 0.001; groups[5].visible = (roomDoors().bridge?.open ?? 0) > 0.001; }
-    // Floqer's house stands outside the apartment's glass (world.ts): from the apartment it is drawn only while one of the pair of doors between them is
-    // open (his own front door at the top of the stair, the door in the brick): shut, the brick door hides the passage, and the house with it
-    if (mainFrame.set === 0) groups[12].visible = (roomDoors().home?.open ?? 0) > 0.001 || (roomDoors().brick?.open ?? 0) > 0.001;
+    // Floqer's house is outside the apartment's glass (world.ts): drawn only while the stair door is open.
+    // The passage and that door belong to set 0, so closing it never hides the passage behind the brick opening.
+    if (mainFrame.set === 0) groups[12].visible = (roomDoors().home?.open ?? 0) > 0.001;
     if (held?.kind === 'hand' && held.ready) drawHand(); else composer.render(); // a thing in hand: the still behind it, the thing over it; the world is not drawn
     phone.render();
     if (!shown) { shown = true; canvas.classList.add('on'); } // the first frame fades in over the page colour
@@ -2177,6 +2178,22 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
 
   // ---- the Walk mode: the switch up top, the keys, the mouse
   const modeButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-mode]')], prompt = root.querySelector<HTMLElement>('[data-roam-prompt]');
+  const keys = root.querySelector<HTMLElement>('[data-roam-keys]');
+  const keycaps = [...root.querySelectorAll<HTMLButtonElement>('[data-roam-key]')];
+  const keyLabels = new Map(keycaps.map(b => [b.dataset.roamKey!, b.querySelector<HTMLElement>('[data-key-label]')]));
+  const sources = new Map<string, string>(), captures = new Map<number, HTMLButtonElement>();
+  const capPointers = new Set<number>();
+  const legend = (code: string) => ({ ShiftRight: 'ShiftLeft', Enter: 'KeyE', ArrowUp: 'KeyW', ArrowDown: 'KeyS' }[code] ?? code);
+  const showKeys = () => {
+    const down = new Set([...sources.values()].map(legend));
+    for (const b of keycaps) if (b.classList.contains('is-down') !== down.has(b.dataset.roamKey!)) b.classList.toggle('is-down', down.has(b.dataset.roamKey!));
+  };
+  const clearKeys = () => {
+    sources.clear();
+    const previous = [...captures]; captures.clear();
+    for (const [id, b] of previous) if (b.hasPointerCapture(id)) b.releasePointerCapture(id);
+    showKeys();
+  };
   let roamPrompt = '', dragging = false, ghosts: Set<Object3D> | undefined;
   /** What is not solid to a walker: what stands for the far distance, what moves by itself, water, light. */
   const ghost = (mesh: Mesh): boolean => {
@@ -2188,12 +2205,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return live.water.includes(m) || m.alphaTest > 0 || (m instanceof MeshBasicMaterial && m.transparent);
   };
   // the 2020 room's two doors, known by when the scroll opens them: Google's off the lawn (sets.ts, `doorway('google')`) and the west door onto the bridge
-  // and the apartment's pair, known the same way: his own front door at the top of Floqer's stair and the door in the brick; and Volta's door into the wing
-  let roomDoorsFound: { lawn?: (typeof live.doors)[number]; bridge?: (typeof live.doors)[number]; home?: (typeof live.doors)[number]; brick?: (typeof live.doors)[number]; wing?: (typeof live.doors)[number] } | undefined;
+  // and his own front door at the top of Floqer's stair; and Volta's door into the wing
+  let roomDoorsFound: { lawn?: (typeof live.doors)[number]; bridge?: (typeof live.doors)[number]; home?: (typeof live.doors)[number]; wing?: (typeof live.doors)[number] } | undefined;
   const roomDoors = () => {
-    if (roomDoorsFound?.lawn && roomDoorsFound.bridge && roomDoorsFound.home && roomDoorsFound.brick && roomDoorsFound.wing) return roomDoorsFound;
+    if (roomDoorsFound?.lawn && roomDoorsFound.bridge && roomDoorsFound.home && roomDoorsFound.wing) return roomDoorsFound;
     const at = (q: number) => live.doors.find((d) => Math.abs(d.from - q) < 1e-6);
-    return (roomDoorsFound = { lawn: at(approach(0.768)), bridge: at(ch(4.745)), home: at(ch(16.5 + TOUR_GAIN)), brick: at(ch(18.76)), wing: at(ch(VOLTA_DOOR[0])) });
+    return (roomDoorsFound = { lawn: at(approach(0.768)), bridge: at(ch(4.745)), home: at(ch(16.5 + TOUR_GAIN)), wing: at(ch(VOLTA_DOOR[0])) });
   };
   const roamHud = () => {
     if (!roam) return;
@@ -2214,10 +2231,9 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const exclusive = () => { // the pairs, as they are when E is pressed: a pair's doors may land after the Walk begins
         const pairs = roomDoors(), out: Array<[(typeof live.doors)[number], (typeof live.doors)[number]]> = [];
         if (pairs.lawn && pairs.bridge) out.push([pairs.lawn, pairs.bridge]);
-        if (pairs.home && pairs.brick) out.push([pairs.home, pairs.brick]);
         return out;
       };
-      roam ??= createRoam({ groups, dolly, span: STAGE_SPAN, doors: live.doors, landed: (i: number) => landed[i], skip: ghost, exclusive });
+      roam ??= createRoam({ groups, dolly, span: STAGE_SPAN, doors: live.doors, landed: (i: number) => landed[i], skip: ghost, exclusive, released: clearKeys });
       root.dataset.mode = 'preparing';
       await roam.prepare();
       if (stopped) return;
@@ -2244,29 +2260,62 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const typing = (e: KeyboardEvent) => e.metaKey || e.ctrlKey || e.altKey || (e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)));
   // macOS sends no keyup for a key let go while Command is down: with Command, every held key is let go
   const meta = (e: KeyboardEvent) => e.code === 'MetaLeft' || e.code === 'MetaRight';
+  // Keyboard and each pointer own their hold. Only the last release stops that key.
+  const keyDown = (code: string, source: string): boolean => {
+    if (!active || !roam?.active) return false;
+    if (sources.has(source)) return true;
+    const movement = roam.key(code, !held);
+    if (!movement && !['KeyE', 'Enter', 'KeyR', 'Escape', 'MouseLook', 'Space'].includes(code)) return false;
+    const already = [...sources.values()].some(value => legend(value) === legend(code));
+    sources.set(source, code); showKeys();
+    if (movement || already) return true;
+    if (code === 'KeyE' || code === 'Enter') {
+      if (held) putBack();
+      else {
+        const near = nearestThing();
+        if (near && near.dist < roam.near && !roam.state().riding) void pickUp(near.h); else roam.use();
+      }
+    } else if (code === 'KeyR') { if (held) flipHeld(); else roam.home(); }
+    else if (code === 'Escape') void setMode(false);
+    else if (code === 'MouseLook' && document.pointerLockElement !== canvas) void lock();
+    return true;
+  };
+  const keyUp = (source: string) => {
+    const code = sources.get(source);
+    if (!code) return;
+    sources.delete(source);
+    if (![...sources.values()].includes(code)) roam?.key(code, false);
+    showKeys();
+  };
   const onKeyDown = (e: KeyboardEvent) => {
     if (!active) return;
-    if (held && !typing(e)) { // a thing in hand: E or Enter puts it back (walked, the mouse stays his), R turns it over; Escape is the walk's own key and puts a thing back only in the scroll; the keys do not move him; inside the panel the keys are the panel's (its link, its button)
-      if (e.target instanceof Node && e.target !== panel && panel.contains(e.target) && e.code !== 'Escape') return; // on its link, the keys are the link's
-      if (e.code === 'KeyE' || e.code === 'Enter' || (e.code === 'Escape' && !roam?.active)) { e.preventDefault(); if (!e.repeat) putBack(); }
-      else if (e.code === 'KeyR') { e.preventDefault(); if (!e.repeat) flipHeld(); }
-      else if (roam?.active) e.preventDefault();
+    if (roam?.active && meta(e)) roam.release();
+    if (typing(e)) return;
+    if (held && e.target instanceof Node && e.target !== panel && panel.contains(e.target) && e.code !== 'Escape') return; // on its link, the keys are the link's
+    const button = e.target instanceof Element ? e.target.closest<HTMLButtonElement>('[data-roam-key]') : null;
+    if (button && (e.code === 'Enter' || e.code === 'Space')) {
+      e.preventDefault();
+      if (!e.repeat && document.pointerLockElement !== canvas) keyDown(button.dataset.roamKey!, `activation:${e.code}`);
       return;
     }
-    if (roam?.active && meta(e)) roam.release();
-    if (!roam?.active || typing(e)) return;
-    if (roam.key(e.code, true)) { e.preventDefault(); return; }
-    if (e.repeat) return;
-    if (e.code === 'KeyE' || e.code === 'Enter') {
-      e.preventDefault();
-      const near = nearestThing();
-      if (near && near.dist < roam.near && !roam.state().riding) void pickUp(near.h); else roam.use();
+    if (roam?.active) {
+      if (e.repeat) { if (sources.has(`keyboard:${e.code}`)) e.preventDefault(); return; }
+      if (keyDown(e.code, `keyboard:${e.code}`)) {
+        if (e.code !== 'Escape') e.preventDefault();
+        const label = keyLabels.get(e.code);
+        if (label && e.code.startsWith('Key') && e.key.length === 1) label.textContent = e.key.toUpperCase();
+      }
+      return;
     }
-    else if (e.code === 'KeyR') roam.home();
-    else if (e.code === 'Escape') void setMode(false);
-    else if (e.code === 'Space') e.preventDefault();
+    if (held) { // Scroll's held-object controls stay the same.
+      if (e.code === 'KeyE' || e.code === 'Enter' || (e.code === 'Escape' && !roam?.active)) { e.preventDefault(); if (!e.repeat) putBack(); }
+      else if (e.code === 'KeyR') { e.preventDefault(); if (!e.repeat) flipHeld(); }
+    }
   };
-  const onKeyUp = (e: KeyboardEvent) => { if (meta(e)) roam?.release(); else roam?.key(e.code, false); };
+  const onKeyUp = (e: KeyboardEvent) => {
+    if (meta(e)) roam?.release();
+    else { keyUp(`keyboard:${e.code}`); keyUp(`activation:${e.code}`); }
+  };
   const onBlur = () => roam?.release();
   const onWheel = (e: WheelEvent) => { if (active && (roam?.active || held) && !(held && panel.contains(e.target as Node))) e.preventDefault(); }; // walked, the page does not scroll: it follows him; a thing in hand holds the scroll, the wheel scrolls its words
   // the mouse as the hand moves it, without the system's acceleration, where the browser has it; refused (a click too soon after Escape), dragging still looks
@@ -2274,13 +2323,36 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     try { await canvas.requestPointerLock({ unadjustedMovement: true }); }
     catch (err) { if (err instanceof DOMException && err.name === 'NotSupportedError') await Promise.resolve(canvas.requestPointerLock()).catch(() => {}); }
   };
+  const onCapDown = (e: PointerEvent) => {
+    const b = e.target instanceof Element ? e.target.closest<HTMLButtonElement>('[data-roam-key]') : null;
+    if (!b || !active || !roam?.active || e.button !== 0 || document.pointerLockElement === canvas) return;
+    e.preventDefault();
+    capPointers.add(e.pointerId);
+    captures.set(e.pointerId, b); b.setPointerCapture(e.pointerId);
+    keyDown(b.dataset.roamKey!, `pointer:${e.pointerId}`);
+  };
+  const onCapUp = (e: PointerEvent) => {
+    const b = captures.get(e.pointerId);
+    if (!b) return;
+    captures.delete(e.pointerId); keyUp(`pointer:${e.pointerId}`);
+    if (b.hasPointerCapture(e.pointerId)) b.releasePointerCapture(e.pointerId);
+  };
+  const onCapBlur = () => { keyUp('activation:Enter'); keyUp('activation:Space'); };
+  const onCapClick = (e: MouseEvent) => {
+    // Assistive activation has no pointer down/up. Enter/Space are handled above, including holds.
+    const b = e.target instanceof Element ? e.target.closest<HTMLButtonElement>('[data-roam-key]') : null;
+    if (!b || e.detail !== 0 || document.pointerLockElement === canvas) return;
+    keyDown(b.dataset.roamKey!, 'activation:click');
+    requestAnimationFrame(() => keyUp('activation:click'));
+  };
   const onRoamDown = (e: PointerEvent) => {
+    capPointers.delete(e.pointerId);
     if (held) { dragging = true; dragged = false; lastPt = { x: e.clientX, y: e.clientY }; return; } // a drag turns the thing in hand
     if (!roam?.active) return;
     dragging = true;
-    if (document.pointerLockElement !== canvas) void lock();
+    keyDown('MouseLook', `look:${e.pointerId}`);
   };
-  const onRoamUp = () => { dragging = false; lastPt = undefined; };
+  const onRoamUp = (e: PointerEvent) => { capPointers.delete(e.pointerId); keyUp(`look:${e.pointerId}`); dragging = false; lastPt = undefined; };
   const onRoamMove = (e: PointerEvent) => {
     if (!active) return;
     if (held) {
@@ -2292,7 +2364,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (Math.abs(e.movementX) > innerWidth / 3 || Math.abs(e.movementY) > innerHeight / 3) return; // a locked pointer now and then reports a leap of hundreds of pixels: dropped, the view does not jump
     roam.look(e.movementX, e.movementY);
   };
-  const onLockChange = () => { roam?.release(); }; // the mouse let go (Escape): no key stays held; a thing in hand stays in hand (E puts it back, a click too)
+  const onLockChange = () => { // under pointer lock the keycaps only indicate keyboard input
+    roam?.release();
+    const locked = document.pointerLockElement === canvas;
+    keys?.toggleAttribute('data-locked', locked);
+    for (const b of keycaps) { b.tabIndex = locked ? -1 : 0; b.setAttribute('aria-disabled', String(locked)); }
+  };
   const onHidden = () => { if (document.hidden) roam?.release(); };
   const setActive = (value: boolean) => {
     if (stopped || value === active) return;
@@ -2312,6 +2389,12 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
   };
   for (const b of modeButtons) b.addEventListener('click', () => { void setMode(b.dataset.mode === 'walk'); b.blur(); });
+  keys?.addEventListener('pointerdown', onCapDown);
+  keys?.addEventListener('pointerup', onCapUp);
+  keys?.addEventListener('pointercancel', onCapUp);
+  keys?.addEventListener('lostpointercapture', onCapUp);
+  keys?.addEventListener('focusout', onCapBlur);
+  keys?.addEventListener('click', onCapClick);
   addEventListener('keydown', onKeyDown);
   addEventListener('keyup', onKeyUp);
   addEventListener('blur', onBlur);
@@ -2521,6 +2604,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     loadingManager.abort();
     if (raf > 0) cancelAnimationFrame(raf);
     raf = -1;
+    roam?.release();
+    keys?.removeEventListener('pointerdown', onCapDown);
+    keys?.removeEventListener('pointerup', onCapUp);
+    keys?.removeEventListener('pointercancel', onCapUp);
+    keys?.removeEventListener('lostpointercapture', onCapUp);
+    keys?.removeEventListener('focusout', onCapBlur);
+    keys?.removeEventListener('click', onCapClick);
     removeEventListener('scroll', onScroll);
     removeEventListener('keydown', onKeyDown);
     removeEventListener('keyup', onKeyUp);

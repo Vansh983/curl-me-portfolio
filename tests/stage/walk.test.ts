@@ -153,6 +153,6 @@ test('the end is walked: the door at the top of Floqer\'s stair is the far end o
   const north = turnDir(12, [0, 0, 1]);
   assert.ok(Math.abs(north[0] + 1) < 1e-9 && Math.abs(north[2]) < 1e-9, 'the house\'s north is the world\'s west');
   assert.ok(!SETS[0].props.some((p) => p.build === 'doorLeaf'), 'no white leaf in the apartment');
-  assert.ok(SETS[12].props.some((p) => p.build === 'doorLeafHome') && !SETS[12].props.some((p) => p.build === 'landing'));
+  assert.ok(SETS[0].props.some((p) => p.build === 'doorLeafHome') && !SETS[12].props.some((p) => p.build === 'landing'));
   assert.ok(STAGE_BIN[2] > STAGE.centre + 6 && STAGE_BIN[0] < WALK.x - 0.6, 'the bin backstage, off the walk on its right');
 });

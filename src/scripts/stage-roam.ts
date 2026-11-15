@@ -25,6 +25,8 @@ export interface RoamContext {
   skip: (o: Mesh) => boolean;
   /** Whether a set is in yet: a door onto a room still coming does not open. */
   landed: (set: number) => boolean;
+  /** Keep input sources and their on-screen indicators in step with every release. */
+  released?: () => void;
 }
 export interface Roam {
   active: boolean;
@@ -65,6 +67,7 @@ export function createRoam(ctx: RoamContext): Roam {
   const { groups, dolly, span } = ctx, path: RoamPath = roamPath(dolly, span);
   const colliders: Array<MeshBVH | null | undefined> = groups.map(() => undefined);
   const pos = new Vector3(), vel = new Vector3(), held = new Set<string>();
+  const release = () => { held.clear(); ctx.released?.(); };
   let yaw = 0, pitch = 0, run = 0, idx = 0, feet = NaN, under: number | null = null, heldBy = '', riding: { to: number; rate: number; from: Frame; blend: number } | null = null;
   const solids: Solid[] = [];
   const setOf = (o: Object3D): number => { let k: Object3D | null = o; while (k && !groups.includes(k as Group)) k = k.parent; return k ? groups.indexOf(k as Group) : -1; };
@@ -255,7 +258,7 @@ export function createRoam(ctx: RoamContext): Roam {
   const seatNear = (): number => { const r = path.runs[run]; return r.next === 'ride' && Math.hypot(pos.x - path.x[r.b], pos.z - path.z[r.b]) < ROAM.seat ? r.ride! : -1; };
   /** Where a ride put him down: within reach of his leg's start, the way back is offered. */
   const landedNear = (): number => { const r = path.runs[run], prev = path.runs[run - 1]; return prev?.next === 'ride' && Math.hypot(pos.x - path.x[r.a], pos.z - path.z[r.a]) < ROAM.seat ? prev.ride! : -1; };
-  const board = (k: number): void => { const ride = ROAM.rides[k]; riding = { to: ride.to / span, rate: ride.rate / span, from: eye(dolly(api.q)), blend: 0 }; held.clear(); };
+  const board = (k: number): void => { const ride = ROAM.rides[k]; riding = { to: ride.to / span, rate: ride.rate / span, from: eye(dolly(api.q)), blend: 0 }; release(); };
   const mix = (a: Frame, b: Frame, t: number): Frame => ({ ...b, cam: [0, 1, 2].map((i) => a.cam[i] + (b.cam[i] - a.cam[i]) * t) as Frame['cam'], look: [0, 1, 2].map((i) => a.look[i] + (b.look[i] - a.look[i]) * t) as Frame['look'], fov: a.fov + (b.fov - a.fov) * t });
 
   const aim = (f: Frame): void => {
@@ -287,21 +290,21 @@ export function createRoam(ctx: RoamContext): Roam {
       idx = Math.max(path.runs[run].a, Math.min(path.runs[run].b, i));
       aim(dolly(q));
       riding = ride ? { to: ride.to / span, rate: ride.rate / span, from: dolly(q), blend: 1 } : null;
-      api.q = q; api.active = true; held.clear();
+      api.q = q; api.active = true; release();
       for (const d of doors) { // as the scroll left them
         const k = Math.min(1, Math.max(0, (q - d.from) / (d.to - d.from))), s = d.shut ? Math.min(1, Math.max(0, (q - d.shut[0]) / (d.shut[1] - d.shut[0]))) : 0;
         d.open = d.target = k > 0.5 && s < 0.5 ? 1 : 0; d.way = 1;
         swing(d);
       }
     },
-    exit() { api.active = false; held.clear(); api.prompt = ''; api.near = Infinity; riding = null; return api.q; },
+    exit() { api.active = false; release(); api.prompt = ''; api.near = Infinity; riding = null; return api.q; },
     key(code, down) {
       if (!HELD.has(code)) return false;
       if (down) held.add(code); else held.delete(code);
       return true;
     },
     look(dx, dy) { yaw -= dx * ROAM.look; pitch = Math.max(-1.2, Math.min(1.2, pitch - dy * ROAM.look)); },
-    release() { held.clear(); },
+    release,
     use() {
       if (riding) { riding.rate = Math.max(riding.rate, (ROAM.rides[0].rate * 3) / span); riding.blend = 1; return; } // again, to hurry it
       const seat = seatNear(), landed = landedNear();
@@ -380,7 +383,7 @@ export function createRoam(ctx: RoamContext): Roam {
       return eye(dolly(api.q));
     },
     floorAt(x, z, from) { gather(); if (Number.isNaN(feet)) feet = stand(); return floor(x, z, from); },
-    teleport(x, y, z, yw, pt) { pos.set(x, y + ROAM.eye, z); feet = y; yaw = yw; pitch = pt; vel.set(0, 0, 0); held.clear(); },
+    teleport(x, y, z, yw, pt) { pos.set(x, y + ROAM.eye, z); feet = y; yaw = yw; pitch = pt; vel.set(0, 0, 0); release(); },
     state: () => ({ pos: [pos.x, pos.y, pos.z], yaw, set: path.runs[run].set, run, riding: !!riding, doors: doors.map((d) => d.open), ground: under, held: heldBy, solids: solids.length }),
   };
   return api;
