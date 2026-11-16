@@ -50,9 +50,9 @@ test('moving scenery stays live; the cabin has a wing, seat-back screens and no 
   const cabin = SETS[5].props;
   for (const p of cabin.filter((p) => p.live === 'flight')) assert.ok(placementIsLive(p));
   assert.ok(pieceIsLive('mat:flightGround', 'flight'));
-  assert.ok(cabin.some((p) => p.build === 'halifax' && p.live === 'flight'), 'the city under the window');
+  assert.ok(cabin.some((p) => p.build === 'halifaxMap' && p.live === 'flight'), 'the drawn city and campus under the window');
   assert.ok(cabin.some((p) => p.build === 'cloudField' && p.live === 'flight'));
-  assert.ok(cabin.some((p) => p.build === 'dalhousie' && p.live === 'flight'), 'the campus is built by name');
+  assert.ok(!cabin.some((p) => p.build === 'dalhousie'), 'the campus lies flat in the map');
   assert.ok(cabin.some((p) => p.build === 'aircraftWing'));
   assert.ok(cabin.filter((p) => p.build === 'seatScreen').length >= 8, 'a screen on the back of every seat but the front row');
   assert.ok(!cabin.some((p) => p.build === 'flightSign'), 'no banner in the cabin');
@@ -119,7 +119,7 @@ test('arrival is seated in the highest row, then the walk down the aisle ends be
   assert.ok(Math.abs(end.cam[0] - DAIS.lectern[0]) < 0.2 && end.cam[2] < DAIS.lectern[1] && end.cam[2] > DAIS.z[0], 'behind the lectern');
   assert.ok(Math.abs(end.cam[1] - (DAIS.height + 1.6)) < 1e-9);
   assert.ok(end.look[2] > end.cam[2] + 5, 'facing the hall');
-  assert.ok(SETS[5].props.some(p=>p.model==='dalhousie_campus' && p.live==='flight'));
+  assert.ok(!SETS[5].props.some(p=>p.model==='dalhousie_campus'), 'Goldberg is its mapped footprint');
 });
 
 test('the podium hold keeps the lectern top and its laptop in the bottom of the frame, and the walk up never passes through the lectern', () => {

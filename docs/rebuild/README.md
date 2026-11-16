@@ -58,6 +58,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [60-graduation-before-floqer.md](./60-graduation-before-floqer.md) | Graduation moves directly before Floqer, with cap, gown and degree; Bean's easel shows the current story's $40k Invest Nova Scotia funding; all 22 source paragraphs retained |
 | [61-text-on-top.md](./61-text-on-top.md) | One homepage with shared text and tag rows: graphic below 1025px, switchable in-page 3D above; variant routes removed |
 | [62-one-door-home.md](./62-one-door-home.md) | Scope the graphic walker's held props; keep only the stair door between Floqer and home, with an open brick doorway and the passage sealed from the first frame |
+| [63-drawn-halifax.md](./63-drawn-halifax.md) | A flat OSM drawing beneath the aircraft, with mapped coast, streets, parks and footprints, warm haze and separate clouds; unchanged flight and cabin |
 
 ## The one-paragraph verdict
 

@@ -3,6 +3,7 @@
 // scanned surface (assets.ts: its relief and roughness, and its colour for floors and wood). Every set has its own palette: warm for 2010, cool and clean for
 // 2013, bright for 2018. uv on shells and built props is in metres; `tile` is metres per repeat.
 import type { Kind } from './surface.ts';
+import flightMap from './halifax-map.json' with { type: 'json' };
 
 export interface Mat {
   color: string;
@@ -30,6 +31,7 @@ export interface Mat {
 }
 
 export const MATS: Record<string, Mat> = {
+  ...Object.fromEntries(flightMap.tiles.map((_, i) => [`flightMap${i}`, { color: '#FFFFFF', rough: 1, unlit: true, fog: false, tile: 1 }])),
   cabinWall: { color: '#E3E1D8', rough: 0.42, clearcoat: 0.22, tile: 1 },
   cabinPanel: { color: '#D6D8D6', rough: 0.5, clearcoat: 0.15, clearcoatRough: 0.4, tile: 1 }, // the E175's sidewalls and crown: light grey panels
   cabinDado: { color: '#8C9096', rough: 0.6, tile: 1 }, // the dado, the PSU strip, the seat pockets

@@ -185,6 +185,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | A thing in hand smeared by its lightmap | | A thing is built live for the hand (`pickUp`), its baked meshes hidden, under its own key light; the frame behind is one blurred still |
 | Grass drawn over a floor | From the lab, the 2010 room's floor was grass: the lawn's material carried a `layer` (a polygon offset meant for the city's ground kilometres off), and 12 mm under the floor it won the depth test at a grazing angle; the lawn's low region also sloped, since its grid corners on the boundary took the level height | No `layer` on any ground a room stands on; a lowered region of a ground takes its own grid lines inclusively. `leaks.mjs` cannot see this (the grass is a front face): look from inside the room toward the next (`pins`, a walk frame) |
 | A passage's end wall baked black | The wall round the door at a passage's end stood on the room's own wall plane; Cycles baked half of it black (the room's coplanar back face took the rays) | `corridor()` stands that wall as a partition about 2 cm inside the end (`END_IN`). Never two faces on one plane across a bake, even back to back |
+| Closing each clipped coastline separately | A small inlet crossing the crop boundary filled Halifax Harbour as land | Fetch a coastline margin; join shared OSM endpoints before clipping; close only outside the drawing and check known sea points (`stage-halifax-map.mjs`, doc 63) |
 
 ## His standing rules
 

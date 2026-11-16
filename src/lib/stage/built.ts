@@ -8,6 +8,7 @@ import { northShore } from './northshore.ts';
 import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
+import { flightMap } from './flight-map.ts';
 import { buildShell } from './shell.ts';
 import { AUDITORIUM, LECTURE_ROWS, TOP_ROW, DAIS, FLIGHT_DECK, STAGE, CABIN, FLOQER, GOOGLE, CONDO, type InnerWall } from './sets.ts';
 import { WALK } from './walk.ts';
@@ -422,7 +423,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
     for (let i = 0; i < 90; i++) { const size = 120 + rnd() * 220; puff((rnd() - 0.5) * 5600, FLIGHT_DECK - 25 + gauss() * 16, (rnd() - 0.5) * 5600, size); }
     return [piece(s.out(), { paint: 'cloudPuffs' }, { tint: true })];
   },
-  /** The Halifax peninsula from OpenStreetMap: buildings, the sea, parks, streets, street trees, on 6 km of ground. */
+  halifaxMap: flightMap,
+  /** The older extruded Halifax builder; other views still share its source data. */
   halifax: () => {
     const walls = new Sink(), roofs = new Sink(), sea = new Sink(), greens = new Sink(), woods = new Sink(), roads = new Sink(), canopy = new Sink(), trunk = new Sink();
     halifaxCity(walls, roofs, sea, greens, woods, roads, canopy, trunk);

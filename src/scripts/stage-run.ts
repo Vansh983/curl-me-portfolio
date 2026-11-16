@@ -40,6 +40,7 @@ import { streetLights } from '../lib/stage/city.ts';
 import { boxUv, flatUv } from '../lib/stage/rig.ts';
 import { LM_SCALE, DROP_PROP, CONTEXT_PROP, pieceIsLive, placementIsLive, parseBakedName } from '../lib/stage/bake.ts';
 import { flightAt, phoneAt, FLIGHT, PHONE, DEGREE, COFFEE } from '../lib/stage/flight.ts';
+import { FLIGHT_MAP } from '../lib/stage/flight-map.ts';
 import { createPhone } from './stage-phone.ts';
 import { createWeather } from './stage-weather.ts';
 import { mat as matSpec, type Mat } from '../lib/stage/materials.ts';
@@ -420,8 +421,34 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     if (s.emissive && !s.unlit) { m.emissive.set(s.emissive); m.emissiveIntensity = (EXPORTING ? s.bakePower : undefined) ?? s.emissivePower ?? 1; }
     if (s.inside) m.side = BackSide;
     if (s.alpha !== undefined) { m.transparent = true; m.opacity = s.alpha; m.depthWrite = false; }
+    if (name.startsWith('flightMap')) {
+      const tile = FLIGHT_MAP.tiles[Number(name.slice('flightMap'.length))], material = m;
+      material.toneMapped = false;
+      scanning.push(texLoader.loadAsync(`/assets/stage/halifax-map/${tile.name}.webp`).then(async (texture) => {
+        await waitActive();
+        texture.colorSpace = SRGBColorSpace;
+        texture.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+        material.map = texture; material.needsUpdate = true; kick();
+      }));
+      // Warm distance haze belongs only to the ground, leaving the cabin's lamps and fog unchanged.
+      material.onBeforeCompile = (sh) => {
+        sh.uniforms.mapHaze = { value: new Color('#d9ccb5') };
+        sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vMapViewPosition;')
+          .replace('#include <project_vertex>', '#include <project_vertex>\nvMapViewPosition = mvPosition.xyz;');
+        sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vMapViewPosition; uniform vec3 mapHaze;')
+          .replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, mapHaze, smoothstep(500.0, 5500.0, length(vMapViewPosition)));');
+      };
+      material.customProgramCacheKey = () => 'flight-map-haze';
+    }
     if (name === 'flightSky') {
       const skyMaterial = m;
+      // Grade only the visible panorama. Its original PMREM continues lighting the unchanged cabin.
+      skyMaterial.onBeforeCompile = (sh) => {
+        sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `#include <opaque_fragment>
+          float horizon = 1.0 - smoothstep(0.1, 0.4, abs(vMapUv.y - 0.5));
+          gl_FragColor.rgb = mix(gl_FragColor.rgb * vec3(1.06, 0.98, 0.84), vec3(0.69, 0.54, 0.36), horizon * 0.26);`);
+      };
+      skyMaterial.customProgramCacheKey = () => 'flight-golden-sky';
       scanning.push(texLoader.loadAsync('/assets/stage/flight-sky.webp').then(async (texture) => {
         await waitActive();
         texture.colorSpace = SRGBColorSpace;
@@ -483,7 +510,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
    */
   const cloudMaterial = (map: CanvasTexture): Material => {
     const m = new ShaderMaterial({
-      uniforms: UniformsUtils.merge([UniformsLib.fog, { map: { value: map }, tint: { value: new Color('#FFFFFF') } }]),
+      uniforms: UniformsUtils.merge([UniformsLib.fog, { map: { value: map }, tint: { value: new Color('#FFF0D7') } }]),
       vertexShader: `
         varying vec2 vUv; varying float vFade; varying float vBright;
         #include <fog_pars_vertex>
@@ -2640,6 +2667,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     flightEnvironment?.dispose();
     roomEnvironments.forEach((r) => r.dispose());
     mats.get('flightSky')?.map?.dispose();
+    FLIGHT_MAP.tiles.forEach((_, i) => mats.get(`flightMap${i}`)?.map?.dispose());
     phone.dispose();
     weather.dispose();
     Object.values(skyMaps).forEach((t) => t?.dispose());

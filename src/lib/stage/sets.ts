@@ -572,9 +572,7 @@ export const SETS: StageSet[] = [
       { build: 'aircraftWing', at: [0.43, 0, 6.4] }, // the root at the new wall, the wing and its engine behind the door: the rows are ahead of it, as an E175's front rows are
       { build: 'flightSky', at: [0, 0, 0], live: 'flight', shadow: false },
       // the world under the aircraft: it sinks and slides with the descent (flight.ts), rolls with the bank
-      { build: 'halifax', at: [0, 0, 0], live: 'flight', cap: 'Halifax. The peninsula, the Northwest Arm, the harbour, from OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
-      { build: 'dalhousie', at: [0, 0, 0], live: 'flight', cap: 'Dalhousie University, the Studley campus: the Henry Hicks tower, the Killam, the quad, Wickwire Field. From OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
-      { model: 'dalhousie_campus', at: [HALIFAX_CAMPUS[0], 0, HALIFAX_CAMPUS[1]], rot: [0, 90, 0], live: 'flight', cap: 'The Goldberg Computer Science Building.', href: '/assets/stage/FLIGHT-CREDITS.md' },
+      { build: 'halifaxMap', at: [0, 0, 0], live: 'flight', shadow: false, cap: 'Halifax. The peninsula, harbour, bridges and Studley campus, including the Goldberg footprint. Drawn from OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
       { build: 'cloudField', at: [0, 0, 0], live: 'flight', shadow: false },
       { build: 'halifaxSign', at: [-2.735, 2.0, -3.6], rot: [0, -90, 0], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
       ...[-1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, 2.4, z], live: 'pendant', scale: 0.65 })), // the bridge's two; the cabin's light is its own strips
