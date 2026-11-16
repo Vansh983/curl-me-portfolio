@@ -6,15 +6,15 @@ import { STOPS, PATH_LENGTH, TRANSIT, paragraphsFor } from '../lib/phone/story-p
 import Walker from './phone/Walker.astro';
 import AboutText from './AboutText.astro';
 import AboutInline from './AboutInline.astro';
-import { ABOUT_OPENING_PARTS } from '../data/about';
+import { ABOUT_GREETING, ABOUT_INTRO_PARTS } from '../data/about';
 const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
 ---
 
 <div class="graphic-view" data-graphic-view>
     <div class="journey" id="j">
       <header class="intro">
-        <h1>{profile.name}</h1>
-        <p><AboutInline parts={ABOUT_OPENING_PARTS} /></p>
+        <h1>{ABOUT_GREETING}</h1>
+        <p><AboutInline parts={ABOUT_INTRO_PARTS} /></p>
       </header>
       {STOPS.map((stop, i) => (
         <section class="story-block" data-stop={i} id={stop.id} aria-label={stop.name}>
@@ -83,9 +83,12 @@ const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
   }
   .story-block { margin: 0; }
   .graphic-view .intro h1 {
-    font-size: 32px;
-    line-height: 1.1;
-    letter-spacing: -0.035em;
+    font-family: 'Bebas Neue Title', sans-serif;
+    font-weight: 400;
+    font-size: clamp(56px, 18vw, 88px);
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
     margin: 0 0 11px;
   }
   .graphic-view .intro p, .story-block p {
@@ -175,7 +178,6 @@ const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
   @media (max-width: 350px) {
     #j { padding-left: 6.5%; padding-right: 6.5%; }
     .graphic-view .intro p, .story-block p { font-size: 19px; line-height: 1.6; }
-    .graphic-view .intro h1 { font-size: 29px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .me.jump { animation: none; }

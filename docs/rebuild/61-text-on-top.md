@@ -99,3 +99,6 @@ Headless checks on 4321 covered mode switches, hidden rendering, text visibility
 
 Walk keys now follow mock B, "real keycaps": 48px dark caps, 7px spacing, a 14px gap after WASD, 74px Shift/Esc, Inter 600 legends and the existing mouse icon; the face sinks 4px in 40ms and releases in 110ms.
 The found count is a dark glass chip in its existing place above the keys; focus has a light ring, and reduced motion keeps the colour change without sinking. HUD placement, key codes, labels, input behaviour, locked state and stage scripts stay unchanged.
+
+The graphic header now shares `ABOUT_GREETING` and `ABOUT_INTRO_PARTS` with the 3D header, including the existing Floqer pill, and reuses the already-declared Bebas Neue Title face.
+Its one-line title uses `clamp(56px, 18vw, 88px)` with line-height 1; current top, title-to-introduction and bottom spacing stay, as do the document title, accessible labels and curl routes.
