@@ -1,18 +1,19 @@
 # vanshsood.com
 
-Vansh Sood's personal site: a paper-and-ink Astro site whose home page is a scroll-driven 3D journey through the rooms of his life (a three.js stage, 13 sets, one camera, a Walk mode). Static, deployed on Vercel from `main`; `canary` is the working branch.
+Vansh Sood's personal site: a paper-and-ink Astro site whose home page shows a graphic walk on small screens (phones and tablets) and a scroll-driven 3D journey through the rooms of his life on laptops (a three.js stage, 13 sets, one camera, a Walk mode). Static, deployed on Vercel from `main`; `canary` is the working branch.
 
 ## Read first
 
 - `docs/rebuild/38-stage-playbook.md` before touching anything under `src/lib/stage`, `src/scripts/stage-*`, `scripts/look` or `public/assets/stage`. It holds the method, the conventions that bite, the bake commands, the tools and the trap table. The skill `.claude/skills/stage/SKILL.md` is its short form.
-- `docs/rebuild/README.md` is the index of every round (docs 01 to 53): what was decided, why, and what he said. The latest rounds are 47 to 53.
+- `docs/rebuild/README.md` is the index of every round (docs 01 to 63): what was decided, why, and what he said. The latest rounds are 57 to 63.
 - `src/data/things.ts`, `src/data/timeline.ts`: his words. Every figure, date, photo and logo on the site is his own and checked; nothing is invented.
 
 ## Map
 
 | Where | What |
 |---|---|
-| `src/pages`, `src/layouts`, `src/components` | The Astro site: home (`index.astro` with `Journey.astro`), blog, now, archive, `curl` text routes (`index.txt.ts`, `llms*.txt.ts`) |
+| `src/pages`, `src/layouts`, `src/components` | The Astro site: home (`index.astro`, with `GraphicWalk.astro` on small screens and `TextJourney.astro` with `Journey.astro` on laptops), now, archive, `curl` text routes (`index.txt.ts`, `llms*.txt.ts`) |
+| `src/lib/phone`, `src/scripts/phone-walk.ts` | The phone and tablet graphic walk: SVG landmarks, one continuous path and the scroll-driven walker |
 | `src/lib/stage` | The world as data and pure builders: `sets.ts` (13 sets, every placement), `dolly.ts` (camera keys), `world.ts` (where each set stands), `built.ts` and friends (code-built props), `materials.ts`, `assets.ts` (downloaded models, licences), `bake.ts` (baked or live) |
 | `src/scripts/stage-run.ts` | The runtime: loading in story order, lights, the scroll's spring, the Walk mode, doors, the things in hand |
 | `src/scripts/stage-roam.ts`, `stage-paint.ts`, `stage-weather.ts` | The walker, everything painted on canvases, the weather |

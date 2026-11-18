@@ -15,6 +15,6 @@ Checks on the existing server at 4321, headless Chrome only:
 - `leaks.mjs 0,12`: apartment 7 flagged rays before and after (11,520 / 12,192 rays); Floqer 14 before and after (65,184 rays). The exact existing prop-backface categories and counts match. No new doorway/void leaks; floor overlaps remain zero in both sets.
 - `roam-bot.mjs`: forward 18 → 19.1 reached 19.186; backward 19.2 → 18 reached 18.016. Each used only the stair door. No action or collision at the brick opening.
 
-Sheets: `/Users/vsood/work/curl-me-portfolio/.cache/one-door/before-sheet.png` and `/Users/vsood/work/curl-me-portfolio/.cache/one-door/after-sheet.png`. Individual frames, probes and audit logs are under `.cache/one-door/`; unbaked preview frames are under `after/live/`.
+Sheets: `.cache/one-door/before-sheet.png` and `.cache/one-door/after-sheet.png`. Individual frames, probes and audit logs are under `.cache/one-door/`; unbaked preview frames are under `after/live/`.
 
 No rebake needed or performed: the changed door leaf and casings are runtime-built; baked shells, passage, stair, textures and models are untouched. The existing dev server was left running. No commit or push.

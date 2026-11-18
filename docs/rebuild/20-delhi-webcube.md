@@ -42,7 +42,7 @@ During the Codex continuation, the background dev server also missed source and 
 
 The existing ignored `.cache/shoot.mjs` takes stage-progress q values and supports `URL`, `W`, `H`, `WAIT` and `STEP`. Its set count is now five. Review flags: `?live` builds geometry without baked assets; `?tier=1` forces desktop effects; `?cam=x,y,z,lx,ly,lz&set=4` pins the Delhi view. Check the normal baked page as well as `?live`.
 
-Claude's local transcript and project memory remain under `/Users/vsood/.claude/projects/-Users-vsood-work-curl-me-portfolio/`. The transcript contains earlier compaction summaries and exact user approvals. Treat the newest user corrections as authoritative over older memory and specs.
+Claude's local transcript and project memory remain under `../../../../../.claude/projects/-Users-vsood-work-curl-me-portfolio/`. The transcript contains earlier compaction summaries and exact user approvals. Treat the newest user corrections as authoritative over older memory and specs.
 
 ## September 8 completion checks
 

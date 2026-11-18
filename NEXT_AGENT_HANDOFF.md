@@ -28,7 +28,7 @@ Updated 2026-09-09. Supersedes the Codex export of the same day. Read newest doc
 
 ## Start here
 
-- Repository `/Users/vsood/work/curl-me-portfolio`, branch `canary`, review at `http://localhost:4321/`.
+- Repository `.`, branch `canary`, review at `http://localhost:4321/`.
 - Astro, TypeScript, three.js; authored geometry plus licensed models and textures; Blender 5.2 Cycles bakes; optimized GLB and WebP.
 - Local commits only. Never push, deploy, buy, or change accounts.
 - The dev server goes stale after larger edits: restart the listener on 4321 before trusting a headless capture (`.cache/campos.mjs` compares the browser camera with the dolly).

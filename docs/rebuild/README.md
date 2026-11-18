@@ -1,81 +1,71 @@
-# Portfolio Rebuild — Research Docs
+# Build history
 
-Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, in-your-face, artsy — but monotone, minimal, mostly text**. Reference aesthetic: stripe.dev's "paper terminal" (95% static text, animation confined to small framed art windows).
+- Current stage method: [38. Stage playbook](38-stage-playbook.md).
+- Other round notes record decisions at the time. Their routes and file paths may have changed.
+- Supporting research and reference photographs stay in their folders.
 
-| Doc | What's in it |
-|---|---|
-| [01-inspiration.md](./01-inspiration.md) | stripe.dev full deconstruction + survey of 22 dev/CTO personal sites (Boris Cherny, rauchg, mitchellh, paco, rauno, antfu, leerob, sivers, DHH…) |
-| [02-palette-typography.md](./02-palette-typography.md) | **The palette proposal** (3 candidates, one pick) + type system with exact fonts, sizes, tracking |
-| [03-animation.md](./03-animation.md) | Animation budget, techniques, libraries, and the timeline treatment |
-| [04-seo-blog.md](./04-seo-blog.md) | SEO architecture (name SEO, JSON-LD, OG images) + blog/content-collection setup + external blog repo import |
-| [05-content-inventory.md](./05-content-inventory.md) | Everything worth carrying from the old site: timeline entries, 41 projects, links, bio copy. Plus: the curl gimmick never actually existed |
-| [06-build-plan.md](./06-build-plan.md) | **The stack decision** (Astro 6 static on Vercel, zero framework JS) and how all 14 creative-tech features get built, in phases |
-| [07-journey-stage.md](./07-journey-stage.md) | **The journey stage**: sticky right-column scene of the author growing up, driven by the left text wall. 10 routes ranked, art pipeline, stack re-check (not locked). Evidence in [07-research/](./07-research/) |
-| [08-journey-stage-spec.md](./08-journey-stage-spec.md) | **The journey stage design spec**: parametric stroke figure that morphs with scroll, per-chapter scenery on CSS timelines, layout, fallbacks, tests, milestones |
-| [09-journey-stage-plan.md](./09-journey-stage-plan.md) | **The implementation plan**: 10 tasks, TDD, real code for the figure, lerp, render tool, Astro component, timelines, fallback, and the art loop |
-| [10-session-log.md](./10-session-log.md) | **What actually got built**: the three engines (layers, motions, morphing), file map, reused old assets, photo slots, commits, decisions, what is next |
-| [11-journey-3d-spec.md](./11-journey-3d-spec.md) | **Stage v2 spec**: real three.js, one continuous shot, code-built low-poly rigs with fixed topology, GPU morph targets |
-| [12-journey-3d-plan.md](./12-journey-3d-plan.md) | **Stage v2 plan**: 8 tasks with the full code for the rigs, figure, world, shot, renderer and the Astro wiring |
-| [13-journey-real-spec.md](./13-journey-real-spec.md) | **Stage v3 spec**: real light (HDRI), scanned CC0 models and surfaces from Poly Haven, three sets joined by one dolly through doorways, nothing morphs |
-| [14-journey-real-plan.md](./14-journey-real-plan.md) | **Stage v3 plan**: 6 tasks, asset manifest and fetch, sets and dolly as data, shell builder, code-built props, the runtime, tuning |
-| [20-delhi-webcube.md](./20-delhi-webcube.md) | Current session handoff: the approved 2020 Webcube room, five-set ring, retained preferences and verification workflow |
-| [21-halifax-flight.md](./21-halifax-flight.md) | Flight, window-seat photograph and phone portal into Dalhousie; model research, licensing, Blender pipeline and verification |
-| [22-airborne-back-row.md](./22-airborne-back-row.md) | Current flight revision: stay airborne, dimensional campus, classroom-only phone, and a fixed top-row seat |
-| [23-lecture-auditorium.md](./23-lecture-auditorium.md) | 96 fixed seats across eight tiers, auditorium architecture, shared back-row view and Blender verification |
-| [24-bean-journey-continuation.md](./24-bean-journey-continuation.md) | Pending requested teaching, Sydney Bean workspace, Vancouver fundraising, graduation and Toronto return; model access and integration notes |
-| [25-flight-auditorium-review.md](./25-flight-auditorium-review.md) | Review of the flight, the phone and the auditorium as Codex left them: what was wrong, in what order to fix it |
-| [26-flight-rebuilt.md](./26-flight-rebuilt.md) | The rebuild: stage span, a real descent over OpenStreetMap Halifax, the cabin dressed, the phone, the walk down to the lectern |
-| [27-sydney-hacker-house.md](./27-sydney-hacker-house.md) | Chapter units for every key; out of the auditorium's right-hand door straight into Sydney: the hacker house where Bean was built |
-| [28-canada-tour.md](./28-canada-tour.md) | The Canada tour plan from his LinkedIn: Vancouver, Calgary, Toronto, Halifax with the laptop in hand; Calgary blocked on his facts |
-| [32-loading-and-deployment.md](./32-loading-and-deployment.md) | Worker-based preparation, readiness and recovery, content-hashed delivery, production audit commands and remaining device/network limits |
-| [33-walk-references.md](./33-walk-references.md) | What the best scroll-driven 3D pieces do to keep a moving camera alive: sourced examples, the tells of a cheap scene, eight moves to steal |
-| [34-the-walk.md](./34-the-walk.md) | The walk after Sydney rebuilt: one harbour promenade, three cities in their seasons, mist between them, what moves, Volta as the real room |
-| [35-tour-facts-assets.md](./35-tour-facts-assets.md) | Verified facts for Vancouver, Toronto, Montreal and Halifax (venues, dates, what a walker sees, light) and the usable models with their licences |
-| [36-google-lawn-only.md](./36-google-lawn-only.md) | Google without the boardroom: the lawn, a plain block on the left, its door opening straight into the 2020 room (one set in two places); what was removed and why |
-| [37-nits-round-one.md](./37-nits-round-one.md) | Nits, round one: the apartment smaller with grey bedding, his two Google trip photographs framed by the door on the lawn, Invest Nova Scotia's mark at the start of winter and Volta's at the end; the lamp found upside down |
-| [38-stage-playbook.md](./38-stage-playbook.md) | **Read first.** How the stage is built and how to work on it: the files, the conventions that bite, baked or live, the working loop, the tools in `scripts/look/`, the common jobs, the traps met |
-| [39-crowd-research.md](./39-crowd-research.md) | How crowds are made to read as natural (games, film, the web), why the hall's did not, the assets and their licences, the pipeline chosen |
-| [40-volta-interior-reference.md](./40-volta-interior-reference.md) | What Volta's floor really looks like, from 25 photographs in `ref/volta/`: what makes a room read as Volta, surfaces, furniture, signs; Collect.'s and Socratica's marks |
-| [41-volta-floor-and-the-hall.md](./41-volta-floor-and-the-hall.md) | Volta rebuilt as the coworking floor it is, Collect.'s slide with Socratica's mark, and the hall's crowd as a full house of rendered people |
-| [42-toronto-view-research.md](./42-toronto-view-research.md) | Why the view out of Floqer's windows did not read as Toronto, what does, how window views are made, the photographs and data with their licences |
-| [43-hacker-house-reference.md](./43-hacker-house-reference.md) | Floqer's real house from 16 photographs, other hacker houses, what makes a room read as one, free models for it |
-| [44-degree-floqer-house-toronto.md](./44-degree-floqer-house-toronto.md) | The degree as Dalhousie's parchment, crumpled and binned; the house's details from its photographs; a real skyline with Old Town built in front of it |
-| [45-walk-mode-research.md](./45-walk-mode-research.md) | How a first-person walk is made smooth in a browser: mouse look, frame pacing, feel, collision, keys, prior art |
-| [46-walk-mode.md](./46-walk-mode.md) | The Walk mode: the switch, the keys, doors, the flight as a ride, how it is built, what the world needed |
-| [47-one-world.md](./47-one-world.md) | Every set in one place, the brick door the way home, the 2020 room's two doors a pair: the story walked as a circle |
-| [48-deployment-plan.md](./48-deployment-plan.md) | Vercel as it is, what makes the first visit slow (32 MB, GPU memory), the order of work, the plan's bandwidth cap |
-| [49-the-world-comes-in-behind-him.md](./49-the-world-comes-in-behind-him.md) | The canvas after two sets; the rest stream in the story's order, warmed behind the frames; the camera held at a station and doors shut until the room is in |
-| [50-a-perfect-film-set-and-the-things-in-hand.md](./50-a-perfect-film-set-and-the-things-in-hand.md) | Design: every set sealed from everywhere a walker stands (a leak tool, fixes set by set), then things picked up and read as in The Last of Us |
-| [52-the-film-set-sealed-and-the-things-in-hand.md](./52-the-film-set-sealed-and-the-things-in-hand.md) | Built from doc 50: the leak tool's table before and after, the faces, leaves, airlocks and hedges added, the rebakes; the hand, the look, the panel, the count; what he judges |
-| [53-grass-in-the-lab-and-the-passage-ends.md](./53-grass-in-the-lab-and-the-passage-ends.md) | Grass over the 2010 room's floor from the lab (the lawn's polygon offset and its sloped low region) and the passages' end walls baked black on the rooms' wall planes (partitions 2 cm in, sets 0 to 2 rebaked); `pins.mjs` |
-| [51-the-apartment-skyline.md](./51-the-apartment-skyline.md) | The apartment's CN Tower: a night photograph hung the way Floqer's is, rejected in a day ("too fake"); the close-up coded tower back, lit red in the photograph's colour |
-| [54-the-content-round.md](./54-the-content-round.md) | The content round: his LinkedIn, the old site, the resume and the Floqer press read on 2026-10-22; every card from Converge Clan to Floqer drafted with sources (MSIT dropout, Bean exited, Floqer from Halifax, Disrupt Top 20); the starting left to him; his open calls |
-| [55-the-content-page.md](./55-the-content-page.md) | The content page and the phone rooms, 2026-10-25: the story as plain text on /content from `src/data/story.ts`, rewritten in the voice of his LinkedIn posts; six quick phone variants rejected; the phone journey as 2D dark rooms in CSS at /v/rooms, built for old phones and in-app browsers |
-| [56-phone-svg-story.md](./56-phone-svg-story.md) | The mobile walk: 22 personal SVG scenes from the story and saved Floqer/Volta references, slower reversible transitions, midpoint review fix, phone-width and fallback checks; existing words and global identity retained |
-| [57-one-continuous-phone-path.md](./57-one-continuous-phone-path.md) | The phone walk regrouped into eight permanent landmarks on one pavement; ordinary paragraph gaps, all university/ShiftKey/Bean/Floqer work together, Disrupt inside Floqer, all 22 source paragraphs preserved |
-| [58-phone-walk-activities.md](./58-phone-walk-activities.md) | The taller phone character walks, flies, teaches, sells and presents; four scroll hops, three sourced flights, distinct activity settings and a grounded ending, preserving the eight groups and source words |
-| [59-one-flight-and-refined-svg.md](./59-one-flight-and-refined-svg.md) | One university flight across open travel space, one low childhood hop, and all eight SVG landmarks refined from saved references; existing text spacing, groups and words retained |
-| [60-graduation-before-floqer.md](./60-graduation-before-floqer.md) | Graduation moves directly before Floqer, with cap, gown and degree; Bean's easel shows the current story's $40k Invest Nova Scotia funding; all 22 source paragraphs retained |
-| [61-text-on-top.md](./61-text-on-top.md) | One homepage with shared text and tag rows: graphic below 1025px, switchable in-page 3D above; variant routes removed |
-| [62-one-door-home.md](./62-one-door-home.md) | Scope the graphic walker's held props; keep only the stair door between Floqer and home, with an open brick doorway and the passage sealed from the first frame |
-| [63-drawn-halifax.md](./63-drawn-halifax.md) | A flat OSM drawing beneath the aircraft, with mapped coast, streets, parks and footprints, warm haze and separate clouds; unchanged flight and cabin |
+## Rounds
 
-## The one-paragraph verdict
-
-Build a paper-and-ink monotone site: near-white paper background, soft-black ink, mono smallcaps labels, one acid accent used surgically. One display grotesk at 100px+ for in-your-face headlines, small mono for metadata — the size contrast IS the design. Animation lives in two places only: a stripe.dev-style generative canvas "art window" and a scroll-scrubbed timeline spine. Everything else is static text. Astro + content collections for the blog, Person/BlogPosting JSON-LD everywhere, per-post OG images at build time.
-
-## Sites that best match the brief (from the 22 surveyed)
-
-1. **rauno.me** — near-black monochrome, sparse splash, neon only on interaction
-2. **thesephist.com** — full-bleed dark hero, giant serif "My name is Linus.", then quiet paper column
-3. **emilkowal.ski** — zero-hue 12-step gray system, restraint as flex
-4. **stripe.dev** — the cited reference: paper gray, acid chartreuse, Canvas2D art windows, mono labels
-5. **antfu.me** — ghost year numerals, staggered entrances, hand-drawn SVG art
-
-## Open decisions for the brainstorm
-
-1. Light paper (stripe.dev) vs dark ink (old site identity / rauno.me) as the default — palette doc recommends paper with a dark mode.
-2. Accent hue: acid chartreuse family vs international orange vs zero-accent grayscale.
-3. Actually build the `curl vanshsood.com` plaintext response this time (it never existed — see doc 05).
-4. Display face: Space Grotesk (safe) vs Clash Display (louder).
-5. Blog URL scheme `/blog/slug` (recommended) vs root `/slug`.
+- [01. Inspiration](01-inspiration.md) Study stripe.dev and 22 personal sites for the site's direction.
+- [02. Palette typography](02-palette-typography.md) Compare three palettes and define fonts, sizes and spacing.
+- [03. Animation](03-animation.md) Set the animation budget, techniques and timeline treatment.
+- [04. SEO blog](04-seo-blog.md) Plan SEO metadata, content collections and importing the old blog.
+- [05. Content inventory](05-content-inventory.md) Inventory the old timeline, 41 projects, links and bio; confirm curl was never implemented.
+- [06. Build plan](06-build-plan.md) Choose static Astro on Vercel and phase the 14 planned features.
+- [07. Journey stage](07-journey-stage.md) Compare ten routes for a scene beside the text, with art and stack research in [07-research/](07-research/).
+- [08. Journey stage spec](08-journey-stage-spec.md) Specify a figure that morphs with scroll, chapter scenery, layout and fallbacks.
+- [09. Journey stage plan](09-journey-stage-plan.md) Plan ten tasks for the figure, interpolation, render tool, Astro wiring and checks.
+- [10. Session log](10-session-log.md) Record the layer, motion and morph engines, reused assets, decisions and next steps.
+- [11. Journey 3D spec](11-journey-3d-spec.md) Specify one continuous three.js shot with fixed-topology rigs and GPU morph targets.
+- [12. Journey 3D plan](12-journey-3d-plan.md) Plan eight tasks for the 3D rigs, figure, world, camera and renderer.
+- [13. Journey real spec](13-journey-real-spec.md) Replace morphing with real light, scanned models and three sets joined by doorways.
+- [14. Journey real plan](14-journey-real-plan.md) Plan six tasks for assets, sets, dolly, shells, props and runtime.
+- [15. Journey perfect plan](15-journey-perfect-plan.md)
+- [16. 3D quality research](16-3d-quality-research.md)
+- [17. Blender pipeline](17-blender-pipeline.md)
+- [18. References](18-references.md)
+- [19. Toronto window](19-toronto-window.md)
+- [20. Delhi Webcube](20-delhi-webcube.md) Record the approved Webcube room, five-set ring, owner preferences and review workflow.
+- [21. Halifax flight](21-halifax-flight.md) Plan the flight, window photograph and phone portal into Dalhousie, with licensed assets and Blender checks.
+- [22. Airborne back row](22-airborne-back-row.md) Keep the flight airborne; use a dimensional campus, classroom-only phone and fixed back-row seat.
+- [23. Lecture auditorium](23-lecture-auditorium.md) Build 96 seats across eight tiers with a shared back-row view and Blender checks.
+- [24. Bean journey continuation](24-bean-journey-continuation.md) Plan teaching, the Sydney workspace, fundraising, graduation and the return to Toronto.
+- [25. Flight auditorium review](25-flight-auditorium-review.md) Review faults in the flight, phone and auditorium and set their repair order.
+- [26. Flight rebuilt](26-flight-rebuilt.md) Rebuild the descent over mapped Halifax, dress the cabin and walk down to the lectern.
+- [27. Sydney hacker house](27-sydney-hacker-house.md) Use chapter units for camera keys and connect the auditorium directly to the Sydney house.
+- [28. Canada tour](28-canada-tour.md) Plan the Canada tour from LinkedIn; leave Calgary blocked on the owner's facts.
+- [29. Google](29-google.md)
+- [30. Googleplex options](30-googleplex-options.md)
+- [31. Tour row](31-tour-row.md)
+- [32. Loading and deployment](32-loading-and-deployment.md) Prepare geometry in a worker, handle readiness and recovery, hash asset URLs and define delivery audits.
+- [33. Walk references](33-walk-references.md) Study scroll-driven 3D examples and eight ways to improve the moving camera.
+- [34. The walk](34-the-walk.md) Build one harbour walk through three cities and seasons, with mist transitions and Volta at the end.
+- [35. Tour facts assets](35-tour-facts-assets.md) Verify tour venues, dates and views, and record usable models and licences.
+- [36. Google lawn only](36-google-lawn-only.md) Remove the Google boardroom and open the lawn's door directly into the 2020 room.
+- [37. Nits round one](37-nits-round-one.md) Shrink the apartment, grey the bedding, frame the Google photos and place tour marks; identify the inverted lamp.
+- [38. Stage playbook](38-stage-playbook.md) Document the stage files, conventions, bake workflow, tools and known traps.
+- [39. Crowd research](39-crowd-research.md) Research natural crowds, licensed assets and a replacement pipeline for the hall.
+- [40. Volta interior reference](40-volta-interior-reference.md) Use 25 photographs to identify Volta's surfaces, furniture, signs and event artwork.
+- [41. Volta floor and the hall](41-volta-floor-and-the-hall.md) Rebuild Volta from references, add Collect.'s slide and fill the hall with rendered people.
+- [42. Toronto view research](42-toronto-view-research.md) Research a recognisable Toronto window view, with photographs, data and licences.
+- [43. Hacker house reference](43-hacker-house-reference.md) Study Floqer's house from 16 photographs and find suitable furniture models.
+- [44. Degree Floqer house Toronto](44-degree-floqer-house-toronto.md) Match Dalhousie's degree, dress Floqer's house from photographs and add a real skyline behind Old Town.
+- [45. Walk mode research](45-walk-mode-research.md) Research browser walking controls, collision, mouse look and frame pacing.
+- [46. Walk mode](46-walk-mode.md) Build Walk mode with controls, doors, a flight ride and the required world changes.
+- [47. One world](47-one-world.md) Place every set once and connect the doors so the story walks home in a circle.
+- [48. Deployment plan](48-deployment-plan.md) Review Vercel delivery, first-visit downloads and GPU memory; order the work under a bandwidth cap.
+- [49. The world comes in behind him](49-the-world-comes-in-behind-him.md) Show the canvas after two sets, then stream and warm rooms in order while holding the camera and doors.
+- [50. A perfect film set and the things in hand](50-a-perfect-film-set-and-the-things-in-hand.md) Plan sealed sets from every walking position, leak checks and things the visitor can pick up and read.
+- [51. The apartment skyline](51-the-apartment-skyline.md) Reject the apartment skyline photograph and restore the close coded tower with red lighting.
+- [52. The film set sealed and the things in hand](52-the-film-set-sealed-and-the-things-in-hand.md) Seal the sets with faces, leaves, airlocks and hedges; add pickup, inspection, the panel and count.
+- [53. Grass in the lab and the passage ends](53-grass-in-the-lab-and-the-passage-ends.md) Fix grass over the room floor and black passage ends; move partitions inward, rebake sets 0 to 2 and add pins.mjs.
+- [54. The content round](54-the-content-round.md) Draft sourced story cards from LinkedIn, the old site, resume and press; leave the opening and open facts to the owner.
+- [55. The content page](55-the-content-page.md) Write the plain-text content page in the owner's voice and try dark phone rooms after six rejected variants.
+- [56. Phone SVG story](56-phone-svg-story.md) Build 22 SVG scenes with slower reversible transitions and phone/fallback checks, preserving the words.
+- [57. One continuous phone path](57-one-continuous-phone-path.md) Group the phone walk into eight permanent landmarks on one path, preserving all 22 source paragraphs.
+- [58. Phone walk activities](58-phone-walk-activities.md) Add walking, flying, teaching, selling and presenting, with four hops and three flights; preserve groups and words.
+- [59. One flight and refined SVG](59-one-flight-and-refined-svg.md) Keep one university flight and one childhood hop; refine all eight landmarks from references without changing the text.
+- [60. Graduation before Floqer](60-graduation-before-floqer.md) Move graduation before Floqer, add cap, gown and degree, and show Bean's $40k Invest Nova Scotia funding.
+- [61. Text on top](61-text-on-top.md) Use one homepage with shared text, graphic below 1025px and switchable 3D above; remove variant routes.
+- [62. One door home](62-one-door-home.md) Scope held props to the graphic walker and keep one stair door home, with the passage sealed from startup.
+- [63. Drawn Halifax](63-drawn-halifax.md) Draw mapped Halifax beneath the aircraft with haze and separate clouds, preserving the flight and cabin.

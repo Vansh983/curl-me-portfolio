@@ -1,18 +1,18 @@
 # 38. The stage: how it is built and how to work on it (2026-09-27)
 
-For the next agent, and for the next session. Read this before touching the 3D journey. History is in docs 11 to 37; this is the method.
+Read this before touching the 3D journey. This is the current method. [The round index](README.md) holds the history.
 
 ## The five rules that save the most time
 
 1. **Look before and after.** Capture the frames you will change, change, capture again. Never judge from code.
-2. **Capture what he sees.** His screen has the text card on the left and the hero on top. A capture that hides them hides real faults (`CARDS=1`).
+2. **Capture what he sees.** The desktop view has continuous text over the stage. Capture it with the text visible (`CARDS=1`).
 3. **Move the thing, not the camera.** He reads extra head turns as the camera doing too much ("just walk").
 4. **Nothing invented.** Every figure, photo, logo and date is his own and checked. If it is missing, find the real one or ask.
 5. **Build only what he named.** A flaw found nearby: fix it if it is a plain defect in the thing he named, otherwise tell him in one line.
 
 ## What the stage is
 
-- One scroll drives one camera through 13 sets. No free camera, no physics, no figure of him: the camera is his eyes at 1.6 m.
+- One scroll drives one camera through 13 sets. Walk mode lets the visitor move away from that path, with collision and doors. The camera is his eyes at 1.6 m.
 - Stack: Astro page, three.js runtime, geometry written in TypeScript, a few licensed models, Blender Cycles lightmaps.
 - Chapter `c` is the unit. Stage progress `q = c / STAGE_SPAN` (19.2). `window.__stage.yFor(q)` gives the scroll for a `q`.
 - The canvas shows after sets 0 to 3 (the first three doorways stand open); the rest come in behind him in order and are warmed behind the frames (doc 49). A scroll past what is in waits a step before the next door begins to open; that door stays shut until the room is in. `?debug`: `__stage.readyMs` the canvas, `__stage.allMs` the whole world, `__stage.loaded` the count. Captures and the audit wait for the whole world.
@@ -30,7 +30,8 @@ For the next agent, and for the next session. Read this before touching the 3D j
 | `src/lib/stage/bake.ts` + `scripts/stage-bake.py` | What is baked and what stays live. Keep the two lists the same |
 | `src/scripts/stage-run.ts` | The runtime: loads, lights, moves, draws |
 | `src/scripts/stage-paint.ts` | Everything drawn on a canvas: screens, signs, photos, posters |
-| `src/data/timeline.ts` | The text cards |
+| `src/data/about.ts`, `src/components/TextJourney.astro`, `src/scripts/journey-text.ts` | Shared home text and its motion over the stage |
+| `src/data/timeline.ts` | Chapter sizing and timeline data for the plain-text routes |
 | `src/data/things.ts` | The things he picks up or looks at in the Walk (`THINGS`), by the `thing` key on a placement; his words only |
 
 ## The sets
@@ -55,11 +56,11 @@ For the next agent, and for the next session. Read this before touching the 3D j
 - **Handedness.** Walking toward +z, +x is on the LEFT. Facing -x, right is -z. Check before placing anything "on the left".
 - **Rooms are single-sided planes.** A wall seen from behind is invisible. Any line of sight that passes a wall on the outside shows nothing. This is the cause of most "gaps".
 - **A prop faces +z** unless its comment says otherwise. `rot [0, 90, 0]` turns +z to +x.
-- **Doors.** A case and a fitted leaf, from `DOORS`, placed with `doorway()`, `shutDoor()` or `opening()`. Never a bare leaf.
-- **One set in two places.** To put a room behind another's door without moving what follows: `HOME` (set 0) and `DELHI` (set 4). The cut moves nothing in the frame.
+- **Doors.** A case and a fitted leaf, from `DOORS`, placed with `doorway()`, `shutDoorway()` or `opening()`. Never a bare leaf.
+- **One place per set.** `world.ts` places each set. Passages connect the rooms; do not move a set when its doorway comes into view.
 - **Keys are written in chapters** (`ch(c)`), the first five rooms in raw `q` through `approach()`. Adding length means raising the span and moving only later keys.
 - **The walk's keys are even** (36 over the walk). Do not pin extra keys between them: two keys 7 cm apart made the pace wobble. Put glance nodes on existing key chapters.
-- **The text card** is on the left, x 36 to 500 of 1456, and climbs about 940 px a chapter. It crosses the middle band of the screen in each chapter's first half.
+- **Text and chapter progress differ.** `journey-text.ts` scrolls the continuous text. The hidden chapter sizing copy and `.ch` spacers preserve stage timing. Query `section.journey` for stage state; `.journey` also matches the outer wrapper.
 
 ## Baked or live
 
@@ -96,9 +97,9 @@ Dev server up. Do not run `npm run check` or `build` while the export step start
 5. Bake what is baked.
 6. Frames after, with and without cards. Put them on a sheet (`sheet.mjs`) and read them.
 7. Audits that fit the change (below).
-8. `npm run check`, `npm run build`, `npm test`: silent guards. Report only a failure.
+8. Run the checks in the root README. Build only when the owner asks.
 9. His Chrome (the tab sits in a background window and loads only while screenshots nudge it). Say plainly what was seen there and what was seen headless only.
-10. Write the round in `docs/rebuild/`, update memory.
+10. Follow `CLAUDE.md` for the round note and reporting rules.
 
 ## Tools (`scripts/look/`)
 
@@ -120,7 +121,7 @@ Dev server up. Do not run `npm run check` or `build` while the export step start
 | `scripts/stage-skyline.mjs`, `scripts/stage-crowd.mjs` | Remake the Toronto skyline strip (the original lives in `.cache/toronto/`); the crowd's atlases |
 | `crop.mjs` | Enlarges part of a frame |
 | `roam.mjs <dir> <chapter> <steps>` | The Walk mode by hand: keys held or tapped (`w:1500,left:400,e`), a frame and his position after each |
-| `roam-bot.mjs <dir> [from] [to]` | Walks the story in the Walk mode and stops where it cannot get on. `BACK=1` the other way. After any wall, door or furniture change |
+| `roam-bot.mjs <dir> [from] [to]` | Walks the story in Walk mode. A forward walk succeeds when it comes home to set 0 after the final stair. Stops where it cannot get on. `BACK=1` the other way. After any wall, door or furniture change |
 | `stream.mjs <dir> [kbit/s]` | A slow line and a skimmer: where the camera waits as the sets land, a frame at each landing |
 | `leaks.mjs <dir> [set,set\|all]` | Where a set leaks from everywhere a walker stands: floods its floor, casts 96 rays a point, counts nothing hit and backs of one-sided faces; the six worst as frames. `LIVE=1` before a bake. After any wall, door, backdrop or place change (doc 50, 52) |
 | `pins.mjs <dir> '<json>'` | Walk-mode frames from anywhere, several from one page: a chapter, where he stands, where he looks; `probe` names what the eye hits through screen points. For what the scan cannot see (a ground drawn over a floor, a wall baked black). `LIVE=1` unbaked |
@@ -187,26 +188,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | A passage's end wall baked black | The wall round the door at a passage's end stood on the room's own wall plane; Cycles baked half of it black (the room's coplanar back face took the rays) | `corridor()` stands that wall as a partition about 2 cm inside the end (`END_IN`). Never two faces on one plane across a bake, even back to back |
 | Closing each clipped coastline separately | A small inlet crossing the crop boundary filled Halifax Harbour as land | Fetch a coastline margin; join shared OSM endpoints before clipping; close only outside the drawing and check known sea points (`stage-halifax-map.mjs`, doc 63) |
 
-## His standing rules
+## Rules and history
 
-- Replies to him: 6 lines at most, plain words, no em dashes, no tables.
-- Local commits only. Never push. Commit only when he asks. No attribution lines.
-- No new unit tests, no test counts in reports. Keep the existing ones passing quietly.
-- Real models over primitives; no stick figures, no people unless he asks; no banners or slogans.
-- Review in his real Chrome.
-- Facts: only his own figures. Open: what the $70k is made of.
-
-## Where the history is
-
-| Doc | Subject |
-|---|---|
-| 39, 40, 41 | The crowd's research, Volta's photographs and what they show, the room and the hall rebuilt from them |
-| 42, 43, 44 | Toronto's view researched, the real hacker house's photographs, and the degree, the house and the view rebuilt |
-| 45, 46 | The Walk mode: research, and what was built |
-| 47 | One world: every set in one place, the story a circle |
-| 50, 52 | A perfect film set: the leak tool and the sets sealed; the things in hand (the design, then the build); his first judgement: only things answer the pointer, the words beside the thing with no box, the photograph in the hand |
-| 34 | The walk, rounds one to five |
-| 36 | Google without the boardroom |
-| 37 | Nits, round one: apartment, photographs, marks, the lamp, the passage |
-| 26, 27 | Flight, Sydney |
-| 32 | Loading and deployment |
+- [CLAUDE.md](../../CLAUDE.md) holds the owner's standing rules.
+- [The round index](README.md) links all research and build notes.

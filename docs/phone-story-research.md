@@ -50,4 +50,4 @@ Ten live pages read. Sivers and Comeau are included for their About pages, separ
 - [Rachel Andrew, About](https://rachelandrew.co.uk/about/): “although not all at once.” Gently undercuts her own list of abilities.
 - [Shawn Wang, About](https://swyx.io/about): “The industries changed. Thinking about incentives and risk came with me.” Explains what connects different careers.
 
-Vansh’s draft facts: [story.ts](/Users/vsood/work/curl-me-portfolio/src/data/story.ts), [profile.ts](/Users/vsood/work/curl-me-portfolio/src/data/profile.ts), [content draft](/Users/vsood/work/curl-me-portfolio/docs/content-draft.md).
+Vansh’s draft facts: [story.ts](../src/data/story.ts), [profile.ts](../src/data/profile.ts), [content draft](content-draft.md).
