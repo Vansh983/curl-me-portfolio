@@ -30,9 +30,9 @@ try {
         await page.unroute('**/*.glb');
         for (const route of pending) await route.abort();
         await page.waitForTimeout(1000);
-        assert.equal(await page.locator('.journey').getAttribute('data-stage'), 'skipped');
+        assert.equal(await page.locator('section.journey').getAttribute('data-stage'), 'skipped');
       } else {
-        await page.waitForFunction(() => document.querySelector('.journey')?.getAttribute('data-stage') === 'error');
+        await page.waitForFunction(() => document.querySelector('section.journey')?.getAttribute('data-stage') === 'error');
         assert.ok(await page.locator('[data-retry-stage]').isVisible());
       }
       assert.ok(await page.locator('.wall .tx').first().isVisible());
@@ -42,7 +42,7 @@ try {
       if (scenario === 'missing-model') {
         await page.unroute('**/baked/set0.glb');
         await page.locator('[data-retry-stage]').click();
-        await page.waitForFunction(() => document.querySelector('.journey')?.getAttribute('data-stage') === 'ready', null, { timeout: 120000 });
+        await page.waitForFunction(() => document.querySelector('section.journey')?.getAttribute('data-stage') === 'ready', null, { timeout: 120000 });
       }
       assert.deepEqual(errors, [], `${scenario}: no unhandled errors`);
       console.log(`${scenario}: passed${scenario === 'missing-model' ? ' (including retry)' : ''}`);
@@ -62,8 +62,8 @@ try {
     await page.goto(`${url}?${baseline ? 'debug' : 'audit'}&tier=${mobile ? 0 : 1}`, { waitUntil: 'domcontentloaded' });
     if (baseline) await page.waitForTimeout(14000);
     else {
-      await page.waitForFunction(() => ['ready', 'error'].includes(document.querySelector('.journey')?.getAttribute('data-stage')), null, { timeout: 120000 });
-      if (await page.locator('.journey').getAttribute('data-stage') === 'error') throw new Error(`Preparation failed: ${errors.join('; ')}`);
+      await page.waitForFunction(() => ['ready', 'error'].includes(document.querySelector('section.journey')?.getAttribute('data-stage')), null, { timeout: 120000 });
+      if (await page.locator('section.journey').getAttribute('data-stage') === 'error') throw new Error(`Preparation failed: ${errors.join('; ')}`);
       await page.waitForFunction(() => window.__stage.allMs > 0, null, { timeout: 120000 }); // the whole world in: the walk below must start no download
     }
     const ready = await page.evaluate(() => {

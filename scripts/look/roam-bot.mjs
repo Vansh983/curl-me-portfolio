@@ -45,7 +45,8 @@ const result = await s.page.evaluate(({ path, N, span, to, run, back, every }) =
     if (stuck > 3000 && !st.riding && now - homed > 6000) { homed = now; bestAt = now; roam.home(); console.log('bot home', 'c', c.toFixed(3)); }
     roam.key('KeyA', side === 'KeyA'); roam.key('KeyD', side === 'KeyD');
     if (now - said > every) { said = now; console.log('bot c', c.toFixed(3), 'set', st.set, 'at', st.pos.map((v) => v.toFixed(2)).join(','), st.riding ? 'riding' : ''); }
-    if (back ? c <= to + 0.02 : c >= to - 0.02) return done({ ok: true, c, secs: (now - t0) / 1000, frames, slow });
+    // The final doorway returns to set 0; nearest-path progress can then wrap to the start.
+    if (back ? c <= to + 0.02 : c >= to - 0.02 || (best * span > 18 && st.set === 0)) return done({ ok: true, c, secs: (now - t0) / 1000, frames, slow });
     if (now - bestAt > (st.riding ? 30000 : 5000)) return done({ ok: false, c, at: st.pos, yaw: st.yaw, set: st.set, prompt: roam.prompt, secs: (now - t0) / 1000, frames, slow });
     requestAnimationFrame(tick);
   };
