@@ -1,5 +1,5 @@
+// Serves the terminal profile used by the curl rewrite.
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { profile } from '../data/profile';
 import { timeline } from '../data/timeline';
 import { featured } from '../data/projects';
@@ -12,11 +12,7 @@ const dim = (s: string) => `${E}2m${s}${E}0m`;
 const acc = (s: string) => `${E}38;5;154m${s}${E}0m`;
 const pad = (s: string, n = 9) => s.padEnd(n);
 
-export const GET: APIRoute = async () => {
-  const posts = (await getCollection('blog', ({ data }) => !data.draft))
-    .sort((a, b2) => b2.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-    .slice(0, 3);
-
+export const GET: APIRoute = () => {
   const out = [
     '',
     `  ${acc(b(profile.name.toUpperCase()))}  ${dim(profile.role.toLowerCase())}`,
@@ -31,14 +27,6 @@ export const GET: APIRoute = async () => {
     ...featured
       .slice(0, 6)
       .map((p) => `  ${dim(pad(p.year, 7))}${p.title}${p.url ? `\n         ${dim(p.url)}` : ''}`),
-    '',
-    `  ${b('WRITING')}`,
-    ...posts.map(
-      (p) =>
-        `  ${dim(pad(p.data.pubDate.toISOString().slice(0, 7), 9))}${p.data.title}\n           ${dim(
-          `curl vanshsood.com/blog/${p.id}`
-        )}`
-    ),
     '',
     `  ${b('ELSEWHERE')}`,
     ...profile.links.map((l) => `  ${dim(pad(l.label.toLowerCase(), 9))}${l.href.replace(/^https?:\/\//, '')}`),

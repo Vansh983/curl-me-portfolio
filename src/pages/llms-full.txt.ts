@@ -1,15 +1,11 @@
+// Serves the full profile, timeline and project text for agents.
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { profile, site } from '../data/profile';
 import { timeline } from '../data/timeline';
 import { projects } from '../data/projects';
 
 // Everything, in one fetch. For agents that would rather read one file than crawl.
-export const GET: APIRoute = async () => {
-  const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-  );
-
+export const GET: APIRoute = () => {
   const out = `# ${profile.name}
 
 ${profile.role}. ${profile.summary}
@@ -30,17 +26,6 @@ ${projects
       }`
   )
   .join('\n\n')}
-
-## Writing
-
-${posts
-  .map(
-    (p) =>
-      `### ${p.data.title}\nPublished: ${p.data.pubDate.toISOString().slice(0, 10)}\nURL: ${site.url}/blog/${
-        p.id
-      }\n\n${p.body}`
-  )
-  .join('\n\n---\n\n')}
 
 ## Contact
 

@@ -8,7 +8,6 @@
     "preview": "astro preview",
     "check": "astro check",
     "test": "node --experimental-strip-types --test \"tests/**/*.test.ts\"",
-    "render": "node --experimental-strip-types scripts/render.mjs",
     "stage:assets": "node --experimental-strip-types scripts/stage-assets.mjs",
     "stage:bake": "node scripts/stage-bake.mjs",
     "stage:city": "node scripts/stage-city.mjs",
@@ -17,14 +16,12 @@
     "stage:audit": "node scripts/stage-audit.mjs"
   },
   "dependencies": {
-    "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
     "@vercel/functions": "^3.9.1",
     "astro": "^7.2.0",
     "n8ao": "^2.0.1",
     "three": "^0.185.1",
-    "three-mesh-bvh": "^0.9.15",
-    "zod": "^4.4.3"
+    "three-mesh-bvh": "^0.9.15"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

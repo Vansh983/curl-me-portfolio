@@ -1,3 +1,4 @@
+/* Shared typography, page layout and theme styles. */
 @import './tokens.css';
 
 *,
@@ -88,9 +89,6 @@ code {
   border: 1px solid var(--rule);
   padding: 1px 5px;
 }
-/* Code blocks stay monotone. Shiki is set to css-variables, so syntax
-   highlighting reads from the brand tokens instead of importing a theme
-   with its own palette. */
 pre {
   overflow-x: auto;
   padding: 14px;
@@ -99,24 +97,6 @@ pre {
   line-height: 1.55;
   background: var(--raise) !important;
 }
-pre code {
-  border: none;
-  padding: 0;
-}
-:root {
-  --astro-code-foreground: var(--tx);
-  --astro-code-background: var(--raise);
-  --astro-code-token-comment: var(--mut);
-  --astro-code-token-punctuation: var(--mut);
-  --astro-code-token-string: var(--tx);
-  --astro-code-token-string-expression: var(--tx);
-  --astro-code-token-keyword: var(--tx);
-  --astro-code-token-constant: var(--tx);
-  --astro-code-token-parameter: var(--tx);
-  --astro-code-token-function: var(--tx);
-  --astro-code-token-link: var(--mut);
-}
-
 /* links: accent stays at the "links" dose, nothing louder */
 a {
   color: inherit;
@@ -230,55 +210,6 @@ footer.site {
 footer.site a {
   border-bottom: none;
   color: var(--mut);
-}
-
-/* article body: the blog is text, text, text */
-.prose {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 18px;
-}
-.prose > * {
-  grid-column: 1;
-}
-.prose h2 {
-  margin-top: 18px;
-}
-.prose ul,
-.prose ol {
-  margin: 0;
-  padding-left: 20px;
-  max-width: 62ch;
-}
-.prose blockquote {
-  margin: 0;
-  padding-left: 16px;
-  border-left: 2px solid var(--acc);
-  color: var(--mut);
-}
-
-/* sidenotes: footnotes moved into the margin on wide screens.
-   The gutter only exists when a note does, and it borrows the page margin
-   instead of stealing width from the text. */
-@media (min-width: 1180px) {
-  .prose:has(.sidenote) {
-    grid-template-columns: minmax(0, 1fr) 220px;
-    column-gap: 34px;
-    width: calc(100% + 254px);
-  }
-  .prose:has(.sidenote) .sidenote {
-    grid-column: 2;
-    margin-top: 0;
-    font-size: 13px;
-    line-height: 1.5;
-    align-self: start;
-  }
-}
-.prose .sidenote {
-  font-size: 13.5px;
-  color: var(--mut);
-  border-left: 2px solid var(--acc);
-  padding-left: 10px;
 }
 
 /* page transitions: two lines, no client router */

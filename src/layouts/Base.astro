@@ -1,4 +1,5 @@
 ---
+// Shared page shell, metadata, navigation and command menu.
 import '../styles/global.css';
 import Menu from '../components/Menu.astro';
 import { profile, site } from '../data/profile';
@@ -6,15 +7,12 @@ import { profile, site } from '../data/profile';
 type Props = {
   title?: string;
   description?: string;
-  article?: { published: string; updated?: string };
-  wide?: boolean;
-  noindex?: boolean; // keep a working page out of search
   viewportFitCover?: boolean;
   topbar?: boolean;
   footer?: boolean; // false on the home page: its scroll ends in the journey's last room, nothing under it
 };
 
-const { title, description, article, noindex = false, topbar = true, footer = true, viewportFitCover = false } = Astro.props;
+const { title, description, topbar = true, footer = true, viewportFitCover = false } = Astro.props;
 const pageTitle = title ? `${title} | ${profile.name}` : `${profile.name}`;
 const desc = description ?? site.description;
 // build.format is 'file', so pathname is "/archive.html" at build time.
@@ -32,28 +30,15 @@ const person = {
   sameAs: [...profile.sameAs],
 };
 
-const jsonld = article
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: title,
-      description: desc,
-      datePublished: article.published,
-      dateModified: article.updated ?? article.published,
-      mainEntityOfPage: canonical,
-      author: { '@id': `${site.url}/#person` },
-      publisher: { '@id': `${site.url}/#person` },
-    }
-  : {
-      '@context': 'https://schema.org',
-      '@graph': [
-        person,
-        { '@type': 'WebSite', '@id': `${site.url}/#website`, url: site.url, name: profile.name },
-      ],
-    };
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    person,
+    { '@type': 'WebSite', '@id': `${site.url}/#website`, url: site.url, name: profile.name },
+  ],
+};
 
 const nav = [
-  { href: '/blog', label: 'writing' },
   { href: '/archive', label: 'archive' },
   { href: '/now', label: 'now' },
 ];
@@ -68,18 +53,15 @@ const path = Astro.url.pathname.replace(/\/$/, '');
     <title>{pageTitle}</title>
     <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="alternate" type="application/rss+xml" title={profile.name} href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content={profile.name} />
     <meta name="twitter:card" content="summary_large_image" />
-    {article && <meta property="article:published_time" content={article.published} />}
 
     <link rel="preload" as="font" type="font/woff2" href="/fonts/space-grotesk.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter.woff2" crossorigin />
@@ -133,7 +115,6 @@ const path = Astro.url.pathname.replace(/\/$/, '');
     {footer && (
       <footer class="site">
         <span>&copy; {new Date().getFullYear()} {profile.name}</span>
-        <a href="/rss.xml">rss</a>
         <a href="/llms.txt">llms.txt</a>
         <a href="/humans.txt">humans.txt</a>
         <span style="margin-left:auto">try: curl vanshsood.com</span>
