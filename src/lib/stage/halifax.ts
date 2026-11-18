@@ -7,10 +7,10 @@ import halifax from './halifax.json' with { type: 'json' };
 import { Sink } from './rig.ts';
 import { ringOf } from './city.ts';
 
-export interface HalifaxBuilding { h: number; k?: number; p: number[] }
-export interface HalifaxRoad { w: number; p: number[] }
-export interface HalifaxGreen { wood: number; p: number[] }
-export interface HalifaxData { source: string; origin: [number, number]; heading: number; campus: [number, number]; buildings: HalifaxBuilding[]; roads: HalifaxRoad[]; water: number[][]; lakes: number[][]; greens: HalifaxGreen[] }
+interface HalifaxBuilding { h: number; k?: number; p: number[] }
+interface HalifaxRoad { w: number; p: number[] }
+interface HalifaxGreen { wood: number; p: number[] }
+interface HalifaxData { source: string; origin: [number, number]; heading: number; campus: [number, number]; buildings: HalifaxBuilding[]; roads: HalifaxRoad[]; water: number[][]; lakes: number[][]; greens: HalifaxGreen[] }
 export const HALIFAX = halifax as HalifaxData;
 
 import { obb, hipRoof, flat, ribbon, treeBlob, rng } from './dalhousie.ts';

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { WALK, WALK_SPEED, TURN, MIST, STRETCH, TRACK, LAPTOP, MARKS, walkZ, walkC, airAt, onWalk, cityAt, laptopAt, cueAt, markAt, seaplaneAt, streetcarAt, ferryAt } from '../../src/lib/stage/walk.ts';
+import { WALK, WALK_SPEED, TURN, MIST, STRETCH, TRACK, LAPTOP, MARKS, walkZ, walkC, airAt, onWalk, cityAt, laptopAt, cueAt, seaplaneAt, streetcarAt, ferryAt } from '../../src/lib/stage/walk.ts';
 import { SETS, WALK_TREES, WALK_LAMPS, ORCA, VOLTA_FLOOR, TOUR_SHIFT, FLOQER, STAGE_BIN, STAGE } from '../../src/lib/stage/sets.ts';
 import { POSES, toWorld, turnDir, BRICK } from '../../src/lib/stage/world.ts';
 import { DOLLY, makeDolly } from '../../src/lib/stage/dolly.ts';

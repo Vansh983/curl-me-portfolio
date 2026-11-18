@@ -7,9 +7,8 @@ import northshore from './northshore.json' with { type: 'json' };
 import { Sink } from './rig.ts';
 
 interface Grid { source: string; n: number; m: number; x: [number, number]; z: [number, number]; heights: number[][] }
-export const NORTHSHORE = northshore as Grid;
+const NORTHSHORE = northshore as Grid;
 
-const hex = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(1, v)) ** (1 / 2.2) * 255).toString(16).padStart(2, '0')).join('');
 
 /** The range as one mesh: forest below the tree line, rock above it, snow on the tops, the flats at the shore left out. */
 export function northShore(sink: Sink, scale = 1 / 6, nearest = 150, rise = 1.35): void {

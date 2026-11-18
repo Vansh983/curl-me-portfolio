@@ -6,7 +6,7 @@
 
 export type V3 = [number, number, number];
 export type UV = [number, number];
-export type UVRect = [number, number, number, number]; // u0 v0 u1 v1
+type UVRect = [number, number, number, number]; // u0 v0 u1 v1
 export type Geo = { pos: Float32Array; uv: Float32Array; col: Float32Array };
 /** One cross-section of a loft: centre, the two in-plane unit axes, and the radius along each. */
 export interface Ring { c: V3; u: V3; v: V3; ru: number; rv: number }

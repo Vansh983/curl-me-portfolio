@@ -1,3 +1,4 @@
+// Places graphic landmarks and their shared paragraphs along one path.
 import { ABOUT_PARAGRAPHS, type AboutParagraph } from '../../data/about.ts';
 
 export type PathStop = {

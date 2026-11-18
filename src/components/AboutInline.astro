@@ -1,4 +1,5 @@
 ---
+// Renders inline links and expandable tags in the shared home text.
 import { ABOUT_LINKS, ABOUT_ROWS, type AboutPart } from '../data/about';
 type Props = { parts: readonly AboutPart[]; prefix?: string };
 const { parts, prefix = 'about' } = Astro.props;

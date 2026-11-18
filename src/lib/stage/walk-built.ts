@@ -19,7 +19,6 @@ const HOUSE = { x0: -7.52, x1: -1.28, z0: -18.32, z1: -13.08, h: 3.05 };
 export const BLOCK = { x0: VX0 - 0.2, x1: -5.3, z0: V0 - 0.25, z1: V1 + 2.0, h: 26.4, top: 22.9 }; // eight storeys, the eighth (from `top`) glass; its east wall clear of the streetcar's track
 
 const hex3 = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')).join('');
-const mixc = (a: number[], b: number[], t: number): number[] => a.map((v, i) => v + (b[i] - v) * t);
 const smooth = (t: number): number => { const k = Math.min(1, Math.max(0, t)); return k * k * (3 - 2 * k); };
 
 /** A wall in the plane x = `x`, from z0 to z1 and y0 to y1, facing `face` (+1 toward +x, -1 toward -x), cut round its holes ([z0, y0, z1, y1]), each hole with a reveal `depth` deep behind the face. */
@@ -61,12 +60,6 @@ function wallZ(wall: Sink, reveal: Sink, z: number, face: 1 | -1, x0: number, x1
   }
 }
 
-/** A flat blob on the ground at y: a ragged patch of snow, `r` across, wound for +y. */
-function patch(sink: Sink, x: number, z: number, r: number, y: number, rnd: () => number, stretch = 1): void {
-  const n = 9, pts: Array<[number, number]> = [];
-  for (let i = 0; i < n; i++) { const th = (i / n) * Math.PI * 2, rr = r * (0.62 + rnd() * 0.5); pts.push([x + Math.cos(th) * rr, z + Math.sin(th) * rr * stretch]); }
-  for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; sink.tri([x, y, z], [b[0], y, b[1]], [a[0], y, a[1]]); }
-}
 /** A low mound of drifted snow along a line: a flattened half capsule. */
 function drift(sink: Sink, a: V3, b: V3, r: number, h: number): void {
   const n = Math.max(2, Math.round(Math.hypot(b[0] - a[0], b[2] - a[2]) / 0.8)), start = sink.count;
@@ -650,7 +643,7 @@ export const WALK_BUILT: Record<string, () => BuiltPart> = {
    */
   voltaView: () => {
     const walls = new Sink(), roofs = new Sink(), snow = new Sink(), road = new Sink(), walk = new Sink(), kerb = new Sink(), bank = new Sink(), rnd = rng(23);
-    const { centre: [cx, cz], rise: R, street: [s0, s1, s2, s3] } = VOLTA_VIEW, kx = (cx + 390) / 2, kz = (cz + 265) / 2; // the town turns half round about (kx, kz)
+    const { centre: [cx, cz], rise: R, street: [, , , s3] } = VOLTA_VIEW, kx = (cx + 390) / 2, kz = (cz + 265) / 2; // the town turns half round about (kx, kz)
     const C: [number, number] = [1171, -223];
     const a = [Math.sin((340 * Math.PI) / 180), Math.cos((340 * Math.PI) / 180)], r = [Math.cos((340 * Math.PI) / 180), -Math.sin((340 * Math.PI) / 180)];
     const E0 = C[0] * r[0] + -C[1] * a[0], N0 = C[0] * r[1] + -C[1] * a[1];

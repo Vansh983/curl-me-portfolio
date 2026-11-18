@@ -5,13 +5,13 @@
 // two calls (stage-run.ts). Pure: the same house every time, from a fixed seed.
 import { STAGE, houseFloorY, type V3 } from './sets.ts';
 
-export type CrowdKind = 'gown' | 'family';
-export type CrowdAction = 'clap' | 'cheer' | 'phone' | 'idle';
+type CrowdKind = 'gown' | 'family';
+type CrowdAction = 'clap' | 'cheer' | 'phone' | 'idle';
 /** One of the rendered loops in the atlas (public/assets/stage/crowd/people.json). */
-export interface CrowdLoop { atlas: 'near' | 'far'; id: string; kind: CrowdKind; action: CrowdAction; x: number; y: number; frames: number; height: number }
+interface CrowdLoop { atlas: 'near' | 'far'; id: string; kind: CrowdKind; action: CrowdAction; x: number; y: number; frames: number; height: number }
 export interface CrowdSheet { metres: [number, number]; feet: number; atlases: Record<'near' | 'far', { file: string; size: [number, number]; cell: [number, number] }>; people: CrowdLoop[] }
 /** Someone in the house: where their feet are, which rows' atlas they are drawn from, who they are and what they do, and the numbers that keep them from their neighbours' step. */
-export interface CrowdSeat { at: V3; row: number; seat: number; near: boolean; kind: CrowdKind; action: CrowdAction; pick: number; phase: number; rate: number; size: number; mirror: boolean; light: number; haze: number }
+interface CrowdSeat { at: V3; row: number; seat: number; near: boolean; kind: CrowdKind; action: CrowdAction; pick: number; phase: number; rate: number; size: number; mirror: boolean; light: number; haze: number }
 
 export const CROWD = {
   first: 2.6, // the front row, from the stage's edge

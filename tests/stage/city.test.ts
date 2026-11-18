@@ -12,7 +12,7 @@ describe('city', () => {
       assert.equal(s.pos.length, 4 * 6 * 3);
       assert.equal(cap.pos.length, 2 * 3 * 3);
       // the roof faces up: (b - a) x (c - a) has a positive y
-      const [ax, ay, az, bx, by, bz, cx, cy, cz] = cap.pos;
+      const [ax, , az, bx, , bz, cx, , cz] = cap.pos;
       assert.ok((bz - az) * (cx - ax) - (bx - ax) * (cz - az) > 0, `roof faces up for ${JSON.stringify(ring)}`);
       // the first side faces out: its normal points away from the footprint's centre
       const [sx, , sz, tx, , tz] = s.pos;

@@ -2,9 +2,9 @@
 // turns this into optimised .glb files under public/assets/stage/ and a credits file; the runtime
 // only ever asks assetUrl(). Downloaded assets carry their licences; local geometry has a rebuild script. Model textures are capped at 512 px
 // and scanned surfaces at 1k: the whole set has to stay light enough for a phone on a bad connection.
-export type Licence = 'CC0' | 'CC-BY-3.0' | 'CC-BY-4.0' | 'RF' | '3DW' | 'Original'; // Original: project-authored geometry; RF: BlenderKit royalty free; 3DW: the 3D Warehouse General Model License (use in a project, no standalone redistribution)
-export type TexMap = 'diff' | 'nor' | 'arm'; // colour, normal (gl), and ambient occlusion + roughness + metalness packed in r, g, b
-export interface Asset {
+type Licence = 'CC0' | 'CC-BY-3.0' | 'CC-BY-4.0' | 'RF' | '3DW' | 'Original'; // Original: project-authored geometry; RF: BlenderKit royalty free; 3DW: the 3D Warehouse General Model License (use in a project, no standalone redistribution)
+type TexMap = 'diff' | 'nor' | 'arm'; // colour, normal (gl), and ambient occlusion + roughness + metalness packed in r, g, b
+interface Asset {
   id: string; // the Poly Haven slug, or our own name for a url asset
   kind: 'model' | 'texture';
   source: 'polyhaven' | 'url' | 'blenderkit' | 'sketchfab' | 'local';

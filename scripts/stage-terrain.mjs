@@ -2,7 +2,7 @@
 // metres about an origin, into src/lib/stage/<name>.json (the North Shore behind Vancouver, the Marin Headlands behind the
 // Golden Gate). Scene frame: the grid rows run south to north (row 0 the south edge), the columns west to east.
 //   node scripts/stage-terrain.mjs <name> <originLat> <originLon> <lat0> <lat1> <lon0> <lon1> <N> <M>   (tiles cached in .cache/terrain)
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import sharp from 'sharp';
 const [name, oLat, oLon, lat0, lat1, lon0, lon1, n, m] = process.argv.slice(2);
 const ORIGIN = { lat: +oLat, lon: +oLon }, BOX = { lat: [+lat0, +lat1], lon: [+lon0, +lon1] };

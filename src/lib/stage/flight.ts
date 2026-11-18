@@ -48,7 +48,7 @@ export function phoneLayout(aspect: number, raise: number, zoom: number) {
     crop: [initial[0] + (.7 * scale / (2 * a) - initial[0]) * zoom, initial[1] + (1.5 * scale / 2 - initial[1]) * zoom] as [number, number] };
 }
 
-export interface FlightState { altitude: number; travel: number; bank: number; veil: number }
+interface FlightState { altitude: number; travel: number; bank: number; veil: number }
 
 /**
  * Where the world is under the aircraft at stage progress q: altitude in metres, the ground track run so far,

@@ -25,7 +25,7 @@ const WRAP = `
 const ROOM = { min: new Vector3(WALK.volta.x[0], -1, WALK.volta.z[0]), max: new Vector3(WALK.volta.x[1], WALK.volta.h + 0.05, WALK.volta.z[1]) };
 const inRoom = (e: Vector3): boolean => e.x > ROOM.min.x && e.x < ROOM.max.x && e.z > ROOM.min.z && e.z < ROOM.max.z && e.y < ROOM.max.y;
 
-export interface Weather { update(air: Air | undefined, clock: number, eye: Vector3): void; dispose(): void }
+interface Weather { update(air: Air | undefined, clock: number, eye: Vector3): void; dispose(): void }
 
 export function createWeather(scene: Scene, fog: Fog): Weather {
   let seed = 8191;

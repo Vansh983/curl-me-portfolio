@@ -70,7 +70,7 @@ export interface Placement {
   shadow?: boolean; // default true
 }
 
-export interface SunSpec { dir: V3; color: string; power: number; shadow: number }
+interface SunSpec { dir: V3; color: string; power: number; shadow: number }
 
 export interface StageSet {
   id: string;
@@ -139,8 +139,6 @@ export const aisleHeight = (z: number): number => {
  * in them with it.
  */
 export const TOUR_SHIFT = WALK.door - 24 + 0.12; // and a wall's thickness more: the wing's own door wall stands behind Volta's, not through it
-/** The Bean house from outside: the room's own footprint, its roof a little over the walls. */
-export const BEAN_HOUSE = { x: [-7.4, -1.4] as [number, number], z: [-18.2, -13.2] as [number, number], h: 3.2 } as const;
 /** Coupland's whale, in the planting by the walk where a tree would stand: 5 m off the walk's line, in the frame from 8 m back. */
 export const ORCA = { x: -5.1, z: -5.0 } as const;
 /** The trees along the land side of the walk, and a second row behind them. Their season is the walk's (walk.ts): they turn together. None stands beside a mark, nor within 4.5 m before one (its boughs would lie across the mark as he comes to it), nor by the whale. */
@@ -272,11 +270,6 @@ const doorway = (name: keyof typeof DOORS, x: number, y: number, z: number, swin
 const shutDoorway = (name: keyof typeof DOORS, x: number, y: number, z: number, cap: string): Placement[] => {
   const at: V3 = [x + hingeOff(DOORS[name]), y, z], n = name[0].toUpperCase() + name.slice(1);
   return [{ build: `doorCase${n}`, at, rot: [0, -90, 0] }, { build: `doorLeaf${n}`, at, rot: [0, -90, 0], live: 'door', cap }];
-};
-/** A door that stays shut in a wall that runs along z, its face on the wall's west face at `x`: hinged on the north jamb. `z` is the hole's middle. */
-const shutDoor = (name: keyof typeof DOORS, x: number, y: number, z: number, cap: string): Placement[] => {
-  const at: V3 = [x, y, z + hingeOff(DOORS[name])], n = name[0].toUpperCase() + name.slice(1);
-  return [{ build: `doorCase${n}`, at, rot: [0, 180, 0] }, { build: `doorLeaf${n}`, at, rot: [0, 180, 0], live: 'door', cap }]; // live: built by the runtime in a baked set; no `door`, so it never swings
 };
 /** A cased opening in a wall that runs along x: the case alone. `z` is its north face. */
 const opening = (name: keyof typeof DOORS, x: number, y: number, z: number): Placement => ({ build: `doorCase${name[0].toUpperCase() + name.slice(1)}`, at: [x + hingeOff(DOORS[name]), y, z], rot: [0, -90, 0] });

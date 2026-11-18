@@ -2,14 +2,12 @@
 // SRTM-derived): the strip from Cypress to Seymour behind Vancouver, sampled to a grid in metres about the
 // Convention Centre West. Scene frame: real north toward -x (across the water from the terrace), real east toward +z.
 //   node scripts/stage-northshore.mjs   (tiles cached in .cache/terrain)
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import sharp from 'sharp';
 const ORIGIN = { lat: 49.2887, lon: -123.1170 }; // the Convention Centre West
 const BOX = { lat: [49.30, 49.50], lon: [-123.36, -122.82] };
 const Z = 12, N = 440, M = 180; // samples east-west, north-south
 const OUT = 'src/lib/stage/northshore.json';
-const tx = (lon) => Math.floor(((lon + 180) / 360) * 2 ** Z);
-const ty = (lat) => { const r = (lat * Math.PI) / 180; return Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * 2 ** Z); };
 const tiles = new Map();
 async function tile(x, y) {
   const key = `${x}_${y}`;

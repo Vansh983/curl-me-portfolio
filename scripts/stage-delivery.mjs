@@ -1,3 +1,4 @@
+// Hashes and copies public assets for immutable production URLs.
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';

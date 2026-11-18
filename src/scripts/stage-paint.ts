@@ -2,8 +2,8 @@
 // out of the window, the Jobs poster and the team photo, the banner, the whiteboard, the sign.
 // Canvas y runs down, texture v runs up, so "top" in the world is y = 0 here.
 import { deliveryUrl } from '../lib/stage/delivery.ts';
-export type Ctx = CanvasRenderingContext2D;
-export type Painter = (x: Ctx, w: number, h: number) => void;
+type Ctx = CanvasRenderingContext2D;
+type Painter = (x: Ctx, w: number, h: number) => void;
 export interface Paint { w: number; h: number; frames: Painter[] }
 /** Apple's "Think different" text, 1997, as printed on the poster: the first sentence is the title, the rest the body. */
 const JOBS_QUOTE = "The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They're not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can't do is ignore them. Because they change things. They push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.";
@@ -26,18 +26,6 @@ export const loadImage = (src: string): Promise<HTMLImageElement | null> => new 
 
 /** Fills the canvas white first: every rig's default uv points at the corner, which must read white. */
 const white = (x: Ctx, w: number, h: number) => { x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, w, h); };
-
-/** "Google" in the four colours, centred at cx with the baseline at y. The current font must be set. */
-function googleWord(x: Ctx, cx: number, y: number, size: number): void {
-  const letters: Array<[string, string]> = [['G', '#4285F4'], ['o', '#EA4335'], ['o', '#FBBC05'], ['g', '#4285F4'], ['l', '#34A853'], ['e', '#EA4335']];
-  const widths = letters.map(([l]) => x.measureText(l).width);
-  const total = widths.reduce((a, b) => a + b, 0) - size * 0.02 * letters.length;
-  let px = cx - total / 2;
-  const align = x.textAlign;
-  x.textAlign = 'left';
-  letters.forEach(([l, c], i) => { x.fillStyle = c; x.fillText(l, px, y); px += widths[i] - size * 0.02; });
-  x.textAlign = align;
-}
 
 /**
  * Everything painted. Canvas y runs down, texture v runs up, so "top" in the world is y = 0 here.
@@ -550,7 +538,7 @@ const SANS = "'Helvetica Neue', Helvetica, Arial, sans-serif";
  * Bean's mark (the cloche with the bolt) from the logo image, `size` tall at (cx, cy); the wordmark too when `word` is set.
  * The logo file is orange on clear: it goes on light paper. Before the image has loaded, an orange ring stands in.
  */
-export function beanLogo(x: Ctx, logo: HTMLImageElement | null, cx: number, cy: number, size: number, word = false): void {
+function beanLogo(x: Ctx, logo: HTMLImageElement | null, cx: number, cy: number, size: number, word = false): void {
   if (!logo) { x.strokeStyle = BEAN_ORANGE; x.lineWidth = size * 0.08; x.beginPath(); x.arc(cx, cy, size * 0.4, 0, Math.PI * 2); x.stroke(); return; }
   // the mark fills x 68..948 of 2228, the wordmark 950..2138; the whole is 1024 tall
   const sx = word ? 68 : 68, sw = word ? 2070 : 880, sy = 88, sh = 848;
@@ -578,7 +566,7 @@ export function tourLive(x: Ctx, w: number, h: number, t: number, view: number, 
   } else if (view === 1) { // the editor, typing
     x.fillStyle = '#1E1F26'; x.fillRect(0, 0, w, h); x.fillStyle = '#2A2C36'; x.fillRect(0, 0, w, 26);
     x.fillStyle = '#B8BCC8'; x.font = mono; x.fillText('bean-api / src / recipes / adapt.ts', 12, 18);
-    const code: Array<[string, string]> = [['#C678DD', 'export async function* adaptRecipe(recipe: Recipe, ask: string, pantry: Pantry) {'], ['#ABB2BF', '  const prompt = adaptPrompt({ recipe, ask, pantry, kids: recipe.kidFriendly });'], ['#ABB2BF', '  const stream = await llm.stream({ model: MODEL, prompt, json: RecipeSchema });'], ['#7F848E', '  // the app rewrites the steps as tokens arrive'], ['#C678DD', '  for await (const patch of stream) {'], ['#ABB2BF', '    yield applyPatch(recipe, patch);'], ['#ABB2BF', '  }'], ['#ABB2BF', '  await pantry.reserve(recipe.ingredients);'], ['#ABB2BF', '  await shoppingList.add(missing(recipe.ingredients, pantry));'], ['#ABB2BF', '}'], ['#7F848E', ''], ['#C678DD', 'export function applyPatch(recipe: Recipe, patch: Patch): Recipe {'], ['#ABB2BF', '  return { ...recipe, steps: patch.steps ?? recipe.steps, ingredients: patch.ingredients ?? recipe.ingredients };'], ['#ABB2BF', '}']];
+    const code: Array<[string, string]> = [['#C678DD', 'export async function* adaptRecipe(recipe: Recipe, ask: string, pantry: Pantry) {'], ['#ABB2BF', '  const prompt = adaptPrompt({ recipe, ask, pantry, kids: recipe.kidFriendly });'], ['#ABB2BF', '  const stream = await llm.stream({ model: MODEL, prompt, json: RecipeSchema });'], ['#7F848E', '  // the app rewrites the steps as tokens arrive'], ['#C678DD', '  for await (const patch of stream) {'], ['#ABB2BF', '    yield applyPatch(recipe, patch);'], ['#ABB2BF', '  }'], ['#ABB2BF', '  await pantry.reserve(recipe.ingredients);'], ['#ABB2BF', '  await shoppingList.add(missing(recipe.ingredients, pantry));'], ['#ABB2BF', '}'], ['#7F848E', ''], ['#C678DD', 'function applyPatch(recipe: Recipe, patch: Patch): Recipe {'], ['#ABB2BF', '  return { ...recipe, steps: patch.steps ?? recipe.steps, ingredients: patch.ingredients ?? recipe.ingredients };'], ['#ABB2BF', '}']];
     const total = code.reduce((n, [, l]) => n + l.length + 1, 0), typed = Math.floor(u * total * 1.15);
     let left = typed;
     code.forEach(([c, l], i) => { const k = Math.max(0, Math.min(l.length, left)); left -= l.length + 1; x.fillStyle = '#5C6370'; x.fillText(String(i + 41).padStart(3), 10, 50 + i * 22); x.fillStyle = c; x.fillText(l.slice(0, k), 44, 50 + i * 22); if (k < l.length && k > 0 && Math.floor(t * 2) % 2 === 0) x.fillRect(44 + k * 7.8, 38 + i * 22, 7, 15); });
@@ -1029,7 +1017,7 @@ export const BADGE_PAINT: Record<string, Paint> = {
  * parted by a hairline in the slide's background colour; "SHIFTKEY" heavy and "LABS" light beside it.
  * `size` is the mark's height; the wordmark scales with it.
  */
-export function shiftkeyLabs(x: Ctx, left: number, top: number, size: number, ground: string): void {
+function shiftkeyLabs(x: Ctx, left: number, top: number, size: number, ground: string): void {
   const s = size / 380, X = (u: number) => left + u * s, Y = (v: number) => top + v * s;
   const poly = (pts: [number, number][], fill: string | CanvasGradient) => { x.beginPath(); pts.forEach(([u, v], i) => (i ? x.lineTo(X(u), Y(v)) : x.moveTo(X(u), Y(v)))); x.closePath(); x.fillStyle = fill; x.fill(); };
   const grad = (u0: number, v0: number, u1: number, v1: number, c0: string, c1: string) => { const g = x.createLinearGradient(X(u0), Y(v0), X(u1), Y(v1)); g.addColorStop(0, c0); g.addColorStop(1, c1); return g; };

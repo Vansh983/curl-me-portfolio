@@ -1,3 +1,4 @@
+// Resolves stage assets to their production URLs.
 declare const __STAGE_ASSET_URLS__: Record<string, string>;
 
 /** Build-time content hashes; original URLs remain usable by local bake/export tools. */

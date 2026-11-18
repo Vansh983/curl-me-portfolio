@@ -1,3 +1,4 @@
+// Requests and caches stage geometry from the worker.
 import type { Built } from '../lib/stage/built.ts';
 
 /** One build per prop variant, shared by every placement. No detached copies or main-thread city generation. */

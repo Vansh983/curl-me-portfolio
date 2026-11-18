@@ -1,3 +1,4 @@
+// Moves the graphic walker and landscape with the page scroll.
 import type { PathStop } from '../lib/phone/story-path';
 import { pathDistance, follow } from '../lib/phone/pacing';
 import { activityAt } from '../lib/phone/activities';

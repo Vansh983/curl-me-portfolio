@@ -1,8 +1,9 @@
+// Maps path distance to the graphic walker’s actions and flights.
 import type { PathStop } from './story-path';
 
 type Stop = Pick<PathStop, 'id' | 'x' | 'width' | 'gapBefore'>;
-export type Activity = 'walk' | 'travel' | 'teach' | 'sell' | 'present' | 'graduate';
-export type Flight = { start: number; end: number; route: string };
+type Activity = 'walk' | 'travel' | 'teach' | 'sell' | 'present' | 'graduate';
+type Flight = { start: number; end: number; route: string };
 
 // The university move is the only animated flight. It crosses open space
 // between the Delhi work and Halifax, rather than flying over a landmark.

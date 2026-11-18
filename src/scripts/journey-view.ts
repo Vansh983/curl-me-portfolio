@@ -1,3 +1,4 @@
+// Loads and pauses the 3D journey and handles retry and skip controls.
 import { initJourneyText } from './journey-text';
 import type { StageControls } from './stage-run';
 

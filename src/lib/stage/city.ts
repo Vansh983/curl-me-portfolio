@@ -6,8 +6,8 @@ import toronto from './toronto.json' with { type: 'json' };
 import { Sink } from './rig.ts';
 import type { V3 } from './rig.ts';
 
-export interface CityBuilding { h: number; min: number; p: number[]; dome?: 1 }
-export interface CityData { source: string; condo: [number, number]; facing: number; cn: [number, number]; buildings: CityBuilding[]; roads: number[][] }
+interface CityBuilding { h: number; min: number; p: number[]; dome?: 1 }
+interface CityData { source: string; condo: [number, number]; facing: number; cn: [number, number]; buildings: CityBuilding[]; roads: number[][] }
 export const CITY = toronto as CityData;
 
 /** The CN Tower as built here: 553 m is the truth, 470 the height he asked for, so the towers round it read as tall too. */
@@ -38,7 +38,7 @@ export function shade(sink: Sink, L: V3, ambient: number, k: number): void {
 }
 
 export const ringOf = (p: number[]): Array<[number, number]> => { const r: Array<[number, number]> = []; for (let i = 0; i + 1 < p.length; i += 2) r.push([p[i], p[i + 1]]); return r; };
-export const centreOf = (r: Array<[number, number]>): [number, number] => [r.reduce((s, p) => s + p[0], 0) / r.length, r.reduce((s, p) => s + p[1], 0) / r.length];
+const centreOf = (r: Array<[number, number]>): [number, number] => [r.reduce((s, p) => s + p[0], 0) / r.length, r.reduce((s, p) => s + p[1], 0) / r.length];
 
 /**
  * Every building into `near` or `far` (by distance), their roofs into `tops`, domes into `domes`.

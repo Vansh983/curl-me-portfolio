@@ -6,7 +6,7 @@ import { Sink, type Geo, type V3 } from './rig.ts';
 import { cityBlocks, cnTower, CITY, ringOf } from './city.ts';
 import { northShore } from './northshore.ts';
 import { HALIFAX, halifaxCity } from './halifax.ts';
-import { dalhousieCampus, rng, treeBlob, obb, hipRoof } from './dalhousie.ts';
+import { dalhousieCampus, rng, obb, hipRoof } from './dalhousie.ts';
 import { crossingZ } from './flight.ts';
 import { flightMap } from './flight-map.ts';
 import { buildShell } from './shell.ts';
@@ -147,21 +147,6 @@ const mon = (paint: string) => (): BuiltPart => {
   const stand = new Sink().rbox(0, 0.18, -0.06, 0.05, 0.36, 0.03, 0.006, 2).rbox(0, 0.006, -0.06, 0.26, 0.012, 0.18, 0.005, 2);
   return [piece(offsetGeo(face(0.59, 0.34, 0.001), 0, 0.5, 0), { paint }), piece(body.out(), M('bezel'), { smooth: true }), piece(stand.out(), M('aluminium'), { smooth: true })];
 };
-
-/** A closed side profile (x, y), counter clockwise seen from +z, extruded along z and capped: a car body. */
-const extrudeZ = (profile: [number, number][], halfD: number): Sink => {
-  const s = new Sink();
-  const n = profile.length;
-  const cx = profile.reduce((a, p) => a + p[0], 0) / n, cy = profile.reduce((a, p) => a + p[1], 0) / n;
-  for (let i = 0; i < n; i++) {
-    const [x0, y0] = profile[i], [x1, y1] = profile[(i + 1) % n];
-    s.quad([x0, y0, -halfD], [x1, y1, -halfD], [x1, y1, halfD], [x0, y0, halfD]);
-    s.quad([cx, cy, halfD], [x0, y0, halfD], [x1, y1, halfD], [x1, y1, halfD]);
-    s.quad([cx, cy, -halfD], [x1, y1, -halfD], [x0, y0, -halfD], [x0, y0, -halfD]);
-  }
-  return s;
-};
-
 
 /** The cabin's windows along z: one at every row and one between. */
 let cabinSkinSink: Sink | null = null;

@@ -13,8 +13,8 @@ import { MeshBVH, type ExtendedTriangle } from 'three-mesh-bvh';
 import type { Frame } from '../lib/stage/dolly.ts';
 import { ROAM, roamPath, roamNearest, roamHeading, roamProgress, type RoamPath, type RoamRun } from '../lib/stage/roam.ts';
 
-export interface RoamDoor { obj: Object3D; base: number; from: number; to: number; shut?: [number, number]; open: number; sides?: [number, number] } // sides: the sets the door joins
-export interface RoamContext {
+interface RoamDoor { obj: Object3D; base: number; from: number; to: number; shut?: [number, number]; open: number; sides?: [number, number] } // sides: the sets the door joins
+interface RoamContext {
   groups: Group[];
   dolly: (q: number) => Frame;
   span: number;

@@ -1,5 +1,5 @@
 // Fixed-proportion 3D handset. Its screen is the classroom from the first visible frame.
-import { Scene, OrthographicCamera, PerspectiveCamera, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, ShaderMaterial, PlaneGeometry, CircleGeometry, Group, WebGLRenderTarget, HalfFloatType, Vector2, DirectionalLight, HemisphereLight, Shape, ExtrudeGeometry, CanvasTexture, SRGBColorSpace, type WebGLRenderer } from 'three';
+import { Scene, OrthographicCamera, PerspectiveCamera, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, ShaderMaterial, PlaneGeometry, CircleGeometry, Group, WebGLRenderTarget, HalfFloatType, Vector2, DirectionalLight, HemisphereLight, Shape, ExtrudeGeometry, CanvasTexture, SRGBColorSpace, type WebGLRenderer } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { phoneAt, CLASSROOM_VIEW, phoneLayout } from '../lib/stage/flight.ts';
 import { toWorld } from '../lib/stage/world.ts';

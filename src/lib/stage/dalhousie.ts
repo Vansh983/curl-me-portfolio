@@ -7,13 +7,13 @@ import dalhousie from './dalhousie.json' with { type: 'json' };
 import { Sink, earcut } from './rig.ts';
 import { ringOf } from './city.ts';
 
-export type CampusKind = 'stone' | 'concrete' | 'brick' | 'glass' | 'house' | 'dome';
-export interface CampusBuilding { n?: string; k: CampusKind; h: number; r: 'hip' | 'flat' | 'dome'; x?: 'tower'; p: number[] }
-export interface CampusData {
+type CampusKind = 'stone' | 'concrete' | 'brick' | 'glass' | 'house' | 'dome';
+interface CampusBuilding { n?: string; k: CampusKind; h: number; r: 'hip' | 'flat' | 'dome'; x?: 'tower'; p: number[] }
+interface CampusData {
   source: string; campus: number[]; buildings: CampusBuilding[]; greens: Array<{ n?: string; p: number[] }>;
   pitches: Array<{ s: string; p: number[] }>; parking: number[][]; paths: Array<{ w: number; a?: 1; p: number[] }>; trees: number[][];
 }
-export const DALHOUSIE = dalhousie as CampusData;
+const DALHOUSIE = dalhousie as CampusData;
 
 type Ring = Array<[number, number]>;
 const hex = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(1, v)) ** (1 / 2.2) * 255).toString(16).padStart(2, '0')).join('');
@@ -23,7 +23,7 @@ const centroid = (ring: Ring): [number, number] => [ring.reduce((s, p) => s + p[
 /** A seeded uniform in 0..1, the same every build. */
 export const rng = (seed: number) => () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
 
-export interface Obb { c: [number, number]; u: [number, number]; v: [number, number]; w: number; d: number; fill: number }
+interface Obb { c: [number, number]; u: [number, number]; v: [number, number]; w: number; d: number; fill: number }
 /** The smallest rectangle round a footprint (an edge direction is always one of its sides): centre, axes, sides, and how much of it the footprint fills. */
 export function obb(ring: Ring): Obb {
   let best: Obb | undefined;
@@ -167,7 +167,7 @@ export function dalhousieCampus(walls: Sink, roofs: Sink, copper: Sink, clock: S
 }
 
 /** Where the trees stand: the mapped ones, the avenue's rows and the quad's ring from the export, and a scatter over the lawns clear of the buildings. */
-export function campusTrees(): Array<[number, number]> {
+function campusTrees(): Array<[number, number]> {
   const out: Array<[number, number]> = DALHOUSIE.trees.map(([x, z]) => [x, z]);
   const rnd = rng(101);
   const campus = ringOf(DALHOUSIE.campus);

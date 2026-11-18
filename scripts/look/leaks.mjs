@@ -66,7 +66,7 @@ for (const i of sets) {
       const sideOf = (mi) => { const m = meshes[mi].material; return (Array.isArray(m) ? m[0] : m).side; };
       // the set's own ground: the flood keeps to the box of what the set itself builds (a neighbour's floor is that neighbour's run, under its own ring)
       const box = new st.Box3(), far = /\|(city|sky|flight|mover|water)$/;
-      meshes.forEach((o, mi) => { if (groupOf(o) !== set || far.test(o.name) || o.name.startsWith('b|lawnFar|') || o.name === 'torontoSkyline' || o.name.startsWith('crowd:')) return; const b = new st.Box3().setFromObject(o); if (b.max.x - b.min.x < 200) box.union(b); });
+      meshes.forEach((o) => { if (groupOf(o) !== set || far.test(o.name) || o.name.startsWith('b|lawnFar|') || o.name === 'torontoSkyline' || o.name.startsWith('crowd:')) return; const b = new st.Box3().setFromObject(o); if (b.max.x - b.min.x < 200) box.union(b); });
       if (box.isEmpty() || !bounds) { if (bounds) box.set(new V(bounds[0], -50, bounds[1]), new V(bounds[2], 50, bounds[3])); } else if (bounds) box.union(new st.Box3(new V(bounds[0], -50, bounds[1]), new V(bounds[2], 50, bounds[3])));
       box.expandByScalar(0.5);
       const inBox = (x, z) => x >= box.min.x && x <= box.max.x && z >= box.min.z && z <= box.max.z && !rooms.some((r) => x > r[0] && x < r[2] && z > r[1] && z < r[3]);
@@ -82,7 +82,7 @@ for (const i of sets) {
         return hits.some((h) => h.distance - hits[0].distance < 0.006 && own.has(groupOf(meshes[triMesh[h.faceIndex]])));
       };
       const skyUp = outdoors || meshes.some((m) => m.name === 'b|sky|mat:sky|sky' || m.name.startsWith('b|sky|mat:walkSky') || m.name.startsWith('b|nightSky|')); // a sky is drawn (the day's, the walk's, the apartment's night): a ray level or upward ends on it (2400 m out), no leak
-      const ray = new st.Ray(), origin = ray.origin, dir = ray.direction, n = new V();
+      const ray = new st.Ray(), origin = ray.origin, dir = ray.direction;
       const first = (ox, oy, oz, dx, dy, dz, far) => { origin.set(ox, oy, oz); dir.set(dx, dy, dz).normalize(); return bvh.raycastFirst(ray, 2, 0, far); };
       // the floor, flooded from where he stands: a point counts where the walker's floor test finds ground a stride up or a drop down from its neighbour, and his body fits
       const st0 = roam.state(), feet0 = st0.ground ?? st0.pos[1] - EYE, x0 = st0.pos[0], z0 = st0.pos[2]; // his feet: the floor under him (seated, the eye is lower)

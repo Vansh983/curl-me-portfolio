@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none" stroke="none">
-  <!-- 2018 near layer: the suitcase for San Francisco, rays around the trophy -->
-  <g class="suitcase" data-motion="slide-r" style="animation-range: entry 55% entry 95%">
-    <path fill="#F2575D" d="M 1210 860 L 1210 795 L 1290 795 L 1290 860 Z"/>
-    <path fill="#CC4341" d="M 1210 820 L 1290 820 L 1290 828 L 1210 828 Z M 1244 806 h 12 v 8 h -12 Z"/>
-    <path fill="none" stroke="#702224" stroke-width="5" stroke-linecap="round" d="M 1237 795 L 1237 782 L 1263 782 L 1263 795"/>
-    <path fill="#17282F" d="M 1220 852 h 16 v 8 h -16 Z M 1264 852 h 16 v 8 h -16 Z"/>
-  </g>
-</svg>

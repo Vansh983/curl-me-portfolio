@@ -7,7 +7,7 @@ import type { Placement } from './sets.ts';
 export const LM_SCALE = 4;
 
 /** Built pieces by material that keep moving or glowing on their own clock. */
-export const LIVE_SURFACE = new Set(['mat:tubeGlass', 'mat:bulb', 'mat:curtain', 'mat:cabinGlass', 'mat:handrail']);
+const LIVE_SURFACE = new Set(['mat:tubeGlass', 'mat:bulb', 'mat:curtain', 'mat:cabinGlass', 'mat:handrail']);
 /** Props that never enter the bake: the backdrops and the far things the fog softens anyway. */
 export const DROP_PROP = new Set(['clouds', 'bridge', 'boats', 'piers', 'nightSky', 'sky', 'city', 'water', 'flightSky', 'campusView', 'sydneyHarbour', 'harbourWater', 'bennelongPoint', 'harbourAround', 'canadaPlaceSails', 'cnTowerFar', 'macdonaldBridge', 'northShore', 'torontoDay', 'halifaxDay', 'walkWater', 'halifaxWalk', 'torontoWalk', 'vancouverTowers', 'georgesIsland', 'ferry', 'seaplane', 'torontoView']);
 /** Things that stand in the Blender scene for shadow and bounce but are not baked: the wide ground that would eat the atlas, leafy models whose alpha cards do not survive the round trip, the doors' cases, each seen from two rooms and lit by the one the walk is in, and the framed photographs on the lawn, whose thin bars the lightmap smears. The runtime builds them and lights them live. */
@@ -30,7 +30,7 @@ export function placementIsLive(p: Placement): boolean {
   return false;
 }
 
-export interface BakedName { kind: 'b' | 'm' | 's'; prop: string; surface: string; live: string }
+interface BakedName { kind: 'b' | 'm' | 's'; prop: string; surface: string; live: string }
 
 /** Reads the name the runtime gave a mesh before the bake (`kind|prop|surface|live`, Blender may add `.001`). */
 export function parseBakedName(name: string): BakedName | null {

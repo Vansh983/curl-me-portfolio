@@ -10,7 +10,7 @@ export type Kind =
   | 'smooth' | 'orange' | 'plaster' | 'grain' | 'plank' | 'weave' | 'pile'
   | 'brushed' | 'speckle' | 'pores' | 'strand' | 'pebble' | 'leaf' | 'ripple';
 
-export type SurfaceName =
+type SurfaceName =
   | 'paint' | 'plaster' | 'wood' | 'plank' | 'fabric' | 'cotton' | 'carpet' | 'plastic'
   | 'metal' | 'steel' | 'gold' | 'rubber' | 'paper' | 'ceramic' | 'concrete'
   | 'skin' | 'hair' | 'foliage' | 'glass' | 'stone' | 'water';

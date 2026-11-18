@@ -6,11 +6,11 @@
 // at the golden hour, Halifax in January at dusk with snow coming down. Between two cities the harbour's mist closes
 // in, and what stands far off is changed inside it. Everything here is a function of the chapter the scroll is at
 // (docs/rebuild/34-the-walk.md), so scrolling back runs it backwards and a jump lands in the same frame.
-import { ch, TOUR_GAIN } from './shot.ts';
+import { TOUR_GAIN } from './shot.ts';
 
 export type V3 = [number, number, number];
 export type SkyName = 'vancouver' | 'toronto' | 'halifax';
-export type City = SkyName;
+type City = SkyName;
 
 /** The walk's line and its measures, world metres. */
 export const WALK = {
@@ -311,6 +311,3 @@ export function ferryAt(c: number, time = 0): Pose {
   const t = Math.min(1, Math.max(0, (c - (TURN.halifax - 0.1)) / (WALK.out - TURN.halifax + 0.1)));
   return { at: [-135 - 170 * t, WALK.water + 0.1 + 0.06 * Math.sin(time * 0.9), 98 + 66 * t], yaw: 72, pitch: 0.6 * Math.sin(time * 0.7), roll: 1.2 * Math.sin(time * 0.9 + 1), on: c >= TURN.halifax };
 }
-
-/** The walk's keys in stage progress, for the things that hang on it. */
-export const walkQ = (c: number): number => ch(c);

@@ -12,7 +12,7 @@ import { WALK, TURN, MIST, walkZ } from './walk.ts';
 import { CLASSROOM_VIEW, WINDOW_VIEW, PHONE, FLIGHT } from './flight.ts';
 import { ch, approach, TOUR_GAIN } from './shot.ts';
 
-export interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1; portal?: true; soft?: true } // soft: an open-air threshold, the light crossfades without the doorway's dip
+interface DollyKey { q: number; cam: V3; look: V3; fov: number; set: number; blend?: 0 | 1; portal?: true; soft?: true } // soft: an open-air threshold, the light crossfades without the doorway's dip
 /** `from` and `into` are the sets a doorway joins; outside a doorway both equal `set`. */
 export interface Frame { q: number; set: number; from: number; into: number; blend: number; cam: V3; look: V3; fov: number; envDip: number }
 
@@ -67,9 +67,6 @@ const APPROACH: DollyKey[] = [
   { q: 0.932, cam: [-1.9, 1.58, 1.65], look: [-3.9, 1.5, 1.6], fov: 68, set: 4 },
   { q: 0.951, cam: [-2.35, 1.58, 1.6], look: [-4.5, 1.5, 0.9], fov: 68, set: 4, blend: 0 }, // door jamb, beginning the turn into the boarding passage
 ];
-
-/** The first five rooms keep their choreography over the first 4.2 chapters (shot.ts `approach`: the Google walk runs two chapter lengths); the ring was cut at the brick door for the flight. */
-export const APPROACH_SCALE = ch(5.2);
 
 /** Standing in the central aisle at z, eye 1.6 m over its steps. */
 const aisle = (z: number, dy = 0): V3 => [AUDITORIUM.aisleX, aisleHeight(z) + 1.6 + dy, z];

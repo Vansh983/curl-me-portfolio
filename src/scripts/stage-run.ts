@@ -13,7 +13,7 @@ import {
   AdditiveBlending, BufferAttribute, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, PlaneGeometry, BoxGeometry, Texture, CanvasTexture, VideoTexture, TextureLoader,
   RepeatWrapping, SRGBColorSpace, AgXToneMapping, ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PMREMGenerator, Raycaster, Ray, Vector2, Vector3,
   LinearFilter, LinearMipmapLinearFilter, Material, SphereGeometry, BackSide, DoubleSide, Float32BufferAttribute,
-  AnimationMixer, AnimationClip, Box3, Sphere, ShaderChunk, WebGLRenderTarget, Plane, MeshDepthMaterial, RGBADepthPacking, Sprite, SpriteMaterial, InstancedBufferGeometry, InstancedBufferAttribute, NormalBlending, ClampToEdgeWrapping, MirroredRepeatWrapping,
+  AnimationMixer, AnimationClip, Box3, Sphere, ShaderChunk, WebGLRenderTarget, Plane, MeshDepthMaterial, RGBADepthPacking, Sprite, SpriteMaterial, InstancedBufferGeometry, InstancedBufferAttribute, ClampToEdgeWrapping, MirroredRepeatWrapping,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneRig } from 'three/examples/jsm/utils/SkeletonUtils.js';

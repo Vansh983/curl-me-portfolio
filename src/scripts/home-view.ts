@@ -1,3 +1,4 @@
+// Switches between graphic, scroll and Walk views on the home page.
 import { isLaptop, LAPTOP_QUERY } from '../lib/view-mode';
 import './about-text';
 
