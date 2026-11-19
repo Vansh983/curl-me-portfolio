@@ -44,10 +44,12 @@ import { profile } from '../data/profile';
   }
   :global(main.shell) { padding-bottom: 0; }
   .continuous-text { padding: calc(30svh - 18px) 0 calc(90svh - 18px); }
+  .intro { padding-bottom: 18px; }
   .intro h1 { font-size: 32px; line-height: 1.1; letter-spacing: -0.035em; margin: 0 0 11px; }
   .intro :global(p + p) { margin-top: 36px; }
   @media (min-width: 1025px) {
     .continuous-text { padding-top: calc(12svh - 18px); }
+    .intro { padding-bottom: .75em; }
     .intro h1 {
       font-family: 'Bebas Neue Title', sans-serif;
       font-weight: 400;
@@ -57,8 +59,8 @@ import { profile } from '../data/profile';
       white-space: nowrap;
       margin-bottom: 12px;
     }
-    .intro :global(p + p) { margin-top: 3em; }
-    .continuous-text :global(.about-paragraph) { padding: 1.5em 0; }
+    .intro :global(p + p) { margin-top: 1.5em; }
+    .continuous-text :global(.about-paragraph) { padding: .75em 0; }
     .continuous-text :global(.about-tag) { padding: 0 .45em; border-radius: 1em; }
     .continuous-text :global(.about-row) { margin: .4em 0 .7em; }
     .continuous-text :global(.about-cards ul) { padding-bottom: .2em; }
