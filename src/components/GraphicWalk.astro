@@ -167,6 +167,31 @@ const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
       43% { transform: translateY(-28px); }
     }
   }
+  @media (min-width: 1025px) {
+    /* Match TextJourney's laptop text while keeping the walk's bottom padding. */
+    :root[data-laptop='true'] #j {
+      font-family: var(--f-body);
+      font-weight: 300;
+      font-size: 22px;
+      line-height: 1.5;
+      width: 50vw;
+      max-width: calc(22.5em + var(--pad) + 1em);
+      padding-top: 12svh;
+      padding-left: var(--pad);
+      padding-right: 1em;
+    }
+    :root[data-laptop='true'] .graphic-view .intro { padding-bottom: .75em; }
+    :root[data-laptop='true'] .graphic-view .intro h1 { font-size: 88px; margin-bottom: 12px; }
+    :root[data-laptop='true'] .graphic-view .intro p,
+    :root[data-laptop='true'] .graphic-view .about-paragraph > p {
+      font-size: inherit;
+      line-height: inherit;
+      padding: 0;
+    }
+    :root[data-laptop='true'] .graphic-view .intro p + p { margin-top: 1.5em; }
+    :root[data-laptop='true'] .graphic-view .about-paragraph { padding: .75em 0; }
+    :root[data-laptop='true'] .graphic-view .about-tag { padding: 0 .45em; border-radius: 1em; }
+  }
   :root:not([data-laptop='true']) #j {
       margin: 0 auto;
       padding-top: 7vh;
