@@ -120,7 +120,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const camera = new PerspectiveCamera(50, 1, 0.05, 2600); // the city outside the condo is a kilometre away
   const phone = createPhone(renderer);
   const weather = createWeather(scene, fog); // the leaves and the snow over the tour's walk
-  // the laptop in hand for the tour: built like any prop, hung on the camera low and left, the road dashboard on it
+  // the laptop in hand for the tour: built like any prop, hung on the camera low and right, the road dashboard on it
   scene.add(camera);
   const heldLaptop = new Group();
   heldLaptop.name = 'heldLaptop';
@@ -854,8 +854,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   const buildHeldLaptop = (parts: Built[]) => {
     const obj = placeBuilt('laptopTour', { build: 'laptopTour', at: [0, 0, 0], live: 'screen' }, false, parts);
     obj.traverse((o) => { if (o instanceof Mesh) { o.castShadow = false; o.receiveShadow = false; } });
-    obj.position.set(-0.25, -0.25, -0.66); // carried on the left arm, open, the screen turned to him: in the lower left of the frame, the walk's middle clear
-    obj.rotation.set(0.42, 0.24, 0.04);
+    obj.position.set(0.25, -0.25, -0.66); // carried on the right arm, open, the screen turned to him: in the lower right of the frame, the walk's middle clear
+    obj.rotation.set(0.42, -0.24, -0.04);
     obj.scale.setScalar(0.78);
     obj.traverse((o) => { if (o instanceof Mesh && o.name.includes('paint:screenTour')) { tourScreen = o; (o.material as MeshBasicMaterial).map = tourTex; (o.material as MeshBasicMaterial).needsUpdate = true; } });
     heldLaptop.add(obj);

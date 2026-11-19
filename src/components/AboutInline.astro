@@ -3,17 +3,98 @@
 import { ABOUT_LINKS, ABOUT_ROWS, type AboutPart } from '../data/about';
 type Props = { parts: readonly AboutPart[]; prefix?: string };
 const { parts, prefix = 'about' } = Astro.props;
+const trailingComma = (index: number) => parts[index + 1]?.text?.startsWith(',') ? ',' : '';
 ---
 
-{parts.map(part => part.tag ? (
+{parts.map((part, index) => part.tag ? (
   <button type="button" class="about-tag" id={`${prefix}-tag-${part.tag}`} data-about-tag={part.tag} aria-expanded="false" aria-controls={`${prefix}-row-${part.tag}`}>{ABOUT_ROWS[part.tag].label}</button>
 ) : part.link ? (
   <a class="about-link" href={ABOUT_LINKS[part.link].href} target="_blank" rel="noopener noreferrer" aria-label={`${ABOUT_LINKS[part.link].label} (opens in a new tab)`} style={`--link-fill:${ABOUT_LINKS[part.link].fill};--link-ink:${ABOUT_LINKS[part.link].ink}`}>
     {ABOUT_LINKS[part.link].label}<svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3 9 9 3M3 3h6v6" /></svg>
   </a>
-) : part.text)}
+) : part.rotating ? (
+  <about-rotator data-terms={JSON.stringify(part.rotating)} data-suffix={trailingComma(index)}><span class="about-term">{part.rotating[0]}{trailingComma(index)}</span></about-rotator>
+) : (parts[index - 1]?.rotating && part.text?.startsWith(',') ? part.text.slice(1) : part.text))}
+
+<script>
+  // Custom elements also start when the 3D view is inserted from its template.
+  class AboutRotator extends HTMLElement {
+    private cleanup?: () => void;
+
+    connectedCallback() {
+      this.cleanup?.();
+      const terms: string[] = JSON.parse(this.dataset.terms!);
+      const current = this.querySelector<HTMLElement>('.about-term')!;
+      const suffix = this.dataset.suffix ?? '';
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let index = 0;
+      let text = terms[0];
+
+      const schedule = (delay: number) => { timer = setTimeout(advance, delay); };
+      const advance = () => {
+        if (reducedMotion.matches) return;
+        const bounds = this.getBoundingClientRect();
+        if (document.hidden || !bounds.width || bounds.bottom <= 0 ||
+            bounds.top >= innerHeight || bounds.right <= 0 || bounds.left >= innerWidth) {
+          schedule(60);
+          return;
+        }
+
+        const nextIndex = (index + 1) % terms.length;
+        const next = terms[nextIndex];
+        let shared = 0;
+        while (shared < text.length && text[shared] === next[shared]) shared++;
+        text = shared < text.length ? text.slice(0, -1) : next.slice(0, text.length + 1);
+        current.textContent = text + suffix;
+        if (text === next) {
+          index = nextIndex;
+          schedule(3000);
+        } else schedule(60);
+      };
+
+      const reset = () => {
+        clearTimeout(timer);
+        timer = undefined;
+        index = 0;
+        text = terms[0];
+        current.textContent = text + suffix;
+        if (!reducedMotion.matches && terms.length > 1) schedule(3000);
+      };
+      reducedMotion.addEventListener('change', reset);
+      this.cleanup = () => {
+        clearTimeout(timer);
+        reducedMotion.removeEventListener('change', reset);
+      };
+      reset();
+    }
+
+    disconnectedCallback() {
+      this.cleanup?.();
+      this.cleanup = undefined;
+    }
+  }
+
+  if (!customElements.get('about-rotator')) customElements.define('about-rotator', AboutRotator);
+</script>
 
 <style>
+  about-rotator { display: inline; }
+  .about-term::after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 1em;
+    margin-top: .2em;
+    background: currentColor;
+    animation: about-caret 1s step-end infinite;
+  }
+  @keyframes about-caret {
+    50% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .about-term::after { animation: none; }
+  }
   .about-tag {
     display: inline-block;
     vertical-align: baseline;

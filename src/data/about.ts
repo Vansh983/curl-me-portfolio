@@ -1,9 +1,13 @@
 import { profile } from './profile.ts';
 
 export type AboutStop = 'delhi' | 'google' | 'webcube' | 'university' | 'shiftkey' | 'bean' | 'collect' | 'graduation' | 'floqer';
-export type AboutTag = 'football' | 'google' | 'cafe' | 'book' | 'artist' | 'games' | 'shows' | 'food';
-export type AboutLink = 'floqer' | 'bean' | 'good-neighbour';
-export type AboutPart = { text: string; tag?: never; link?: never } | { tag: AboutTag; text?: never; link?: never } | { link: AboutLink; text?: never; tag?: never };
+export type AboutTag = 'google' | 'cafe' | 'book' | 'artist' | 'games' | 'shows' | 'food';
+export type AboutLink = 'floqer' | 'bean' | 'good-neighbour' | 'covid-leads' | 'webcube' | 'shiftkey' | 'shiftkey-community' | 'linkedin' | 're-defined' | 'faculty-health' | 'acadri';
+export type AboutPart =
+  | { text: string; tag?: never; link?: never; rotating?: never }
+  | { tag: AboutTag; text?: never; link?: never; rotating?: never }
+  | { link: AboutLink; text?: never; tag?: never; rotating?: never }
+  | { rotating: readonly [string, ...string[]]; text?: never; tag?: never; link?: never };
 export type AboutParagraph = { id: string; stop: AboutStop; parts: readonly AboutPart[] };
 type AboutCard = { name: string; image?: never; alt?: never } | { image: string; alt: string; name?: never };
 type AboutRow = { label: string; shape: 'poster' | 'wide' | 'square'; cards: readonly AboutCard[]; note?: string };
@@ -15,17 +19,49 @@ export const ABOUT_LINKS: Record<AboutLink, { label: string; href: string; fill:
   bean: { label: 'Bean', href: profile.bean.url, fill: '#F26722', ink: '#111111' },
   // URL: projects.ts:31. Colour: curl-era:data/projects.ts:16, the darker end of its gradient.
   'good-neighbour': { label: 'The Good Neighbour App', href: 'https://apps.apple.com/us/app/good-neighbour-app/id1672741728', fill: '#058078', ink: '#FFFFFF' },
+  // URL: projects.ts:121. Fill: curl-era:data/projects.ts:100, its darker pink; ink: tokens.css, the page's neutral #111111.
+  'covid-leads': { label: 'Covid Leads Delhi', href: 'https://covidleads-delhi.vercel.app/', fill: '#FF9F9F', ink: '#111111' },
+  // URL: owner, 2026-11-19. Colour: curl-era:public/assets/timeline/webcube.png, the logo's blue.
+  webcube: { label: 'Webcube', href: 'https://webcube.in', fill: '#15499F', ink: '#FFFFFF' },
+  // URL: checked 2026-11-19 (loads). Colour: stage-paint.ts, shiftkeyLabs mark's dark blue fold.
+  shiftkey: { label: 'Shiftkey Labs', href: 'https://shiftkeylabs.ca/', fill: '#1C3D8C', ink: '#FFFFFF' },
+  // URL: checked 2026-11-19 (loads), Shiftkey Labs open source organisation on GitHub. Colours: tokens.css, the page's neutral raised surface and text.
+  'shiftkey-community': { label: 'biggest open source community', href: 'https://github.com/shiftkey-labs', fill: 'var(--raise)', ink: 'var(--tx)' },
+  // URL: profile.ts:20. Fill: curl-era:public/assets/icons/linkedin.png, blue at (90, 178); ink: tokens.css, neutral #111111.
+  linkedin: { label: 'LinkedIn', href: profile.links.find(link => link.label === 'LinkedIn')!.href, fill: '#3081ED', ink: '#111111' },
+  // URL: projects.ts, Re-defined. Colours: tokens.css, the page's neutral raised surface and text.
+  're-defined': { label: 'a platform for a non-profit', href: 'https://redefined.social/', fill: 'var(--raise)', ink: 'var(--tx)' },
+  // URL: projects.ts, Atlantic Canada data analysis tool. Colours: tokens.css, the page's neutral raised surface and text.
+  'faculty-health': { label: "internal systems for Dalhousie's Faculty of Health", href: 'https://foh-dashboard.vercel.app/', fill: 'var(--raise)', ink: 'var(--tx)' },
+  // URL: owner, 2026-11-19. Colours: tokens.css, the page's neutral raised surface and text.
+  acadri: { label: 'Acadri', href: 'https://acadri.com', fill: 'var(--raise)', ink: 'var(--tx)' },
 };
 
 export const ABOUT_GREETING = "Hi I'm Vansh,";
-export const ABOUT_INTRO_PARTS: readonly AboutPart[] = [
-  { text: "I'm currently the Head of Engineering at " }, { link: 'floqer' },
-  { text: ". I build agents that research companies and people so sales teams don't have to." },
-];
+export const ABOUT_INTRO_PARAGRAPHS: readonly (readonly AboutPart[])[] = [[
+  { text: "I'm " },
+  { rotating: [
+    'a Creative Developer',
+    'a Full Stack Developer',
+    'a Software Architect',
+    'a Tech Entrepreneur',
+    'a Cloud Architect',
+    'a Cloud Practitioner',
+    'a Tech Founder',
+    'an Open Source Enthusiast',
+    'a Mobile Developer',
+    'a Web Developer',
+    'a Web Designer',
+    'a Creative Designer',
+  ] },
+  { text: ' who likes to solve problems and turn them into products me and my friends wish we had.' },
+], [
+  { text: 'I currently lead Product and Engineering at ' }, { link: 'floqer' }, { text: ", building the knowledge layer for enterprise GTM teams and scaling it to millions of agents. You'll find me with my laptop at random cafes in Toronto every weekend. I brain dump on " }, { link: 'linkedin' }, { text: ' and automate my life more and more everyday.' },
+]];
+export const ABOUT_INTRO_PARTS: readonly AboutPart[] = ABOUT_INTRO_PARAGRAPHS.flatMap<AboutPart>((parts, index) => index === 0 ? parts : [{ text: ' ' }, ...parts]);
 export const ABOUT_OPENING_PARTS: readonly AboutPart[] = [{ text: `${ABOUT_GREETING} ` }, ...ABOUT_INTRO_PARTS];
 
 export const ABOUT_ROWS: Record<AboutTag, AboutRow> = {
-  football: { label: 'football', shape: 'poster', cards: [{ name: '[photo of me playing]' }, { name: '[photo of me playing]' }, { name: '[Messi]' }] },
   google: { label: 'Google Code In', shape: 'wide', cards: [
     { image: '/assets/stage/photos/google-award.jpg', alt: 'Vansh holding his Google Code-in grand prize award beside a screen with his name.' },
     { image: '/assets/stage/photos/google-sign.jpg', alt: 'Vansh beside the Google San Francisco sign, with the Bay Bridge behind him.' },
@@ -39,15 +75,16 @@ export const ABOUT_ROWS: Record<AboutTag, AboutRow> = {
 };
 
 export const ABOUT_PARAGRAPHS: readonly AboutParagraph[] = [
-  { id: 'first-code', stop: 'delhi', parts: [{ text: 'I started writing code when I was like 13. I went to hackathons, won competitions and used to play ' }, { tag: 'football' }, { text: ' at that point in time.' }] },
-  { id: 'code-in', stop: 'google', parts: [{ text: 'Winning those led to me becoming the Winner of ' }, { tag: 'google' }, { text: ' at the age of 17. This achievement, recognized by a fully sponsored trip to San Francisco by Google, ignited my passion for coding and catalyzed my decision to move to Canada for studying Computer Science.' }] },
-  { id: 'webcube', stop: 'webcube', parts: [{ text: "Then I started my first company. My entrepreneurial endeavors started with Webcube, transforming startups' ideas into business solutions via software, managing a team of 25+ developers and six production-level projects. I've assisted over 20 startups, aiding in securing $100,000+ in funding through MVP development." }] },
-  { id: 'covid-leads', stop: 'webcube', parts: [{ text: 'During Covid I developed a full-stack application with live updates across India for 20k+ users and deployed a digital platform with 52 volunteers providing verified leads for essentials.' }] },
-  { id: 'dalhousie', stop: 'university', parts: [{ text: 'I moved to Canada to study Computer Science at Dalhousie University. I soon became the Student Ambassador for Shiftkey Labs, where I began hosting enriching workshops for fellow university students. The year culminated in me joining the Emerging Wireless Technologies Lab at Dalhousie University under the esteemed guidance of Dr. Srinivas Sampalli.' }] },
-  { id: 'shiftkey', stop: 'shiftkey', parts: [{ text: "In Halifax I built a lot of software. I've worked with multiple startups, non-profits and labs: " }, { link: 'good-neighbour' }, { text: ', which raised $45k and launched on Android and iOS, a platform for a non-profit impacting over 30k people across 5 countries, and a data analysis tool for Dalhousie managing over 15,000 medical student placements across Nova Scotia. I barely managed to attend classes.' }] },
-  { id: 'bean-beginnings', stop: 'bean', parts: [{ link: 'bean' }, { text: ' began in Australia. Pankrit Jindal and I started it in 2024, and I spent two months in Sydney working on it with him. It started as "what is in your fridge" and became a cooking assistant for busy parents who were tired of deciding what to make. 700 parents, 250 interviews, thousands of users.' }] },
-  { id: 'bean-launch', stop: 'collect', parts: [{ text: "Then we took it across Canada. At Web Summit Vancouver, my first tech conference, we had more than 500 conversations in a day, 120 signups and an MOU signed. In Toronto I was at Elevate with the Startup Atlantic delegation. Back in Halifax we got into Invest Nova Scotia's Accelerate, one of twelve startups, and hit number four on Product Hunt. Two years in, we sold it." }] },
-  { id: 'floqer', stop: 'floqer', parts: [{ text: 'In October 2025 I joined ' }, { link: 'floqer' }, { text: ' as a founding engineer and moved into its hacker house in downtown Toronto. I have been Head of Engineering since April 2026.' }] },
+  { id: 'first-code', stop: 'delhi', parts: [{ text: 'The journey started when I began writing code at 13. I built my first website, started losing at hackathons at 15 and became the Winner of ' }, { tag: 'google' }, { text: ' at 17.' }] },
+  { id: 'webcube', stop: 'webcube', parts: [{ text: 'My entrepreneurial journey started at 17 with ' }, { link: 'webcube' }, { text: ", turning startups' ideas into software. In the two years I worked on it we made $140k in revenue, hired 25+ people and worked across 7 countries. It paid for my international tuition, so I could move to Canada." }] },
+  { id: 'dalhousie', stop: 'university', parts: [{ text: 'I moved to Canada to study Computer Science at Dalhousie University. I did not attend any classes, but I was the teaching assistant for more than 8 courses. Every waking minute I was either working or studying.' }] },
+  { id: 'uni-software', stop: 'university', parts: [{ text: 'In my first couple of years of uni I built software: ' }, { link: 'good-neighbour' }, { text: ', ' }, { link: 're-defined' }, { text: ' and ' }, { link: 'faculty-health' }, { text: '. I also did research on wearable tech at MyTech Lab and on Applied AI around education.' }] },
+  { id: 'shiftkey', stop: 'shiftkey', parts: [{ text: 'I was the Student Ambassador for ' }, { link: 'shiftkey' }, { text: ', built the ' }, { link: 'shiftkey-community' }, { text: ' in Atlantic Canada and led entire courses around Generative AI and Cloud Computing, with more than 200 students attending and getting certified.' }] },
+  { id: 'bean-beginnings', stop: 'bean', parts: [{ text: 'During all this Pankrit Jindal and I started ' }, { link: 'bean' }, { text: '. I travelled to Australia and spent two months in Sydney building it with him. Back home we travelled across Canada to different conferences with it.' }] },
+  { id: 'bean-launch', stop: 'collect', parts: [{ text: 'We raised a pre seed of a bit under $100k and made it to Product Hunt, Blackbird VC, Invest NS etc. We grew it to 10k users and had an okay exit.' }] },
+  { id: 'startups-community', stop: 'collect', parts: [{ text: 'Before and during all this I had a bunch of failed startups like ' }, { link: 'covid-leads' }, { text: ', Gig Empower, ' }, { link: 'acadri' }, { text: ', DoomStudy etc. I also hosted a lot of community events with Halifax as my playground and was part of Socratica as Collect.' }] },
+  { id: 'graduation', stop: 'graduation', parts: [{ text: 'I somehow graduated, and did not know what to do with my degree. I gained a lot from my university and most of it outside the piece of paper.' }] },
+  { id: 'floqer', stop: 'floqer', parts: [{ text: 'I joined ' }, { link: 'floqer' }, { text: ' as the Founding Engineer and for over a year have been working out of the hackerhouse in Toronto as their Head of Engineering.' }] },
   { id: 'cafes', stop: 'floqer', parts: [{ text: 'When I need out of the house I work from ' }, { tag: 'cafe' }, { text: ' or [cafe].' }] },
   { id: 'reading', stop: 'floqer', parts: [{ text: "I'm reading " }, { tag: 'book' }, { text: '.' }] },
   { id: 'listening', stop: 'floqer', parts: [{ text: 'I listen to a lot of ' }, { tag: 'artist' }, { text: '.' }] },

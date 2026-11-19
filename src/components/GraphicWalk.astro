@@ -7,7 +7,7 @@ import { STOPS, PATH_LENGTH, TRANSIT, paragraphsFor } from '../lib/phone/story-p
 import Walker from './phone/Walker.astro';
 import AboutText from './AboutText.astro';
 import AboutInline from './AboutInline.astro';
-import { ABOUT_GREETING, ABOUT_INTRO_PARTS } from '../data/about';
+import { ABOUT_GREETING, ABOUT_INTRO_PARAGRAPHS } from '../data/about';
 const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
 ---
 
@@ -15,7 +15,7 @@ const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
     <div class="journey" id="j">
       <header class="intro">
         <h1>{ABOUT_GREETING}</h1>
-        <p><AboutInline parts={ABOUT_INTRO_PARTS} /></p>
+        {ABOUT_INTRO_PARAGRAPHS.map(parts => <p><AboutInline parts={parts} /></p>)}
       </header>
       {STOPS.map((stop, i) => (
         <section class="story-block" data-stop={i} id={stop.id} aria-label={stop.name}>
@@ -72,7 +72,7 @@ const ground = [[-500, TRANSIT.start], [TRANSIT.end, PATH_LENGTH + 500]];
     color: var(--walk-ink);
   }
   body { -webkit-text-size-adjust: 100%; }
-  .graphic-view ::selection { color: #f4f0dc; background: #3a6253; }
+  .graphic-view ::selection { color: var(--selection-tx); background: var(--selection-bg); }
   #j {
     position: relative;
     z-index: 1;

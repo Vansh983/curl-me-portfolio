@@ -72,7 +72,7 @@ export const timeline: Milestone[] = [
     lane: 'Bean',
     title: 'Co-founded Bean',
     body: 'Co-founder and CTO with Pankrit Jindal. Started as "what is in your fridge", became a cooking assistant thousands of people used. Number four on Product Hunt, backed by Invest Nova Scotia, showcased at Web Summit Vancouver: 500 conversations, 120 signups and an investor MOU in a day. Two years, start to finish.',
-    stat: '10k users · #4 Product Hunt · $70k investment',
+    stat: '10k users · #4 Product Hunt · $100k pre seed',
   },
   {
     year: '2025',

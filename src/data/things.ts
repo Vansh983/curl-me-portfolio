@@ -101,7 +101,7 @@ export const THINGS: Record<string, Thing> = {
   },
   beanPhone: {
     title: 'Bean on the phone: your kitchen assistant.', lane: 'Bean · 2024 to 26', kind: 'hand',
-    lines: ['Pantry, recipes, the week, the shopping list.', '10k users. Number four on Product Hunt. $70k investment.'],
+    lines: ['Pantry, recipes, the week, the shopping list.', '10k users. Number four on Product Hunt. $100k pre seed.'],
   },
   productHunt: {
     title: 'Launch day on Product Hunt.', lane: 'Bean · 2024 to 26', kind: 'look',
