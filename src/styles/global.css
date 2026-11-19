@@ -21,8 +21,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 ::selection {
-  background: var(--acc);
-  color: var(--acc-tx);
+  background: var(--selection-bg);
+  color: var(--selection-tx);
 }
 
 /* layout */

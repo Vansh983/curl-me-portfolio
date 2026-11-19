@@ -3,7 +3,7 @@ import Journey from './Journey.astro';
 import AboutText from './AboutText.astro';
 import AboutInline from './AboutInline.astro';
 import Wordmark from './Wordmark.astro';
-import { ABOUT_GREETING, ABOUT_INTRO_PARTS, ABOUT_PARAGRAPHS } from '../data/about';
+import { ABOUT_GREETING, ABOUT_INTRO_PARAGRAPHS, ABOUT_PARAGRAPHS } from '../data/about';
 import { profile } from '../data/profile';
 ---
 
@@ -22,7 +22,7 @@ import { profile } from '../data/profile';
     <div slot="text" class="continuous-text">
       <header class="intro">
         <h1>{ABOUT_GREETING}</h1>
-        <p><AboutInline parts={ABOUT_INTRO_PARTS} prefix="stage" /></p>
+        {ABOUT_INTRO_PARAGRAPHS.map(parts => <p><AboutInline parts={parts} prefix="stage" /></p>)}
       </header>
       <AboutText paragraphs={ABOUT_PARAGRAPHS} prefix="stage" />
       <footer class="contact-links">
@@ -44,6 +44,7 @@ import { profile } from '../data/profile';
   :global(main.shell) { padding-bottom: 0; }
   .continuous-text { padding: calc(30svh - 18px) 0 calc(90svh - 18px); }
   .intro h1 { font-size: 32px; line-height: 1.1; letter-spacing: -0.035em; margin: 0 0 11px; }
+  .intro :global(p + p) { margin-top: 36px; }
   @media (min-width: 1025px) {
     .continuous-text { padding-top: calc(12svh - 18px); }
     .intro h1 {
@@ -55,6 +56,7 @@ import { profile } from '../data/profile';
       white-space: nowrap;
       margin-bottom: 12px;
     }
+    .intro :global(p + p) { margin-top: 3em; }
     .continuous-text :global(.about-paragraph) { padding: 1.5em 0; }
     .continuous-text :global(.about-tag) { padding: 0 .45em; border-radius: 1em; }
     .continuous-text :global(.about-row) { margin: .4em 0 .7em; }

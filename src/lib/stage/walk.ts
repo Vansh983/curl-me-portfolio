@@ -214,7 +214,7 @@ export interface Mark { z: number; value: number; label: string; city: City; pre
 export const MARKS: Mark[] = [
   { z: -6.0, value: 10, suffix: 'k', label: 'users', city: 'vancouver' },
   { z: 9.5, value: 4, prefix: '#', label: 'Product of the Day', sub: 'Product Hunt', city: 'toronto', still: true, device: 'laurel' },
-  { z: 31.5, value: 70, prefix: '$', suffix: 'k', label: 'investment', city: 'halifax', still: true, device: 'rules' }, // between the two marks of Halifax and abreast of neither: what it is made of he has not said, so it is laid at no one's foot
+  { z: 31.5, value: 100, prefix: '$', suffix: 'k', label: 'pre seed', city: 'halifax', still: true, device: 'rules' }, // Bean's pre seed, between the two marks of Halifax and abreast of neither
 ];
 /** What a mark reads at chapter `c`: nothing of it from further than 11.5 m, all of it from 8; its count done by 8.5. Before the walk's first straight step the way to it is counted along the turn. */
 export function markAt(c: number, m: Mark): { shown: number; text: string } {

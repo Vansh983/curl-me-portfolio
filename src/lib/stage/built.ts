@@ -730,7 +730,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   monitorOldBeanCode: monOld('screenBeanCode'),
   /** A phone flat on the table, the app on it: 0.075 by 0.155, the screen up. */
   phoneBean: () => [piece(new Sink().rbox(0, 0.004, 0, 0.075, 0.008, 0.155, 0.003, 2).out(), M('bezel'), { smooth: true }), piece(offsetGeo(new Sink().quad([-0.034, 0.0085, 0.072], [0.034, 0.0085, 0.072], [0.034, 0.0085, -0.072], [-0.034, 0.0085, -0.072], [[0, 0], [1, 0], [1, 1], [0, 1]]).out(), 0, 0, 0), { paint: 'screenBeanPhone' })],
-  /** The laptop carried through the tour, held in the lower left of the frame (stage-run.ts): the road dashboard on it. */
+  /** The laptop carried through the tour, held in the lower right of the frame (stage-run.ts): the road dashboard on it. */
   laptopTour: () => laptopFor('screenTour'),
   /** The design laptop and the code laptop on the hacker house table. */
   laptopBean: () => laptopFor('screenBeanApp'),

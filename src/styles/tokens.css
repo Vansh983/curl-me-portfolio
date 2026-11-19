@@ -29,6 +29,8 @@
   --tx: #111111;
   --acc: #b8e000;
   --acc-tx: #111111;
+  --selection-bg: #b8e000;
+  --selection-tx: #111111;
   --mut: color-mix(in srgb, var(--tx) 55%, var(--bg));
   --rule: color-mix(in srgb, var(--tx) 16%, transparent);
   --raise: color-mix(in srgb, var(--tx) 3.5%, var(--bg));

@@ -144,6 +144,29 @@ const path = Astro.url.pathname.replace(/\/$/, '');
 
     <script>
       const root = document.documentElement;
+      const selectionPalette = [
+        ['#b8e000', '#111111'],
+        ['#ff6b4a', '#111111'],
+        ['#7cc4ff', '#111111'],
+        ['#ff8fd0', '#111111'],
+        ['#ffd23f', '#111111'],
+        ['#5ee6b0', '#111111'],
+        ['#b39bff', '#111111'],
+      ] as const;
+      let selectionIndex = 0;
+      let selectionCollapsed = document.getSelection()?.isCollapsed ?? true;
+      document.addEventListener('selectionchange', () => {
+        const collapsed = document.getSelection()?.isCollapsed ?? true;
+        const started = selectionCollapsed && !collapsed;
+        selectionCollapsed = collapsed;
+        if (!started) return;
+        selectionIndex =
+          (selectionIndex + 1 + Math.floor(Math.random() * (selectionPalette.length - 1))) %
+          selectionPalette.length;
+        const [background, text] = selectionPalette[selectionIndex];
+        root.style.setProperty('--selection-bg', background);
+        root.style.setProperty('--selection-tx', text);
+      });
       const btn = document.getElementById('theme-toggle');
       btn?.addEventListener('click', () => {
         const dark =
