@@ -1,55 +1,44 @@
 ---
-import Base from '../../layouts/Base.astro';
+import BlogTmux from '../../layouts/BlogTmux.astro';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
-import { iso, long } from '../../lib/date';
+import { iso } from '../../lib/date';
+import { readingTime } from '../../lib/blog/reading-time';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', ({ data }) => !data.draft);
-  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+  const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  );
+  return posts.map((post, index) => ({
+    params: { slug: post.id },
+    props: { post, index, next: `/blog/${posts[(index + 1) % posts.length].id}` },
+  }));
 }
 
-type Props = { post: CollectionEntry<'blog'> };
-const { post } = Astro.props;
+type Props = { post: CollectionEntry<'blog'>; index: number; next: string };
+const { post, index, next } = Astro.props;
 const { Content } = await render(post);
 ---
 
-<Base
+<BlogTmux
   title={post.data.title}
   description={post.data.description}
+  slug={post.id}
+  {next}
   article={{
     published: iso(post.data.pubDate),
     updated: post.data.updatedDate ? iso(post.data.updatedDate) : undefined,
   }}
 >
-  <article>
-    <p class="label head">
-      <time datetime={iso(post.data.pubDate)}>{long(post.data.pubDate)}</time>
+  <article class="blog-pane blog-zoom">
+    <span class="blog-pane-label">{index}: {post.id}</span>
+    <div class="blog-pane-meta">
+      <time datetime={iso(post.data.pubDate)}>{iso(post.data.pubDate)}</time> · {readingTime(post.body)} min read
+      {post.data.updatedDate && <span> &middot; updated <time datetime={iso(post.data.updatedDate)}>{iso(post.data.updatedDate)}</time></span>}
       {post.data.tags.length > 0 && <span> &middot; {post.data.tags.join(', ')}</span>}
-    </p>
+    </div>
     <h1>{post.data.title}</h1>
-    <div class="prose">
+    <div class="blog-prose">
       <Content />
     </div>
-    <p class="small mut foot">
-      <a href={`/blog/${post.id}.md`}>Read the raw markdown</a> or
-      <code>curl vanshsood.com/blog/{post.id}</code>
-    </p>
   </article>
-</Base>
-
-<style>
-  article {
-    padding-top: var(--block);
-  }
-  .head {
-    margin-bottom: 10px;
-  }
-  h1 {
-    margin-bottom: 26px;
-  }
-  .foot {
-    margin-top: 40px;
-    border-top: 1px solid var(--rule);
-    padding-top: 16px;
-  }
-</style>
+</BlogTmux>

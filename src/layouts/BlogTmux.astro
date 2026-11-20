@@ -1,0 +1,70 @@
+---
+import Base from './Base.astro';
+import '../styles/blog-tmux.css';
+
+type Props = {
+  title: string;
+  description: string;
+  slug: string;
+  article?: { published: string; updated?: string };
+  next?: string;
+};
+
+const { title, description, slug, article, next } = Astro.props;
+const bindings = article
+  ? [
+      ['C-b ?', 'List key bindings'],
+      ['Up / k', 'Scroll up'],
+      ['Down / j', 'Scroll down'],
+      ['C-b o', 'Select the next post'],
+      ['C-b z', 'Unzoom the active pane'],
+      ['q / Escape', 'Exit the mode'],
+    ]
+  : [
+      ['C-b ?', 'List key bindings'],
+      ['Up / k', 'Select the pane above the active pane'],
+      ['Down / j', 'Select the pane below the active pane'],
+      ['Left / h', 'Select the pane to the left of the active pane'],
+      ['Right / l', 'Select the pane to the right of the active pane'],
+      ['C-b o', 'Select the next pane'],
+      ['C-b z', 'Zoom the active pane'],
+      ['Enter', 'Zoom the active pane'],
+      ['q', 'Exit the mode'],
+    ];
+---
+
+<Base {title} {description} {article} topbar={false} footer={false} viewportFitCover>
+  <div class="blog-tmux" data-mode={article ? 'post' : 'grid'} data-next={next}>
+    <div class="blog-window">
+      <div class="blog-view"><slot /></div>
+      <div class="blog-keys" id="blog-keys" hidden tabindex="-1" aria-label="Key bindings">
+        {bindings.map(([key, action]) => <div><span class="blog-key">{key.padEnd(11)}</span>{action}</div>)}
+      </div>
+    </div>
+    <nav class="blog-hints" aria-label="Blog navigation">
+      {article ? (
+        <>
+          <a href="/blog"><span class="blog-key">q</span> back</a>
+          {next && next !== `/blog/${slug}` && <a href={next}><span class="blog-key">o</span> next</a>}
+        </>
+      ) : (
+        <>
+          <button type="button" class="blog-move"><span class="blog-key">arrows</span> move</button>
+          <a class="blog-open" href={`/blog/${slug}`}><span class="blog-key">enter</span> open</a>
+        </>
+      )}
+      <button type="button" class="blog-toggle-keys" aria-controls="blog-keys" aria-expanded="false"><span class="blog-key">?</span> keys</button>
+    </nav>
+    <nav class="blog-status" aria-label="Blog windows">
+      <a href="/blog">[blog]</a>
+      <a class="blog-posts-window" href="/blog">0:posts*{article ? 'Z' : ''}</a>
+      <a href="/">1:home</a>
+      <span class="blog-status-space"></span>
+      <span class="blog-status-right"><span class="blog-active-slug">"{slug}"</span>{' '}<time class="blog-clock"></time></span>
+    </nav>
+  </div>
+</Base>
+
+<script>
+  import '../scripts/blog-tmux';
+</script>

@@ -29,6 +29,7 @@
   --tx: #111111;
   --acc: #b8e000;
   --acc-tx: #111111;
+  --hi: #4a5c00;
   --selection-bg: #b8e000;
   --selection-tx: #111111;
   --mut: color-mix(in srgb, var(--tx) 55%, var(--bg));
@@ -62,6 +63,7 @@
     --tx: #ededed;
     --acc: #b8e000;
     --acc-tx: #111111;
+    --hi: #b8e000;
   }
 }
 :root[data-theme='dark'] {
@@ -69,4 +71,5 @@
   --tx: #ededed;
   --acc: #b8e000;
   --acc-tx: #111111;
+  --hi: #b8e000;
 }

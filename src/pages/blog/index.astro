@@ -1,41 +1,56 @@
 ---
-import Base from '../../layouts/Base.astro';
+import BlogTmux from '../../layouts/BlogTmux.astro';
 import { getCollection } from 'astro:content';
-import { short } from '../../lib/date';
+import { iso } from '../../lib/date';
+import { readingTime } from '../../lib/blog/reading-time';
+import { tile, type Placement } from '../../lib/blog/tile';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+const minutes = posts.map(post => readingTime(post.body));
+const desktop = tile(minutes, 4);
+const tablet = tile(minutes, 2);
+const mobile = tile(minutes, 1);
+const area = ({ row, column, rowSpan, columnSpan }: Placement) =>
+  `${row} / ${column} / span ${rowSpan} / span ${columnSpan}`;
 ---
 
-<Base title="Writing" description="Notes on building software, companies and the occasional terminal trick.">
-  <h1 class="block">Writing</h1>
-  <p class="mut small">
-    Every post is also available as raw markdown: add <code>.md</code> to any URL.
-    <a href="/rss.xml">RSS</a>.
-  </p>
-
-  <div class="list">
+<BlogTmux title="Writing" description="Notes on building software, companies and the occasional terminal trick." slug={posts[0]?.id ?? ''}>
+  <h1 class="sr-only">Writing</h1>
+  <div class="blog-grid" style={`--rows-4: ${desktop.rows}; --rows-2: ${tablet.rows}; --rows-1: ${mobile.rows}`}>
     {
-      posts.map((p) => (
-        <div class="row">
-          <span class="yr">{short(p.data.pubDate)}</span>
-          <span>
-            <a href={`/blog/${p.id}`}>{p.data.title}</a>
-            <span class="small mut d">{p.data.description}</span>
-          </span>
-          <span class="meta">{p.data.tags.join(', ')}</span>
-        </div>
+      posts.map((post, index) => (
+        <a
+          href={`/blog/${post.id}`}
+          class:list={['blog-pane', {
+            'blog-pane-newest': index === 0,
+            'blog-pane-wide': desktop.panes[index].columnSpan > 1,
+            'blog-pane-tall': desktop.panes[index].rowSpan > 1,
+          }]}
+          data-slug={post.id}
+          aria-current={index === 0 ? 'true' : 'false'}
+          style={`--area-4: ${area(desktop.panes[index])}; --area-2: ${area(tablet.panes[index])}; --area-1: ${area(mobile.panes[index])}`}
+        >
+          <span class="blog-pane-label">{index}: {post.id}</span>
+          <span class="blog-pane-title">{post.data.title}</span>
+          <span class="blog-pane-meta"><time datetime={iso(post.data.pubDate)}>{iso(post.data.pubDate)}</time> · {minutes[index]} min</span>
+        </a>
       ))
     }
   </div>
-</Base>
+</BlogTmux>
 
 <style>
-  .list {
-    margin-top: 24px;
-  }
-  .d {
-    display: block;
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
   }
 </style>

@@ -1,0 +1,291 @@
+body:has(.blog-tmux) {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.shell:has(> .blog-tmux) {
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.blog-tmux {
+  /* The mock's stronger rules and raised panes, confined to the blog. */
+  --mut: color-mix(in srgb, var(--tx) 56%, var(--bg));
+  --rule: color-mix(in srgb, var(--tx) 24%, var(--bg));
+  --raise: color-mix(in srgb, var(--tx) 4.5%, var(--bg));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  height: 100%;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.blog-tmux [hidden] {
+  display: none;
+}
+
+.blog-tmux :focus-visible {
+  outline: 2px solid var(--tx);
+  outline-offset: -2px;
+}
+.blog-tmux .blog-keys:focus-visible { outline: none; }
+
+.blog-window {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px));
+}
+
+.blog-view {
+  display: grid;
+  min-height: 100%;
+}
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows-4), minmax(118px, 1fr));
+  min-height: 100%;
+  padding: 0 1px 1px 0;
+}
+
+.blog-pane {
+  position: relative;
+  display: grid;
+  align-content: end;
+  gap: 6px;
+  min-width: 0;
+  margin: 0 -1px -1px 0;
+  padding: 22px 14px 12px;
+  border: 1px solid var(--rule);
+}
+
+.blog-grid > .blog-pane {
+  grid-area: var(--area-4);
+  color: var(--tx);
+  background: none;
+  transition: none;
+}
+
+.blog-pane-label {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  z-index: 2;
+  max-width: calc(100% - 20px);
+  padding: 0 6px;
+  background: var(--bg);
+  color: var(--mut);
+  font-size: 11.5px;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blog-pane-title {
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+.blog-pane-wide .blog-pane-title {
+  font-size: 22px;
+  line-height: 1.14;
+  letter-spacing: -.025em;
+}
+
+.blog-pane-tall .blog-pane-title {
+  font-size: clamp(22px, 2.4vw, 32px);
+  line-height: 1.08;
+  letter-spacing: -.03em;
+}
+
+.blog-pane-newest .blog-pane-title {
+  font-size: clamp(28px, 3.6vw, 48px);
+  line-height: 1.03;
+  letter-spacing: -.04em;
+}
+
+.blog-pane-meta {
+  color: var(--mut);
+  font-size: 12px;
+}
+
+.blog-pane[aria-current='true'] {
+  z-index: 1;
+  border-color: var(--hi);
+  background: var(--raise);
+}
+
+.blog-pane[aria-current='true'] .blog-pane-label,
+.blog-zoom .blog-pane-label {
+  color: var(--hi);
+}
+
+.blog-zoom {
+  display: block;
+  align-content: start;
+  min-height: 100%;
+  margin: 0;
+  padding: 30px clamp(14px, 4vw, 48px) 40px;
+  border-color: var(--hi);
+}
+
+.blog-zoom h1 {
+  margin: 14px 0 26px;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(30px, 5vw, 60px);
+  letter-spacing: -.04em;
+  line-height: 1.03;
+  text-wrap: balance;
+}
+
+.blog-prose {
+  max-width: 680px;
+  font-family: var(--f-body);
+  font-size: 17.5px;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+}
+
+.blog-prose p,
+.blog-prose ul,
+.blog-prose ol,
+.blog-prose blockquote {
+  max-width: none;
+  margin: 0 0 1.1em;
+}
+
+.blog-prose h2,
+.blog-prose h3,
+.blog-prose h4 {
+  margin: 1.2em 0 .6em;
+}
+
+.blog-prose strong {
+  font-weight: 600;
+}
+
+.blog-prose code {
+  font-family: var(--f-mono);
+  font-size: .86em;
+  background: var(--raise);
+  border: 0;
+  padding: 1px 5px;
+}
+
+.blog-prose pre {
+  margin: 0 0 1.2em;
+  padding: 14px 16px;
+  overflow-x: auto;
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  font-family: var(--f-mono);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.blog-prose pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.blog-prose img,
+.blog-prose video {
+  max-width: 100%;
+  height: auto;
+}
+
+.blog-keys {
+  white-space: pre-wrap;
+  font-size: 14px;
+}
+
+.blog-key {
+  color: var(--hi);
+}
+
+.blog-hints {
+  display: flex;
+  gap: 2ch;
+  align-items: baseline;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  border-top: 1px solid var(--rule);
+  background: var(--bg);
+  color: var(--mut);
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+}
+
+.blog-hints a,
+.blog-hints button {
+  flex-shrink: 0;
+  border: 0;
+  padding: 4px 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.blog-hints a:hover,
+.blog-hints button:hover {
+  text-decoration: underline;
+}
+
+.blog-status {
+  display: flex;
+  gap: 1ch;
+  align-items: baseline;
+  white-space: nowrap;
+  background: var(--acc);
+  color: var(--acc-tx);
+  padding: 2px max(16px, env(safe-area-inset-right, 0px)) calc(2px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+
+.blog-status a {
+  flex-shrink: 0;
+  border: 0;
+}
+
+.blog-status-space {
+  flex: 1;
+  min-width: 0;
+}
+
+.blog-status-right {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 900px) {
+  .blog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(var(--rows-2), minmax(130px, auto));
+  }
+  .blog-grid > .blog-pane {
+    grid-area: var(--area-2);
+  }
+}
+
+@media (max-width: 520px) {
+  .blog-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(var(--rows-1), minmax(130px, auto));
+  }
+  .blog-grid > .blog-pane {
+    grid-area: var(--area-1);
+  }
+}
