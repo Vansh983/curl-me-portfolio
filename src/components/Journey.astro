@@ -3,12 +3,17 @@
 // Chapters are the timeline entries; the stage's stations sit on the first chapters
 // and the camera holds after the last station. Spec: docs/rebuild/13-journey-real-spec.md.
 import { timeline } from '../data/timeline';
+import { profile } from '../data/profile';
 import { deliveryUrl } from '../lib/stage/delivery';
 
 type Props = { textOnTop?: boolean };
 const { textOnTop = false } = Astro.props;
 const chapters = timeline;
 const n = chapters.length;
+const socialLinks = ['GitHub', 'LinkedIn', 'X'].flatMap(label => {
+  const link = profile.links.find(link => link.label === label);
+  return link ? [link] : [];
+});
 ---
 
 <section class="journey" data-n={n} data-text-on-top={textOnTop || undefined}>
@@ -37,7 +42,28 @@ const n = chapters.length;
       <span class="mode-thumb" aria-hidden="true"></span>
       {[
         ['scroll', 'Scroll', 'Scroll the page to move through the rooms.'],
+      <symbol id="i-blog" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z" /><path d="M13.5 6.5l4 4" /></symbol>
+      <symbol id="i-github" viewBox="0 0 16 16"><path class="fl" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" /></symbol>
+      <symbol id="i-linkedin" viewBox="0 0 24 24"><path class="fl" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path class="fl" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" /></symbol>
+      <symbol id="i-cafe" viewBox="0 0 24 24"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z" /><path d="M17 10.5h1.5a2.5 2.5 0 0 1 0 5H17" /><path d="M8.5 3.5c-.6.8.6 1.7 0 2.5M12.5 3.5c-.6.8.6 1.7 0 2.5" /></symbol>
         ['walk', 'Walk', 'Walk the rooms yourself with W A S D.'],
+    <div class="links" role="group" aria-label="Links">
+      <a class="ctl" href="/blog" aria-label="Writing" aria-describedby="tip-writing">
+        <svg aria-hidden="true"><use href="#i-blog" /></svg>
+        <span class="mode-tip" id="tip-writing" role="tooltip">Writing</span>
+      </a>
+      {socialLinks.map(link => (
+        <a class="ctl" href={link.href} target="_blank" rel="noopener noreferrer" aria-label={`${link.label} (opens in a new tab)`} aria-describedby={`tip-${link.label.toLowerCase()}`}>
+          <svg aria-hidden="true"><use href={`#i-${link.label.toLowerCase()}`} /></svg>
+          <span class="mode-tip" id={`tip-${link.label.toLowerCase()}`} role="tooltip">{link.label}</span>
+        </a>
+      ))}
+      <button type="button" class="ctl soon" aria-label="Cafes, coming soon" aria-describedby="tip-cafes">
+        <svg aria-hidden="true"><use href="#i-cafe" /></svg>
+        <span class="mode-tip" id="tip-cafes" role="tooltip"><b>Cafes</b> · coming soon</span>
+      </button>
+    </div>
         ['graphic', 'Graphic', 'The flat drawn version of the story.'],
       ].map(([mode, label, tip]) => (
         <button type="button" data-mode={mode === 'graphic' ? undefined : mode} data-view={mode} aria-label={label} aria-pressed={mode === 'scroll' ? 'true' : 'false'} aria-describedby={`tip-${mode}`}>
@@ -188,7 +214,7 @@ const n = chapters.length;
       font-family: var(--f-body);
     }
     .mode-symbols { position: absolute; }
-    .mode-segments, .text-toggle {
+    .links, .mode-segments, .text-toggle {
       border-radius: 999px;
       background: rgba(20, 21, 26, .72);
       -webkit-backdrop-filter: blur(14px);
@@ -208,7 +234,7 @@ const n = chapters.length;
     }
     .mode-segments[data-on='1'] .mode-thumb { transform: translateX(96px); }
     .mode-segments[data-on='2'] .mode-thumb { transform: translateX(192px); }
-    .mode button {
+    .mode button, .mode a {
       position: relative;
       display: flex;
       align-items: center;
@@ -227,8 +253,8 @@ const n = chapters.length;
     .mode .text-toggle[aria-pressed='true'] { background: #f3f3f1; }
     .mode .text-toggle:disabled { opacity: .45; cursor: default; }
     .mode .text-toggle[hidden] { display: none; }
-    .mode button:focus-visible { outline: 2px solid #f3f3f1; outline-offset: 3px; box-shadow: 0 0 0 4px #111; }
-    .mode button svg {
+    .mode button:focus-visible, .mode a:focus-visible { outline: 2px solid #f3f3f1; outline-offset: 3px; box-shadow: 0 0 0 4px #111; }
+    .mode button svg, .mode a svg {
       width: 18px;
       height: 18px;
       fill: none;
@@ -238,11 +264,17 @@ const n = chapters.length;
       stroke-linejoin: round;
       transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
     }
-    .mode-segments button svg { width: 15px; height: 15px; }
-    .mode button:not(:disabled):hover svg { transform: scale(1.18) translateY(-1px); }
+    .fl { fill: currentColor; stroke: none; }
+    .links .ctl svg, .mode-segments button svg { width: 15px; height: 15px; }
+    .mode button:not(:disabled):hover svg, .mode a:hover svg { transform: scale(1.18) translateY(-1px); }
     .mode-tip {
       position: absolute;
       top: 46px;
+    .links { display: flex; padding: 4px; gap: 2px; }
+    .links .ctl { width: 34px; height: 34px; border: 0; border-radius: 999px; background: none; }
+    .links .ctl:hover { color: #fff; background: rgba(255, 255, 255, .08); }
+    .links .ctl.soon { color: #7d818b; }
+    .links .ctl.soon::after { content: ''; position: absolute; top: 6px; right: 6px; width: 5px; height: 5px; border-radius: 50%; background: #e8b04b; }
       right: 0;
       padding: 7px 10px;
       border-radius: 8px;
@@ -262,8 +294,8 @@ const n = chapters.length;
     .mode button:focus-visible .mode-tip { opacity: 1; transform: translateY(0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .mode-thumb, .mode button, .mode button svg, .mode-tip { transition: none; }
-    .mode button:not(:disabled):hover svg, .mode-tip { transform: none; }
+    .mode-thumb, .mode button, .mode a, .mode button svg, .mode a svg, .mode-tip { transition: none; }
+    .mode button:not(:disabled):hover svg, .mode a:hover svg, .mode-tip { transform: none; }
   }
   @media (min-width: 1025px) {
     .journey[data-mode='walk'] .keys {
@@ -305,6 +337,8 @@ const n = chapters.length;
     .keycap[data-roam-key='KeyW'] { grid-column: 2; grid-row: 1; }
     .keycap[data-roam-key='KeyA'] { grid-column: 1; grid-row: 2; }
     .keycap[data-roam-key='KeyS'] { grid-column: 2; grid-row: 2; }
+    .links .mode-tip b { font-weight: 500; color: #111; }
+    .mode a:hover .mode-tip, .mode a:focus-visible .mode-tip,
     .keycap[data-roam-key='KeyD'] { grid-column: 3; grid-row: 2; }
     .key-face {
       position: absolute;
