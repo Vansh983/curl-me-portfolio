@@ -10,10 +10,16 @@ export const config = {
 const TERMINAL = /^(curl|wget|httpie|libcurl|lwp-request|python-requests)/i;
 
 export default function middleware(request: Request): Response {
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/blog/') && url.pathname.endsWith('.md')) {
+    return next({
+      headers: { Link: `<https://vanshsood.com${url.pathname.slice(0, -3)}>; rel="canonical"` },
+    });
+  }
+
   const ua = request.headers.get('user-agent') ?? '';
   if (!TERMINAL.test(ua)) return next();
 
-  const url = new URL(request.url);
   if (url.pathname === '/') return rewrite(new URL('/index.txt', url));
   return rewrite(new URL(`${url.pathname}.md`, url));
 }

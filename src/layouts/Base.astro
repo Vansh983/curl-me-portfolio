@@ -41,7 +41,7 @@ const jsonld = article
       datePublished: article.published,
       dateModified: article.updated ?? article.published,
       mainEntityOfPage: canonical,
-      author: { '@id': `${site.url}/#person` },
+      author: person,
       publisher: { '@id': `${site.url}/#person` },
     }
   : {
