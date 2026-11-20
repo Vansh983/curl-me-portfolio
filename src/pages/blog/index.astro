@@ -6,7 +6,7 @@ import { readingTime } from '../../lib/blog/reading-time';
 import { tile, type Placement } from '../../lib/blog/tile';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || a.id.localeCompare(b.id)
 );
 const minutes = posts.map(post => readingTime(post.body));
 const desktop = tile(minutes, 4);

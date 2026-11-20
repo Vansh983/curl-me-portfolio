@@ -1,11 +1,4 @@
-body:has(.blog-tmux) {
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-}
-
 .shell:has(> .blog-tmux) {
-  height: 100%;
   max-width: none;
   margin: 0;
   padding: 0;
@@ -18,8 +11,9 @@ body:has(.blog-tmux) {
   --raise: color-mix(in srgb, var(--tx) 4.5%, var(--bg));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto auto;
-  height: 100%;
+  grid-template-rows: 1fr auto;
+  min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--f-mono);
   font-size: 13px;
   line-height: 1.5;
@@ -37,8 +31,8 @@ body:has(.blog-tmux) {
 .blog-tmux .blog-keys:focus-visible { outline: none; }
 
 .blog-window {
+  display: grid;
   min-height: 0;
-  overflow-y: auto;
   padding: 14px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px));
 }
 
@@ -149,6 +143,33 @@ body:has(.blog-tmux) {
   text-wrap: balance;
 }
 
+.blog-back {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.blog-post-nav {
+  display: flex;
+  align-items: baseline;
+  gap: 2ch;
+  max-width: 680px;
+  margin-top: 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.blog-post-nav a:first-child {
+  flex-shrink: 0;
+}
+
+.blog-post-nav a + a {
+  min-width: 0;
+  margin-left: auto;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
 .blog-prose {
   max-width: 680px;
   font-family: var(--f-body);
@@ -207,12 +228,57 @@ body:has(.blog-tmux) {
 }
 
 .blog-keys {
-  white-space: pre-wrap;
   font-size: 14px;
+}
+
+.blog-key-list dl {
+  margin: 0;
+}
+
+.blog-key-list dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 22ch) minmax(0, 1fr);
+  gap: 2ch;
+  margin-bottom: 6px;
+}
+
+.blog-key-list dd {
+  margin: 0;
+}
+
+.blog-key-list p {
+  margin: 18px 0;
+}
+
+.blog-help-links {
+  display: flex;
+  align-items: baseline;
+  gap: 2ch;
+}
+
+.blog-help-links button {
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.blog-help-links button:hover {
+  background: var(--raise);
+  color: var(--hi);
 }
 
 .blog-key {
   color: var(--hi);
+}
+
+.blog-bars {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
 }
 
 .blog-hints {
@@ -268,6 +334,25 @@ body:has(.blog-tmux) {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .blog-hints .blog-key,
+  .blog-hints .blog-move,
+  .blog-key-list {
+    display: none;
+  }
+
+  .blog-hints a,
+  .blog-hints button,
+  .blog-help-links a,
+  .blog-help-links button,
+  .blog-back,
+  .blog-post-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 900px) {

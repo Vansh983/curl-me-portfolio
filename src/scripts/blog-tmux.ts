@@ -1,7 +1,6 @@
 const tmux = document.querySelector<HTMLElement>('.blog-tmux');
 
 if (tmux) {
-  const win = tmux.querySelector<HTMLElement>('.blog-window')!;
   const view = tmux.querySelector<HTMLElement>('.blog-view')!;
   const keys = tmux.querySelector<HTMLElement>('.blog-keys')!;
   const status = tmux.querySelector<HTMLElement>('.blog-active-slug')!;
@@ -23,7 +22,7 @@ if (tmux) {
     clock.textContent = `${pad(date.getHours())}:${pad(date.getMinutes())} ${pad(date.getDate())}-${months[date.getMonth()]}-${String(date.getFullYear()).slice(-2)}`;
   }
 
-  function setActive(index: number, follow = false) {
+  function setActive(index: number, follow = false, fromKeyboard = false) {
     const pane = panes[index];
     if (!pane) return;
     panes[active]?.setAttribute('aria-current', 'false');
@@ -31,6 +30,7 @@ if (tmux) {
     pane.setAttribute('aria-current', 'true');
     status.textContent = `"${pane.dataset.slug}"`;
     if (openHint) openHint.href = pane.href;
+    if (fromKeyboard) pane.focus({ preventScroll: true });
     if (follow) pane.scrollIntoView({ block: 'nearest' });
   }
 
@@ -49,13 +49,13 @@ if (tmux) {
       const candidate = distance * 1000 - overlap;
       if (candidate < score) { score = candidate; best = index; }
     });
-    if (best >= 0) setActive(best, true);
+    if (best >= 0) setActive(best, true, true);
   }
 
   function toggleKeys() {
     const opening = keys.hidden;
     if (opening) {
-      savedScroll = win.scrollTop;
+      savedScroll = window.scrollY;
       savedFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     }
     keys.hidden = !opening;
@@ -64,7 +64,7 @@ if (tmux) {
     postsWindow.textContent = `0:posts*${isPost && !opening ? 'Z' : ''}`;
     if (opening) keys.focus({ preventScroll: true });
     else savedFocus?.focus({ preventScroll: true });
-    win.scrollTop = opening ? 0 : savedScroll;
+    window.scrollTo({ top: opening ? 0 : savedScroll, behavior: 'instant' });
   }
 
   panes.forEach((pane, index) => {
@@ -73,13 +73,14 @@ if (tmux) {
   });
 
   keysHint.addEventListener('click', toggleKeys);
+  tmux.querySelector('.blog-close-keys')?.addEventListener('click', toggleKeys);
   tmux.querySelector('.blog-move')?.addEventListener('click', () => {
     if (!keys.hidden) toggleKeys();
     if (panes.length) setActive((active + 1) % panes.length, true);
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.metaKey || event.altKey || event.defaultPrevented) return;
+    if (event.metaKey || event.altKey || event.defaultPrevented || document.querySelector('dialog[open]')) return;
     const target = event.target;
     if (target instanceof HTMLElement && (target.isContentEditable || target.closest('input, textarea, select, [role="textbox"]'))) return;
     if (event.ctrlKey) {
@@ -89,19 +90,19 @@ if (tmux) {
     const key = event.key;
     if (key === '?') { event.preventDefault(); toggleKeys(); return; }
     if (!keys.hidden) {
-      if (['q', 'Escape', 'Enter'].includes(key)) { event.preventDefault(); toggleKeys(); }
+      if (['q', 'Escape'].includes(key)) { event.preventDefault(); toggleKeys(); }
       return;
     }
     if (key === 'o') {
       event.preventDefault();
-      if (isPost && tmux.dataset.next) location.assign(tmux.dataset.next);
-      else if (panes.length) setActive((active + 1) % panes.length, true);
+      if (isPost && tmux.dataset.next && new URL(tmux.dataset.next, location.href).pathname !== location.pathname) location.assign(tmux.dataset.next);
+      else if (panes.length) setActive((active + 1) % panes.length, true, true);
       return;
     }
     if (isPost) {
       if (['z', 'q', 'Escape'].includes(key)) { event.preventDefault(); location.assign('/blog'); }
-      else if (key === 'j' || key === 'ArrowDown') { event.preventDefault(); win.scrollTop += 80; }
-      else if (key === 'k' || key === 'ArrowUp') { event.preventDefault(); win.scrollTop -= 80; }
+      else if (key === 'j') { event.preventDefault(); window.scrollBy({ top: 80, behavior: 'instant' }); }
+      else if (key === 'k') { event.preventDefault(); window.scrollBy({ top: -80, behavior: 'instant' }); }
       return;
     }
     if (key === 'ArrowLeft' || key === 'h') { event.preventDefault(); move(-1, 0); }
@@ -109,8 +110,8 @@ if (tmux) {
     else if (key === 'ArrowUp' || key === 'k') { event.preventDefault(); move(0, -1); }
     else if (key === 'ArrowDown' || key === 'j') { event.preventDefault(); move(0, 1); }
     else if (key === 'z' || key === 'Enter') {
-      // Keep native Enter activation on the status links and other controls.
-      if (key === 'Enter' && target instanceof Element && target.closest('a:not(.blog-pane), button')) return;
+      // Let the browser activate the focused control, including modified Enter.
+      if (key === 'Enter' && (event.shiftKey || (target instanceof Element && target.closest('a, button')))) return;
       if (panes[active]) { event.preventDefault(); location.assign(panes[active].href); }
     }
   });

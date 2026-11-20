@@ -6,16 +6,21 @@ import { readingTime } from '../../lib/blog/reading-time';
 
 export async function getStaticPaths() {
   const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || a.id.localeCompare(b.id)
   );
   return posts.map((post, index) => ({
     params: { slug: post.id },
-    props: { post, index, next: `/blog/${posts[(index + 1) % posts.length].id}` },
+    props: {
+      post,
+      index,
+      next: `/blog/${posts[(index + 1) % posts.length].id}`,
+      nextTitle: posts[(index + 1) % posts.length].data.title,
+    },
   }));
 }
 
-type Props = { post: CollectionEntry<'blog'>; index: number; next: string };
-const { post, index, next } = Astro.props;
+type Props = { post: CollectionEntry<'blog'>; index: number; next: string; nextTitle: string };
+const { post, index, next, nextTitle } = Astro.props;
 const { Content } = await render(post);
 ---
 
@@ -31,6 +36,7 @@ const { Content } = await render(post);
 >
   <article class="blog-pane blog-zoom">
     <span class="blog-pane-label">{index}: {post.id}</span>
+    <a class="blog-back" href="/blog">← all posts</a>
     <div class="blog-pane-meta">
       <time datetime={iso(post.data.pubDate)}>{iso(post.data.pubDate)}</time> · {readingTime(post.body)} min read
       {post.data.updatedDate && <span> &middot; updated <time datetime={iso(post.data.updatedDate)}>{iso(post.data.updatedDate)}</time></span>}
@@ -40,5 +46,9 @@ const { Content } = await render(post);
     <div class="blog-prose">
       <Content />
     </div>
+    <nav class="blog-post-nav" aria-label="Post navigation">
+      <a href="/blog">← all posts</a>
+      {next !== `/blog/${post.id}` && <a href={next}>next: {nextTitle} →</a>}
+    </nav>
   </article>
 </BlogTmux>
