@@ -6,14 +6,14 @@ import { pathDistance, follow } from '../src/lib/phone/pacing.ts';
 import { activityAt, flightsFor, hopsFor } from '../src/lib/phone/activities.ts';
 
 test('phone paragraphs follow the shared about text by stop', () => {
-  assert.deepEqual(STOPS.map(stop => paragraphsFor(stop).length), [1, 0, 1, 2, 1, 1, 2, 1, 2]);
+  assert.deepEqual(STOPS.map(stop => paragraphsFor(stop).length), [0, 1, 0, 1, 2, 1, 1, 2, 1, 2]);
   const paragraphs = STOPS.flatMap(paragraphsFor).map(paragraph => paragraph.id);
   assert.equal(new Set(paragraphs).size, paragraphs.length);
 });
 
 test('related work stays together, with graduation immediately before Floqer', () => {
-  assert.equal(STOPS.length, 9);
-  assert.deepEqual(STOPS.map(stop => stop.id), ['delhi', 'google', 'webcube', 'university', 'shiftkey', 'bean', 'collect', 'graduation', 'floqer']);
+  assert.equal(STOPS.length, 10);
+  assert.deepEqual(STOPS.map(stop => stop.id), ['toronto-cafe', 'delhi', 'google', 'webcube', 'university', 'shiftkey', 'bean', 'collect', 'graduation', 'floqer']);
   assert.deepEqual(STOPS.slice(-2).map(stop => stop.id), ['graduation', 'floqer']);
   assert.ok(!STOPS.some(stop => stop.id === 'disrupt'));
   assert.equal(STOPS.at(-1)!.id, 'floqer');

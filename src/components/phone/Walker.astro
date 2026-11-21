@@ -28,7 +28,14 @@ const frames = [legs.idle, legs.mid, legs.step, legs.step.map(row => [...row].re
     </g>
     {frames.map((rows, i) => <g class={`legs legs-${i}`}>{pixels(rows, 15).map(pixel => <rect {...pixel} width="1" height="1" />)}</g>)}
     <g class="arm arm-left">
-      <path d="M2 8h2v4H2z" fill="#3d4842" /><path d="M2 12h2v2H2z" fill="#c9996d" />
+      <path d="M2 8h2v4H2z" fill="#3d4842" />
+      <!-- The closed laptop shares the arm's jump and the sprite's direction. -->
+      <g class="held held-carry-laptop">
+        <path d="M0 12h6v8H0z" fill="#9eafa5" stroke="#344649" stroke-width=".4" />
+        <path d="M5.2 12.3v7.4M.6 19.2h4.6" fill="none" stroke="#dce1ce" stroke-width=".3" />
+        <path d="M2 15.5h1.5V17H2z" fill="#e8e8d6" />
+      </g>
+      <path d="M2 12h2v2H2z" fill="#c9996d" />
     </g>
     <g class="arm arm-right">
       <path d="M10 8h2v4h-2z" fill="#3d4842" /><path d="M10 12h2v2h-2z" fill="#c9996d" />
@@ -71,6 +78,7 @@ const frames = [legs.idle, legs.mid, legs.step, legs.step.map(row => [...row].re
 
 <style is:global>
   .me .held { display: none; }
+  .me[data-activity="walk"] .held-carry-laptop,
   [data-activity="sell"] .held-laptop,
   [data-activity="teach"] .held-pointer,
   [data-activity="present"] .held-mic,

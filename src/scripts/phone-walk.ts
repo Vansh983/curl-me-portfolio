@@ -8,6 +8,7 @@ const { stops, length }: { stops: Omit<PathStop, 'paragraphs'>[]; length: number
   JSON.parse(document.getElementById('path-data')!.textContent!);
 const root = document.documentElement;
 const view = document.querySelector<HTMLElement>('[data-graphic-view]')!;
+const text = document.getElementById('j')!;
 const pic = document.getElementById('pic') as unknown as SVGSVGElement;
 const landscape = document.getElementById('landscape')!;
 const plane = document.getElementById('flight')!;
@@ -24,8 +25,10 @@ let height = innerHeight;
 let scale = 1;
 let viewWidth = 390;
 let anchors: number[] = [];
-const distances = [...stops.map(stop => stop.x + 100), length - 60];
-let current = 100;
+// The opening's 20-unit landmark inset plus local x=112 leaves the walker
+// beside the Floqer door, clear of its step. Later stops keep their anchors.
+const distances = [...stops.map(stop => stop.x + (stop.id === 'toronto-cafe' ? 132 : 100)), length - 60];
+let current = distances[0];
 let frame = 0;
 let lastTime = 0;
 let active = -1;
@@ -41,9 +44,12 @@ function measure(viewportChanged = true) {
   scale = pic.clientHeight / 260;
   viewWidth = pic.clientWidth / scale;
   pic.setAttribute('viewBox', `0 0 ${viewWidth} 260`);
-  anchors = blocks.map((block, i) => i === 0 ? 0 : Math.max(1, block.getBoundingClientRect().top + scrollY - height * 0.2));
-  const lastReadable = Math.min(footer.getBoundingClientRect().top + scrollY - height * 0.2,
-    document.documentElement.scrollHeight - height);
+  // Measure the text's normal position even when its last screen is pinned.
+  const textBounds = text.getBoundingClientRect();
+  const origin = view.getBoundingClientRect().top + scrollY;
+  const documentTop = (element: HTMLElement) => element.getBoundingClientRect().top - textBounds.top + origin;
+  anchors = blocks.map((block, i) => i === 0 ? 0 : Math.max(1, documentTop(block) - height * 0.2));
+  const lastReadable = documentTop(footer) - height * 0.2;
   anchors.push(Math.max(anchors[anchors.length - 1] + 1, lastReadable));
   // A stop with no text still occupies its share of the path between readable stops.
   for (let i = 1; i < blocks.length; i++) {
@@ -54,6 +60,9 @@ function measure(viewportChanged = true) {
     const fraction = (distances[i] - distances[before]) / (distances[after] - distances[before]);
     anchors[i] = anchors[before] + fraction * (anchors[after] - anchors[before]);
   }
+  // Let scrolling finish the path without scrolling the final text away.
+  view.style.minHeight = `${Math.ceil(Math.max(textBounds.height, anchors[anchors.length - 1] + innerHeight - origin))}px`;
+  text.style.top = `${Math.min(0, innerHeight - textBounds.height)}px`;
   me.style.width = `${44 * scale}px`;
   me.style.height = `${72.3 * scale}px`;
 }
@@ -62,6 +71,11 @@ function readingStop() {
   let i = 0;
   while (i < stops.length - 1 && scrollY >= anchors[i + 1]) i++;
   return i;
+}
+
+function targetDistance() {
+  if (scrollY >= anchors[anchors.length - 1]) return distances[distances.length - 1];
+  return reduce ? distances[readingStop()] : pathDistance(scrollY, anchors, distances);
 }
 
 function draw(distance: number) {
@@ -97,7 +111,7 @@ function tick(time: number) {
   if (view.hidden) { lastTime = 0; return; }
   const dt = lastTime ? Math.min(time - lastTime, 64) : 16.7;
   lastTime = time;
-  const target = reduce ? distances[readingStop()] : pathDistance(scrollY, anchors, distances);
+  const target = targetDistance();
   const previous = current;
   if (reduce || Math.abs(target - current) > viewWidth * 3) current = target;
   else current = Math.abs(target - current) < 0.05 ? target : follow(current, target, dt);
@@ -120,7 +134,7 @@ function place() {
   root.dataset.laptop = String(isLaptop());
   if (view.hidden) return;
   measure();
-  current = reduce ? distances[readingStop()] : pathDistance(scrollY, anchors, distances);
+  current = targetDistance();
   draw(current);
 }
 
@@ -130,6 +144,7 @@ addEventListener('scroll', schedule, { passive: true });
 addEventListener('resize', () => {
   // Hiding a mobile browser's address bar must not move every paragraph.
   if (innerWidth !== width) place();
+  else if (!view.hidden) { measure(false); schedule(); }
 });
 addEventListener('orientationchange', () => setTimeout(place, 250));
 addEventListener('pageshow', place);
