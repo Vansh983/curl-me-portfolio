@@ -17,7 +17,6 @@ import { profile } from '../data/profile';
       <p class="mut">{profile.summary}</p>
       <p class="links">
         {profile.links.map(link => <a href={link.href}>{link.label}</a>)}
-        <a href={`mailto:${profile.email}`}>Email</a>
       </p>
     </div>
     <div slot="text" class="continuous-text">
@@ -27,7 +26,6 @@ import { profile } from '../data/profile';
       </header>
       <AboutText paragraphs={ABOUT_PARAGRAPHS} prefix="stage" />
       <footer class="contact-links">
-        <a href={`mailto:${profile.email}`}>{profile.email}</a>
         {profile.links.map(link => <a href={link.href}>{link.handle}</a>)}
       </footer>
     </div>

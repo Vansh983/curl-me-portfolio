@@ -78,7 +78,13 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     checkActive();
   };
   const status = root.querySelector<HTMLElement>('[data-load-status]');
-  const report = (text: string) => { if (status) status.textContent = text; };
+  const preparation = root.querySelector<HTMLElement>('.preparation');
+  let loadProgress = 0;
+  const report = (text: string, progress = loadProgress) => {
+    if (status) status.textContent = text;
+    loadProgress = Math.max(loadProgress, Math.min(1, progress));
+    preparation?.style.setProperty('--load-progress', String(loadProgress));
+  };
   const checkActive = () => { if (stopped) throw new Error('Scene preparation stopped'); };
   let sliceStart = performance.now();
   const breathe = async () => {
@@ -2507,7 +2513,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       checkActive();
       await loadSet(i);
       land(i);
-      report(`Loading the journey · ${++loaded} of ${SETS.length}`);
+      // The first four sets fill half the ring; later sets arrive after the pill fades.
+      report(`Loading the journey · ${++loaded} of ${SETS.length}`, loaded / (2 * FIRST.length));
     };
     await loadInOrder(FIRST, bring);
     await Promise.all(artwork);
@@ -2538,7 +2545,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       for (const texture of paintCache.values()) { renderer.initTexture(texture); uploaded.add(texture); await breathe(); }
       for (const i of FIRST) {
         checkActive();
-        report(`Preparing the walk · ${FIRST.indexOf(i) + 1} of ${FIRST.length}`);
+        report(`Preparing the walk · ${FIRST.indexOf(i) + 1} of ${FIRST.length}`, .5 + FIRST.indexOf(i) / (2 * FIRST.length));
         frame(dolly(DOLLY.find((key) => key.set === i && key.blend === undefined)!.q));
         heldLaptop.visible = TOUR_SETS.has(i); heldDegree.visible = i === 11; heldCoffee.visible = i === 10;
         // what the walk brings in later is warmed now: the whale under its rising plane, the movers, the hall beyond Volta's far wall, the leaves and the snow in the air
@@ -2600,7 +2607,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     ready = true;
     diagnostics.readyMs = Math.round(performance.now());
     root.dataset.stage = 'ready';
-    report('Journey ready');
+    report('Journey ready', 1);
     kick();
     // the rest of the world, in the story's order, two sets at a time (a line carries no more for three, it only lands them out of order); each is warmed as it lands, a batch a frame
     const warmLater = (i: number) => { warming = warming.then(() => warmSet(i)).catch((err) => { if (!stopped) console.warn('[journey] a set was not warmed', err); }); };

@@ -30,7 +30,6 @@ export const GET: APIRoute = () => {
     '',
     `  ${b('ELSEWHERE')}`,
     ...profile.links.map((l) => `  ${dim(pad(l.label.toLowerCase(), 9))}${l.href.replace(/^https?:\/\//, '')}`),
-    `  ${dim(pad('email', 9))}${profile.email}`,
     '',
     `  ${dim('there is a browser version of this page at https://vanshsood.com')}`,
     `  ${dim('and a version for models at https://vanshsood.com/llms.txt')}`,

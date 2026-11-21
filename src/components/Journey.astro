@@ -26,8 +26,13 @@ const socialLinks = ['GitHub', 'LinkedIn', 'X'].flatMap(label => {
   </div>
 
   <div class="preparation" hidden>
+    <svg class="preparation-ring" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <circle class="track" cx="12" cy="12" r="9" />
+      <circle class="arc" cx="12" cy="12" r="9" pathLength="1" />
+    </svg>
+    <span class="preparation-loading" aria-hidden="true">Loading 3D</span>
     <span role="status" aria-live="polite" data-load-status>Loading the journey</span>
-    <button type="button" data-skip-stage>Read without 3D</button>
+    <button type="button" data-skip-stage><span class="preparation-loading">Skip</span><span class="preparation-error">Read without 3D</span></button>
     <button type="button" data-retry-stage hidden>Try 3D again</button>
   </div>
 
@@ -168,34 +173,76 @@ const socialLinks = ['GitHub', 'LinkedIn', 'X'].flatMap(label => {
     position: fixed;
     left: var(--pad);
     right: var(--pad);
-    bottom: 24px;
+    bottom: 28px;
     z-index: 5;
     width: fit-content;
     max-width: calc(100% - 2 * var(--pad));
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px 20px;
-    padding: 12px 16px;
-    color: var(--tx);
-    background: var(--bg);
-    border: 1px solid var(--tx);
+    gap: 8px 11px;
+    padding: 9px 16px 9px 12px;
+    color: #ededed;
+    background: rgba(20, 21, 26, .72);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 999px;
+    font-family: var(--f-body);
     font-size: 13px;
+    font-weight: 500;
+    line-height: 18px;
+    transition: opacity .7s ease, transform .7s ease, visibility 0s;
   }
   .preparation[hidden], .preparation button[hidden] { display: none; }
+  .preparation-ring { flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+  .preparation-ring .track { opacity: .22; }
+  .preparation-ring .arc {
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--load-progress, 0));
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset .35s ease;
+  }
+  .journey:not([data-stage='error']) .preparation [data-load-status] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .preparation-error,
+  .journey[data-stage='error'] .preparation-ring,
+  .journey[data-stage='error'] .preparation-loading { display: none; }
+  .journey[data-stage='error'] .preparation-error { display: inline; }
   .preparation button {
-    color: inherit;
+    color: rgba(237, 237, 237, .62);
     font: inherit;
+    font-weight: 400;
     border: 0;
-    padding: 6px 0;
+    padding: 0;
+    margin-left: 5px;
     background: none;
     text-decoration: underline;
     text-underline-offset: 3px;
     cursor: pointer;
   }
-  .preparation button:focus-visible { outline: 2px solid var(--tx); outline-offset: 4px; }
-  .journey[data-stage='ready'] .preparation,
+  .preparation button:focus-visible { outline: 2px solid #ededed; outline-offset: 4px; }
+  .journey[data-stage='ready'] .preparation {
+    opacity: 0;
+    transform: translateY(8px);
+    visibility: hidden;
+    pointer-events: none;
+    transition-delay: 0s, 0s, .7s;
+  }
   .journey[data-stage='skipped'] .preparation { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .preparation, .preparation-ring .arc { transition: none; }
+    .journey[data-stage='ready'] .preparation { transform: none; }
+  }
   @media (prefers-reduced-motion: reduce) { .gl { transition: none; } }
   .gl.on {
     opacity: 1;

@@ -30,7 +30,6 @@ ${projects
 ## Contact
 
 ${profile.links.map((l) => `- ${l.label}: ${l.href}`).join('\n')}
-- Email: ${profile.email}
 `;
 
   return new Response(out, { headers: { 'content-type': 'text/plain; charset=utf-8' } });

@@ -11,14 +11,11 @@ export const profile = {
   company: { name: 'Floqer', url: 'https://floqer.com' }, // head of engineering, not founder
   bean: { name: 'Bean', url: 'https://beantheapp.com' }, // co-founder and CTO, with Pankrit Jindal
 
-  // TODO confirm. docs/rebuild/05 flags this as likely outdated (vansh@floqer.com?).
-  email: 'vanshsood@dal.ca',
-
   links: [
     { label: 'GitHub', href: 'https://github.com/Vansh983', handle: 'Vansh983' },
     // TODO confirm handle: Vansh gave /in/vanshsood9, the web still shows /in/vanshsood
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/vanshsood/', handle: 'in/vanshsood' },
-    { label: 'Resume', href: '/resume.pdf', handle: 'resume.pdf' },
+    { label: 'X', href: 'https://x.com/vanshzood', handle: 'vanshzood' },
   ],
 
   // sameAs for Person JSON-LD. Keep identical to the profiles that link back here.
