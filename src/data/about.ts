@@ -83,10 +83,5 @@ export const ABOUT_PARAGRAPHS: readonly AboutParagraph[] = [
   { id: 'startups-community', stop: 'collect', parts: [{ text: 'Before Bean I had built a bunch of failed products like GigEmpowr (100k impressions), ' }, { link: 'covid-leads' }, { text: ' (15k users), Acadri (AI Teaching Assistant), DoomStudy. I learnt a ton from them. I also hosted a lot of community events with Halifax as my playground and was part of Socratica as Collect.' }] },
   { id: 'graduation', stop: 'graduation', parts: [{ text: 'I somehow graduated, and did not know what to do with my degree. I gained a lot from my university and most of it outside the piece of paper.' }] },
   { id: 'floqer', stop: 'floqer', parts: [{ text: 'I joined ' }, { link: 'floqer' }, { text: ' as the Founding Engineer and for over a year have been working out of the hackerhouse in Toronto as their Head of Engineering.' }] },
-  { id: 'cafes', stop: 'floqer', parts: [{ text: 'When I need out of the house I work from ' }, { tag: 'cafe' }, { text: ' or [cafe].' }] },
-  { id: 'reading', stop: 'floqer', parts: [{ text: "I'm reading " }, { tag: 'book' }, { text: '.' }] },
-  { id: 'listening', stop: 'floqer', parts: [{ text: 'I listen to a lot of ' }, { tag: 'artist' }, { text: '.' }] },
-  { id: 'playing', stop: 'floqer', parts: [{ text: 'I play ' }, { tag: 'games' }, { text: ' a couple hours a week to wind down.' }] },
-  { id: 'watching', stop: 'floqer', parts: [{ text: "I'm watching " }, { tag: 'shows' }, { text: '. The last movie I loved was [movie].' }] },
-  { id: 'eating', stop: 'floqer', parts: [{ text: 'I will always say yes to ' }, { tag: 'food' }, { text: '.' }] },
+  { id: 'say-hi', stop: 'floqer', parts: [{ text: "If you see me working at your cafe, please come say hi, or shoot me a message on " }, { link: 'linkedin' }, { text: " or X. I'm always happy to hop on a call." }] },
 ];
