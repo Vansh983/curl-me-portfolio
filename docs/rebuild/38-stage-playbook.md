@@ -147,6 +147,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Trap | What happened | What to do |
 |---|---|---|
 | Captures hid the card | Marks looked clear, were under the card in his Chrome | `CARDS=1`, `marks.mjs` |
+| Trailing padding kept the text moving | After the final links reached the bottom, the 3D text kept rising through its blank bottom padding | Keep the reading pace but cap translation at the links' bottom; leave chapter spacers and stage timing unchanged (doc 64) |
 | Model placed blind | The pendant stood on its rose, shade in the ceiling, for weeks | `glb.mjs` first |
 | Lightmap on thin bars | Black picture frames came back white at the edges | `CONTEXT_PROP` |
 | Stale opening picture | First screen showed the old room while loading | `poster.mjs` |

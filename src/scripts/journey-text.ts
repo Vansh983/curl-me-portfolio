@@ -2,18 +2,20 @@
 export function initJourneyText(journey: HTMLElement) {
   const viewport = journey.querySelector<HTMLElement>('.text-viewport')!;
   const column = journey.querySelector<HTMLElement>('.text-column')!;
+  const end = column.querySelector<HTMLElement>('.contact-links')!;
   const spacers = Array.from(journey.querySelectorAll<HTMLElement>('.ch'));
   const sizes = Array.from(journey.querySelectorAll<HTMLElement>('.chapter-size'));
   let start = 0;
   let scrollRange = 1;
   let textRange = 0;
+  let textStop = 0;
   let frame = 0;
 
   function draw() {
     frame = 0;
     if (!journey.offsetHeight) return;
     const progress = Math.max(0, Math.min(1, (scrollY - start) / scrollRange));
-    column.style.transform = `translateY(${-progress * textRange}px)`;
+    column.style.transform = `translateY(${-Math.min(progress * textRange, textStop)}px)`;
   }
 
   function measure() {
@@ -23,6 +25,9 @@ export function initJourneyText(journey: HTMLElement) {
     start = journey.getBoundingClientRect().top + scrollY;
     scrollRange = Math.max(1, journey.offsetHeight - viewport.clientHeight);
     textRange = Math.max(0, column.offsetHeight - viewport.clientHeight);
+    // Keep the reading pace, with the column's side gutter below the pinned last line.
+    const gap = parseFloat(getComputedStyle(column).paddingLeft);
+    textStop = Math.max(0, end.getBoundingClientRect().bottom - column.getBoundingClientRect().top - viewport.clientHeight + gap);
     draw();
   }
 

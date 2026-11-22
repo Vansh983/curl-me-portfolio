@@ -69,3 +69,4 @@
 - [61. Text on top](61-text-on-top.md) Use one homepage with shared text, graphic below 1025px and switchable 3D above; remove variant routes.
 - [62. One door home](62-one-door-home.md) Scope held props to the graphic walker and keep one stair door home, with the passage sealed from startup.
 - [63. Drawn Halifax](63-drawn-halifax.md) Draw mapped Halifax beneath the aircraft with haze and separate clouds, preserving the flight and cabin.
+- [64. Stop the 3D text at the bottom](64-3d-text-stop.md) Pin the final text while the remaining scroll finishes the unchanged 3D journey.
