@@ -512,7 +512,7 @@ export const SETS: StageSet[] = [
       // the leaf in it: the door Google's block shows on the lawn (DELHI), opening into the room as he comes to it
       ...doorway('google', -0.7, 0, 0.15, [approach(0.768), approach(0.797)], 'The door off the lawn: Delhi, 2020.', [ch(4.68), ch(4.76)]), // it opens as he turns to it from the photographs, and shuts behind him before the west door opens: the lawn and the aircraft outside it are never in view together
       // the desk on the north wall, its back against it
-      { build: 'deskWide', at: [-1.1, 0, 3.2], rot: [0, 180, 0], cap: 'Webcube. 45 companies, six countries, 25 people, from this desk.', thing: 'webcubeDesk' },
+      { build: 'deskWide', at: [-1.1, 0, 3.2], rot: [0, 180, 0], cap: 'Webcube. 45 companies, seven countries, 25 people, from this desk.', thing: 'webcubeDesk' },
       { build: 'monitor', at: [-1.45, 0.74, 3.38], rot: [0, 172, 0], live: 'screen' },
       { build: 'monitorBoard', at: [-0.8, 0.74, 3.38], rot: [0, 190, 0], live: 'screen', cap: 'Webcube. A team of 25, working across multiple countries.' },
       { model: 'laptop_14_aluminium', at: [-2.0, 0.74, 3.08], rot: [0, 205, 0] },
