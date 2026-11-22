@@ -2,16 +2,25 @@
 import type { APIRoute } from 'astro';
 import { profile, site } from '../data/profile';
 import { featured } from '../data/projects';
+import { ABOUT_INTRO_PARAGRAPHS, ABOUT_PARAGRAPHS, ABOUT_LINKS, ABOUT_ROWS, type AboutPart } from '../data/about';
+
+const plainText = (parts: readonly AboutPart[]) => parts.map(part =>
+  part.tag ? ABOUT_ROWS[part.tag].label :
+  part.link ? ABOUT_LINKS[part.link].label :
+  part.rotating ? part.rotating[0] : part.text
+).join('');
 
 // A curated map of this site for models and agents. Kept under 3k tokens on purpose.
 // Everything here is generated from the same data the pages use.
 export const GET: APIRoute = () => {
   const out = `# ${profile.name}
 
-> ${profile.role} based in ${profile.location}. ${profile.summary}
+${ABOUT_INTRO_PARAGRAPHS.map(parts => `> ${plainText(parts)}`).join('\n>\n')}
 
-Currently at ${profile.company.name} (${profile.company.url}). Previously founded Webcube,
-a software studio of 25 people. Won Google Code-in at 17. Computer science at Dalhousie University.
+${ABOUT_PARAGRAPHS
+  .filter(paragraph => ['first-code', 'webcube', 'dalhousie'].includes(paragraph.id))
+  .map(paragraph => plainText(paragraph.parts))
+  .join('\n\n')}
 
 Run \`curl ${site.url}\` for the whole profile in a terminal.
 
