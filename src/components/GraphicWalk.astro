@@ -212,6 +212,76 @@ const opening = STOPS[0];
     25% { transform: rotate(2deg); }
     75% { transform: rotate(-2deg); }
   }
+  /* A ten-stride walk across the frontage, independent of the scroll walker. */
+  [data-landmark='university'] .uni-passer {
+    animation: uni-pass-east 9.5s linear var(--uni-delay) infinite;
+  }
+  [data-landmark='university'] .uni-east-one {
+    --uni-delay: -1s;
+    --uni-gait: -.1s;
+    transform: translate(220px, 232px);
+  }
+  [data-landmark='university'] .uni-west {
+    --uni-delay: -3.1s;
+    --uni-gait: -.35s;
+    transform: translate(330px, 232px);
+    animation-name: uni-pass-west;
+  }
+  [data-landmark='university'] .uni-east-two {
+    --uni-delay: -6.2s;
+    --uni-gait: -.65s;
+    transform: translate(535px, 232px);
+  }
+  @keyframes uni-pass-east {
+    0% { transform: translate(180px, 232px); opacity: 0; }
+    4%, 96% { opacity: 1; }
+    100% { transform: translate(550px, 232px); opacity: 0; }
+  }
+  @keyframes uni-pass-west {
+    0% { transform: translate(550px, 232px); opacity: 0; }
+    4%, 96% { opacity: 1; }
+    100% { transform: translate(180px, 232px); opacity: 0; }
+  }
+  [data-landmark='university'] .uni-body {
+    animation: uni-walk-rise .95s ease-in-out var(--uni-gait) infinite;
+  }
+  [data-landmark='university'] .uni-thigh,
+  [data-landmark='university'] .uni-shin,
+  [data-landmark='university'] .uni-arm { transform-origin: 0 0; }
+  [data-landmark='university'] .uni-thigh {
+    transform: rotate(3deg);
+    animation: uni-stride .95s linear var(--uni-gait) infinite;
+  }
+  [data-landmark='university'] .uni-shin {
+    animation: uni-knee .95s ease-in-out var(--uni-gait) infinite;
+  }
+  [data-landmark='university'] .uni-arm {
+    transform: rotate(-6deg);
+    animation: uni-arm-swing .95s ease-in-out var(--uni-gait) infinite;
+  }
+  [data-landmark='university'] .uni-far {
+    animation-delay: calc(var(--uni-gait) - .475s);
+  }
+  [data-landmark='university'] .uni-thigh.uni-far { transform: rotate(-3deg); }
+  [data-landmark='university'] .uni-arm.uni-far { transform: rotate(8deg); }
+  @keyframes uni-walk-rise {
+    0%, 50%, 100% { transform: translateY(0); }
+    25%, 75% { transform: translateY(-2px); }
+  }
+  @keyframes uni-stride {
+    0%, 100% { transform: rotate(-24deg); }
+    25% { transform: rotate(0); }
+    50% { transform: rotate(24deg); }
+    75% { transform: rotate(-10deg); }
+  }
+  @keyframes uni-knee {
+    0%, 50%, 100% { transform: rotate(0); }
+    75% { transform: rotate(55deg); }
+  }
+  @keyframes uni-arm-swing {
+    0%, 100% { transform: rotate(22deg); }
+    50% { transform: rotate(-22deg); }
+  }
   [data-landmark='webcube'] { --wc-loop: 12s; }
   [data-landmark='webcube'] .wc-sky { animation: wc-sky var(--wc-loop) ease-in-out infinite; }
   [data-landmark='webcube'] .wc-city { animation: wc-city var(--wc-loop) ease-in-out infinite; }
@@ -317,6 +387,11 @@ const opening = STOPS[0];
     [data-landmark='delhi'] .delhi-sun,
     [data-landmark='delhi'] .delhi-console-light,
     [data-landmark='google'] .google-tree { animation: none; }
+    [data-landmark='university'] .uni-passer,
+    [data-landmark='university'] .uni-body,
+    [data-landmark='university'] .uni-thigh,
+    [data-landmark='university'] .uni-shin,
+    [data-landmark='university'] .uni-arm { animation: none; }
     [data-landmark='webcube'] g { animation: none !important; }
     [data-landmark='webcube'] .wc-sky { fill: #c5d8d4; }
     [data-landmark='webcube'] .wc-city { fill: #a7bab4; }

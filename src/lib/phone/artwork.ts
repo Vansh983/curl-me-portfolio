@@ -350,12 +350,13 @@ const bedroom = windowFrame(229, 25, 126, 110,
   circle(234, 225, 9, '#eee9d6') + path('M232 219l5 2 1 5-5 3-4-5Z M226 222l3 2m4 5-1 5m6-8 5-1', '#667866', ink, .6);
 
 // His San Francisco photograph: the sign, bridge and planted foreground.
-const google = wash('M0 148h390v85H0Z', '#c8d5bc') + wash('M0 153q39-27 87-8t111-10 104 5 88 2v29H0Z', '#a8bf9b') +
-  path('M26 128V18h11v110M26 22l11 25-11 25 11 26-11 27M37 27q116 65 276 15', 'none', '#8da39d', 1.8) + line(0, 132, 390, 67, '#829a91', 4) + rows(13, i => { const x = 49 + i * 21; return line(x, 45 + Math.sin(i / 12 * Math.PI) * 28, x, 124 - (x - 49) * .16, '#a8bcb0', .8); }) +
-  group(74, 93, '<g class="google-tree">' + path('M0 79V0m0 22q-19-16-29-9m29 3q20-20 36-10m-36 10q-4-29-18-35m18 35q15-30 29-31', 'none', '#688361', 3) + '</g>') + rect(138, 82, 229, 112, '#eeeede') + wash('M138 176h229v18H138Z', '#42574d') +
-  `<text x="154" y="132" font-family="Inter, sans-serif" font-size="43" font-weight="600" letter-spacing="-2">${[...'Google'].map((c, i) => `<tspan fill="${['#507fa1', '#b86c56', '#c2a057', '#507fa1', '#62895c', '#b86c56'][i]}">${c}</tspan>`).join('')}</text>` + label(158, 161, 'San Francisco', 13, '#42574d') +
-  rect(49, 170, 58, 48, '#d3ba88', 2) + rect(53, 174, 50, 40, '#eee8d2') + label(59, 187, 'Google Code-in', 6.1) + label(59, 198, 'Drupal', 9) + label(59, 208, 'Grand prize', 5.5) +
-  path('M42 233h340M131 204v29m226-29v29M62 218v15m33-15v15', 'none', '#7b8d73', 1.3) + wash('M141 216q12-20 24-7 15-25 29-7 17-16 30 0 18-21 34-3 18-23 36-6 17-18 31-3 22-14 39 9v34H141Z', '#829e73') + rows(7, i => path(`M${151 + i * 31} 223l5-10m-5 6-5-6`, 'none', '#b4c396', .7));
+// Close the former award space without scaling the remaining drawing.
+const google = wash('M0 148h340v85H0Z', '#c8d5bc') + wash('M0 153q39-27 87-8t111-10 104 5 38 2v29H0Z', '#a8bf9b') +
+  path('M26 128V18h11v110M26 22l11 25-11 25 11 26-11 27M37 27q116 65 276 15', 'none', '#8da39d', 1.8) + line(0, 132, 340, 75.33, '#829a91', 4) + rows(13, i => { const x = 49 + i * 21; return line(x, 45 + Math.sin(i / 12 * Math.PI) * 28, x, 124 - (x - 49) * .16, '#a8bcb0', .8); }) +
+  group(42, 93, '<g class="google-tree">' + path('M0 79V0m0 22q-19-16-29-9m29 3q20-20 36-10m-36 10q-4-29-18-35m18 35q15-30 29-31', 'none', '#688361', 3) + '</g>') +
+  group(-50, 0, rect(138, 82, 229, 112, '#eeeede') + wash('M138 176h229v18H138Z', '#42574d') +
+    `<text x="154" y="132" font-family="Inter, sans-serif" font-size="43" font-weight="600" letter-spacing="-2">${[...'Google'].map((c, i) => `<tspan fill="${['#507fa1', '#b86c56', '#c2a057', '#507fa1', '#62895c', '#b86c56'][i]}">${c}</tspan>`).join('')}</text>` + label(158, 161, 'San Francisco', 13, '#42574d') +
+    path('M62 233h320M131 204v29m226-29v29', 'none', '#7b8d73', 1.3) + wash('M141 216q12-20 24-7 15-25 29-7 17-16 30 0 18-21 34-3 18-23 36-6 17-18 31-3 22-14 39 9v34H141Z', '#829e73') + rows(7, i => path(`M${151 + i * 31} 223l5-10m-5 6-5-6`, 'none', '#b4c396', .7)));
 
 const marker = (x: number, y: number, angle: number, color: string, d: string, width = 1.15) =>
   `<g transform="translate(${x} ${y}) rotate(${angle})">${path(d, 'none', color, width)}</g>`;
@@ -501,11 +502,58 @@ const webcube = windowFrame(274, 29, 88, 105, windowDayNight) +
   group(241, 207, rect(0, 20, 27, 6, '#a6765b') + rect(3, 14, 25, 6, '#6e9294') + rect(1, 9, 25, 5, '#c7b77e') + line(4, 17, 25, 17, '#e7d9b6', .7)) +
   officeChair(116, 179) + plant(332, 212, .95);
 
-const university = rect(27, 13, 291, 220, '#899ba2') + rows(8, col => line(28 + col * 40, 14, 28 + col * 40, 232, '#607981', .7)) + rows(6, row => line(28, 17 + row * 41, 317, 17 + row * 41, '#607981', .7)) + rect(47, 28, 251, 131, '#608d9e') +
+// Profile figures: each thigh, knee and shoulder has its own gait pivot.
+const universityStudent = (name: string, coat: string, skin: string, longHair = false, reverse = false) => {
+  const leg = (side: string, color: string) => group(0, -22,
+    `<g class="uni-thigh uni-${side}">` +
+    path('M-2.5 0h5l.5 12h-5Z', color, ink, .65) +
+    group(0, 12, `<g class="uni-shin uni-${side}">` +
+      path('M-2 0h4l-.5 10h-3Z', color, ink, .65) +
+      path('M-2 9h3.5l4 1q1.5 2-1 2H-3Z', '#364643', ink, .65) +
+      line(-2, 11.5, 5, 11.5, '#d2d8c8', .6) + '</g>') + '</g>');
+  const arm = (side: string) => group(0, -39,
+    `<g class="uni-arm uni-${side}">` +
+    path('M-2-1q3-2 4 1l1 8 2 7-3 1-3-7Z', coat, ink, .65) +
+    path('M2 15l3-1 1 3q0 2-2 2l-1-1Z', skin, ink, .55) + '</g>');
+  return `<g class="uni-passer uni-${name}"><g transform="scale(${reverse ? -1 : 1} 1)">` +
+    ellipse(0, .7, 10, .9, '#a2b19b') +
+    '<g class="uni-body">' + arm('far') + leg('far', '#50615b') + leg('near', '#65746a') +
+    path('M-5-41q5-3 10 1l1 18q-6 2-12 0l-1-13Z', coat, ink, .8) +
+    path('M-2-45h5v5l-5 1Z', skin, ink, .6) +
+    path('M-4-51q0-7 6-7 6 0 6 6l2 3-2 1v4q-3 3-7 0l-4-3Z', skin, ink, .7) +
+    path(longHair
+      ? 'M-4-48q-3-9 3-11 8-3 9 7l-4-2-3 3v7l-4 6-5-2 3-10Z'
+      : 'M-4-47q-3-3-2-8 1-6 8-5 6 0 6 7l-6-2-3 5v4Z', '#3d4540', '#3d4540', .6) +
+    path('M0-50q-2-2-2 1t2 2', 'none', '#9b795e', .6) +
+    rect(-11, -39, 7, 15, '#b49b73', 2.5) +
+    path('M-5-39q5-1 6 5v10M-10-29h5', 'none', '#d1b98d', .9) +
+    arm('near') + '</g></g></g>';
+};
+const universityPeople = '<g id="university-passers">' +
+  universityStudent('east-one', '#78958f', '#c7a98d') +
+  universityStudent('west', '#b48b70', '#bc916c', true, true) +
+  universityStudent('east-two', '#8594a6', '#dfc49e') + '</g>';
+
+// The saved local references show the facade, not a campus monument.
+// This low ironstone wall follows the requested campus-edge sign.
+const universityMonument = '<g id="university-monument">' +
+  path('M10 181h150v51H10Z', '#74766e') +
+  path('M12 184h28l-3 14H12Z M44 184h32l3 12H40Z M82 184h35l-3 15H80Z M122 184h36v15h-41Z M12 202h20l5 15H12Z M135 202h23v15h-27Z M12 220h35l-2 10H12Z M50 220h27l4 10H48Z M84 220h38l-2 10H83Z M125 220h33v10h-36Z', '#85877b', '#b0afa0', .7) +
+  rect(6, 177, 158, 6, '#a4a594', .7) +
+  rect(17, 186, 136, 40, '#dedbc7', 1) +
+  '<image href="/assets/stage/logos/dalhousie.png" x="21" y="188" width="128" height="35.84"/>' + '</g>';
+
+const universityBuilding = rect(27, 13, 291, 220, '#899ba2') + rows(8, col => line(28 + col * 40, 14, 28 + col * 40, 232, '#607981', .7)) + rows(6, row => line(28, 17 + row * 41, 317, 17 + row * 41, '#607981', .7)) + rect(47, 28, 251, 131, '#608d9e') +
   rows(7, col => rows(3, row => { const x = 49 + col * 35.4, y = 30 + row * 42.8; return rect(x, y, 33.1, 40.5, ['#91b2ba', '#739da9', '#a6c0c0'][(col + row) % 3]) + (row === 2 ? rows(9, k => line(x + 1, y + 4 + k * 3.8, x + 32, y + 4 + k * 3.8, '#b9cdca', .45)) : path(`M${x + 2} ${y + 6}l29 16m-29-10 17 9`, 'none', '#b8cfd0', .7)); })) +
-  path('M46 27h253v133H46Z', 'none', '#3e5a62', 2) + label(44, 177, 'Goldberg Computer Science Building', 7.4, '#e9e8d8', 600) + rect(119, 190, 83, 43, '#3e5861') + rect(123, 194, 34, 39, '#9bb7bd') + rect(163, 194, 34, 39, '#9bb7bd') + path('M151 209v12m18-12v12', 'none', '#e4e6d5', 1.2) + line(116, 188, 205, 188, '#d1d7ce', 3) +
-  rect(40, 194, 59, 21, '#ded8b4') + label(46, 207, 'Dalhousie', 8) + wash('M12 234q18-7 37-2h53l-6 2Z M213 234l8-3h99q9-6 21 3Z', '#edf0de') +
-  group(324, 179, path('M0 37h62v5H0Zm6 5v12m49-12v12', '#a48c67')) + path('M9 233V132m0 21-9-12m9 26 12-20m-12 43-9-11', 'none', '#8a9780', 1.2);
+  path('M46 27h253v133H46Z', 'none', '#3e5a62', 2) +
+  '<g id="university-facade-name" text-anchor="middle">' + label(172.5, 177, 'Goldberg Computer Science Building', 7.4, '#e9e8d8', 600) + '</g>' +
+  rect(119, 190, 83, 43, '#3e5861') +
+  rect(123, 194, 34, 39, '#9bb7bd') + rect(163, 194, 34, 39, '#9bb7bd') +
+  path('M151 209v12m18-12v12', 'none', '#e4e6d5', 1.2) + line(116, 188, 205, 188, '#d1d7ce', 3) +
+  wash('M12 234q18-7 37-2h53l-6 2Z M213 234l8-3h99q9-6 21 3Z', '#edf0de') +
+  group(324, 179, path('M0 37h62v5H0Zm6 5v12m49-12v12', '#a48c67')) +
+  path('M9 233V132m0 21-9-12m9 26 12-20m-12 43-9-11', 'none', '#8a9780', 1.2);
+const university = group(166, 0, universityBuilding) + universityMonument + universityPeople;
 
 const audience = (x: number, y: number, i: number, color = '#b46c53') => group(x, y,
   path('M5 22q-1-14 12-14t12 14l3 7H3Z', ['#758d7e', '#a6ad92', '#8a9fa5', '#b0a083'][i % 4]) + path('M7 18l-3 10m23-10 4 10', 'none', '#566c5e', 1.2) + circle(17, 5, 6, ['#bc916c', '#bd9a80', '#c8aa88'][i % 3]) +
