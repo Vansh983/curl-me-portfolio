@@ -33,7 +33,9 @@ export const STOPS: PathStop[] = groups.map(group => {
   distance += group.width;
   return stop;
 });
-export const PATH_LENGTH = distance;
+// Empty pavement lets the last landmark and walker stop before the fixed links.
+export const PATH_LENGTH = distance + 180;
+export const WALK_END = distance - 60;
 const university = STOPS.find(stop => stop.id === 'university')!;
 export const TRANSIT = { start: university.x - university.gapBefore!, end: university.x };
 

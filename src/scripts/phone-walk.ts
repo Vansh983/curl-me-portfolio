@@ -4,7 +4,7 @@ import { pathDistance, follow } from '../lib/phone/pacing';
 import { activityAt } from '../lib/phone/activities';
 import { isLaptop, LAPTOP_QUERY } from '../lib/view-mode';
 
-const { stops, length }: { stops: Omit<PathStop, 'paragraphs'>[]; length: number } =
+const { stops, length, end }: { stops: Omit<PathStop, 'paragraphs'>[]; length: number; end: number } =
   JSON.parse(document.getElementById('path-data')!.textContent!);
 const root = document.documentElement;
 const view = document.querySelector<HTMLElement>('[data-graphic-view]')!;
@@ -17,7 +17,6 @@ const planeGear = document.querySelector('#flight .plane-gear')!;
 const me = document.getElementById('me') as HTMLButtonElement;
 const description = document.getElementById('scene-description')!;
 const blocks = Array.from(document.querySelectorAll<HTMLElement>('[data-stop]'));
-const footer = document.querySelector<HTMLElement>('.end')!;
 const motion = matchMedia('(prefers-reduced-motion: reduce)');
 let reduce = motion.matches;
 let width = innerWidth;
@@ -27,7 +26,7 @@ let viewWidth = 390;
 let anchors: number[] = [];
 // The opening's 20-unit landmark inset plus local x=112 leaves the walker
 // beside the Floqer door, clear of its step. Later stops keep their anchors.
-const distances = [...stops.map(stop => stop.x + (stop.id === 'toronto-cafe' ? 132 : 100)), length - 60];
+const distances = [...stops.map(stop => stop.x + (stop.id === 'toronto-cafe' ? 132 : 100)), end];
 let current = distances[0];
 let frame = 0;
 let lastTime = 0;
@@ -44,12 +43,16 @@ function measure(viewportChanged = true) {
   scale = pic.clientHeight / 260;
   viewWidth = pic.clientWidth / scale;
   pic.setAttribute('viewBox', `0 0 ${viewWidth} 260`);
+  const postBottom = 20 * scale - 4;
+  view.style.setProperty('--links-post-bottom', `${postBottom}px`);
+  view.style.setProperty('--links-post-rise', `${Math.max(0, 244 + postBottom - pic.clientHeight)}px`);
   // Measure the text's normal position even when its last screen is pinned.
   const textBounds = text.getBoundingClientRect();
   const origin = view.getBoundingClientRect().top + scrollY;
   const documentTop = (element: HTMLElement) => element.getBoundingClientRect().top - textBounds.top + origin;
   anchors = blocks.map((block, i) => i === 0 ? 0 : Math.max(1, documentTop(block) - height * 0.2));
-  const lastReadable = documentTop(footer) - height * 0.2;
+  const lastBlock = blocks[blocks.length - 1];
+  const lastReadable = documentTop(lastBlock) + lastBlock.offsetHeight - height * 0.2;
   anchors.push(Math.max(anchors[anchors.length - 1] + 1, lastReadable));
   // A stop with no text still occupies its share of the path between readable stops.
   for (let i = 1; i < blocks.length; i++) {

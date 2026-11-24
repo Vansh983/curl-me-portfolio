@@ -1,0 +1,60 @@
+---
+// Keeps the links fixed while the landscape moves behind their direction post.
+import { profile } from '../../data/profile';
+import { LINKS_POST_WOOD, LINKS_POST_BOARDS } from '../../lib/phone/artwork';
+const links = [{ label: 'Writing', href: '/blog' }, ...profile.links];
+---
+
+<nav class="link-post" aria-label="Links">
+  <svg class="post-wood" viewBox="0 0 104 244" aria-hidden="true" set:html={LINKS_POST_WOOD} />
+  {LINKS_POST_BOARDS.map(board => {
+    const closed = board.label === 'Cafes';
+    const external = !closed && board.label !== 'Writing';
+    const Tag = closed ? 'span' : 'a';
+    return <Tag
+      class:list={['board', { closed }]}
+      href={closed ? undefined : links.find(link => link.label === board.label)!.href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      role={closed ? 'img' : undefined}
+      aria-disabled={closed ? 'true' : undefined}
+      aria-label={closed ? 'Cafes, coming soon' : external ? `${board.label} (opens in a new tab)` : board.label}
+      data-direction={board.direction}
+      style={`top:${board.top}px;left:${board.left}px;width:${board.width}px;--nudge:${board.nudge}px`}
+      set:html={board.svg}
+    />;
+  })}
+</nav>
+
+<style is:global>
+  .link-post {
+    position: absolute;
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: calc(var(--links-post-bottom, 16px) + env(safe-area-inset-bottom, 0px));
+    width: 104px;
+    height: 244px;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .link-post .post-wood { display: block; position: absolute; inset: 0; width: 100%; height: 244px; overflow: visible; pointer-events: none; }
+  .link-post .board { position: absolute; display: block; pointer-events: auto; height: 40px; border: 0; background: transparent; color: #3a4c49; text-decoration: none; transition: none; -webkit-tap-highlight-color: transparent; }
+  .link-post a.board { cursor: pointer; }
+  .link-post .board svg { display: block; width: 100%; height: 40px; overflow: visible; }
+  .link-post .board text { font-family: Inter, Arial, sans-serif; font-size: 12px; font-weight: 500; fill: #3a4c49; }
+  .link-post .board-face { transition: transform 120ms ease-out; }
+  .link-post a.board:hover .board-face,
+  .link-post a.board:focus-visible .board-face,
+  .link-post a.board:active .board-face { transform: translateX(var(--nudge)); }
+  .link-post a.board:active .board-shape { fill: #d8c6a0; }
+  .link-post .board:focus-visible { outline: none; }
+  .link-post .focus-ring { opacity: 0; fill: none; stroke: #3a4c49; stroke-width: 1.5; pointer-events: none; }
+  .link-post .board:focus-visible .focus-ring { opacity: 1; }
+  .link-post .board.closed { cursor: default; }
+  .link-post .closed .board-shape { fill: color-mix(in srgb, #c7b997 50%, #e5e8dc); stroke: color-mix(in srgb, #3a4c49 60%, #e5e8dc); }
+  .link-post .closed text { fill: color-mix(in srgb, #3a4c49 75%, #e5e8dc); }
+  .link-post .closed .board-drawing > path:not(.board-shape),
+  .link-post .closed .board-drawing > circle { opacity: .5; }
+  @media (prefers-reduced-motion: reduce) {
+    .link-post .board-face { transition: none; transform: none !important; }
+  }
+</style>

@@ -24,7 +24,7 @@ test('one connected world has one illustration per category and a compact ShiftK
   for (let i = 1; i < STOPS.length; i++) assert.equal(STOPS[i].x, STOPS[i - 1].x + STOPS[i - 1].width + (STOPS[i].gapBefore ?? 0));
   assert.equal(STOPS.filter(stop => stop.gapBefore).length, 1);
   assert.equal(TRANSIT.end - TRANSIT.start, 800);
-  assert.equal(PATH_LENGTH, STOPS.at(-1)!.x + STOPS.at(-1)!.width);
+  assert.equal(PATH_LENGTH, STOPS.at(-1)!.x + STOPS.at(-1)!.width + 180);
   assert.ok(STOPS.find(stop => stop.id === 'shiftkey')!.width < STOPS.find(stop => stop.id === 'university')!.width);
 });
 

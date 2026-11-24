@@ -12,6 +12,33 @@ const label = (x: number, y: number, text: string, size = 7, color = ink, weight
 const group = (x: number, y: number, content: string, scale = 1) => `<g transform="translate(${x} ${y}) scale(${scale})">${content}</g>`;
 const rows = (count: number, render: (i: number) => string) => Array.from({ length: count }, (_, i) => render(i)).join('');
 
+// The approved Mixed links post, in fixed CSS pixels rather than world units.
+export const LINKS_POST_WOOD = '<ellipse cx="55" cy="241" rx="18" ry="3" fill="#a8b49b" opacity=".55"/>' +
+  path('M52 2l6-1 1 239h-7Z', '#a68b63') + path('M54 4v233', 'none', '#d8c6a0', .7);
+export const LINKS_POST_BOARDS = [
+  { label: 'Writing', width: 74, left: 6, direction: 'left', rotation: -1 },
+  { label: 'GitHub', width: 72, left: 26, direction: 'right', rotation: 1.1 },
+  { label: 'LinkedIn', width: 82, left: 2, direction: 'left', rotation: .7 },
+  { label: 'X', width: 42, left: 36, direction: 'right', rotation: -.8 },
+  { label: 'Cafes', width: 68, left: 28, direction: 'right', rotation: .4 },
+].map((board, i) => {
+  const { width: w, direction, label: name } = board;
+  const left = direction === 'left', closed = name === 'Cafes', nail = 55 - board.left;
+  const x = (w + (left ? 10 : -10)) / 2 - (closed ? 5 : 0);
+  const shape = left ? `M${w - 3} 7H13L3 20l10 13h${w - 16}Z` : `M3 7H${w - 13}l10 13-10 13H3Z`;
+  const highlight = left ? `M${w - 8} 10H18m${w - 26} 19h-${Math.min(20, w - 26)}` : `M8 10H${w - 18}M8 29h${Math.min(20, w - 26)}`;
+  return {
+    ...board, top: 6 + i * 42, nudge: left ? -2 : 2,
+    svg: `<svg viewBox="0 0 ${w} 40" aria-hidden="true">` +
+      `<rect class="focus-ring" x=".75" y="1" width="${w - 1.5}" height="38" rx="2"/>` +
+      `<g class="board-face"><g transform="rotate(${board.rotation} ${nail} 20)"><g class="board-drawing">` +
+      `<path class="board-shape" d="${shape}" fill="${i % 2 ? '#d8c6a0' : '#c7b997'}" ${stroke}/>` +
+      path(highlight, 'none', i % 2 ? '#ede5cd' : '#e1c59a', .7) +
+      `<text x="${x}" y="24" text-anchor="middle">${name}</text><circle cx="${nail}" cy="10" r="1" fill="#6d5a44"/></g>` +
+      (closed ? `<circle cx="${x + 22}" cy="20" r="2.5" fill="#e8b04b"/>` : '') + '</g></g></svg>',
+  };
+});
+
 const code = (x: number, y: number, w: number) => rows(5, i => line(x + i % 3 * 3, y + i * 4, x + w * [.73, 1, .6, .85, .48][i], y + i * 4, ['#a4c8b2', '#d4bf88', '#9cb5cc'][i % 3], 1));
 const monitor = (x: number, y: number, w: number, title: string, content = code(13, 23, w - 24)) => group(x, y,
   path(`M${w / 2 - 3} 41v12h-10l-3 2h32l-3-2h-10V41`, '#7f8c83') + rect(0, 0, w, 44, '#364643', 2) + rect(3, 3, w - 6, 36, '#253735', 1) +

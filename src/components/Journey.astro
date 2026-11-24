@@ -270,6 +270,7 @@ const socialLinks = ['GitHub', 'LinkedIn', 'X'].flatMap(label => {
     }
     .mode-segments { position: relative; display: flex; padding: 4px; }
     .links { display: flex; padding: 4px; gap: 2px; }
+    :global(html[data-home-view='graphic']) .mode .links { display: none; }
     .links .ctl { width: 34px; height: 34px; border: 0; border-radius: 999px; background: none; }
     .links .ctl:hover { color: #fff; background: rgba(255, 255, 255, .08); }
     .links .ctl.soon { color: #7d818b; }
