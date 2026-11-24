@@ -280,6 +280,29 @@ const opening = STOPS[0];
     0%, 100% { transform: rotate(22deg); }
     50% { transform: rotate(-22deg); }
   }
+  /* ShiftKey A1 keeps the mock's independent 8–12 second loops. */
+  .sk-slide{opacity:0;animation:sk-slide-cycle 12s linear infinite}.sk-slide-ai{opacity:1}.sk-slide-cloud{animation-delay:-9s}.sk-slide-code{animation-delay:-6s}.sk-slide-git{animation-delay:-3s}
+  @keyframes sk-slide-cycle{0%,20%,100%{opacity:1}25%,95%{opacity:0}}
+  .sk-student-head{transform-origin:0 7px;animation:sk-head-turn 10.7s ease-in-out var(--sk-lag,0s) infinite}@keyframes sk-head-turn{0%,28%,58%,100%{transform:rotate(0)}38%,47%{transform:rotate(-5deg)}78%,86%{transform:rotate(3deg)}}
+  .sk-typing{animation:sk-typing 9.6s ease-in-out var(--sk-lag,0s) infinite}@keyframes sk-typing{0%,12%,22%,32%,58%,68%,78%,100%{transform:translateY(0)}17%,27%,63%,73%{transform:translateY(-1.1px)}}
+  .sk-raised-hand{transform-origin:0 0;animation:sk-hand-up 10.9s ease-in-out infinite}.sk-student:nth-child(2n) .sk-raised-hand{animation-delay:-3s}.sk-student:nth-child(3n) .sk-raised-hand{animation-delay:-6s}
+  @keyframes sk-hand-up{0%,14%,88%,100%{transform:rotate(0)}27%,68%{transform:rotate(160deg)}42%,48%{transform:rotate(153deg)}}
+  .sk-screen-glow{opacity:.15;animation:sk-screen-glow 8.7s ease-in-out var(--sk-lag,0s) infinite}@keyframes sk-screen-glow{0%,100%{opacity:.12}35%,62%{opacity:.35}}
+  #me[data-activity="teach"] .held-pointer{transform-origin:11px 10px;animation:sk-point 12s ease-in-out infinite}@keyframes sk-point{0%,15%,100%{transform:rotate(0)}28%,44%{transform:rotate(-6deg)}62%,78%{transform:rotate(4deg)}}
+  .sk-steam{animation:sk-steam 10s ease-in-out infinite}@keyframes sk-steam{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:.9;transform:translateY(-3px)}}
+  .sk-rain{animation:sk-rain 8.8s linear infinite}@keyframes sk-rain{0%{transform:translate(0,-10px);opacity:0}10%,90%{opacity:1}100%{transform:translate(-15px,35px);opacity:0}}
+  .sk-light-breathe{animation:sk-light 11s ease-in-out infinite}@keyframes sk-light{0%,100%{opacity:.65}50%{opacity:1}}
+  .sk-record-light{animation:sk-record 8s ease-in-out infinite}@keyframes sk-record{0%,30%,60%,100%{opacity:1}15%,45%,80%{opacity:.3}}
+  .sk-demo-line{transform-origin:35px 0;animation:sk-code 12s ease-out var(--sk-lag,0s) infinite}@keyframes sk-code{0%,15%,100%{opacity:.45;transform:scaleX(.4)}35%,85%{opacity:1;transform:scaleX(1)}}
+  .sk-demo-cursor{animation:sk-cursor 8s ease-in-out infinite}@keyframes sk-cursor{0%,20%,40%,60%,80%,100%{opacity:1}10%,30%,50%,70%,90%{opacity:0}}
+  .sk-merge-check{animation:sk-merge 12s ease-in-out var(--sk-lag,0s) infinite}@keyframes sk-merge{0%,20%,100%{opacity:.2}42%,85%{opacity:1}}
+  .sk-late-student{animation:sk-arrive 12s ease-in-out infinite}@keyframes sk-arrive{0%,5%{opacity:0;transform:translateX(8px)}13%{opacity:1;transform:translateX(5px)}43%,76%{opacity:1;transform:translateX(-23px)}88%,100%{opacity:0;transform:translateX(-23px)}}
+  .sk-side-door{transform-origin:726px 114px;animation:sk-door 12s ease-in-out infinite}@keyframes sk-door{0%,6%,55%,100%{transform:scaleX(1)}18%,40%{transform:scaleX(.14)}}
+  .sk-arrival-leg,.sk-arrival-shin,.sk-arrival-arm{transform-origin:0 0;animation:sk-gait 12s ease-in-out infinite}.sk-arrival-leg.sk-far{animation-name:sk-gait-back}.sk-arrival-shin{animation-name:sk-knee}.sk-arrival-shin.sk-far{animation-name:sk-knee-back}.sk-arrival-arm{transform-origin:0 14px;animation-name:sk-gait-back}
+  @keyframes sk-gait{0%,10%,43%,100%{transform:rotate(0)}15%,27%,39%{transform:rotate(18deg)}21%,33%{transform:rotate(-18deg)}}
+  @keyframes sk-gait-back{0%,10%,43%,100%{transform:rotate(0)}15%,27%,39%{transform:rotate(-18deg)}21%,33%{transform:rotate(18deg)}}
+  @keyframes sk-knee{0%,10%,21%,33%,43%,100%{transform:rotate(0)}15%,27%,39%{transform:rotate(-23deg)}}
+  @keyframes sk-knee-back{0%,10%,15%,27%,39%,43%,100%{transform:rotate(0)}21%,33%{transform:rotate(-23deg)}}
   [data-landmark='webcube'] { --wc-loop: 12s; }
   [data-landmark='webcube'] .wc-sky { animation: wc-sky var(--wc-loop) ease-in-out infinite; }
   [data-landmark='webcube'] .wc-city { animation: wc-city var(--wc-loop) ease-in-out infinite; }
@@ -372,6 +395,13 @@ const opening = STOPS[0];
     .graphic-view .intro p, .story-block p { font-size: 19px; line-height: 1.6; }
   }
   @media (prefers-reduced-motion: reduce) {
+    [data-landmark='shiftkey'] g, #me[data-activity="teach"] .held-pointer { animation: none !important; }
+    .sk-slide { opacity: 0; }
+    .sk-slide-ai { opacity: 1; }
+    .sk-screen-glow { opacity: .2; }
+    .sk-late-student { transform: translateX(-23px); opacity: 1; }
+    .sk-rain { opacity: .75; }
+    .sk-merge-check { opacity: 1; }
     .me.jump { animation: none; }
     [data-landmark='toronto-cafe'] .toronto-tram,
     [data-landmark='toronto-cafe'] .toronto-go-train,

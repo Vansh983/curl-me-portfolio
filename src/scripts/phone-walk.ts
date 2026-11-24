@@ -25,8 +25,10 @@ let scale = 1;
 let viewWidth = 390;
 let anchors: number[] = [];
 // The opening's 20-unit landmark inset plus local x=112 leaves the walker
-// beside the Floqer door, clear of its step. Later stops keep their anchors.
-const distances = [...stops.map(stop => stop.x + (stop.id === 'toronto-cafe' ? 132 : 100)), end];
+// beside the Floqer door, clear of its step. ShiftKey uses A1's x=122 figure
+// origin, scaled with the hall, plus the real walker's 22-unit half-width.
+const distances = [...stops.map(stop => stop.x + (stop.id === 'toronto-cafe' ? 132
+  : stop.id === 'shiftkey' ? 20 + 122 * stop.scale + 22 : 100)), end];
 let current = distances[0];
 let frame = 0;
 let lastTime = 0;
