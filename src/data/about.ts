@@ -2,7 +2,7 @@ import { profile } from './profile.ts';
 
 export type AboutStop = 'delhi' | 'google' | 'webcube' | 'university' | 'shiftkey' | 'bean' | 'collect' | 'graduation' | 'floqer';
 export type AboutTag = 'google' | 'cafe' | 'book' | 'artist' | 'games' | 'shows' | 'food';
-export type AboutLink = 'floqer' | 'bean' | 'good-neighbour' | 'covid-leads' | 'webcube' | 'shiftkey' | 'shiftkey-community' | 'linkedin' | 'x' | 're-defined';
+export type AboutLink = 'floqer' | 'bean' | 'good-neighbour' | 'covid-leads' | 'webcube' | 'shiftkey' | 'shiftkey-community' | 'linkedin' | 'x' | 're-defined' | 'pankrit' | 'collect';
 export type AboutPart =
   | { text: string; tag?: never; link?: never; rotating?: never }
   | { tag: AboutTag; text?: never; link?: never; rotating?: never }
@@ -33,26 +33,15 @@ export const ABOUT_LINKS: Record<AboutLink, { label: string; href: string; fill:
   x: { label: 'X', href: profile.links.find(link => link.label === 'X')!.href, fill: '#000000', ink: '#FFFFFF' },
   // URL: projects.ts, Re-defined. Colours: tokens.css, the page's neutral raised surface and text.
   're-defined': { label: 'Re-defined', href: 'https://redefined.social/', fill: 'var(--raise)', ink: 'var(--tx)' },
+  // URL: owner, 2026-11-24. Colours: tokens.css, the page's neutral raised surface and text.
+  pankrit: { label: 'Pankrit', href: 'https://www.linkedin.com/in/pankrit-jindal/', fill: 'var(--raise)', ink: 'var(--tx)' },
+  // URL: owner, 2026-11-24. Colours: tokens.css, the page's neutral raised surface and text.
+  collect: { label: 'Collect.', href: 'https://www.collecthalifax.org/', fill: 'var(--raise)', ink: 'var(--tx)' },
 };
 
 export const ABOUT_GREETING = "Hi I'm Vansh,";
 export const ABOUT_INTRO_PARAGRAPHS: readonly (readonly AboutPart[])[] = [[
-  { text: "I'm " },
-  { rotating: [
-    'a Creative Developer',
-    'a Full Stack Developer',
-    'a Software Architect',
-    'a Tech Entrepreneur',
-    'a Cloud Architect',
-    'a Cloud Practitioner',
-    'a Tech Founder',
-    'an Open Source Enthusiast',
-    'a Mobile Developer',
-    'a Web Developer',
-    'a Web Designer',
-    'a Creative Designer',
-  ] },
-  { text: ' who likes to solve problems and turn them into products me and my friends wish we had.' },
+  { text: 'a builder who likes to solve problems and turn them into products me and my friends wish we had.' },
 ], [
   { text: 'I currently lead Product and Engineering at ' }, { link: 'floqer' }, { text: ", building the knowledge layer for enterprise GTM teams and scaling it to millions of agents." },
 ], [
@@ -80,9 +69,9 @@ export const ABOUT_PARAGRAPHS: readonly AboutParagraph[] = [
   { id: 'dalhousie', stop: 'university', parts: [{ text: 'So I moved to Canada to study Computer Science at Dalhousie University. I was the teaching assistant for more than 8 courses. Every waking minute I was either working or studying.' }] },
   { id: 'uni-software', stop: 'university', parts: [{ text: 'In the first couple years of uni I worked as a freelance or contract developer for many teams: ' }, { link: 'good-neighbour' }, { text: ', ' }, { link: 're-defined' }, { text: ', Faculty of Computer Science, School of Health at Dalhousie and a bunch of startups in Halifax. I also did research on wearable tech at MyTech Lab and on Applied AI around education.' }] },
   { id: 'shiftkey', stop: 'shiftkey', parts: [{ text: 'I was the Student Ambassador for ' }, { link: 'shiftkey' }, { text: ', built the biggest ' }, { link: 'shiftkey-community' }, { text: ' community in Atlantic Canada and led entire courses around Generative AI and Cloud Computing, with more than 200 students attending and getting certified.' }] },
-  { id: 'bean-beginnings', stop: 'bean', parts: [{ text: 'During all this Pankrit Jindal and I started ' }, { link: 'bean' }, { text: '. I travelled to Australia and spent two months in Sydney building it with him. Was growing and building it by living in different parts of Canada.' }] },
+  { id: 'bean-beginnings', stop: 'bean', parts: [{ text: 'During all this ' }, { link: 'pankrit' }, { text: ' and I started ' }, { link: 'bean' }, { text: '. I travelled to Australia and spent two months in Sydney building it with him. Was growing and building it by living in different parts of Canada.' }] },
   { id: 'bean-launch', stop: 'collect', parts: [{ text: 'We raised a pre seed of a bit under $100k and made it to Product Hunt, Blackbird VC, Invest NS etc. We grew it to 10k users and had an okay exit.' }] },
-  { id: 'startups-community', stop: 'collect', parts: [{ text: 'Before Bean I had built a bunch of failed products like GigEmpowr (100k impressions), ' }, { link: 'covid-leads' }, { text: ' (15k users), Acadri (AI Teaching Assistant), DoomStudy. I learnt a ton from them. I also hosted a lot of community events with Halifax as my playground and was part of Socratica as Collect.' }] },
+  { id: 'startups-community', stop: 'collect', parts: [{ text: 'Before Bean I had built a bunch of failed products like GigEmpowr (100k impressions), ' }, { link: 'covid-leads' }, { text: ' (15k users), Acadri (AI Teaching Assistant), DoomStudy. I learnt a ton from them. I also hosted a lot of community events with Halifax as my playground and was part of Socratica as ' }, { link: 'collect' }] },
   { id: 'graduation', stop: 'graduation', parts: [{ text: 'I somehow graduated, and did not know what to do with my degree. I gained a lot from my university and most of it outside the piece of paper.' }] },
   { id: 'floqer', stop: 'floqer', parts: [{ text: 'I joined ' }, { link: 'floqer' }, { text: " as the Founding Engineer after school. I was offered a seat on a rocket and I took it. From the early days of building the initial infrastructure to growing to millions of requests, we're growing a ton." }] },
   { id: 'say-hi', stop: 'floqer', parts: [{ text: "If you see me working at your cafe, please come say hi, or shoot me a message on " }, { link: 'linkedin' }, { text: ' or ' }, { link: 'x' }, { text: ". I'm always happy to hop on a call." }] },
