@@ -13,14 +13,16 @@ export async function getStaticPaths() {
     props: {
       post,
       index,
+      prev: `/blog/${posts[(index - 1 + posts.length) % posts.length].id}`,
+      prevTitle: posts[(index - 1 + posts.length) % posts.length].data.title,
       next: `/blog/${posts[(index + 1) % posts.length].id}`,
       nextTitle: posts[(index + 1) % posts.length].data.title,
     },
   }));
 }
 
-type Props = { post: CollectionEntry<'blog'>; index: number; next: string; nextTitle: string };
-const { post, index, next, nextTitle } = Astro.props;
+type Props = { post: CollectionEntry<'blog'>; index: number; prev: string; prevTitle: string; next: string; nextTitle: string };
+const { post, index, prev, prevTitle, next, nextTitle } = Astro.props;
 const { Content } = await render(post);
 ---
 
@@ -47,8 +49,24 @@ const { Content } = await render(post);
       <Content />
     </div>
     <nav class="blog-post-nav" aria-label="Post navigation">
-      <a href="/blog">← all posts</a>
-      {next !== `/blog/${post.id}` && <a href={next}>next: {nextTitle} →</a>}
+      {prev !== `/blog/${post.id}` && (
+        <a class="plain" href={prev} title={prevTitle}>
+          <span class="blog-post-nav-label">back</span>
+          <span class="blog-post-nav-title">
+            <span aria-hidden="true">←</span>
+            <span>{prevTitle}</span>
+          </span>
+        </a>
+      )}
+      {next !== `/blog/${post.id}` && (
+        <a class="plain" href={next} title={nextTitle}>
+          <span class="blog-post-nav-label">next</span>
+          <span class="blog-post-nav-title">
+            <span>{nextTitle}</span>
+            <span aria-hidden="true">→</span>
+          </span>
+        </a>
+      )}
     </nav>
   </article>
 </BlogTmux>

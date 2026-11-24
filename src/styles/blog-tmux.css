@@ -151,23 +151,51 @@
 
 .blog-post-nav {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 2ch;
-  max-width: 680px;
   margin-top: 26px;
   padding-top: 14px;
   border-top: 1px solid var(--rule);
 }
 
-.blog-post-nav a:first-child {
-  flex-shrink: 0;
+.blog-post-nav a {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  text-align: left;
+}
+
+.blog-post-nav a:focus-visible {
+  background: none;
+  color: var(--mut);
 }
 
 .blog-post-nav a + a {
-  min-width: 0;
   margin-left: auto;
   text-align: right;
-  overflow-wrap: anywhere;
+}
+
+.blog-post-nav-label {
+  display: block;
+  color: var(--mut);
+  font-size: 11.5px;
+}
+
+.blog-post-nav-title {
+  display: inline-flex;
+  max-width: 100%;
+  gap: .5ch;
+}
+
+.blog-post-nav-title > span:not([aria-hidden]) {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.blog-post-nav-title > span[aria-hidden] {
+  flex-shrink: 0;
 }
 
 .blog-prose {
@@ -225,6 +253,242 @@
 .blog-prose video {
   max-width: 100%;
   height: auto;
+}
+
+.blog-prose table {
+  width: 100%;
+  margin: 24px 0;
+  border-collapse: collapse;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.blog-prose th {
+  padding: 0 12px 8px 0;
+  color: var(--mut);
+  font-size: 11.5px;
+  font-weight: 400;
+  text-align: left;
+}
+
+.blog-prose td {
+  padding: 10px 12px 10px 0;
+  border-top: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.blog-prose td:first-child { width: 34%; color: var(--tx); }
+
+.blog-figure {
+  margin: 28px 0;
+  color: var(--tx);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.blog-figure figcaption,
+.blog-photo-label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--mut);
+  font-size: 11.5px;
+}
+
+.blog-figure-pane {
+  position: relative;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--rule);
+  background: var(--raise);
+}
+
+.blog-figure strong,
+.blog-reader-list dt {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.blog-figure svg {
+  display: block;
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: var(--hi);
+  stroke-width: 1;
+}
+
+.blog-loop-grid {
+  position: relative;
+}
+
+.blog-loop ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 1fr);
+  gap: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blog-loop li:first-child,
+.blog-reader-source {
+  border-color: var(--hi);
+}
+
+.blog-loop li:nth-child(3) { grid-area: 2 / 2; }
+.blog-loop li:nth-child(4) { grid-area: 2 / 1; }
+
+.blog-loop-arrow { position: absolute; }
+.blog-loop li:nth-child(1) svg { right: -33px; top: calc(50% - 16px); }
+.blog-loop li:nth-child(2) svg { bottom: -33px; left: calc(50% - 16px); transform: rotate(90deg); }
+.blog-loop li:nth-child(3) svg { left: -33px; top: calc(50% - 16px); transform: rotate(180deg); }
+.blog-loop li:nth-child(4) svg { top: -33px; left: calc(50% - 16px); transform: rotate(-90deg); }
+
+.blog-loop-rounds {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 6px;
+  background: var(--bg);
+  color: var(--hi);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.blog-readers-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 32px;
+}
+
+.blog-reader-source {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.blog-reader-source strong { margin: 0; }
+
+.blog-reader-list {
+  position: relative;
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 16px;
+  margin: 0;
+}
+
+.blog-reader-list dd,
+.blog-js-comparison dd { margin: 0; }
+
+/* A single source joins the three reader panes. */
+.blog-reader-source::after,
+.blog-reader-list::before,
+.blog-reader-list > div::before,
+.blog-reader-list > div::after {
+  content: '';
+  position: absolute;
+}
+
+.blog-reader-source::after {
+  top: 50%;
+  right: -17px;
+  width: 16px;
+  border-top: 1px solid var(--hi);
+}
+
+.blog-reader-list::before {
+  top: calc((100% - 32px) / 6);
+  bottom: calc((100% - 32px) / 6);
+  left: -17px;
+  border-left: 1px solid var(--hi);
+}
+
+.blog-reader-list > div::before {
+  top: 50%;
+  left: -17px;
+  width: 16px;
+  border-top: 1px solid var(--hi);
+}
+
+.blog-reader-list > div::after {
+  top: 50%;
+  left: -7px;
+  width: 6px;
+  height: 6px;
+  border-top: 1px solid var(--hi);
+  border-right: 1px solid var(--hi);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.blog-js-comparison {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 11.5px;
+}
+
+.blog-js-comparison > span { color: var(--mut); }
+
+.blog-js-comparison dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  margin: 6px 0 0;
+}
+
+.blog-js-comparison dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1ch;
+}
+
+.blog-js-comparison dt { color: var(--hi); }
+
+.blog-photos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.blog-photo-label { margin-bottom: 6px; }
+
+.blog-photo-frame {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background: var(--raise);
+}
+
+.blog-photo-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 520px) {
+  .blog-figure-pane { padding: 10px; }
+  .blog-readers-grid,
+  .blog-photos { grid-template-columns: minmax(0, 1fr); }
+  .blog-readers-grid { gap: 24px; }
+  .blog-reader-source::after {
+    top: 100%;
+    right: auto;
+    left: 15px;
+    width: 0;
+    height: 25px;
+    border-top: 0;
+    border-left: 1px solid var(--hi);
+  }
+  .blog-reader-list { margin-left: 32px; }
+  .blog-reader-list::before { top: 0; }
 }
 
 .blog-keys {
@@ -347,8 +611,7 @@
   .blog-hints button,
   .blog-help-links a,
   .blog-help-links button,
-  .blog-back,
-  .blog-post-nav a {
+  .blog-back {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
@@ -372,5 +635,20 @@
   }
   .blog-grid > .blog-pane {
     grid-area: var(--area-1);
+  }
+
+  .blog-post-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .blog-post-nav a {
+    flex: none;
+  }
+
+  .blog-post-nav a + a {
+    margin-left: 0;
+    text-align: left;
   }
 }
