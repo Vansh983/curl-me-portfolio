@@ -532,6 +532,108 @@ const opening = STOPS[0];
   40%,55%{transform:rotate(-4deg)}}
   .bean-typing{animation:bean-typing 9.6s ease-in-out var(--bean-lag,0s) infinite}@keyframes bean-typing{0%,12%,22%,32%,58%,68%,78%,100%{transform:translateY(0)}
   17%,27%,63%,73%{transform:translateY(-1.1px)}}
+  /* Volta community keeps the approved mock's 8–12 second loops. */
+  :root[data-place='collect'] #me[data-activity='present'] .held-mic > :not(:last-child) { transform-origin: 11px 10px; animation: collect-mic 10s ease-in-out infinite; }
+  :root[data-place='collect'] #me[data-activity='present'] .held-mic > :last-child { transform-origin: 3px 10px; animation: collect-welcome 10s ease-in-out infinite; }
+  @keyframes collect-mic { 0%,18%,100% { transform: rotate(0); } 30%,66% { transform: rotate(-9deg); } }
+  @keyframes collect-welcome { 0%,15%,73%,100% { transform: rotate(0); } 30%,48% { transform: rotate(28deg); } 37%,43% { transform: rotate(18deg); } }
+  .collect-head{transform-origin:0 7px;animation:collect-head-turn 10s ease-in-out var(--collect-lag,0s) infinite}
+  @keyframes collect-head-turn{0%,20%,58%,100%{transform:rotate(0)}33%,43%{transform:rotate(-7deg)}74%,85%{transform:rotate(4deg)}}
+  .collect-typing{animation:collect-typing 8s ease-in-out var(--collect-lag,0s) infinite}@keyframes collect-typing{0%,12%,22%,32%,58%,68%,78%,100%{transform:translateY(0)}17%,27%,63%,73%{transform:translateY(-1.3px)}}
+  .collect-gesture{transform-origin:0 0;animation:collect-gesture 10s ease-in-out infinite}@keyframes collect-gesture{0%,15%,82%,100%{transform:rotate(0)}32%,62%{transform:rotate(125deg)}45%,50%{transform:rotate(115deg)}}
+  .collect-dusk{animation:collect-dusk 12s ease-in-out infinite}@keyframes collect-dusk{0%,100%{opacity:0}65%,89%{opacity:.68}}
+  .collect-city-lights{animation:collect-city-lights 12s ease-in-out infinite}@keyframes collect-city-lights{0%,18%,100%{opacity:.1}58%,88%{opacity:1}}
+  .collect-ring-glow{animation:collect-light 12s ease-in-out infinite}@keyframes collect-light{0%,100%{opacity:.65}55%,89%{opacity:1}}
+  .collect-ferry{animation:collect-ferry 12s linear infinite}@keyframes collect-ferry{0%{transform:translateX(-34px)}100%{transform:translateX(76px)}}
+  .collect-ripples{animation:collect-ripples 8s ease-in-out infinite}@keyframes collect-ripples{0%,100%{opacity:.35;transform:translateX(-3px)}50%{opacity:.85;transform:translateX(4px)}}
+  .collect-cloud{animation:collect-cloud 12s ease-in-out infinite}@keyframes collect-cloud{0%,100%{transform:translateX(-3px)}50%{transform:translateX(12px)}}
+  .collect-steam{animation:collect-steam 9s ease-in-out infinite}@keyframes collect-steam{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:.9;transform:translateY(-4px)}}
+  .collect-leaves{transform-box:fill-box;transform-origin:bottom center;animation:collect-leaves 10s ease-in-out infinite}@keyframes collect-leaves{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2deg)}}
+  .collect-code-line{animation:collect-code 8s ease-in-out var(--collect-lag,0s) infinite}@keyframes collect-code{0%,15%,100%{opacity:.45}35%,85%{opacity:1}}
+  .collect-pencil{transform-origin:16px 13px;animation:collect-pencil 8s ease-in-out infinite}@keyframes collect-pencil{0%,16%,44%,100%{transform:rotate(0)}24%,36%,64%,76%{transform:rotate(8deg)}}
+  .collect-solder{transform-origin:-8px 5px;animation:collect-solder 10s ease-in-out infinite}@keyframes collect-solder{0%,20%,100%{transform:rotate(-14deg)}36%,72%{transform:rotate(0)}}
+  .collect-talk-hand{transform-origin:0 0;animation:collect-conversation 10s ease-in-out infinite}.collect-conversation:nth-child(2n) .collect-talk-hand{animation-delay:-4s}
+  @keyframes collect-conversation{0%,15%,100%{transform:rotate(0)}29%,54%{transform:rotate(22deg)}37%,45%{transform:rotate(12deg)}76%,88%{transform:rotate(-9deg)}}
+  .collect-show-hand{transform-origin:0 0;animation:collect-showing 8s ease-in-out infinite}@keyframes collect-showing{0%,18%,100%{transform:rotate(0)}35%,72%{transform:rotate(18deg)}}
+  .collect-shared-laptop{transform-origin:237px 313px;animation:collect-show-laptop 8s ease-in-out infinite}@keyframes collect-show-laptop{0%,18%,100%{transform:rotate(0)}35%,72%{transform:rotate(-3deg)}}
+  .collect-community-door{transform-origin:28px 211px;animation:collect-open-door 12s ease-in-out infinite}@keyframes collect-open-door{0%,10%,84%,100%{transform:scaleX(1)}25%,72%{transform:scaleX(.19)}}
+  .collect-community-arrival.collect-first{animation:collect-enter-first 12s ease-in-out infinite}.collect-community-arrival.collect-second{animation:collect-enter-second 12s ease-in-out infinite}
+  @keyframes collect-enter-first{0%,7%{opacity:0;transform:translateX(-8px)}18%{opacity:1;transform:translateX(0)}64%,87%{opacity:1;transform:translateX(55px)}97%,100%{opacity:0;transform:translateX(55px)}}
+  @keyframes collect-enter-second{0%,27%{opacity:0;transform:translateX(-8px)}40%{opacity:1;transform:translateX(2px)}74%,87%{opacity:1;transform:translateX(42px)}97%,100%{opacity:0;transform:translateX(42px)}}
+  .collect-stride{transform-origin:0 0;animation:collect-stride 12s ease-in-out infinite}.collect-stride.collect-far{animation-name:collect-stride-back}.collect-swing{transform-origin:0 14px;animation:collect-stride-back 12s ease-in-out infinite}
+  @keyframes collect-stride{0%,10%,70%,100%{transform:rotate(0)}15%,29%,43%,57%{transform:rotate(15deg)}22%,36%,50%,64%{transform:rotate(-15deg)}}
+  @keyframes collect-stride-back{0%,10%,70%,100%{transform:rotate(0)}15%,29%,43%,57%{transform:rotate(-15deg)}22%,36%,50%,64%{transform:rotate(15deg)}}
+  /* Floqer's open rooms keep the mock's 8–12 second loops and larger rocket. */
+  .floqer-rear-head{transform-origin:0 8px;animation:floqer-head 10s ease-in-out var(--floqer-lag,0s) infinite}@keyframes floqer-head{0%,20%,100%{transform:rotate(0)}38%,58%{transform:rotate(-6deg)}75%,88%{transform:rotate(4deg)}}
+  .floqer-typing{animation:floqer-typing 8s ease-in-out var(--floqer-lag,0s) infinite}@keyframes floqer-typing{0%,12%,22%,32%,58%,68%,78%,100%{transform:translateY(0)}17%,27%,63%,73%{transform:translateY(-1.4px)}}
+  .floqer-code-scroll{animation:floqer-code 10s linear var(--floqer-lag,0s) infinite}@keyframes floqer-code{0%,12%{transform:translateY(0)}90%,100%{transform:translateY(-36px)}}
+  .floqer-request-line{stroke-dasharray:280;animation:floqer-requests 10s ease-in-out infinite}@keyframes floqer-requests{0%,6%,100%{stroke-dashoffset:280}68%,92%{stroke-dashoffset:0}}
+  .floqer-request-bar{animation:floqer-bars 10s ease-in-out var(--floqer-lag,0s) infinite}@keyframes floqer-bars{0%,8%,100%{transform:scaleY(.25)}70%,92%{transform:scaleY(1)}}
+  .floqer-note-travel{animation:floqer-notes 12s ease-in-out infinite}@keyframes floqer-notes{0%,12%,100%{transform:translateX(0)}30%,36%{transform:translateX(38px)}48%,54%{transform:translateX(76px)}66%,88%{transform:translateX(114px)}96%{opacity:0}0%,88%,100%{opacity:1}}
+  .floqer-night{animation:floqer-night 12s ease-in-out infinite}@keyframes floqer-night{0%,12%,100%{opacity:0}65%,88%{opacity:.65}}
+  .floqer-garden-bulb,.floqer-window-light{animation:floqer-lights 12s ease-in-out var(--floqer-lag,0s) infinite}@keyframes floqer-lights{0%,20%,100%{opacity:.15}60%,88%{opacity:1}}
+  .floqer-garden-leaves,.floqer-leaves{transform-box:fill-box;transform-origin:bottom center;animation:floqer-leaves 10s ease-in-out var(--floqer-lag,0s) infinite}@keyframes floqer-leaves{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2deg)}}
+  .floqer-pot-glow{animation:floqer-pot 12s ease-in-out var(--floqer-lag,0s) infinite}@keyframes floqer-pot{0%,12%,100%{opacity:.4}60%,88%{opacity:1}}
+  .floqer-steam{animation:floqer-steam 9s ease-in-out infinite}@keyframes floqer-steam{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:.9;transform:translateY(-4px)}}
+  .floqer-rocket-flight{animation:floqer-rocket-crossing 12s linear infinite;transform:translate(82px,216px) rotate(51deg)}
+  @keyframes floqer-rocket-crossing{0%{transform:translate(82.00px,216.00px) rotate(51.72deg);opacity:0}
+  2%{transform:translate(93.32px,207.51px) rotate(54.64deg);opacity:0.5}
+  4%{transform:translate(105.11px,199.68px) rotate(57.89deg);opacity:1}
+  6%{transform:translate(117.29px,192.48px) rotate(60.98deg);opacity:1}
+  8%{transform:translate(129.82px,185.90px) rotate(63.49deg);opacity:1}
+  10%{transform:translate(142.65px,179.91px) rotate(66.25deg);opacity:1}
+  12%{transform:translate(155.72px,174.48px) rotate(68.49deg);opacity:1}
+  14%{transform:translate(169.00px,169.59px) rotate(70.94deg);opacity:1}
+  16%{transform:translate(182.46px,165.21px) rotate(72.92deg);opacity:1}
+  18%{transform:translate(196.06px,161.29px) rotate(74.79deg);opacity:1}
+  20%{transform:translate(209.78px,157.82px) rotate(76.83deg);opacity:1}
+  22%{transform:translate(223.60px,154.77px) rotate(78.48deg);opacity:1}
+  24%{transform:translate(237.50px,152.11px) rotate(80.03deg);opacity:1}
+  26%{transform:translate(251.47px,149.81px) rotate(81.50deg);opacity:1}
+  28%{transform:translate(265.49px,147.86px) rotate(82.65deg);opacity:1}
+  30%{transform:translate(279.54px,146.23px) rotate(83.97deg);opacity:1}
+  32%{transform:translate(293.64px,144.91px) rotate(85.22deg);opacity:1}
+  34%{transform:translate(307.75px,143.86px) rotate(86.40deg);opacity:1}
+  36%{transform:translate(321.88px,143.09px) rotate(87.34deg);opacity:1}
+  38%{transform:translate(336.03px,142.57px) rotate(88.41deg);opacity:1}
+  40%{transform:translate(350.18px,142.29px) rotate(89.42deg);opacity:1}
+  42%{transform:translate(364.33px,142.24px) rotate(90.22deg);opacity:1}
+  44%{transform:translate(378.49px,142.41px) rotate(91.14deg);opacity:1}
+  46%{transform:translate(392.64px,142.77px) rotate(91.87deg);opacity:1}
+  48%{transform:translate(406.78px,143.34px) rotate(92.71deg);opacity:1}
+  50%{transform:translate(420.91px,144.08px) rotate(93.38deg);opacity:1}
+  52%{transform:translate(435.04px,145.01px) rotate(94.15deg);opacity:1}
+  54%{transform:translate(449.15px,146.10px) rotate(94.76deg);opacity:1}
+  56%{transform:translate(463.25px,147.35px) rotate(95.35deg);opacity:1}
+  58%{transform:translate(477.33px,148.76px) rotate(96.03deg);opacity:1}
+  60%{transform:translate(491.40px,150.32px) rotate(96.58deg);opacity:1}
+  62%{transform:translate(505.45px,152.02px) rotate(97.20deg);opacity:1}
+  64%{transform:translate(519.48px,153.86px) rotate(97.71deg);opacity:1}
+  66%{transform:translate(533.50px,155.83px) rotate(98.29deg);opacity:1}
+  68%{transform:translate(547.50px,157.92px) rotate(98.75deg);opacity:1}
+  70%{transform:translate(561.48px,160.09px) rotate(98.85deg);opacity:1}
+  72%{transform:translate(575.47px,162.28px) rotate(98.92deg);opacity:1}
+  74%{transform:translate(589.45px,164.48px) rotate(99.02deg);opacity:1}
+  76%{transform:translate(603.43px,166.72px) rotate(99.16deg);opacity:1}
+  78%{transform:translate(617.40px,168.99px) rotate(99.35deg);opacity:1}
+  80%{transform:translate(631.36px,171.32px) rotate(99.60deg);opacity:1}
+  82%{transform:translate(645.31px,173.72px) rotate(100.01deg);opacity:1}
+  84%{transform:translate(659.23px,176.25px) rotate(100.62deg);opacity:1}
+  86%{transform:translate(673.13px,178.96px) rotate(101.51deg);opacity:1}
+  88%{transform:translate(686.96px,181.95px) rotate(103.03deg);opacity:1}
+  90%{transform:translate(700.68px,185.41px) rotate(105.44deg);opacity:1}
+  92%{transform:translate(714.22px,189.53px) rotate(108.45deg);opacity:1}
+  94%{transform:translate(727.54px,194.33px) rotate(111.03deg);opacity:1}
+  96%{transform:translate(740.70px,199.54px) rotate(111.91deg);opacity:1}
+  98%{transform:translate(753.83px,204.81px) rotate(111.76deg);opacity:0.5}
+  100%{transform:translate(767.00px,210.00px) rotate(111.23deg);opacity:0}}
+  .floqer-rocket-flame{transform-origin:0 11px;animation:floqer-rocket-flame 12s ease-in-out infinite}
+  @keyframes floqer-rocket-flame{0%,100%{transform:scaleY(.75)}20%,60%{transform:scaleY(1)}40%,80%{transform:scaleY(.7)}}
+  .floqer-cloud{animation:floqer-cloud 12s ease-in-out infinite}@keyframes floqer-cloud{0%,100%{transform:translateX(-4px)}50%{transform:translateX(12px)}}
+  .floqer-beacon{animation:floqer-beacon 8s ease-in-out infinite}@keyframes floqer-beacon{0%,20%,40%,60%,80%,100%{opacity:1}10%,30%,50%,70%,90%{opacity:.2}}
+  .floqer-tram{animation:floqer-tram 12s linear infinite}@keyframes floqer-tram{0%{transform:translateX(800px)}20%{transform:translateX(737px)}60%{transform:translateX(659px)}82%{transform:translateX(635px)}100%{transform:translateX(490px)}}
+  .floqer-screen-light{animation:floqer-screen-light 12s ease-in-out infinite}@keyframes floqer-screen-light{0%,15%,100%{filter:brightness(.93)}60%,88%{filter:brightness(1.22)}}
+  .floqer-room-light{pointer-events:none;animation:floqer-room-light 12s ease-in-out infinite}.floqer-room-light.floqer-upper{animation-delay:-1s}.floqer-room-light.floqer-lower{animation-delay:-3s}@keyframes floqer-room-light{0%,18%,100%{opacity:0}45%,88%{opacity:.35}}
   [data-landmark='webcube'] { --wc-loop: 12s; }
   [data-landmark='webcube'] .wc-sky { animation: wc-sky var(--wc-loop) ease-in-out infinite; }
   [data-landmark='webcube'] .wc-city { animation: wc-city var(--wc-loop) ease-in-out infinite; }
@@ -578,6 +680,23 @@ const opening = STOPS[0];
     16.667%, 96.667% { opacity: 0; }
     100% { opacity: 1; }
   }
+  /* The solo convocation stage and the real graduate's existing props. */
+  .grad-curtain-left { transform-origin: 12px 20px; animation: grad-curtain 10s ease-in-out infinite; }
+  .grad-curtain-right { transform-origin: 388px 20px; animation: grad-curtain 9s ease-in-out -2.3s infinite reverse; }
+  .grad-stage-light { opacity: .22; transform-origin: 214px 34px; animation: grad-light 11s ease-in-out -1s infinite; }
+  #me[data-activity='graduate'] .held-degree > path:nth-of-type(5) {
+    transform-origin: 13px 0; animation: grad-tassel 9s ease-in-out infinite;
+  }
+  #me[data-activity='graduate'] .held-degree > path:nth-of-type(6) {
+    /* Tie the existing rolled degree with A's small black-edged gold bow. */
+    d: path('M12.2 13h.8v2.5h-.8Z M12.6 13C10.5 11 9.8 12.5 11 13Q12 13.5 12.6 13C14.4 10.8 15.5 12.2 14 12.7Z M12.3 13.1 11.4 16.3 12.2 15.9 12.7 16.5 12.9 13.2 14.2 15.8 13.3 15.5Z');
+    fill: #c4a156; stroke: #303d36; stroke-width: .15;
+    transform-origin: 12.6px 13px; animation: grad-bow 8.5s ease-in-out -2s infinite;
+  }
+  @keyframes grad-curtain { 0%, 100% { transform: skewX(-.25deg) scaleX(1); } 50% { transform: skewX(.45deg) scaleX(.97); } }
+  @keyframes grad-light { 0%, 100% { transform: rotate(-7deg); opacity: .16; } 50% { transform: rotate(7deg); opacity: .42; } }
+  @keyframes grad-tassel { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg); } }
+  @keyframes grad-bow { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(7deg); } }
   @keyframes jump {
     0%, 100% { translate: 0 0; }
     43% { translate: 0 -28px; }
@@ -624,6 +743,25 @@ const opening = STOPS[0];
     .graphic-view .intro p, .story-block p { font-size: 19px; line-height: 1.6; }
   }
   @media (prefers-reduced-motion: reduce) {
+    [data-landmark='floqer'] g { animation: none !important; }
+    .floqer-night { opacity: .48; }
+    .floqer-garden-bulb, .floqer-pot-glow, .floqer-window-light { opacity: 1; }
+    .floqer-request-line { stroke-dashoffset: 0; }
+    .floqer-request-bar { transform: none; }
+    .floqer-note-travel { transform: translateX(114px); }
+    .floqer-rocket-flight { transform: translate(440px,145px) rotate(98deg); opacity: 1; }
+    .floqer-rocket-flame { transform: scaleY(.75); }
+    .floqer-tram { transform: translateX(635px); }
+    .floqer-room-light { opacity: .22; }
+    [data-landmark='graduation'] g,
+    #me[data-activity='graduate'] .held-degree > path { animation: none !important; }
+    [data-landmark='collect'] g { animation: none !important; }
+    :root[data-place='collect'] #me .held-mic > * { animation: none !important; }
+    .collect-dusk { opacity: .4; }
+    .collect-city-lights { opacity: 1; }
+    .collect-community-door { transform: scaleX(.19); }
+    .collect-community-arrival.collect-first { opacity: 1; transform: translateX(55px); }
+    .collect-community-arrival.collect-second { opacity: 1; transform: translateX(42px); }
     [data-landmark='bean'] g { animation: none !important; }
     .bean-app-screen { opacity: 0; }
     .bean-app-0 { opacity: 1; }

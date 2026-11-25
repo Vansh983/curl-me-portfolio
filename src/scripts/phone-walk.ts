@@ -27,10 +27,17 @@ let anchors: number[] = [];
 // The opening's 20-unit landmark inset plus local x=112 leaves the walker
 // beside the Floqer door, clear of its step. ShiftKey uses A1's x=122 figure
 // origin, and Bean uses D's x=210 desk-side origin, each scaled with its room
-// plus the real walker's 22-unit half-width.
+// plus the real walker's 22-unit half-width. Volta keeps the mock host's
+// centre at local x=379.5, leaving both conversation pairs clear.
+// Graduation uses local x=90 on the stage, clear of the steps and wall text.
+// Floqer enters beside the empty desks; the final text anchor carries the walker
+// onto the pavement beyond the rooms, using WALK_END from the path data.
 const distances = [...stops.map(stop => stop.x + (stop.id === 'toronto-cafe' ? 132
   : stop.id === 'shiftkey' ? 20 + 122 * stop.scale + 22
-  : stop.id === 'bean' ? 20 + 210 * stop.scale + 22 : 100)), end];
+  : stop.id === 'bean' ? 20 + 210 * stop.scale + 22
+  : stop.id === 'collect' ? 20 + 379.5 * stop.scale
+  : stop.id === 'graduation' ? 20 + 90 * stop.scale + 22
+  : stop.id === 'floqer' ? 20 + 480 * stop.scale : 100)), end];
 let current = distances[0];
 let frame = 0;
 let lastTime = 0;

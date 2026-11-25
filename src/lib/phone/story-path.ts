@@ -21,9 +21,9 @@ const groups: Omit<PathStop, 'x' | 'paragraphs'>[] = [
   { id: 'university', name: 'Dalhousie', width: 610, scale: 1, gapBefore: 800, description: 'A low ironstone wall sign bearing the Dalhousie University crest and wordmark stands before the blue-glass Goldberg Computer Science Building. The building’s name is centred below its window grid, while three students with backpacks walk past in both directions.' },
   { id: 'shiftkey', name: 'ShiftKey Labs', width: 590, scale: 0.7, description: 'Vansh teaches with a pointer in a packed ShiftKey Labs lecture hall. Four tiers seat 24 students at laptops, while a late student enters beside a rainy window. The projector cycles through Generative AI, Cloud Computing, live code and github.com/shiftkey-labs pull requests. A handwritten whiteboard reads 200+ certified, Generative AI, Cloud Computing, open source, hackathons and AI2Market. The room has the ShiftKey mark, a clock, a lectern with a laptop and certificates, a recording camera, a trophy shelf, bags and coffee cups.' },
   { id: 'bean', name: 'Bean', width: 674, scale: 0.7, description: 'A Sydney harbour mark leads into the room where Vansh and Pankrit build Bean. Vansh holds his open laptop beside their desk, with two laptops, mugs and cables. A compact stove steams beneath a pantry shelf beside the Bean mark, a door and suitcase. The handwritten whiteboard maps pantry, recipes, the week and shopping, lists the launch checklist and reads $100k pre seed. A harbour window changes from day to evening as a ferry passes, with a #4 Product of the Day, Product Hunt card below. A large phone cycles Recipes, This week, Pantry and Shopping. A plane flies from Sydney and bounces through Vancouver, Toronto and Montréal.' },
-  { id: 'collect', name: 'Collect.', width: 440, scale: 1, description: 'Vansh presents with a microphone at Collect.’s Demo Day, with an audience under Volta’s ring lights and sloping windows.' },
-  { id: 'graduation', name: 'Graduation', width: 320, scale: 1, description: 'Vansh graduates from Dalhousie in 2026, wearing his cap and gown and carrying his computer science degree, just before the Floqer chapter.' },
-  { id: 'floqer', name: 'Floqer', width: 440, scale: 1, description: 'Floqer’s hacker house and Vansh’s work now. TechCrunch Disrupt is a small memento inside the same workspace.' },
+  { id: 'collect', name: 'Volta community', width: 552, scale: 0.65, description: 'Vansh hosts a community gathering at Volta with a microphone, beneath ring lights and sloping glass overlooking Halifax harbour. Builders work at shared tables, share a laptop, talk in pairs and arrive through the door. A small Collect. screen carries Socratica’s mark beside the Volta sign, with an Invest Nova Scotia Accelerate plaque, a ShiftKey lanyard and an AI2Market card in the room. The harbour turns to evening as a ferry passes.' },
+  { id: 'graduation', name: 'Graduation', width: 440, scale: 1, description: 'Vansh stands alone on the convocation stage in cap and gown, holding a rolled degree tied with a gold bow. Dalhousie University’s crest and wordmark hang above Computer Science and 2026. Green curtains move gently in warm stage light, beside a lectern, steps and a potted plant.' },
+  { id: 'floqer', name: 'Floqer', width: 420, scale: 0.68, description: 'Floqer’s open two-floor rooms. Upstairs, Vansh works from behind in a hoodie and headphones at two large monitors beside a small bed and a black floor lamp, with the Floqer logo on the inside wall. Downstairs, empty trestle desks and chairs face the garden, beside the foam F, a sticky-note whiteboard, sofa, bean bag, drink cases and one Floqer box. A stair and landing join the floors. The walker finishes on the ground just right of the rooms, in front of Toronto’s skyline. A rocket follows a dotted arc across the rooms and behind the CN Tower as night falls and a streetcar passes.' },
 ];
 
 let distance = 0;
@@ -33,9 +33,12 @@ export const STOPS: PathStop[] = groups.map(group => {
   distance += group.width;
   return stop;
 });
-// Empty pavement lets the last landmark and walker stop before the fixed links.
+// Floqer's skyline extends into the final pavement, leaving the fixed links
+// clear of its upstairs desk and inside logo without moving the links post.
 export const PATH_LENGTH = distance + 180;
-export const WALK_END = distance - 60;
+const floqer = STOPS.find(stop => stop.id === 'floqer')!;
+// The final text anchor ends on pavement beyond the room's x=594 right edge.
+export const WALK_END = floqer.x + 20 + 650 * floqer.scale;
 const university = STOPS.find(stop => stop.id === 'university')!;
 export const TRANSIT = { start: university.x - university.gapBefore!, end: university.x };
 
