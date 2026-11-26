@@ -79,14 +79,14 @@ export const DOLLY: DollyKey[] = [
   { q: ch(5.221), cam: [-3.35, 1.58, -0.7], look: [-3.4, 1.5, -4.2], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
   { q: ch(5.34), cam: [-3.4, 1.58, -2.9], look: [-3.6, 1.5, -6.4], fov: 72, set: 5 },
   { q: ch(5.466), cam: [-3.4, 1.58, -4.9], look: [-4.5, 1.4, -7.1], fov: 74, set: 5 }, // in the door: the rows ahead, the pair beside the door
-  { q: ch(5.564), cam: [-3.45, 1.55, -5.5], look: [-5.35, 1.3, -6.25], fov: 74, set: 5 }, // one step: the first row, turning to it
-  { q: ch(5.648), cam: [-3.85, 1.4, -5.57], look: [-6.25, 0.97, -5.12], fov: 74, set: 5 }, // into the row
-  { q: ch(5.697), cam: [-4.52, 1.18, -5.72], look: [-6.93, 0.72, -4.24], fov: 74, set: 5 }, // settling into the left seat
-  // Against the port glass: the bridge across the harbour, downtown, then the roofs beside Dalhousie.
-  { q: ch(5.746), cam: [-4.64, 1.09, -5.82], look: [-6.65, 0.63, -2.90], fov: 74, set: 5 },
-  { q: ch(5.788), cam: [-4.64, 1.09, -5.83], look: [-6.65, 0.54, -2.85], fov: 74, set: 5 },
-  { q: ch(5.837), cam: [-4.62, 1.09, -5.73], look: [-7.02, 0.36, -3.8], fov: 74, set: 5 },
-  { q: ch(5.942), cam: WINDOW_VIEW.cam, look: [-7.4, 0.46, -4.95], fov: 74, set: 5 },
+  { q: ch(5.564), cam: [-3.45, 1.55, -5.5], look: [-4.9, 1.3, -6.5], fov: 74, set: 5 }, // one step: the first row, turning to it
+  { q: ch(5.648), cam: [-3.85, 1.4, -5.5], look: [-5.7, 1.13, -6.43], fov: 74, set: 5 }, // into the row
+  { q: ch(5.697), cam: [-4.52, 1.18, -5.49], look: [-6.77, 0.82, -6.55], fov: 74, set: 5 }, // settling into the left seat
+  // Look slightly ahead through the port window as Halifax passes the row.
+  { q: ch(5.746), cam: [-4.63, 1.09, -5.50], look: [-7.03, 0.83, -6.60], fov: 74, set: 5 },
+  { q: ch(5.788), cam: [-4.64, 1.09, -5.51], look: [-7.44, 0.69, -6.41], fov: 74, set: 5 },
+  { q: ch(5.837), cam: [-4.64, 1.09, -5.52], look: [-7.45, 0.54, -6.17], fov: 74, set: 5 },
+  { q: ch(5.942), cam: WINDOW_VIEW.cam, look: [-7.4, 0.46, -5.99], fov: 74, set: 5 },
   { q: FLIGHT.end, ...WINDOW_VIEW, set: 5 },
   { q: PHONE.framed, ...WINDOW_VIEW, set: 5 },
   { q: ch(6.152), ...WINDOW_VIEW, set: 5, blend: 0 },

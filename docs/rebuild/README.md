@@ -76,3 +76,4 @@
 - [69. The left window seat](69-left-window-seat.md) Board on the left and keep the Halifax harbour and rooftops in view through the port window.
 - [70. Forward over Halifax](70-forward-flight.md) Fly forward from the left seat, with the bridge and rooftops passing toward the tail.
 - [71. A clear view of Halifax](71-clear-flight-window.md) Remove the wing, engine and visible light fixtures from the flight.
+- [72. Looking ahead from the left seat](72-forward-window-seat.md) Restore the gentle forward view through the window during the Halifax descent.

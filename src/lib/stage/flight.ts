@@ -26,8 +26,8 @@ export const COFFEE = { raise: ch(13.0), held: ch(13.12), down: ch(13.82), gone:
 export const DEGREE = { raise: ch(12.56 + TOUR_GAIN), held: ch(12.7 + TOUR_GAIN), crush: [ch(13.2 + TOUR_GAIN), ch(13.42 + TOUR_GAIN)] as [number, number], thrown: [ch(13.5 + TOUR_GAIN), ch(13.68 + TOUR_GAIN)] as [number, number] } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
-/** The window seat in the row by the door, looking out and a little down at the city. */
-export const WINDOW_VIEW = { cam: [-4.61, 1.08, -5.62] as [number, number, number], look: [-7.4, 0.62, -4.95] as [number, number, number], fov: 74 };
+/** The left seat by the door, looking a little ahead and down at the city as the phone comes up. */
+export const WINDOW_VIEW = { cam: [-4.63, 1.08, -5.53] as [number, number, number], look: [-7.4, 0.62, -5.99] as [number, number, number], fov: 74 };
 
 export function phoneAt(progress: number, reducedMotion = false) {
   const q = Number.isFinite(progress) ? progress : 0;

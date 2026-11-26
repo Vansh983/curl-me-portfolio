@@ -23,6 +23,7 @@ test('the descent: high and level at the start, low and level at the end, a bank
   for (let q = ch(5.746); q < PHONE.transfer; q += ch(0.01)) {
     const { cam, look } = dolly(q);
     assert.ok(leftWall < cam[0] && cam[0] < CABIN.seatsX[0] && look[0] < leftWall, 'seated inside the left window and looking through it');
+    assert.ok(look[2] < cam[2], 'the seated passenger looks toward the nose throughout the descent');
   }
   assert.equal(dolly(PHONE.raise).set, 5);
   assert.equal(dolly(ch(6.95)).set, 6);
