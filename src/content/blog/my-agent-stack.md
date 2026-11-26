@@ -1,25 +1,23 @@
 ---
-title: My agent harness
-description: I talk to Claude. It hands work to Codex. My laptop and phone connect to sessions running on my office PC and three Raspberry Pis.
+title: Where my agents run
+description: I moved my Claude and Codex sessions off my 16 GB MacBook and onto my office PC and three Raspberry Pis. Now I can close the laptop and carry on from my phone.
 pubDate: 2026-11-26
 tags: [agents, claude-code, codex]
 ---
 
 Every single day my 16 GB M2 MacBook Pro was crashing. I was running a bunch of Claude and Codex sessions in parallel. Sometimes even one multi-agent run would take down the whole laptop. Then I'd have to sit there and wait. It was very, very annoying.
 
-I had a few things to figure out.
+I already liked working with Claude and Codex. I wanted to keep doing that on the machines I already owned. I had a few things to figure out.
 
 - Where could I put the next job when my Mac was already full?
 - If I moved it, how would Claude remember what we'd already tried?
 - Could I close the laptop and pick up that same job from my phone?
 
-## How I run Claude and Codex
+## What was running on my Mac
 
-I'd already built an agent harness around the way I like to work. I talk to Claude about a change. Claude figures out what to hand to Codex. The harness includes the rules they follow, the skills they use and the machines where they can open my repos and run the code.
+Most of the time I talk to Fable in Claude Code. Sometimes I brainstorm with Opus. Once we agree on a change, Claude gives Codex the repo and a job to do.
 
-I usually brainstorm with Fable. Sometimes I use Opus for that. Once we agree on what to do, I want Codex reading the code, checking the docs and trying the change. Fable writes a brief for each independent job. It includes the repo, the rules that apply there and what I expect back.
-
-Say I want to make a display name optional in an API. I'd want to know where the backend sets it and what the frontend does if it's missing. Claude can start two read-only Codex runs with `codex exec`. The one looking at the frontend doesn't need to wait for the one reading the API.
+Say I want to make a display name optional. Fable can start two Codex sessions with `codex exec`. One checks where the API sets the name. The other reads the frontend to see what happens if it's missing. I'm still in the same chat with Fable. My Mac is already running three sessions.
 
 ```mermaid icons How I talk to Fable and how it delegates the work
 flowchart LR
@@ -34,9 +32,9 @@ flowchart LR
     Opus -->|"Verified findings"| Fable
 ```
 
-Both runs send their findings back to Claude. If the frontend answer is missing something, Claude can resume that same Codex session and ask it to follow the caller. Once we're ready to edit, parallel changes get separate Git worktrees. Codex runs the tests and type checks. Claude reads the results and the diff. From my side it's still the conversation where I asked about the display name.
+Once we're ready to edit, each parallel change gets its own Git worktree. Codex runs the tests and type checks there. The models run remotely. Those terminal sessions and test processes were all on my Mac.
 
-Opus reviews the PR with a skill I used to run in GitHub Actions. I'll write about that in a separate post.
+Opus reviews the PR with a skill I used to run in GitHub Actions. I'll get into the harness itself in another post, including the skills and the rules I give the agents.
 
 ## What I tried
 
@@ -44,7 +42,7 @@ Cloud VMs gave me somewhere to run more jobs. I was already paying for a few, th
 
 I tried Conductor and T3 Code. The bit I liked about T3 was that I could leave my sessions on one machine and get to them from another. I just didn't like using another interface. I was used to mine.
 
-By then the harness worked the way I wanted. I just needed somewhere else to run it. I started with the office PC. I call it Beast.
+I started with the office PC. I call it Beast.
 
 ## Beast had the repo. I wanted my conversation too.
 

@@ -1,13 +1,13 @@
-# Agent stack post
+# Agent infrastructure post
 
 [Working draft](../../src/content/blog/my-agent-stack.md) · [Local preview](http://127.0.0.1:4336/blog/my-agent-stack)
 
-The title is open. “My agent harness” is the working label.
+“Where my agents run” follows the sessions from the Mac to Beast and the Pis. The agent harness, including its skills and rules, is a separate post.
 
 ## Section review
 
 1. **Opening.** Keep the daily crashes and the three questions about capacity, context and using a phone.
-2. **How I run Claude and Codex.** Start with the harness Vansh wanted to keep. Follow an optional API field from his conversation with Fable through two independent Codex briefs, the returned findings, edits and tests.
+2. **What was running on my Mac.** Use the optional display name to show how one conversation with Fable starts two local Codex sessions. The worktrees and tests explain where the Mac's memory went.
 3. **What I tried.** Explain what the hosted alternatives offered and why Vansh kept his own interface before introducing Beast.
 4. **Beast had the repo. I wanted my conversation too.** Keep the real-path issue and the round-trip test. Git handles source and Syncthing handles agent state.
 5. **Picking it up from my phone.** Trace regular SSH over Tailscale into tmux, and Claude Remote Control into the same running session. Keep the actual away-from-home SSH failure and its resolution here.
