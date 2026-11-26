@@ -27,6 +27,7 @@ export const profile = {
 
 export const site = {
   url: 'https://vanshsood.com',
+  blogUrl: 'https://blog.vanshsood.com/',
   title: `${profile.name}`,
   description: `${profile.name}. ${profile.role}. ${profile.summary}`,
 } as const;

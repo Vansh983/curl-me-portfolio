@@ -3,6 +3,9 @@
   "framework": "astro",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/blog", "destination": "https://blog.vanshsood.com/", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",

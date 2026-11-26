@@ -1,8 +1,8 @@
 ---
 // Keeps the links fixed while the landscape moves behind their direction post.
-import { profile } from '../../data/profile';
+import { profile, site } from '../../data/profile';
 import { LINKS_POST_WOOD, LINKS_POST_BOARDS } from '../../lib/phone/artwork';
-const links = [{ label: 'Writing', href: '/blog' }, ...profile.links];
+const links = [{ label: 'Writing', href: site.blogUrl }, ...profile.links];
 ---
 
 <nav class="link-post" aria-label="Links">
