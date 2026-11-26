@@ -1,9 +1,11 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import { parseFrontmatter } from 'astro/markdown';
+import { satteri } from '@astrojs/markdown-satteri';
 import sitemap from '@astrojs/sitemap';
 import { readdirSync, readFileSync } from 'node:fs';
 import stageDelivery from './scripts/stage-delivery.mjs';
+import markdownMermaid from './scripts/markdown-mermaid.mjs';
 
 const blogDirectory = new URL('./src/content/blog/', import.meta.url);
 const blogLastmod = new Map(
@@ -39,6 +41,7 @@ export default defineConfig({
     optimizeDeps: { include: ['three/examples/jsm/exporters/GLTFExporter.js', 'three-mesh-bvh'] },
   },
   markdown: {
+    processor: satteri({ mdastPlugins: [markdownMermaid] }),
     // css-variables keeps code blocks on the brand tokens in both themes.
     shikiConfig: { theme: 'css-variables', wrap: true },
   },

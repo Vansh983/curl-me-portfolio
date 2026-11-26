@@ -59,6 +59,7 @@ Research for the new minimal portfolio (vanshsood.com). Direction: **very bold, 
 | [61-text-on-top.md](./61-text-on-top.md) | One homepage with shared text and tag rows: graphic below 1025px, switchable in-page 3D above; variant routes removed |
 | [62-one-door-home.md](./62-one-door-home.md) | Scope the graphic walker's held props; keep only the stair door between Floqer and home, with an open brick doorway and the passage sealed from the first frame |
 | [63-drawn-halifax.md](./63-drawn-halifax.md) | A flat OSM drawing beneath the aircraft, with mapped coast, streets, parks and footprints, warm haze and separate clouds; unchanged flight and cabin |
+| [64-agent-stack-post.md](./64-agent-stack-post.md) | Agent stack blog draft, section review and sources from Sandcrawler and Beast |
 
 ## The one-paragraph verdict
 
