@@ -1,11 +1,21 @@
 // The drawn OSM ground, in exactly the same metre frame as HALIFAX.campus and flight.ts.
-// Two 0.5 m/px tiles on the port side of the descent, one lower-resolution surround. They meet edge to edge;
+// Two 0.5 m/px tiles around Studley, one lower-resolution surround. They meet edge to edge;
 // no overlapping planes, polygon offset, invented terrain or camera-dependent movement.
 import map from './halifax-map.json' with { type: 'json' };
 import { Sink, type V3, type UV } from './rig.ts';
 import { piece, M } from './part.ts';
 
 export const FLIGHT_MAP = map;
+
+// The export faces 340°. Fly south along the peninsula, west of the bridge, with
+// Goldberg 120 m off the port side and 35 m ahead at the end of the descent.
+export const APPROACH_YAW = 183;
+const yaw = APPROACH_YAW * Math.PI / 180;
+export function flightPoint(mapX: number, mapZ: number): [number, number] {
+  const x = mapX - map.campus[0], z = mapZ - map.campus[1];
+  return [x * Math.cos(yaw) + z * Math.sin(yaw) - 120, -x * Math.sin(yaw) + z * Math.cos(yaw) - 35];
+}
+
 export function flightMap() {
   const r = map.heading * Math.PI / 180;
   const point = (e: number, n: number): V3 => [e * Math.cos(r) - n * Math.sin(r), 0, -(e * Math.sin(r) + n * Math.cos(r))];

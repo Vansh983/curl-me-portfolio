@@ -1,7 +1,7 @@
 // The world as data: twelve sets in a chain, each with its light, its shell and what stands in it.
 // Metres, y up. Spec: docs/rebuild/13-journey-real-spec.md; layout: 14-journey-real-plan.md.
 //
-//   Set 0 NOW      x -9.4..-4.2  z -3.4..2.2   h 2.8   the studio over Toronto; glass on z-, front door on z+ at x -5.45, the brick opening on x+ at z 1.6
+//   Set 0 NOW      x -8.9..-4.2  z -2.8..2.2   h 2.8   the Toronto studio with glass on z-, Enter on z+ at x -5.45 and Exit on x+ at z 1.6
 //   Passage        x -4.85..     z  2.2..4.3           north, 2.1 m, to the 2010 room
 //   Set 1 ROOM     x -9.15..-4.95 z 4.3..7.9   h 2.7   2010, Delhi; in from the south at x -5.45, out east at z 6.6
 //   Set 2 LAB      x -3.15..2.05 z  4.7..9.7   h 3.0   2013; in from the west at z 6.6, out south at x 1.4
@@ -14,7 +14,7 @@
 //   Set 9 TORONTO   the same walk  z -0.7..20.5        2025, Toronto in October: the streetcar, the tower, the lake
 //   Set 10 HALIFAX  the same walk  z 20.5..42          2026, Halifax in January at dusk, then Volta's room (x -16.6..-7.4, z 30..42)
 //   Set 11 CONVOCATION and Set 12 FLOQER               written about the old terrace door (z 24); they stand TOUR_SHIFT further north
-import { HALIFAX } from './halifax.ts';
+import { APPROACH_YAW, FLIGHT_MAP, flightPoint } from './flight-map.ts';
 import { ch, approach, TOUR_GAIN } from './shot.ts';
 import { WALK, CITY_AIR, TRACK, VOLTA_SHUT, VOLTA_VIEW, TORONTO_SKYLINE, SIGNS, voltaViewBridge, type Cue, type SkyName } from './walk.ts';
 import { hingeOff, type Door } from './door.ts';
@@ -53,6 +53,7 @@ export interface Placement {
   screen?: string; // optional painted content for a model's fitted display
   shut?: [number, number]; // live 'door': the stage progress over which it swings shut again, behind him
   door?: [number, number]; // live 'door': the stage progress over which the leaf swings 90 degrees anticlockwise (seen from above) from its placed rotation
+  oneWay?: true; // the return into the apartment: opens from the passage and closes once the walker clears the leaf
   drop?: [number, number, number]; // live 'drop': the stage progress over which the thing lowers, and by how many metres (the projection screen)
   cue?: Cue; // it arrives with the scroll (walk.ts): from an offset, a turn or a scale to where it is placed
   rise?: [number, number, number]; // it is built from the ground up over these chapters, in courses this many metres tall (the pixel whale, cube on cube)
@@ -89,7 +90,7 @@ export interface StageSet {
   also?: number[]; // sets kept in view beyond the neighbours: the promenade stands in set 8 and is walked through set 10
   sky?: SkyName; // an open-air set under one of the walk's skies (public/assets/stage/sky), its light from the walk's script
   at?: V3; // where the set's own frame stands in the world: its props, its shell and its bake are written about its own origin
-  bake?: { env: 'studio' | 'sky'; tint: StageSet['tint']; envPower: number; sun: SunSpec; view: { cam: V3; look: V3; fov: number } }; // the light the bake lights it by, when that is not the set's own: a room on the walk is lit by its lamps, not the walk's sky
+  bake?: { env?: 'studio' | 'sky'; tint?: StageSet['tint']; envPower?: number; sun?: SunSpec; view?: { cam: V3; look: V3; fov: number } }; // indoor lighting overrides for the bake; the surrounding scenery uses the set's daylight
 }
 
 
@@ -108,14 +109,19 @@ export const LECTURE_ROWS = Array.from({ length: 8 }, (_, i) => ({
 }));
 export const TOP_ROW = LECTURE_ROWS[LECTURE_ROWS.length - 1];
 /** Where the Goldberg building stands in the flight's ground frame (scripts/stage-halifax.mjs). */
-export const HALIFAX_CAMPUS: [number, number] = HALIFAX.campus;
+export const HALIFAX_CAMPUS = flightPoint(FLIGHT_MAP.campus[0], FLIGHT_MAP.campus[1]);
+function onApproach(x = 0, z = 0, yaw = 0): Pick<Placement, 'at' | 'rot' | 'live'> {
+  const [ax, az] = flightPoint(x, z);
+  return { at: [ax, 0, az], rot: [0, APPROACH_YAW + yaw, 0], live: 'flight' };
+}
 /** The cloud deck's height over Halifax, metres; flight.ts crosses it on the way down. */
-export const FLIGHT_DECK = 300;
+export const FLIGHT_DECK = 333;
+export const FLIGHT_SKY_YAW = 180;
 /**
  * The cabin: an Embraer 175, the regional jet on the Toronto to Halifax leg, 2 + 2 across a 0.5 m aisle, 31 inch pitch, the
  * interior 2.74 m wide and 2.0 m high at the crown. The aisle's centre at x -3.4; the door on the rear wall at z -4.8 where
  * the bridge meets it; four rows ahead of it, the front bulkhead at z -8.7. Windows every 0.52 m, 0.28 by 0.40 with rounded
- * corners, the sill at 0.8, the seated eye above it. He sits in the row by the door, the port window seat, the wing behind him.
+ * corners, the sill at 0.8, the seated eye above it. He sits in the row by the door, in the port window seat.
  */
 export const CABIN = {
   cx: -3.4, z: [-8.7, -4.8] as [number, number], half: 1.37, height: 2.08,
@@ -248,11 +254,11 @@ export const DOORS = {
   sydney: { w: 0.9, h: 2.05, depth: 0.12, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'swing' },
   volta: { w: 1.2, h: 2.1, depth: 0.22, case: 'doorPaint', leaf: 'voltaDoor', sill: 'windowFrame', pull: 'lever', faces: 'both' },
   floqer: { w: STAGE.door.w, h: STAGE.door.h, depth: FLOQER.z[0] - STAGE.door.z, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'lever', faces: 'both' },
-  home: { w: FLOQER.door.w, h: FLOQER.door.h, depth: 0.23, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'both' },
-  brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing', open: true }, // the cased opening into the apartment: no leaf
+  home: { w: FLOQER.door.w, h: FLOQER.door.h, depth: 0.23, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'both', open: true },
+  brick: { w: 0.9, h: 2.05, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'swing' },
   google: { w: GOOGLE.door.w, h: GOOGLE.door.h, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the 2020 room's south door, which Google's block shows on the lawn: the room's own frame lines the hole
   lab: { w: 0.9, h: 2.05, depth: 0.3, case: 'frameWood', leaf: 'frameWood', sill: 'frameWood', pull: 'lever', faces: 'none', bare: true }, // the lab's door onto the lawn, in the frame at its mouth: shut whenever he is in neither the lab nor the lawn, so from the 2010 room the lawn is never seen through two doorways (doc 50)
-  front: { w: 1.2, h: 2.4, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'none', open: true }, // where the apartment's passage meets its room: the passage's whole section, cased, no leaf
+  front: { w: 1.2, h: 2.4, depth: 0.1, case: 'doorDark', leaf: 'doorDark', sill: 'doorDark', pull: 'bar', faces: 'far' },
   rear: { w: 1.4, h: 2.2, depth: 0.3, case: 'doorPaint', leaf: 'doorPaint', sill: 'windowFrame', pull: 'bar', faces: 'swing' }, // the hall of 2022's back door, behind the top row: shut; the story came in by the phone
 } satisfies Record<string, Door>;
 /** The chapters over which the door out of Volta's room swings open: shut, it hides the hall behind it, which is not drawn until then. */
@@ -271,8 +277,6 @@ const shutDoorway = (name: keyof typeof DOORS, x: number, y: number, z: number, 
   const at: V3 = [x + hingeOff(DOORS[name]), y, z], n = name[0].toUpperCase() + name.slice(1);
   return [{ build: `doorCase${n}`, at, rot: [0, -90, 0] }, { build: `doorLeaf${n}`, at, rot: [0, -90, 0], live: 'door', cap }];
 };
-/** A cased opening in a wall that runs along x: the case alone. `z` is its north face. */
-const opening = (name: keyof typeof DOORS, x: number, y: number, z: number): Placement => ({ build: `doorCase${name[0].toUpperCase() + name.slice(1)}`, at: [x + hingeOff(DOORS[name]), y, z], rot: [0, -90, 0] });
 /** The bin backstage by the walk along the stage, where the degree goes. The hall's own frame. */
 export const STAGE_BIN: V3 = [WALK.x - 1.05, STAGE.height, 43.6];
 /**
@@ -292,7 +296,7 @@ export const SETS: StageSet[] = [
     // on the brick east wall, glass along the whole south side with the CN Tower in it. The walk
     // starts in the north-west corner looking across the room to the glass, turns on the spot to the
     // front door in the north wall and goes straight out. The journey comes back in at the end by the
-    // door in the brick: the passage east of it ends at the door at the top of Floqer's stair (world.ts).
+    // door in the brick. The passage east of it opens onto Floqer's stair landing (world.ts).
     id: 'now', env: 'studio', tint: { sky: '#4A5F8C', ground: '#1B1E2A', power: 0.07 }, exposure: 0.72, envPower: 0.035, baked: true,
     sun: { dir: [0.2, 0.45, -0.85], color: '#8FA6D6', power: 0.2, shadow: 0.7 },
     fog: { color: '#141826', near: 8, far: 40 },
@@ -301,7 +305,7 @@ export const SETS: StageSet[] = [
       floor: 'condoFloor', wall: 'condoWall', ceiling: 'condoCeiling',
       openings: [
         { wall: 'z+', at: -5.45, w: 1.2, h: 2.4 }, // the front door, north into the passage: the passage's whole section, which its case (DOORS.front) lines; a smaller hole showed this wall's back beside the case from the passage (leaks.mjs)
-        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the open, cased doorway in the brick
+        { wall: 'x+', at: 1.6, w: 0.9, h: 2.05 }, // the return door in the brick
         { wall: 'z-', at: (CONDO.x[0] + CONDO.x[1]) / 2, w: CONDO.glass, h: CONDO.h, sill: 0 }, // the glass, floor to ceiling
       ],
     },
@@ -321,18 +325,23 @@ export const SETS: StageSet[] = [
         // the lantern over the bed, on the ceiling: the model stands on its rose with its shade uppermost, so it is turned over and set
         // with the shade's back 5 mm into the ceiling, its hanger and cable above the slab (until 2026-09-27 the shade was in the ceiling, cut by it, and the rose hung in the air)
         { model: 'pendant_tense', at: [W + 1.8, CONDO.h + 0.905, bed], rot: [180, 0, 0], live: 'pendant' },
-        { model: 'steel_frame_shelves_01', at: [W + 0.28, 0, 1.42], rot: [0, 90, 0], scale: 0.1 }, // the scan is in centimetres
-        { model: 'book_encyclopedia_set_01', at: [W + 0.28, 0.98, 1.42], rot: [0, 90, 0], scale: 0.9 },
-        { model: 'book_encyclopedia_set_01', at: [W + 0.28, 1.5, 1.37], rot: [0, 90, 0], scale: 0.8 },
+        // The five steel shelves top out at 0.133, 0.639, 1.145, 1.651 and 2.130 m at this scale.
+        { model: 'steel_frame_shelves_01', at: [W + 0.28, 0, 1.42], rot: [0, 90, 0], scale: 0.1 },
+        { model: 'cardboard_box_01', at: [W + 0.26, 0.14, 1.63], rot: [0, 90, 0], scale: 0.8 },
+        { build: 'books', at: [W + 0.34, 0.639, 1.27] },
+        { model: 'book_encyclopedia_set_01', at: [W + 0.32, 1.145, 1.86], rot: [0, 90, 0] },
+        { model: 'book_encyclopedia_set_01', at: [W + 0.33, 1.651, 1.42], rot: [0, 90, 0], scale: 0.85 },
+        { build: 'tripPhotoSign', at: [W + 0.035, 1.793, 1.68], rot: [0, 90, 0], scale: 0.4 },
+        { model: 'potted_plant_01', at: [W + 0.28, 2.13, 1.21], rot: [0, 65, 0], scale: 0.36 },
         { model: 'potted_plant_01', at: [W + 0.45, 0, S + 0.3], scale: 0.9 },
         // the desk on the brick, by the glass
         { build: 'rugGrey', at: [-5.1, 0, desk] },
         { build: 'desk', at: [-4.58, 0, desk], rot: [0, -90, 0], cap: 'Building Floqer. Most days, most nights.', thing: 'floqerDesk' },
-        { build: 'deskHutch', at: [-4.34, 0.74, desk] },
-        { build: 'hutchLed', at: [-4.34, 0.74, desk] },
+        { build: 'deskHutch', at: [-4.34, 0.74, desk], rot: [0, 180, 0] }, // the back panel against the brick
+        { build: 'hutchLed', at: [-4.34, 0.74, desk], rot: [0, 180, 0] },
         { model: 'coffee_mug', at: [-4.7, 0.74, desk + 0.42], rot: [0, 40, 0] },
-        { build: 'books', at: [-4.34, 1.71, desk - 0.15], cap: 'The shelf. Mostly systems and design.' },
-        { build: 'books', at: [-4.34, 1.21, desk + 0.4] },
+        { build: 'books', at: [-4.34, 1.795, desk - 0.15], cap: 'The shelf. Mostly systems and design.' },
+        { build: 'books', at: [-4.34, 1.20, desk + 0.4] },
         { build: 'badge', at: [-4.5, 1.69, desk - 0.65], cap: 'Google Code-in 2018. Grand prize.', thing: 'award' },
         { build: 'monitor', at: [-4.56, 0.74, desk - 0.35], rot: [0, -100, 0], live: 'screen' },
         { build: 'monitorApp', at: [-4.56, 0.74, desk + 0.32], rot: [0, -80, 0], live: 'screen' },
@@ -345,13 +354,12 @@ export const SETS: StageSet[] = [
         { build: 'discLight', at: [mid, 2.8, 0.2], live: 'pendant' },
         { model: 'shoe_rack_modern', at: [-6.45, 0, 2.0], scale: 0.8 }, // by the front door, on its west side: the brick door's passage runs east of the door and wants its corner clear
         { build: 'passageDoor', at: [-4.85, 0, 2.2], rot: [0, -90, 0], scale: [0.7, 1, 1], live: 'bulb' }, // north from the front door, 2.1 m, to the 2010 room; an end wall round the door there
-        opening('front', -5.45, 0, 2.2 + DOORS.front.depth), // the passage's mouth on the room, cased: an edge where the two meet
+        { build: 'doorCaseFront', at: [-5.45 + hingeOff(DOORS.front), 0, 2.2 + DOORS.front.depth], rot: [0, -90, 0] },
+        { build: 'doorLeafFront', at: [-5.45 + hingeOff(DOORS.front), 0, 2.2 + DOORS.front.depth], rot: [0, -4, 0], live: 'door' }, // parked against the passage wall, open into the story
         { build: 'doorCaseBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0] }, // the door in the brick: the way home (world.ts), its case
-        { build: 'passageHome', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // east from the brick door, 1.8 m: at its end, the door at the top of Floqer's stair, his own front door; a wall round each door's hole
-        // The same stair door, at its unchanged world pose. Load/draw it with the passage so its closed leaf is there
-        // from the opening frame, even while Floqer's house is hidden outside the apartment's glass.
+        { build: 'doorLeafBrick', at: [-4.2, 0, 1.6 + hingeOff(DOORS.brick)], rot: [0, 180, 0], live: 'door', oneWay: true, door: [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], shut: [ch(19.06), ch(19.18)], cap: 'His own front door.' },
+        { build: 'passageHome', at: [-4.2, 0, 1.0], scale: [0.6, 1, 1], live: 'bulb' }, // 1.8 m from the brick door to the open case on the stair landing
         { build: 'doorCaseHome', at: [CONDO.x[1] + 1.8, 0, 1.6 + hingeOff(DOORS.home)], rot: [0, -180, 0] },
-        { build: 'doorLeafHome', at: [CONDO.x[1] + 1.8, 0, 1.6 + hingeOff(DOORS.home)], rot: [0, -180, 0], live: 'door', door: [ch(16.5 + TOUR_GAIN), ch(16.68 + TOUR_GAIN)], shut: [ch(18.8), ch(18.94)], cap: 'His own front door.' },
       ];
     })(),
   },
@@ -549,10 +557,11 @@ export const SETS: StageSet[] = [
     ],
   },
   {
-    // 2022, the crossing: the jet bridge, the cabin, the port window seat; Halifax 400 m down in afternoon sun, hazed with distance
+    // 2022, the crossing: the jet bridge, the cabin, the port window seat, the descent over Halifax
     id: 'flight', env: 'studio', baked: true,
     tint: { sky: '#D8E8F2', ground: '#B8BCC0', power: 0.4 }, exposure: 0.8, envPower: 0.5,
-    sun: { dir: [0.55, 0.7, 0.45], color: '#FFF8EE', power: 2.4, shadow: 0.7 },
+    sun: { dir: [-0.55, 0.7, -0.45], color: '#FFF8EE', power: 2.4, shadow: 0.7 },
+    bake: { sun: { dir: [0.55, 0.7, 0.45], color: '#FFF8EE', power: 0.4, shadow: 0.7 } }, // soft daylight in the cabin keeps the port window surround in shade
     fog: { color: '#C9D9E4', near: 700, far: 5200 },
     props: [
       { build: 'boardingPassage', at: [0, 0, 0] },
@@ -562,14 +571,16 @@ export const SETS: StageSet[] = [
       // the moving map on the back of every seat that has a row behind it, and on the front bulkhead
       ...CABIN.rows.slice(1).flatMap((z) => CABIN.seatsX.map((x): Placement => ({ build: 'seatScreen', at: [x, 1.06, z + 0.34], live: 'screen' }))),
       { build: 'bulkheadScreen', at: [CABIN.cx, 1.45, CABIN.z[0] + 0.03], live: 'screen', cap: 'Delhi to Halifax, 2022. The descent over the peninsula.' },
-      { build: 'aircraftWing', at: [0.43, 0, 6.4] }, // the root at the new wall, the wing and its engine behind the door: the rows are ahead of it, as an E175's front rows are
-      { build: 'flightSky', at: [0, 0, 0], live: 'flight', shadow: false },
+      { build: 'flightSky', at: [0, 0, 0], rot: [0, FLIGHT_SKY_YAW, 0], live: 'flight', shadow: false },
       // the world under the aircraft: it sinks and slides with the descent (flight.ts), rolls with the bank
-      { build: 'halifaxMap', at: [0, 0, 0], live: 'flight', shadow: false, cap: 'Halifax. The peninsula, harbour, bridges and Studley campus, including the Goldberg footprint. Drawn from OpenStreetMap.', href: '/assets/stage/FLIGHT-CREDITS.md' },
+      { build: 'halifaxMap', ...onApproach(), shadow: false, cap: 'Halifax Harbour and the peninsula.', href: '/assets/stage/FLIGHT-CREDITS.md' },
+      { build: 'halifax', ...onApproach(), shadow: false },
+      { build: 'dalhousie', ...onApproach(), shadow: false },
+      { model: 'dalhousie_campus', ...onApproach(FLIGHT_MAP.campus[0], FLIGHT_MAP.campus[1], 90) },
+      // Centre and bearing of the mapped span, from OSM road ways 4947555 and 465322588.
+      { build: 'macdonaldBridge', ...onApproach(930, -2576, 37), shadow: false },
       { build: 'cloudField', at: [0, 0, 0], live: 'flight', shadow: false },
       { build: 'halifaxSign', at: [-2.735, 2.0, -3.6], rot: [0, -90, 0], live: 'screen', cap: '2022. Leaving Delhi for Halifax, Canada.' },
-      ...[-1.8, 0.5].map((z): Placement => ({ build: 'discLight', at: [-3.35, 2.4, z], live: 'pendant', scale: 0.65 })), // the bridge's two; the cabin's light is its own strips
-      { build: 'discLight', at: [-3.3, 2.4, 1.6], live: 'pendant', scale: 0.65 }, // the first section of the bridge, by the Delhi door
     ],
   },
   {
@@ -824,7 +835,7 @@ export const SETS: StageSet[] = [
     // 2025 to now, Toronto: Floqer's hacker house, straight on from the stage through the back of the hall. Bigger than the
     // Bean one and messier: the T of tables with the monitors back to back and the team at them, the whiteboards, the boxes,
     // suitcase and mattresses of a rented place people ship from, the mark on the brick, downtown Toronto out of the west
-    // windows, and the stair up the east wall to a door: his apartment.
+    // windows, and the stair up the east wall to the apartment's return passage.
     id: 'floqer', at: [0, 0, TOUR_SHIFT], outlook: true, env: 'studio', tint: { sky: '#DCE6F0', ground: '#6E5E4E', power: 0.4 }, exposure: 0.95, envPower: 1.0, baked: true, bakedEnvironment: true, // envPower 1: the room's own panorama is the environment (set12_env.webp), at its baked brightness
     sun: { dir: [-0.75, 0.55, 0.3], color: '#FFE4BE', power: 2.0, shadow: 0.85 },
     fog: { color: '#C9D7E3', near: 400, far: 9000 }, // the skyline stands 3 km off: in the day's haze, not lost in it
@@ -833,7 +844,7 @@ export const SETS: StageSet[] = [
       floor: 'condoFloor', wall: 'sydneyWall', ceiling: 'delhiCeiling',
       openings: [
         { wall: 'z-', at: STAGE.door.x, w: STAGE.door.w, h: STAGE.door.h, door: true }, // in from the hall, through its door, heading north
-        { wall: 'z+', at: FLOQER.door.x, w: FLOQER.door.w, h: FLOQER.door.h, sill: FLOQER.stair.n * FLOQER.stair.rise, door: true }, // the door at the top of the stair: raised, so the bake must be told it is not a window
+        { wall: 'z+', at: FLOQER.door.x, w: FLOQER.door.w, h: FLOQER.door.h, sill: FLOQER.stair.n * FLOQER.stair.rise, door: true }, // mark the raised opening on the landing as a doorway for the bake
         ...WINDOW_Z.map((z) => ({ wall: 'x-' as const, at: z, w: 4.4, h: 2.0, sill: 0.55 })), // the windows on the street: wide and tall, so the city stands whole in them (they were 3.2 by 1.55 and he could not see it properly)
       ],
     },
@@ -898,9 +909,8 @@ export const SETS: StageSet[] = [
         out.push({ build: 'foamMark', at: [FLOQER.x[1] - 0.01, F + 0.6, Z + 7.1], rot: [0, -90, 0], cap: 'The F, in acoustic foam tiles, as it hangs in the house.', thing: 'foamF' });
         // the whiteboard on wheels, thick with sticky notes, against the brick past the mark, where he walks by it on the way to the stair
         out.push({ build: 'rollingWhiteboard', at: [-8.3, F, FLOQER.z[1] - 1.0], rot: [0, -142, 0], live: 'screen', cap: 'The whiteboard on wheels: to do, failed, passed, prod.', thing: 'rollingBoard' });
-        // the stair up the east wall, straight at the door in the north wall, its rail on the open side, a light over it; the landing behind the door
+        // The stair climbs the east wall to the open landing. Set 0 owns the passage and its door in the apartment's brick wall.
         out.push({ build: 'stairFlight', at: [FLOQER.stair.x, F, FLOQER.stair.z0], cap: 'The stair up to his door.' });
-        // The door at the top of this stair is drawn with the apartment's passage (set 0), at the same world pose.
         out.push({ build: 'discLight', at: [FLOQER.stair.x, F + 3.6, FLOQER.stair.z0 + 1.2], live: 'pendant' });
         // a house people ship from: boxes still packed, a suitcase, a bin bag, a crate, the shoes by the door, cases of drinks against the wall, a torchiere in the corner
         out.push({ model: 'cardboard_box_01', at: [-15.0, F, Z + 0.9], rot: [0, 12, 0] });

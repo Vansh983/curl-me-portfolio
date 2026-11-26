@@ -140,19 +140,23 @@ test('the walk stands in the Vancouver set; nothing stands on the walk or on the
   assert.ok(Math.abs(STAGE_SPAN - 19.2) < 1e-9);
 });
 
-test('the end is walked: the door at the top of Floqer\'s stair is the far end of the passage behind the apartment\'s brick door, and the story ends in the room it began in', () => {
+test('the walk returns from Floqer’s stair through the one-way door in the apartment', () => {
   assert.ok(!DOLLY.some((k) => k.portal && k.set === 0), 'no cut into the apartment');
   assert.equal(DOLLY.filter((k) => k.portal && k.blend !== undefined).length, 1, 'the phone is the only portal between two sets');
   const last = DOLLY[DOLLY.length - 1];
   assert.equal(last.set, 0);
   assert.ok(last.cam[0] > -8.9 && last.cam[0] < -4.2 && last.cam[2] > -2.8 && last.cam[2] < 2.2, `inside the apartment: ${last.cam}`);
-  // every set stands in one place: the apartment where the story began, Floqer's door at the brick passage's end, opening west into it
+  // The apartment stays where the story began. The stair landing meets the far end of its return passage.
   assert.deepEqual(POSES[0].at, [0, 0, 0]);
   const door = toWorld(12, [FLOQER.door.x, FLOQER.floor + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + 0.23 + TOUR_SHIFT]);
   assert.ok(Math.abs(door[0] - (BRICK.x + BRICK.length)) < 1e-9 && Math.abs(door[1]) < 1e-9 && Math.abs(door[2] - BRICK.z) < 1e-9, `${door}`);
   const north = turnDir(12, [0, 0, 1]);
   assert.ok(Math.abs(north[0] + 1) < 1e-9 && Math.abs(north[2]) < 1e-9, 'the house\'s north is the world\'s west');
   assert.ok(!SETS[0].props.some((p) => p.build === 'doorLeaf'), 'no white leaf in the apartment');
-  assert.ok(SETS[0].props.some((p) => p.build === 'doorLeafHome') && !SETS[12].props.some((p) => p.build === 'landing'));
+  const enter = SETS[0].props.find((p) => p.build === 'doorLeafFront')!;
+  assert.ok(enter && !enter.door && Math.abs(enter.rot![1]) < 5, 'the story entrance stands open down the passage');
+  const exit = SETS[0].props.find((p) => p.build === 'doorLeafBrick')!;
+  assert.ok(exit.oneWay && exit.at[0] === BRICK.x && exit.door && exit.shut, 'the only return leaf is at the room itself');
+  assert.ok(!SETS[0].props.some((p) => p.build === 'doorLeafHome') && !SETS[12].props.some((p) => p.build === 'landing'));
   assert.ok(STAGE_BIN[2] > STAGE.centre + 6 && STAGE_BIN[0] < WALK.x - 0.6, 'the bin backstage, off the walk on its right');
 });

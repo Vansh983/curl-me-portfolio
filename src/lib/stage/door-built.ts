@@ -5,6 +5,15 @@ import { piece, M, type BuiltPart } from './part.ts';
 import { CASE, clear, type Door } from './door.ts';
 import { DOORS } from './sets.ts';
 
+/** The apartment's two enamel plates, at eye height and legible from the room. */
+function routePlate(word: 'Enter' | 'Exit', x: number, z: number, facing: -1 | 1): BuiltPart {
+  const w = 0.33, h = 0.125, y = 1.55;
+  const board = new Sink().rbox(x + facing * 0.006, y, z, 0.012, h + 0.008, w + 0.008, 0.004, 1);
+  const front = x + facing * 0.013, l = z + facing * w / 2, r = z - facing * w / 2;
+  const enamel = new Sink().quad([front, y - h / 2, l], [front, y - h / 2, r], [front, y + h / 2, r], [front, y + h / 2, l], [[0, 0], [1, 0], [1, 1], [0, 1]]);
+  return [piece(board.out(), M('doorDark'), { smooth: true }), piece(enamel.out(), { paint: 'door' + word })];
+}
+
 /** The case: the lining through the wall, the architraves on its faces, the stop, the threshold with its bar under the leaf. */
 function doorCase(d: Door): BuiltPart {
   const { lining: t, arch, stop, sill, leaf: T } = CASE, { w: cw, h: ch } = clear(d), D = d.depth, xm = -D / 2;
@@ -22,7 +31,9 @@ function doorCase(d: Door): BuiltPart {
   // the threshold lies over the joint of the two floors, a little into each room; its bar stands under the leaf's far face
   floor.box(xm, (sill - 0.02) / 2, cw / 2, D + 0.05, sill + 0.02, cw);
   if (!d.open) floor.box(sx, sill + 0.005, cw / 2, stop.w, 0.01, cw - 2 * stop.t);
-  return [piece(through.out(), M(d.case), { metres: 'xy' }), piece(faces.out(), M(d.case), { smooth: true, metres: 'zy' }), piece(floor.out(), M(d.sill))];
+  const parts = [piece(through.out(), M(d.case), { metres: 'xy' }), piece(faces.out(), M(d.case), { smooth: true, metres: 'zy' }), piece(floor.out(), M(d.sill))];
+  if (d === DOORS.front) parts.push(...routePlate('Enter', -D, -0.32, -1));
+  return parts;
 }
 
 /** The leaf, cut to the case: shut it lies along +z from the hinge, its face on the plane the case's face is on. */
@@ -38,12 +49,15 @@ function doorLeaf(d: Door): BuiltPart {
     }
   } else {
     for (const s of [1, -1]) {
+      if (d === DOORS.brick && s > 0) continue; // the return door has no pull inside the apartment
       const x = s > 0 ? 0 : -T; // a long bar on two standoffs
       pull.rbox(x + s * 0.045, 1.08, zl, 0.02, 0.56, 0.02, 0.007, 2);
       for (const y of [0.88, 1.28]) pull.rbox(x + s * 0.02, y, zl, 0.04, 0.014, 0.014, 0.004, 1);
     }
   }
-  return [piece(leaf.out(), M(d.leaf), { smooth: true, metres: 'zy' }), piece(pull.out(), M('chrome'), { smooth: true })];
+  const parts = [piece(leaf.out(), M(d.leaf), { smooth: true, metres: 'zy' }), piece(pull.out(), M('chrome'), { smooth: true })];
+  if (d === DOORS.brick) parts.push(...routePlate('Exit', 0, zc, 1));
+  return parts;
 }
 
 const named = (k: string): string => k[0].toUpperCase() + k.slice(1);

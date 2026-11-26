@@ -74,20 +74,20 @@ const aisle = (z: number, dy = 0): V3 => [AUDITORIUM.aisleX, aisleHeight(z) + 1.
 export const DOLLY: DollyKey[] = [
   ...APPROACH.map((k) => ({ ...k, q: approach(k.q) })),
   // 2022, leaving: west out of the Delhi room into the passage, left down the jet bridge, through the cabin door,
-  // one step up the aisle and into the port window seat of the row by the door
+  // one step up the aisle and left into the window seat of the row by the door
   { q: ch(5.081), cam: [-3.3, 1.58, 1.6], look: [-4.55, 1.5, -1.0], fov: 70, set: 5, blend: 1 }, // mid passage, the bridge opening on the left
   { q: ch(5.221), cam: [-3.35, 1.58, -0.7], look: [-3.4, 1.5, -4.2], fov: 70, set: 5 }, // down the bridge: the cabin door ahead
   { q: ch(5.34), cam: [-3.4, 1.58, -2.9], look: [-3.6, 1.5, -6.4], fov: 72, set: 5 },
   { q: ch(5.466), cam: [-3.4, 1.58, -4.9], look: [-4.5, 1.4, -7.1], fov: 74, set: 5 }, // in the door: the rows ahead, the pair beside the door
-  { q: ch(5.564), cam: [-3.45, 1.55, -5.5], look: [-4.9, 1.3, -6.5], fov: 74, set: 5 }, // one step: the first row, turning to it
-  { q: ch(5.648), cam: [-3.75, 1.5, -5.5], look: [-5.3, 1.25, -6.1], fov: 74, set: 5 }, // into the row
-  { q: ch(5.697), cam: [-4.15, 1.32, -5.5], look: [-6.4, 0.9, -6.3], fov: 74, set: 5 }, // sitting; the descent begins
-  // the descent: out and down over the Arm, the cloud deck, the campus abeam; the wing's leading edge behind the shoulder
-  { q: ch(5.746), cam: WINDOW_VIEW.cam, look: [-6.8, 0.85, -6.6], fov: 74, set: 5 }, // seated: the cloud tops ahead
-  { q: ch(5.788), cam: WINDOW_VIEW.cam, look: [-7.2, 0.8, -6.4], fov: 74, set: 5 }, // down toward the deck
-  { q: ch(5.837), cam: [-4.5, 1.22, -5.55], look: [-7.4, 0.6, -5.5], fov: 74, set: 5 }, // leaning to the glass through the deck
-  { q: ch(5.942), cam: [-4.48, 1.23, -5.54], look: [-7.35, 0.62, -6.05], fov: 74, set: 5 }, // clear air: the Arm, the peninsula, the campus sliding in from ahead
-  { q: FLIGHT.end, cam: WINDOW_VIEW.cam, look: [-7.4, 0.55, -5.65], fov: 74, set: 5 }, // the campus abeam: the Hicks tower, the Killam, the quad
+  { q: ch(5.564), cam: [-3.45, 1.55, -5.5], look: [-5.35, 1.3, -6.25], fov: 74, set: 5 }, // one step: the first row, turning to it
+  { q: ch(5.648), cam: [-3.85, 1.4, -5.57], look: [-6.25, 0.97, -5.12], fov: 74, set: 5 }, // into the row
+  { q: ch(5.697), cam: [-4.52, 1.18, -5.72], look: [-6.93, 0.72, -4.24], fov: 74, set: 5 }, // settling into the left seat
+  // Against the port glass: the bridge across the harbour, downtown, then the roofs beside Dalhousie.
+  { q: ch(5.746), cam: [-4.64, 1.09, -5.82], look: [-6.65, 0.63, -2.90], fov: 74, set: 5 },
+  { q: ch(5.788), cam: [-4.64, 1.09, -5.83], look: [-6.65, 0.54, -2.85], fov: 74, set: 5 },
+  { q: ch(5.837), cam: [-4.62, 1.09, -5.73], look: [-7.02, 0.36, -3.8], fov: 74, set: 5 },
+  { q: ch(5.942), cam: WINDOW_VIEW.cam, look: [-7.4, 0.46, -4.95], fov: 74, set: 5 },
+  { q: FLIGHT.end, ...WINDOW_VIEW, set: 5 },
   { q: PHONE.framed, ...WINDOW_VIEW, set: 5 },
   { q: ch(6.152), ...WINDOW_VIEW, set: 5, blend: 0 },
   { q: PHONE.transfer, ...CLASSROOM_VIEW, set: 6, blend: 1, portal: true },
@@ -237,17 +237,17 @@ function walk(): DollyKey[] {
   keys.push(K(15.68 + T, P(-11.1, E, Z0 + 9.3), P(-7.3, E, Z0 + 9.8), 12));
   keys.push(K(15.86 + T, P(-8.8, E, Z0 + 9.25), P(-5.0, E + 0.1, Z0 + 9.5), 12)); // the stair ahead on the east wall
   keys.push(K(16.04 + T, P(-6.5, E, Z0 + 8.7), P(ST.x, E + 0.3, ST.z0 + 1.4), 12)); // turning to it
-  keys.push(K(16.18 + T, P(ST.x, E, ST.z0 - 0.7), P(ST.x, E + 0.9, Z1), 12)); // its foot: the door at the top, straight ahead
+  keys.push(K(16.18 + T, P(ST.x, E, ST.z0 - 0.7), P(ST.x, E + 0.9, Z1), 12)); // the foot of the stair, looking up to the landing
   keys.push(K(16.32 + T, P(ST.x, SY(ST.z0 + 0.9), ST.z0 + 0.9), P(ST.x, SY(ST.z0 + 0.9) + 0.6, Z1), 12)); // climbing
-  keys.push(K(16.48 + T, P(ST.x, SY(Z1 - 0.9), Z1 - 0.9), P(ST.x, SY(Z1 - 0.9) - 0.1, Z1 + 0.2), 12)); // the top step: his door, opening
-  keys.push(K(16.62 + T, P(ST.x, SY(Z1 - 0.4), Z1 - 0.4), P(ST.x, SY(Z1 - 0.4) - 0.12, Z1 + 1.6), 12)); // the door open, the passage beyond
+  keys.push(K(16.48 + T, P(ST.x, SY(Z1 - 0.9), Z1 - 0.9), P(ST.x, SY(Z1 - 0.9) - 0.1, Z1 + 0.2), 12)); // the top step
+  keys.push(K(16.62 + T, P(ST.x, SY(Z1 - 0.4), Z1 - 0.4), P(ST.x, SY(Z1 - 0.4) - 0.12, Z1 + 1.6), 12)); // looking along the passage to his opening door
   keys.push(K(16.72 + T, P(ST.x, SY(Z1 - 0.1), Z1 - 0.1), P(ST.x, SY(Z1 - 0.1) - 0.1, Z1 + 2.4), 12, { blend: 0 })); // the jamb
-  // home: west along the passage behind the apartment's brick door and in through it, to where the room is all in view, and the
-  // story stops. The apartment stands where the story began (world.ts): these keys are in the world's own frame
+  // Step through the brick doorway, then turn past the bookcase and window toward the two screens on the desk.
   keys.push(K(16.84 + T, [-3.3, 1.58, 1.6], [-6.6, 1.45, 1.35], 0, { blend: 1 })); // in the passage
-  keys.push(K(16.96 + T, [-4.25, 1.58, 1.6], [-7.3, 1.4, 0.7], 0)); // the door in the brick
-  keys.push(K(17.1 + T, [-4.8, 1.58, 1.52], [-7.6, 1.3, 0.1], 0)); // home: the bed, the glass, the desk
-  keys.push(K(17.2 + T, [-4.8, 1.58, 1.52], [-7.6, 1.3, 0.1], 0)); // and the story stops here
+  keys.push(K(16.96 + T, [-4.36, 1.58, 1.6], [-7.28, 1.43, 0.22], 0));
+  keys.push(K(17.04 + T, [-5.04, 1.58, 1.45], [-6.98, 1.37, -1.0], 0));
+  keys.push(K(17.12 + T, [-5.7, 1.58, 1.16], [-5.92, 1.31, -1.93], 0));
+  keys.push(K(17.2 + T, [-6.22, 1.58, 0.84], [-5.48, 1.38, -1.91], 0));
   return keys;
 }
 

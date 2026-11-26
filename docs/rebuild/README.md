@@ -72,3 +72,7 @@
 - [64. Stop the 3D text at the bottom](64-3d-text-stop.md) Pin the final text while the remaining scroll finishes the unchanged 3D journey.
 - [65. Links signpost](65-links-signpost.md) Put the approved Mixed links post over the graphic walk, with empty ground at the end and no footer links.
 - [66. The local 3D loading failure](66-local-3d-loading.md) Trace the startup failure to Vite's dependency cache and check the last three graphic scenes.
+- [68. The apartment doors and the approach to Halifax](68-apartment-and-halifax.md) Mark the way into the story, return to the desk, detail the Toronto landmarks and descend past the bridge and rooftops in Halifax.
+- [69. The left window seat](69-left-window-seat.md) Board on the left and keep the Halifax harbour and rooftops in view through the port window.
+- [70. Forward over Halifax](70-forward-flight.md) Fly forward from the left seat, with the bridge and rooftops passing toward the tail.
+- [71. A clear view of Halifax](71-clear-flight-window.md) Remove the wing, engine and visible light fixtures from the flight.

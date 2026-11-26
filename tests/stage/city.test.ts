@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Sink, earcut } from '../../src/lib/stage/rig.ts';
-import { CITY, cityBlocks, cnTower, streetLights } from '../../src/lib/stage/city.ts';
+import { CITY, CN_HEIGHT, cityBlocks, cnTower, streetLights } from '../../src/lib/stage/city.ts';
 
 describe('city', () => {
   it('earcut and extrude cover a footprint either way round, concave too', () => {
@@ -36,7 +36,7 @@ describe('city', () => {
     const tris = (near.pos.length + far.pos.length + tops.pos.length + domes.pos.length) / 9;
     assert.ok(tris > 10000 && tris < 60000, `${tris} triangles`);
     const shaft = new Sink(), pod = new Sink(), lights = new Sink();
-    cnTower(shaft, pod, lights);
+    cnTower(shaft, pod, lights, CN_HEIGHT, true);
     const cn = (shaft.pos.length + pod.pos.length + lights.pos.length) / 9;
     assert.ok(cn > 500 && cn < 4000, `${cn} triangles in the CN Tower`);
     let top = 0;

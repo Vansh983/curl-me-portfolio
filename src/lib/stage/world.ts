@@ -5,23 +5,23 @@
 // - The apartment (0), the 2010 room (1), the lab (2) and Google's lawn (3) stand where they were written.
 // - The 2020 room (4) stands behind the door in Google's block (DELHI), and the jet bridge and the aircraft (5) hang off
 //   its west door there, turned with it.
-// - The hall of 2022 (6) to Floqer's house (12) are one rigid chain, turned so that the door at the top of Floqer's
-//   stair is the far end of the passage east of the apartment's brick door: the way home. The flight and the hall are
+// - The hall of 2022 (6) to Floqer's house (12) are one rigid chain, turned so that the landing at the top of Floqer's
+//   stair meets the far end of the passage east of the apartment's brick door. The flight and the hall are
 //   joined by the phone, not a door, so the chain is free to stand anywhere.
 import { DELHI, DOORS, FLOQER, TOUR_SHIFT, SETS, type V3 } from './sets.ts';
 
 export interface Pose { at: V3; yaw: number } // yaw in degrees about the upright; world = turn(p) + at
 
-/** The passage east of the apartment's brick door: from the door's wall to the door at the top of Floqer's stair. */
+/** The passage between the apartment's brick door and Floqer's stair landing. */
 export const BRICK = { x: -4.2, z: 1.6, length: 1.8 } as const;
 
 const turn = (p: V3, yaw: number): V3 => { const r = (yaw * Math.PI) / 180, c = Math.cos(r), s = Math.sin(r); return [p[0] * c + p[2] * s, p[1], -p[0] * s + p[2] * c]; };
 const apply = (pose: Pose, p: V3): V3 => { const t = turn(p, pose.yaw); return [t[0] + pose.at[0], t[1] + pose.at[1], t[2] + pose.at[2]]; };
 
-/** Floqer's door in the story's own space: the middle of its leaf's face, at the top of the stair, TOUR_SHIFT north. */
+/** The centre of the open door case at the top of the stair, in Floqer's story coordinates. */
 const floqerDoor: V3 = [FLOQER.door.x, FLOQER.floor + FLOQER.stair.n * FLOQER.stair.rise, FLOQER.z[1] - 0.09 + DOORS.home.depth + TOUR_SHIFT];
 const chainB: Pose = (() => {
-  const yaw = -90, t = turn(floqerDoor, yaw), end: V3 = [BRICK.x + BRICK.length, 0, BRICK.z]; // the door's face at the passage's far end, opening west into it
+  const yaw = -90, t = turn(floqerDoor, yaw), end: V3 = [BRICK.x + BRICK.length, 0, BRICK.z]; // the landing faces west into the passage
   return { yaw, at: [end[0] - t[0], end[1] - t[1], end[2] - t[2]] };
 })();
 const delhi: Pose = { at: DELHI.at, yaw: DELHI.turn };

@@ -54,6 +54,7 @@ export const MATS: Record<string, Mat> = {
   wingSkin: { color: '#C9CDD1', rough: 0.42, metal: 0.15, clearcoat: 0.25, clearcoatRough: 0.25, tile: 1 },
   flightGround: { color: '#737B5E', rough: 1, tile: 1 },
   halifaxWall: { color: '#FFFFFF', rough: 0.85, tile: 3.6, tint: true, paint: 'facade' },
+  halifaxGlazing: { color: '#c4d0d4', rough: 0.44, metal: 0.09, tile: 68, tint: true, paint: 'windowsDay' },
   halifaxRoof: { color: '#FFFFFF', rough: 0.9, tile: 1, tint: true },
   seaWater: { color: '#22485F', rough: 0.12, metal: 0.05, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1, layer: 1 },
   parkGreen: { color: '#5E8A45', rough: 1, tile: 1, layer: 2 },
@@ -181,7 +182,7 @@ export const MATS: Record<string, Mat> = {
   condoBrick: { color: '#4A4644', rough: 0.95, tex: 'dark_brick_wall', amp: 0.9, tile: 1.05 },
   skirting: { color: '#E6E3DC', rough: 0.45, clearcoat: 0.3, clearcoatRough: 0.3, tile: 1 },
   ledStrip: { color: '#FFE2B8', rough: 0.5, emissive: '#FFD9A0', emissivePower: 3, tile: 1 },
-  cabinStrip: { color: '#F2F5FA', rough: 0.5, emissive: '#EEF3FF', emissivePower: 2.2, tile: 1 }, // the cabin's ceiling light: cool white, the way an E-Jet's is
+  cabinStrip: { color: '#F2F5FA', rough: 0.5, emissive: '#EEF3FF', emissivePower: 2.2, tile: 1 },
   bathTile: { color: '#E3E5E2', rough: 0.22, paint: 'tiles', tile: 0.3, clearcoat: 0.5, clearcoatRough: 0.2 },
   chrome: { color: '#DADCE0', rough: 0.12, metal: 1, tile: 1 },
   doorPaint: { color: '#EDEAE3', rough: 0.4, clearcoat: 0.25, clearcoatRough: 0.3, tile: 1 },
@@ -223,7 +224,7 @@ export const MATS: Record<string, Mat> = {
   cnLight: { color: '#FF4A4A', rough: 0.5, emissive: '#FF3030', emissivePower: 4, tile: 1, fog: false },
   cnShaftDay: { color: '#B9BCC2', rough: 0.9, tile: 1 }, // the same tower by day from Front Street, lit by the sun and the sky
   cnPodDay: { color: '#E8E6E0', rough: 0.8, tile: 1 },
-  dome: { color: '#C9CED8', rough: 0.9, emissive: '#3A4260', emissivePower: 0.5, tile: 1, fog: false },
+  dome: { color: '#9BAAC0', rough: 0.9, unlit: true, tint: true, tile: 1, fog: false },
   nightSky: { color: '#FFFFFF', rough: 1, paint: 'nightSky', tile: 1, unlit: true, fog: false, inside: true },
   towerFar: { color: '#A9B2CC', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false, tint: true },
   // 2010, the room: cream distemper, teak planks, a red rug, cotton at the window

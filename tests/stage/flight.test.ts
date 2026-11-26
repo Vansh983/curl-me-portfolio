@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FLIGHT, flightAt, crossingZ, PHONE, phoneAt, phoneLayout, CLASSROOM_VIEW, WINDOW_VIEW } from '../../src/lib/stage/flight.ts';
-import { AUDITORIUM, TOP_ROW, DAIS, SETS, aisleHeight, LECTURE_ROWS } from '../../src/lib/stage/sets.ts';
+import { AUDITORIUM, CABIN, TOP_ROW, DAIS, SETS, aisleHeight, LECTURE_ROWS, HALIFAX_CAMPUS } from '../../src/lib/stage/sets.ts';
 import { makeDolly, DOLLY } from '../../src/lib/stage/dolly.ts';
 import { ch, STAGE_SPAN } from '../../src/lib/stage/shot.ts';
 import { pieceIsLive, placementIsLive } from '../../src/lib/stage/bake.ts';
@@ -16,9 +16,14 @@ test('the descent: high and level at the start, low and level at the end, a bank
   for (let q = FLIGHT.start; q <= FLIGHT.end; q += 0.0005) peak = Math.max(peak, flightAt(q).veil);
   assert.ok(peak > 0.95, 'the deck whites the window out on the way down');
   assert.ok(b.veil < 0.02 && a.veil < 0.05, 'clear above and below it');
-  assert.ok(FLIGHT.low > 100, 'never lands: the phone transition happens airborne');
+  assert.ok(FLIGHT.low > 30 && FLIGHT.low < 65, 'clears the last blocks on approach while keeping upper storeys in the window');
   for (const q of [PHONE.raise, PHONE.transfer]) assert.ok(flightAt(q).altitude >= FLIGHT.low);
   const dolly = makeDolly(DOLLY, false);
+  const leftWall = CABIN.cx - CABIN.half;
+  for (let q = ch(5.746); q < PHONE.transfer; q += ch(0.01)) {
+    const { cam, look } = dolly(q);
+    assert.ok(leftWall < cam[0] && cam[0] < CABIN.seatsX[0] && look[0] < leftWall, 'seated inside the left window and looking through it');
+  }
   assert.equal(dolly(PHONE.raise).set, 5);
   assert.equal(dolly(ch(6.95)).set, 6);
   assert.equal(dolly(ch(7.64)).set, 6);
@@ -35,7 +40,7 @@ test('flight motion is finite, monotonic, continuous and held at the end under r
     for (const v of Object.values(state)) assert.ok(Number.isFinite(v));
     assert.ok(state.altitude >= FLIGHT.low && state.altitude <= FLIGHT.top);
     assert.ok(state.altitude <= previous.altitude + 1e-9, 'only ever descends');
-    assert.ok(state.travel >= previous.travel - 1e-9, 'only ever forward');
+    assert.ok(state.travel >= previous.travel - 1e-9, 'distance along the route never decreases');
     assert.ok(Math.abs(state.altitude - previous.altitude) < 1150 * step && Math.abs(state.travel - previous.travel) < 5750 * step && Math.abs(state.bank - previous.bank) < 145 * step, `a jump at ${q}`);
     assert.deepEqual(state, flightAt(q));
     assert.deepEqual(flightAt(q, true), { altitude: FLIGHT.low, travel: FLIGHT.distance, bank: 0, veil: 0 });
@@ -46,14 +51,17 @@ test('flight motion is finite, monotonic, continuous and held at the end under r
   assert.deepEqual(flightAt(2), flightAt(1));
 });
 
-test('moving scenery stays live; the cabin has a wing, seat-back screens and no banner; the auditorium its seats, lights and lectern', () => {
+test('Halifax scenery stays visible from the cabin, with seat-back screens on board and a furnished auditorium on arrival', () => {
   const cabin = SETS[5].props;
   for (const p of cabin.filter((p) => p.live === 'flight')) assert.ok(placementIsLive(p));
   assert.ok(pieceIsLive('mat:flightGround', 'flight'));
-  assert.ok(cabin.some((p) => p.build === 'halifaxMap' && p.live === 'flight'), 'the drawn city and campus under the window');
+  for (const build of ['halifaxMap', 'halifax', 'dalhousie', 'macdonaldBridge']) {
+    assert.ok(cabin.some(p => p.build === build && p.live === 'flight'), build);
+  }
+  const bridge = cabin.find(p => p.build === 'macdonaldBridge')!;
+  assert.ok(bridge.at[0] < 0 && HALIFAX_CAMPUS[0] < 0, 'the bridge and campus are on the port side of the forward approach');
   assert.ok(cabin.some((p) => p.build === 'cloudField' && p.live === 'flight'));
-  assert.ok(!cabin.some((p) => p.build === 'dalhousie'), 'the campus lies flat in the map');
-  assert.ok(cabin.some((p) => p.build === 'aircraftWing'));
+  assert.ok(!cabin.some(p => p.build === 'aircraftWing' || p.build === 'discLight'), 'the view is clear of the wing, engine and light fixtures');
   assert.ok(cabin.filter((p) => p.build === 'seatScreen').length >= 8, 'a screen on the back of every seat but the front row');
   assert.ok(!cabin.some((p) => p.build === 'flightSign'), 'no banner in the cabin');
   const props = SETS[6].props;
@@ -119,7 +127,9 @@ test('arrival is seated in the highest row, then the walk down the aisle ends be
   assert.ok(Math.abs(end.cam[0] - DAIS.lectern[0]) < 0.2 && end.cam[2] < DAIS.lectern[1] && end.cam[2] > DAIS.z[0], 'behind the lectern');
   assert.ok(Math.abs(end.cam[1] - (DAIS.height + 1.6)) < 1e-9);
   assert.ok(end.look[2] > end.cam[2] + 5, 'facing the hall');
-  assert.ok(!SETS[5].props.some(p=>p.model==='dalhousie_campus'), 'Goldberg is its mapped footprint');
+  const goldberg = SETS[5].props.find(p => p.model === 'dalhousie_campus');
+  assert.deepEqual(goldberg?.at, [HALIFAX_CAMPUS[0], 0, HALIFAX_CAMPUS[1]]);
+  assert.equal(goldberg?.live, 'flight');
 });
 
 test('the podium hold keeps the lectern top and its laptop in the bottom of the frame, and the walk up never passes through the lectern', () => {

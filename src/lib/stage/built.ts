@@ -3,7 +3,7 @@
 // the fog softens anyway. Every part is a list of pieces, one per material, built at the origin
 // (a Placement moves it). Materials come from materials.ts; uv is in metres, painted faces 0..1.
 import { Sink, type Geo, type V3 } from './rig.ts';
-import { cityBlocks, cnTower, CITY, ringOf } from './city.ts';
+import { cityBlocks, cnTower, CITY, CN_HEIGHT, ringOf } from './city.ts';
 import { northShore } from './northshore.ts';
 import { HALIFAX, halifaxCity } from './halifax.ts';
 import { dalhousieCampus, rng, obb, hipRoof } from './dalhousie.ts';
@@ -231,7 +231,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
   aircraftCabin: () => {
     const { cx, z: [z0, z1], windowZ, win, door } = CABIN, sec = CABIN_SECTION;
     cabinSkinSink = null; // rebuilt below, taken by aircraftSkin
-    const panel = new Sink(), dado = new Sink(), floor = new Sink(), runner = new Sink(), lights = new Sink(), reveal = new Sink(), glass = new Sink();
+    const panel = new Sink(), dado = new Sink(), floor = new Sink(), runner = new Sink(), reveal = new Sink(), glass = new Sink();
     const X = (side: number, off: number) => cx + side * off;
     const halfAt = (y: number) => { for (let i = 0; i + 1 < sec.length; i++) { const [w0, y0] = sec[i], [w1, y1] = sec[i + 1]; if (y >= y0 && y <= y1) return w0 + ((w1 - w0) * (y - y0)) / (y1 - y0 || 1); } return 0; };
     // a strip of sidewall or crown between two heights over a length of the cabin, its face turned to the aisle
@@ -309,10 +309,8 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const f0 = sec[0][0];
     floor.quad([cx - f0, 0, z1], [cx + f0, 0, z1], [cx + f0, 0, z0], [cx - f0, 0, z0]);
     runner.quad([cx - 0.27, 0.004, z1], [cx + 0.27, 0.004, z1], [cx + 0.27, 0.004, z0], [cx - 0.27, 0.004, z0]);
-    // the ceiling's two strips: the cabin's only light, nothing else on the walls or the crown
-    for (const side of [-1, 1]) lights.box(X(side, 0.58), 1.975, (z0 + z1) / 2, 0.12, 0.012, z1 - z0 - 0.2);
     return [piece(panel.out(), M('cabinPanel'), { smooth: true }), piece(dado.out(), M('cabinDado'), { smooth: true }), piece(floor.out(), M('cabinFloor'), { metres: 'xz' }), piece(runner.out(), M('cabinRunner'), { metres: 'xz' }),
-      piece(lights.out(), M('cabinStrip')), piece(reveal.out(), M('skirting'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
+      piece(reveal.out(), M('skirting'), { smooth: true }), piece(glass.out(), M('cabinGlass'))];
   },
   /** The fuselage's skin round the cabin, with the window holes: what keeps the sun outside. In Blender for the shadow, not baked; lit live. */
   aircraftSkin: () => [piece(cabinSkin().out(), M('wingSkin'), { smooth: true })],
@@ -326,57 +324,6 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const belt = new Sink().box(-0.11, 0.512, 0, 0.19, 0.008, 0.038).box(0.11, 0.512, 0, 0.19, 0.008, 0.038);
     const buckle = new Sink().rbox(0, 0.518, 0, 0.055, 0.012, 0.044, 0.004, 2);
     return [piece(leather.out(), M('seatLeather'), { smooth: true }), piece(shell.out(), M('cabinBin'), { smooth: true }), piece(dark.out(), M('chairBase'), { smooth: true }), piece(belt.out(), M('bezel')), piece(buckle.out(), M('chrome'), { smooth: true })];
-  },
-  /**
-   * The port wing, seen from the third-row window: the leading edge just behind it, swept back 25 degrees to a
-   * winglet 14 m out and rising with the dihedral, the engine slung under it forward of the leading edge.
-   */
-  aircraftWing: () => {
-    const skin = new Sink(), edge = new Sink(), nacelle = new Sink(), inlet = new Sink(), pylon = new Sink();
-    const span = 14.3, sweep = Math.tan((25 * Math.PI) / 180);
-    const section = (t: number) => { // t 0 at the root, 1 at the tip
-      const x = -5.2 - span * t, le = -5.9 + span * t * sweep, chord = 6.4 - 4.8 * t, top = -0.1 + 1.4 * t, thick = 0.5 - 0.38 * t;
-      return { x, le, te: le + chord, top, bottom: top - thick };
-    };
-    const N = 8;
-    // the top skin cambered: up over the first third of the chord, down to the trailing edge
-    const CAMBER: Array<[number, number]> = [[0, 0], [0.12, 0.05], [0.35, 0.08], [0.65, 0.04], [1, -0.1]];
-    const topAt = (sec: ReturnType<typeof section>, k: number): V3 => { const [f, dy] = CAMBER[k], c = sec.te - sec.le - 0.3; return [sec.x, sec.top + dy * (sec.top - sec.bottom) / 0.5, sec.le + 0.3 + f * c]; };
-    for (let i = 0; i < N; i++) {
-      const a = section(i / N), b = section((i + 1) / N);
-      // top and bottom skins, the trailing edge closed, the leading edge a separate strip in bare metal
-      for (let k = 0; k + 1 < CAMBER.length; k++) skin.quad(topAt(a, k), topAt(b, k), topAt(b, k + 1), topAt(a, k + 1));
-      skin.quad([a.x, a.bottom, a.te], [b.x, b.bottom, b.te], [b.x, b.bottom, b.le + 0.3], [a.x, a.bottom, a.le + 0.3]);
-      skin.quad(topAt(a, CAMBER.length - 1), topAt(b, CAMBER.length - 1), [b.x, b.bottom, b.te], [a.x, a.bottom, a.te]);
-      const mid = (s: ReturnType<typeof section>) => [s.x, (s.top + s.bottom) / 2, s.le] as V3;
-      edge.quad([a.x, a.top, a.le + 0.3], [b.x, b.top, b.le + 0.3], mid(b), mid(a));
-      edge.quad(mid(a), mid(b), [b.x, b.bottom, b.le + 0.3], [a.x, a.bottom, a.le + 0.3]);
-    }
-    const tip = section(1);
-    skin.quad([tip.x, tip.top, tip.le], [tip.x, tip.top, tip.te], [tip.x, tip.bottom, tip.te], [tip.x, tip.bottom, tip.le]); // the tip closed
-    // the winglet: a blended fin rising 1.7 m from the tip, raked back
-    skin.quad([tip.x, tip.top, tip.le + 0.2], [tip.x, tip.top, tip.te], [tip.x - 0.5, tip.top + 1.7, tip.te + 0.2], [tip.x - 0.4, tip.top + 1.7, tip.te - 0.7]);
-    skin.quad([tip.x - 0.4, tip.top + 1.7, tip.te - 0.7], [tip.x - 0.5, tip.top + 1.7, tip.te + 0.2], [tip.x, tip.bottom + 0.1, tip.te], [tip.x, tip.bottom + 0.1, tip.le + 0.2]);
-    // the engine: a nacelle 3.6 m long under the wing at a third of the span, its inlet ahead of the leading edge
-    const ex = -9.8, ez = -4.9, ey = -1.55;
-    const ns = nacelle.count;
-    nacelle.lathe([[0.86, 0], [0.98, 0.3], [1.0, 1.6], [0.95, 2.9], [0.72, 3.6]], ex, ey, ez, 1, 1, 0, 28);
-    nacelle.rotateX(ey, ez, Math.PI / 2, ns); // the lathe stood up along y: laid along z, its wide base forward
-    nacelle.translate(0, 0, -1.8, ns);
-    const is = inlet.count;
-    inlet.lathe([[0.02, 0], [0.7, 0.12], [0.86, 0.14]], ex, ey, ez, 1, 1, 0, 28);
-    inlet.rotateX(ey, ez, Math.PI / 2, is);
-    inlet.translate(0, 0, -1.94, is);
-    // the cowl seams and the inlet lip, dark rings round the white: what makes it read as an engine from above
-    for (const [dz, r, len] of [[-1.72, 1.0, 0.1], [-0.35, 1.005, 0.05], [0.95, 0.985, 0.05]] as const) {
-      const rs = inlet.count;
-      inlet.cylinder(ex, ey, ez, r, len, 28);
-      inlet.rotateX(ey, ez, Math.PI / 2, rs);
-      inlet.translate(0, 0, dz, rs);
-    }
-    const w = section((-5.2 - ex) / span);
-    pylon.box(ex, (w.bottom + ey + 0.9) / 2, ez + 0.4, 0.3, w.bottom - (ey + 0.9), 1.6);
-    return [piece(skin.out(), M('wingSkin'), { smooth: true }), piece(edge.out(), M('aluminium'), { smooth: true }), piece(nacelle.out(), M('wingSkin'), { smooth: true }), piece(inlet.out(), M('bezel'), { smooth: true }), piece(pylon.out(), M('wingSkin'))];
   },
   /** A seat-back screen: a 0.24 × 0.15 panel in a thin bezel, its face toward +z, the moving map on it. */
   seatScreen: () => [piece(offsetGeo(face(0.22, 0.135, 0.012), 0, 0, 0), { paint: 'screenMap' }), piece(new Sink().rbox(0, 0, 0, 0.26, 0.17, 0.02, 0.006, 2).out(), M('bezel'), { smooth: true })],
@@ -399,7 +346,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
       s.quad([x - w, y - h, z], [x + w, y - h, z], [x + w, y + h, z], [x - w, y + h, z], [[0, 0], [1, 0], [1, 1], [0, 1]]);
       for (let i = start; i < s.count; i++) { s.col[i * 3] = c[0]; s.col[i * 3 + 1] = c[1]; s.col[i * 3 + 2] = c[2]; }
     };
-    const clusters: Array<[number, number, number]> = [[-140, crossingZ(), 26]];
+    const clusters: Array<[number, number, number]> = [[-90, crossingZ(), 20]];
     for (let i = 0; i < 16; i++) clusters.push([(rnd() - 0.5) * 5200, (rnd() - 0.5) * 5200, 12 + Math.floor(rnd() * 14)]);
     for (const [cx, cz, n] of clusters) for (let i = 0; i < n; i++) {
       const size = 150 + rnd() * 280;
@@ -409,42 +356,38 @@ export const BUILT: Record<string, () => BuiltPart> = {
     return [piece(s.out(), { paint: 'cloudPuffs' }, { tint: true })];
   },
   halifaxMap: flightMap,
-  /** The older extruded Halifax builder; other views still share its source data. */
+  /** The city above the mapped streets under the flight. */
   halifax: () => {
-    const walls = new Sink(), roofs = new Sink(), sea = new Sink(), greens = new Sink(), woods = new Sink(), roads = new Sink(), canopy = new Sink(), trunk = new Sink();
-    halifaxCity(walls, roofs, sea, greens, woods, roads, canopy, trunk);
-    const ground = new Sink().quad([-3000, -0.02, 3000], [3000, -0.02, 3000], [3000, -0.02, -3000], [-3000, -0.02, -3000]);
+    const walls = new Sink(), glazing = new Sink(), roofs = new Sink(), canopy = new Sink(), trunk = new Sink();
+    halifaxCity(walls, glazing, roofs, canopy, trunk);
     return [
-      piece(ground.out(), M('flightGround'), { metres: 'xz' }), piece(walls.out(), M('halifaxWall'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true }),
-      piece(sea.out(), M('seaWater'), { metres: 'xz' }), piece(greens.out(), M('parkGreen'), { metres: 'xz' }), piece(woods.out(), M('woodGreen'), { metres: 'xz' }), piece(roads.out(), M('streetAsphalt'), { metres: 'xz' }),
-      piece(canopy.out(), M('treeCanopy'), { tint: true, smooth: true }), piece(trunk.out(), M('treeTrunk')),
+      piece(walls.out(), M('halifaxWall'), { tint: true }), piece(glazing.out(), M('halifaxGlazing'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true }),
+      piece(canopy.out(), M('treeCanopy'), { tint: true }), piece(trunk.out(), M('treeTrunk')),
     ];
   },
   /** The Studley campus: Dalhousie and King's by name from OpenStreetMap, the Hicks tower, the Dalplex dome, the quad, Wickwire Field, paths, car parks, trees. */
   dalhousie: () => {
-    const walls = new Sink(), roofs = new Sink(), copper = new Sink(), clock = new Sink(), lawn = new Sink(), paving = new Sink(), asphalt = new Sink(), turf = new Sink(), canopy = new Sink(), trunk = new Sink();
-    dalhousieCampus(walls, roofs, copper, clock, lawn, paving, asphalt, turf, canopy, trunk);
+    const walls = new Sink(), roofs = new Sink(), copper = new Sink(), clock = new Sink(), canopy = new Sink(), trunk = new Sink();
+    dalhousieCampus(walls, roofs, copper, clock, canopy, trunk);
     return [
       piece(walls.out(), M('halifaxWall'), { tint: true }), piece(roofs.out(), M('halifaxRoof'), { tint: true }), piece(copper.out(), M('copperRoof')), piece(clock.out(), M('clockFace')),
-      piece(lawn.out(), M('campusLawn'), { metres: 'xz' }), piece(paving.out(), M('campusPaving'), { metres: 'xz' }), piece(asphalt.out(), M('streetAsphalt'), { metres: 'xz' }), piece(turf.out(), M('campusTurf')),
-      piece(canopy.out(), M('treeCanopy'), { tint: true, smooth: true }), piece(trunk.out(), M('treeTrunk')),
+      piece(canopy.out(), M('treeCanopy'), { tint: true }), piece(trunk.out(), M('treeTrunk')),
     ];
   },
-  /** The jet bridge: the old passage from the brick door turned south, 5.8 m of grey panel and rubber floor down to the cabin door, a light strip along its ceiling. */
+  /** The jet bridge turns south from the brick door, with 5.8 m of grey panel and rubber floor down to the cabin door. */
   boardingPassage: () => {
     const sections = [
       { x: [-4.2, -2.4] as [number, number], z: [1, 2.2] as [number, number], openings: [{ wall: 'x+' as const, at: 1.6, w: 0.9, h: 2.05 }, { wall: 'z-' as const, at: -3.35, w: 1.2, h: 2.4 }] }, // the brick door west is walled up: the ring left through the flight
       { x: [-3.95, -2.75] as [number, number], z: [-4.8, 1] as [number, number], openings: [{ wall: 'z+' as const, at: -3.35, w: 1.2, h: 2.4 }, { wall: 'z-' as const, at: -3.4, w: CABIN.door.w, h: CABIN.door.h }] }, // its far end a wall round the cabin's door: wider, the cabin's panels showed their backs beside the door (leaks.mjs)
     ];
-    const ribs = new Sink(), strip = new Sink();
+    const ribs = new Sink();
     for (let z = 0.4; z > -4.6; z -= 0.6) for (const x of [-3.93, -2.77]) ribs.box(x, 1.2, z, 0.04, 2.4, 0.05);
-    strip.box(-3.35, 2.385, -1.9, 0.12, 0.02, 5.6).box(-3.3, 2.385, 1.6, 1.6, 0.02, 0.12); // and across the first section, from the Delhi door
     return [...sections.flatMap((s) => { const sh = buildShell({ ...s, h: 2.4, floor: 'bridgeFloor', wall: 'bridgeWall' }); return [
       { ...sh.floor, surface: M('bridgeFloor') }, { ...sh.walls, surface: M('bridgeWall') }, { ...sh.ceiling, surface: M('bridgeWall') },
-    ]; }), piece(ribs.out(), M('aluminium')), piece(strip.out(), M('ledStrip'))];
+    ]; }), piece(ribs.out(), M('aluminium'))];
   },
   // Lower the distant panorama's centre so the airborne lens sees cloud detail above the ground haze.
-  flightSky: () => [piece(new Sink().sphere(-3.4, -500, -7, 1500, 1500, 1500, 64, 32, UNIT).out(), M('flightSky'), { smooth: true })],
+  flightSky: () => [piece(new Sink().sphere(-3.4, -720, -7, 2450, 2450, 2450, 64, 32, UNIT).out(), M('flightSky'), { smooth: true })],
   flightSign: () => [piece(face(1.15, 0.32), { paint: 'flightSign' })],
   halifaxSign: () => [piece(face(1.5, 0.55), { paint: 'halifaxSign' })],
   lectureBoard: () => [piece(face(3.7, 1.8, 0.035), { paint: 'lectureBoard' }), piece(new Sink().rbox(0, 0, 0, 3.82, 1.92, 0.06, 0.025, 3).out(), M('aluminium'), { smooth: true })],
@@ -1028,7 +971,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
     const near = new Sink(), far = new Sink(), tops = new Sink(), domes = new Sink();
     cityBlocks(near, far, tops, domes);
     const cn = new Sink(), pod = new Sink(), light = new Sink();
-    cnTower(cn, pod, light);
+    cnTower(cn, pod, light, CN_HEIGHT, true);
     const ground = new Sink().quad([-2500, -0.2, 2500], [2500, -0.2, 2500], [2500, -0.2, -2500], [-2500, -0.2, -2500]);
     return [
       piece(near.out(), M('tower'), { tint: true }),
@@ -1037,7 +980,7 @@ export const BUILT: Record<string, () => BuiltPart> = {
       piece(cn.out(), M('cnShaft'), { tint: true }),
       piece(pod.out(), M('cnPod'), { tint: true }),
       piece(light.out(), M('cnLight'), { smooth: true }),
-      piece(domes.out(), M('dome'), { smooth: true }),
+      piece(domes.out(), M('dome'), { tint: true }),
       piece(ground.out(), M('lake')),
     ];
   },

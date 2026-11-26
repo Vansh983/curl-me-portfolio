@@ -8,13 +8,13 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 /**
  * The descent over the Halifax peninsula, seated at the port window. From `start` to `end` the ground track
- * runs `distance` metres up the peninsula while the altitude falls from `top` to `low`; the cloud deck at
+ * runs from the Macdonald Bridge down the peninsula while the altitude falls from `top` to `low`; the cloud deck at
  * `deck` metres is crossed on the way down, and the aircraft banks a few degrees to port in the middle of it.
- * At `end` the Studley campus is abeam, 250 to 900 m off the wing and `low` metres down; after it the aircraft holds
+ * At `end` the Studley campus is abeam and its nearest roofs are just below the window; after it the aircraft holds
  * height and the ground keeps sliding at `cruise` metres per unit of progress (the speed the descent ended at).
  */
-const DESCENT = { start: ch(5.704), end: ch(6.047), distance: 1450 };
-export const FLIGHT = { ...DESCENT, top: 385, low: 130, deck: FLIGHT_DECK, bank: 7, cruise: (0.35 * DESCENT.distance) / (DESCENT.end - DESCENT.start) } as const; // cruise: the ground speed the descent ends at, per unit of progress
+const DESCENT = { start: ch(5.60), end: ch(6.047), distance: 1850 };
+export const FLIGHT = { ...DESCENT, top: 375, low: 45, deck: FLIGHT_DECK, bank: 7, cruise: (0.35 * DESCENT.distance) / (DESCENT.end - DESCENT.start) } as const; // cruise: the ground speed the descent ends at, per unit of progress
 /** The handset: raised off the lap, framed, then zoomed through until it fills the viewport; the single cut to the auditorium at `transfer`. */
 export const PHONE = { raise: ch(6.012), framed: ch(6.075), zoom: ch(6.103), filled: ch(6.194), transfer: ch(6.215), reveal: ch(6.264) } as const;
 /** The coffee at Volta: into the hand at the bar, held through the room, set down before the wing's door. */
@@ -26,8 +26,8 @@ export const COFFEE = { raise: ch(13.0), held: ch(13.12), down: ch(13.82), gone:
 export const DEGREE = { raise: ch(12.56 + TOUR_GAIN), held: ch(12.7 + TOUR_GAIN), crush: [ch(13.2 + TOUR_GAIN), ch(13.42 + TOUR_GAIN)] as [number, number], thrown: [ch(13.5 + TOUR_GAIN), ch(13.68 + TOUR_GAIN)] as [number, number] } as const;
 /** Seated 1.28 m above the highest tier, behind its desk: the arrival, and where the phone's screen looks from. */
 export const CLASSROOM_VIEW = { cam: [AUDITORIUM.studyX, TOP_ROW.height + 1.28, TOP_ROW.seat - 0.02] as [number, number, number], look: [4.9, 1.95, -16.8] as [number, number, number], fov: 74 };
-/** The window seat in the row by the door, the wing's leading edge behind the shoulder: eye at the window, looking out and a little down at the city. */
-export const WINDOW_VIEW = { cam: [-4.4, 1.22, -5.5] as [number, number, number], look: [-7.4, 0.5, -5.7] as [number, number, number], fov: 74 };
+/** The window seat in the row by the door, looking out and a little down at the city. */
+export const WINDOW_VIEW = { cam: [-4.61, 1.08, -5.62] as [number, number, number], look: [-7.4, 0.62, -4.95] as [number, number, number], fov: 74 };
 
 export function phoneAt(progress: number, reducedMotion = false) {
   const q = Number.isFinite(progress) ? progress : 0;
@@ -62,7 +62,7 @@ export function flightAt(progress: number, reducedMotion = false): FlightState {
   const travel = FLIGHT.distance * (t * 0.35 + 0.65 * ease(t)) + (reducedMotion ? 0 : Math.max(0, clamp01(q) - FLIGHT.end) * FLIGHT.cruise); // never quite still: the ground always slides
   const roll = Math.sin(Math.PI * clamp01((t - 0.15) / 0.55));
   const bank = roll * roll < 1e-9 ? 0 : FLIGHT.bank * roll * roll; // rolls in, holds, rolls out through the middle of the descent
-  const off = (altitude - FLIGHT.deck) / 45;
+  const off = (altitude - FLIGHT.deck) / 21;
   const veil = Math.exp(-(off * off));
   return { altitude, travel, bank, veil: reducedMotion ? 0 : veil };
 }

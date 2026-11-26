@@ -7,8 +7,9 @@ import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycas
 
 test('the cabin has open rounded windows, a complete ring round each and an inward-facing crown', () => {
   const parts = BUILT.aircraftCabin();
+  assert.ok(!parts.some(p => 'mat' in p.surface && p.surface.mat === 'cabinStrip'));
   const meshes = parts.map((p) => new Mesh(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(p.pos, 3)), new MeshBasicMaterial()));
-  const glass = meshes[6]; // panel, dado, floor, runner, lights, reveal, glass
+  const glass = meshes[parts.findIndex(p => 'mat' in p.surface && p.surface.mat === 'cabinGlass')];
   const hits = (origin: number[], direction: number[]) => new Raycaster(new Vector3(...origin), new Vector3(...direction), 0, 2).intersectObjects(meshes);
   const throughWindow = hits([-4.0, 0.95, -5.56], [-1, 0, 0]); // a little off the pane's centre, where its fan's triangles meet
   assert.equal(throughWindow.length, 1, `only the pane in the way: ${throughWindow.map((h) => meshes.indexOf(h.object as (typeof meshes)[number])).join(',')}`);
@@ -23,19 +24,6 @@ test('the cabin has open rounded windows, a complete ring round each and an inwa
 test('study notes use the full image instead of a single blank texture pixel', () => {
   const uv = BUILT.studyNotes()[0].uv;
   assert.equal(Math.min(...uv), 0); assert.equal(Math.max(...uv), 1);
-});
-
-test('the aircraft wing has an upward-facing top skin that rises outboard, and an engine hung under it', () => {
-  const [skin,, nacelle]=BUILT.aircraftWing();
-  const mesh=new Mesh(new BufferGeometry().setAttribute('position',new Float32BufferAttribute(skin.pos,3)),new MeshBasicMaterial());
-  const top=(x:number,z:number)=>new Raycaster(new Vector3(x,3,z),new Vector3(0,-1,0)).intersectObject(mesh)[0]?.point.y;
-  const root=top(-7,-4.0), out=top(-14,-1.0);
-  assert.ok(root!==undefined && root<0.5 && root>-0.3, `the wing sits under the window sill: ${root}`);
-  assert.ok(out!==undefined && out>root+0.4, `dihedral: ${out} over ${root}`);
-  assert.equal(top(-7,-8.5),undefined,'nothing ahead of the leading edge');
-  let lo=Infinity; for(let i=1;i<nacelle.pos.length;i+=3) lo=Math.min(lo,nacelle.pos[i]);
-  assert.ok(lo<-2,'the engine hangs below the wing');
-  mesh.geometry.dispose(); mesh.material.dispose();
 });
 
 test('the auditorium has eight raised rows, sixteen steps per aisle and a rear landing', () => {
@@ -71,7 +59,7 @@ test('the exterior facade sits beyond Delhi interior walls without coplanar face
   parts.forEach((part) => { part.geometry.dispose(); part.material.dispose(); });
 });
 
-const PAINTS = ['voltaLetters', 'whiteboardSticky', 'signWebsummit', 'signElevate', 'signInvestns', 'signVolta', 'trip', 'window', 'whiteboard', 'banner', 'poster', 'jobsPoster', 'floqer', 'whiteboardFloqer', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto', 'sydney', 'whiteboardBean', 'screenBeanApp', 'screenBeanCode', 'screenProductHunt', 'screenBeanPhone', 'beanPoster', 'beanSign', 'bannerWebSummit', 'boothFront', 'boothBack', 'screenTour', 'bannerAllIn', 'bannerElevate', 'boothMontreal', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'whiteboardChurn', 'whiteboardCollect', 'certificateInvestNS', 'screenAllIn', 'crowd', 'logo', 'photo', 'windowsDay', 'leafSprig', 'windowPane', 'screenCollect', 'leafLitter', 'plaque']; // video: the live television
+const PAINTS = ['doorEnter', 'doorExit', 'voltaLetters', 'whiteboardSticky', 'signWebsummit', 'signElevate', 'signInvestns', 'signVolta', 'trip', 'window', 'whiteboard', 'banner', 'poster', 'jobsPoster', 'floqer', 'whiteboardFloqer', 'screen', 'toronto', 'screenCode', 'screenFloqer', 'screenTerminal', 'windows', 'nightSky', 'badge', 'video', 'screenBoard', 'screenMap', 'cloudPuffs', 'facade', 'pitch', 'screenSlide', 'flightSign', 'halifaxSign', 'dalhousieSign', 'lectureBoard', 'studyNotes', 'studyScreen', 'campusPhoto', 'sydney', 'whiteboardBean', 'screenBeanApp', 'screenBeanCode', 'screenProductHunt', 'screenBeanPhone', 'beanPoster', 'beanSign', 'bannerWebSummit', 'boothFront', 'boothBack', 'screenTour', 'bannerAllIn', 'bannerElevate', 'boothMontreal', 'signVancouver', 'signToronto', 'signMontreal', 'signHalifax', 'whiteboardChurn', 'whiteboardCollect', 'certificateInvestNS', 'screenAllIn', 'crowd', 'logo', 'photo', 'windowsDay', 'leafSprig', 'windowPane', 'screenCollect', 'leafLitter', 'plaque']; // video: the live television
 const paintName = (p: string) => p.split(':')[0];
 
 test('every code-built prop the sets use exists, and every piece is finite with a normal and a uv per vertex', () => {

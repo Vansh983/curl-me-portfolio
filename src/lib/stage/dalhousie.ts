@@ -96,10 +96,9 @@ const SLATE = [0.2, 0.21, 0.24], COPPER = '#5E8C7A', CLOCK = '#F4F1E6';
 
 /**
  * The campus into its sinks: `walls` (facade tile in metres, tinted), `roofs` (flat roofs, hips, plant rooms, tinted),
- * `copper` (the Hicks tower's roof), `clock` (its faces), `lawn` (the campus ground and its greens), `paving` (footpaths),
- * `asphalt` (service roads, car parks), `turf` (Wickwire Field, uv 0..1 for its lines), `canopy` and `trunk` (the trees).
+ * `copper` (the Hicks tower's roof), `clock` (its faces), `canopy` and `trunk` (the trees). The traced map covers the ground.
  */
-export function dalhousieCampus(walls: Sink, roofs: Sink, copper: Sink, clock: Sink, lawn: Sink, paving: Sink, asphalt: Sink, turf: Sink, canopy: Sink, trunk: Sink): void {
+export function dalhousieCampus(walls: Sink, roofs: Sink, copper: Sink, clock: Sink, canopy: Sink, trunk: Sink): void {
   const rnd = rng(23);
   const wallUv = { u0: 0, v0: 0, perU: 1, perV: 1 };
   for (const b of DALHOUSIE.buildings) {
@@ -149,19 +148,6 @@ export function dalhousieCampus(walls: Sink, roofs: Sink, copper: Sink, clock: S
         if (rot) clock.rotateY(tx + dx, tz + dz, rot, start); // then round to face ±z
       }
     }
-  }
-  // the ground: the campus lawn under everything, the quad and the greens on it, then paving, asphalt, the pitch
-  flat(lawn, ringOf(DALHOUSIE.campus), 0.06);
-  for (const g of DALHOUSIE.greens) flat(lawn, ringOf(g.p), 0.09);
-  for (const p of DALHOUSIE.parking) flat(asphalt, ringOf(p), 0.11);
-  for (const p of DALHOUSIE.paths) ribbon(p.a ? asphalt : paving, ringOf(p.p), p.w, p.a ? 0.12 : 0.14);
-  for (const p of DALHOUSIE.pitches) {
-    const ring = ringOf(p.p), box = obb(ring);
-    const at = (pu: number, pv: number): [number, number, number] => [box.c[0] + box.u[0] * pu + box.v[0] * pv, 0.15, box.c[1] + box.u[1] * pu + box.v[1] * pv];
-    const hw = box.w / 2, hd = box.d / 2, handed = box.u[0] * box.v[1] - box.u[1] * box.v[0] > 0;
-    const q: Array<[number, number, number]> = [at(-hw, -hd), at(hw, -hd), at(hw, hd), at(-hw, hd)];
-    const uv: Array<[number, number]> = [[0, 0], [1, 0], [1, 1], [0, 1]];
-    if (handed) turf.quad(q[3], q[2], q[1], q[0], [uv[3], uv[2], uv[1], uv[0]]); else turf.quad(q[0], q[1], q[2], q[3], [uv[0], uv[1], uv[2], uv[3]]);
   }
   for (const [x, z] of campusTrees()) treeBlob(canopy, trunk, x, z, 3.2 + rnd() * 2.6, 5 + rnd() * 3, rnd);
 }

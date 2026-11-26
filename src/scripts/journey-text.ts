@@ -1,4 +1,6 @@
-// Shared 3D text motion. The stage still reads the untouched chapter spacers.
+import { LAST_SPAN } from '../lib/stage/shot';
+
+// Shared 3D text motion over the stage's chapter spacers.
 export function initJourneyText(journey: HTMLElement) {
   const viewport = journey.querySelector<HTMLElement>('.text-viewport')!;
   const column = journey.querySelector<HTMLElement>('.text-column')!;
@@ -22,6 +24,11 @@ export function initJourneyText(journey: HTMLElement) {
     if (!journey.offsetHeight) return;
     // Some original cards exceed their chapter's minimum height. Keep that geometry too.
     sizes.forEach((card, i) => { spacers[i].style.height = `${card.getBoundingClientRect().height}px`; });
+    // The stage uses the preceding chapter's height as its stride all the way home.
+    const last = spacers[spacers.length - 1];
+    const stride = last.offsetTop - spacers[spacers.length - 2].offsetTop;
+    const returnHeight = Math.ceil(stride * LAST_SPAN + viewport.clientHeight);
+    if (last.offsetHeight < returnHeight) last.style.height = `${returnHeight}px`;
     start = journey.getBoundingClientRect().top + scrollY;
     scrollRange = Math.max(1, journey.offsetHeight - viewport.clientHeight);
     textRange = Math.max(0, column.offsetHeight - viewport.clientHeight);

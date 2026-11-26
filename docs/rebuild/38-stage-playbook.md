@@ -150,6 +150,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Local 3D fails before the first room | The dev server requested a missing cached version of Three.js and returned 504 | Inspect the first failed module request. Give concurrent dev servers distinct requested ports so each uses its own Vite cache (doc 66) |
 | Trailing padding kept the text moving | After the final links reached the bottom, the 3D text kept rising through its blank bottom padding | Keep the reading pace but cap translation at the links' bottom; leave chapter spacers and stage timing unchanged (doc 64) |
 | Model placed blind | The pendant stood on its rose, shade in the ceiling, for weeks | `glb.mjs` first |
+| Books intersecting the shelf boards | Both rows of encyclopedias started about 15 cm below their shelves | Measure the broad upward-facing triangles at the model’s placed scale. Put the rows on those heights and look from the aisle (doc 68) |
 | Lightmap on thin bars | Black picture frames came back white at the edges | `CONTEXT_PROP` |
 | Stale opening picture | First screen showed the old room while loading | `poster.mjs` |
 | A set warmed alone | 284 programs, five stalls on the walk: the ring draws a set's neighbours with it, and their lamps change the programs | Warm the ring under the ring's lights once both neighbours are in (`warmSet`) |
@@ -157,6 +158,7 @@ URL flags: `?debug&tier=1` (audits), `&live`, `&void`, `&off=ao,bloom,vignette,s
 | Measured on the dev server | 76 s cold, 2 s warm: neither is the site | `npm run build`, `astro preview`, `stage:audit` |
 | Corridor wider than the room it meets | A sliver of nothing past the room's wall | End wall round a door's hole (`passageDoor`) |
 | Things in one line | Marks overlapped each other seen from far down the walk | Stagger `x` |
+| Turning the whole flight to change window seats | The bridge looked right in a still, but slid toward the nose during the descent | Keep ground travel on the cabin’s fore-aft axis. Set the map heading separately and track a fixed landmark across successive frames (doc 70) |
 | Street furniture on a sight line | A bench across Web Summit's mark | `marks.mjs` names what hides it. He wanted it removed, not moved |
 | A sign near the track | Elevate's far end stood in the streetcar's side | Keep x at or below -5.5 for a 2 m mark |
 | Removing a thing, then its ground | The boardroom went, then the block too: "now it is empty" | Take out the thing he named, leave what stood round it |

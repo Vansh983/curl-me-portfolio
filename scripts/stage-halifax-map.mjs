@@ -113,11 +113,13 @@ for (const p of [{ lat: 44.632, lon: -63.556 }, { lat: 44.628, lon: -63.5904 }])
 const required = [373834324, 3813085, 4138857, 342871411, 342871412, 1448304973, 1449662840, 6707202, 17203102, 9435813];
 for (const id of required) if (!elements.some((e) => e.id === id)) throw Error(`Missing required mapped landmark ${id}`);
 const goldberg = elements.find((e) => e.id === 373834324);
+const goldbergCorners = goldberg.geometry.slice(0, -1).map(en).map(xz);
+const campus = [0, 1].map(axis => Math.round(goldbergCorners.reduce((sum, corner) => sum + corner[axis], 0) / goldbergCorners.length));
 const memberBuildings = new Set(elements.filter((e) => e.type === 'relation' && e.tags.building).flatMap((e) => e.members.map((m) => m.ref)));
 const omittedBuildingWays = elements.filter((e) => e.tags.building && e.geometry && !same(e.geometry[0], e.geometry.at(-1)) && !memberBuildings.has(e.id)).map((e) => e.id);
 if (omittedBuildingWays.length) console.warn('Unclosed building footprints omitted, never closed by guess:', omittedBuildingWays.join(', '));
 const fills = [], water = [], buildings = [], bridges = [], roads = [], piers = [];
-const P = { land: '#cecbb5', urban: '#dad2bf', industrial: '#c8bfab', green: '#a4b394', wood: '#8caa91', pitch: '#aabb93', sand: '#d6c9a9', roof: '#b4aa97', civic: '#c9bda4', goldberg: '#8c9b9a', road: '#eee3cb', roadEdge: '#b6ad99', water: '#7e9fa0' };
+const P = { land: '#939985', urban: '#a9a99c', industrial: '#a2a39d', green: '#798e67', wood: '#5b7964', pitch: '#87996a', sand: '#c2b797', roof: '#898b85', civic: '#a19a8c', goldberg: '#74858a', road: '#777c7e', roadEdge: '#b8b7aa', water: '#547b82' };
 for (const e of elements) {
   const t = e.tags;
   if (t.natural === 'coastline') continue;
@@ -143,8 +145,8 @@ roads.sort((a, b) => roadWidth(a.tags) - roadWidth(b.tags));
 const bridgeRoads = roads.filter((e) => e.tags.bridge && e.tags.bridge !== 'no');
 const normalRoads = roads.filter((e) => !bridgeRoads.includes(e));
 const sourceJson = JSON.stringify(source);
-const manifest = { source: source.source, timestamp: source.timestamp, coastTimestamp: source.coastTimestamp, sha256: createHash('sha256').update(sourceJson).digest('hex'), origin: old.origin, heading: old.heading, campus: old.campus,
-  bounds, detail: [-2048, -2048, 0, 2048], omittedBuildingWays, tiles: [] };
+const manifest = { source: source.source, timestamp: source.timestamp, coastTimestamp: source.coastTimestamp, sha256: createHash('sha256').update(sourceJson).digest('hex'), origin: old.origin, heading: old.heading, campus,
+  bounds, detail: [-640, -768, 1408, 3328], omittedBuildingWays, tiles: [] };
 
 // The sun is a drawing direction (WSW), not new scene lighting. Shadows use one small soft offset;
 // they claim no surveyed building heights. Water sheen is clipped to mapped water, without noise.
@@ -173,10 +175,10 @@ const render = async (name, b, width) => {
 };
 await render('far', bounds, 3072);
 for (let row = 0; row < 2; row++) {
-  const e = -2048, n = -2048 + row * 2048;
+  const [e, south] = manifest.detail, n = south + row * 2048;
   await render(`near-${row}-0`, [e, n, e + 2048, n + 2048], 4096);
 }
 writeFileSync(`${ROOT}/source.json.gz`, gzipSync(sourceJson, { level: 9 }));
 writeFileSync('src/lib/stage/halifax-map.json', JSON.stringify(manifest, null, 2) + '\n');
 writeFileSync('.cache/halifax-drawn/map.svg', `<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="${Math.round(1536 * H / W)}" viewBox="${X0} ${-Y1} ${W} ${H}">${svgBody}</svg>`);
-console.log(JSON.stringify({ buildings: buildings.length, roads: roads.length, landPolygons: land.length, greensAndLanduse: fills.length, bridges: bridges.length, goldberg: { id: goldberg.id, footprint: goldberg.geometry.map(en).map(xz), campus: old.campus }, snapshot: source.timestamp }));
+console.log(JSON.stringify({ buildings: buildings.length, roads: roads.length, landPolygons: land.length, greensAndLanduse: fills.length, bridges: bridges.length, goldberg: { id: goldberg.id, footprint: goldbergCorners, campus }, snapshot: source.timestamp }));

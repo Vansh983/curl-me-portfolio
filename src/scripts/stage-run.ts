@@ -26,8 +26,8 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { N8AOPass } from 'n8ao';
-import { SETS, HALIFAX_CAMPUS, WALK_LAMPS, HOME, STAGE_BIN, VOLTA_DOOR, FLOQER, FLOQER_WINDOWS, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
-import { toWorld, turnDir, yawOf } from '../lib/stage/world.ts';
+import { SETS, HALIFAX_CAMPUS, FLIGHT_SKY_YAW, WALK_LAMPS, HOME, STAGE_BIN, VOLTA_DOOR, FLOQER, FLOQER_WINDOWS, type Placement, type StageSet, type Live, type Wear } from '../lib/stage/sets.ts';
+import { BRICK, toWorld, turnDir, yawOf } from '../lib/stage/world.ts';
 import { airAt, onWalk, laptopAt, cueAt, seaplaneAt, streetcarAt, ferryAt, walkZ, markAt, voltaViewAt, TORONTO_SKYLINE, MARKS, CITY_AIR, type Mark, WALK, type Air, type SkyName, type Pose } from '../lib/stage/walk.ts';
 import { DOLLY, makeDolly, type Frame } from '../lib/stage/dolly.ts';
 import { buildShell, type Slab } from '../lib/stage/shell.ts';
@@ -677,6 +677,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       const backdrop = name === 'toronto' || name === 'sydney' || name.startsWith('campus'); // a view out of a window: unlit, beyond the fog
       if (name.startsWith('screen') || backdrop) return new MeshBasicMaterial({ map: paintTex(name, Number(frame ?? 0)), toneMapped: false, fog: !backdrop });
       if (name === 'cloudPuffs') return cloudMaterial(paintTex(name, 0)); // the cloud field: every quad turned to the camera, sized by its vertex colour
+      if (name === 'doorEnter' || name === 'doorExit') {
+        const map = paintTex(name);
+        return new MeshStandardMaterial({ map, roughness: 0.75, emissive: '#F0DABD', emissiveMap: map, emissiveIntensity: 0.45 });
+      }
       if (name.startsWith('sign')) { // a sign of the walk: the mark cut out by its own edge, lit from within once the lamps are
         const map = paintTex(name, 0), m = new MeshStandardMaterial({ map, alphaTest: 0.5, side: DoubleSide, roughness: 0.55, metalness: 0.05, envMapIntensity: 0.6, emissive: '#FFFFFF', emissiveMap: map, emissiveIntensity: 0 });
         signs.push(m);
@@ -698,6 +702,10 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       return new MeshStandardMaterial({ map: paintTex(name, Number(frame ?? 0)), roughness: 0.6, metalness: 0, envMapIntensity: 0.6 });
     }
     // emitters and the water get their own copy so their state does not leak into the shared one
+    if (live === 'door' && s.mat === 'doorDark') {
+      // The hall bulb is baked into the walls. The two live oak leaves take a little of its bounce on their grain.
+      const m = matFor(s.mat).clone(); m.emissiveMap = m.map; m.emissive.set('#806C55'); m.emissiveIntensity = 0.45; return m;
+    }
     if (live === 'bulb' && s.mat === 'bulb') { const m = matFor(s.mat).clone(); m.emissive.set('#FFC978'); m.emissiveIntensity = 6; return m; }
     if (live === 'tube' && s.mat === 'tubeGlass') { const m = matFor(s.mat).clone(); m.emissive.set('#EAF2FF'); m.emissiveIntensity = 0; return m; }
     if (live === 'water') { const m = matFor(s.mat).clone(); m.envMapIntensity = 0.25; return m; }
@@ -723,7 +731,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // ---- live things
   const live = {
     fans: [] as Object3D[],
-    doors: [] as Array<{ obj: Object3D; from: number; to: number; base: number; shut?: [number, number]; open: number; sides: [number, number]; gate: number }>, // leaves that swing open with the stage progress, and some shut again behind him; `open` is how far, this frame; `sides` the sets it joins, `gate` 0 while the room past it is not yet in
+    doors: [] as Array<{ obj: Object3D; from: number; to: number; base: number; shut?: [number, number]; oneWay?: true; open: number; sides: [number, number]; gate: number }>, // leaves that swing open with the stage progress, and some shut again behind him; `open` is how far, this frame; `sides` the sets it joins, `gate` 0 while the room past it is not yet in
     curtains: [] as MeshStandardMaterial[],
     water: [] as MeshStandardMaterial[],
     crowd: [] as Array<{ mat: MeshStandardMaterial; base: number }>, // the rows of the crowd: their two frames alternate while the hall is on
@@ -741,7 +749,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
   // the world under the aircraft: `flightRoll` at the cabin rolls with the bank (the sky with it, so the horizon tilts);
   // inside it `flightWorld` sinks with the altitude and slides aft with the ground track
   const flightRoll = new Group(), flightWorld = new Group();
-  flightRoll.position.set(-3.4, 1.4, -6.5);
+  // Cabin forward is -Z. Keep travel on this axis; the map's heading belongs to its placements.
+  flightRoll.position.set(-3.4, 1.4, -4.7);
   flightRoll.add(flightWorld);
   let fanSpeed = 0, tubeOn = 0, tubeClock = -1;
   const timeU = { value: 0 };
@@ -919,7 +928,19 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
       g.add(mesh);
     }
     if (name === 'city') g.add(streetLightPoints()); // the streets below, a light every 28 m
-    if (p.live === 'door' && p.door) live.doors.push({ obj: g, from: p.door[0], to: p.door[1], base: (p.rot?.[1] ?? 0) * D, shut: p.shut, open: 0, sides: doorSides(p.door[0], p.door[1]), gate: 0 });
+    if (name === 'aircraftCabin' && !baked) {
+      const fill = new PointLight('#E5EEFA', 1.6, 5, 1.6);
+      fill.position.set(-3.4, 1.5, -6.7);
+      g.add(fill);
+    }
+    if (name === 'boardingPassage' && !baked) {
+      for (const z of [-1.8, 0.5, 1.6]) {
+        const fill = new PointLight('#FFF1DA', 5, 6, 1.6);
+        fill.position.set(-3.35, 1.8, z);
+        g.add(fill);
+      }
+    }
+    if (p.live === 'door' && p.door) live.doors.push({ obj: g, from: p.door[0], to: p.door[1], base: (p.rot?.[1] ?? 0) * D, shut: p.shut, oneWay: p.oneWay, open: 0, sides: doorSides(p.door[0], p.door[1]), gate: 0 });
     if (p.drop) live.drops.push({ obj: g, from: p.drop[0], to: p.drop[1], by: p.drop[2], base: p.at[1] });
     if (name === 'downlight' && p.live === 'downlight' && !baked) {
       const light = new PointLight('#FFF0DC', 28, 14, 1.6); // a recessed can six metres up: a pool on the tier below
@@ -1369,7 +1390,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     (window as unknown as { __export: unknown }).__export = {
       glb: btoa(bin),
       manifest: { set: i, id: S.id, env: S.bake?.env ?? S.env, envPower: S.bake?.envPower ?? S.envPower, exposure: S.exposure, tint: S.bake?.tint ?? S.tint, sun: S.bake?.sun ?? S.sun, fog: S.fog, shell: S.shell ?? null, lights,
-        view: own(S.bake ? S.bake.view : DOLLY.find((k) => k.set === i && k.blend === undefined)) },
+        view: own(S.bake?.view ?? DOLLY.find((k) => k.set === i && k.blend === undefined)) },
     };
   };
 
@@ -1626,7 +1647,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     const S = SETS[i];
     ao.configuration.intensity = S.baked ? 1.4 : 2.6; // the lightmap already holds the soft occlusion
     scene.environment = roomEnvironments.get(i)?.texture ?? (i === 5 && flightEnvironment ? flightEnvironment.texture : S.env === 'sky' ? skyEnv : studioEnv);
-    scene.environmentRotation.set(0, yawOf(i), 0); // a room's map was baked where the room was written; the room is turned in the world (world.ts)
+    scene.environmentRotation.set(0, yawOf(i) + (i === 5 ? FLIGHT_SKY_YAW * D : 0), 0);
     const span = i === 5 ? 140 : WALK_SETS.has(i) ? 17 : 7; // out on the walk the low sun throws the rail and the lamps a long way across the paving
     Object.assign(sun.shadow.camera, { left: -span, right: span, top: span, bottom: -span, far: i === 5 ? 450 : WALK_SETS.has(i) ? 150 : 80 });
     sun.shadow.camera.updateProjectionMatrix();
@@ -1687,8 +1708,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     sun.shadow.intensity = mix(A.sun.shadow, B.sun.shadow);
     const sunDir = new Vector3(...turnDir(f.from, A.sun.dir)).normalize().lerp(new Vector3(...turnDir(f.into, B.sun.dir)).normalize(), t).normalize(); // the shadows swing round with the light, never jump; a set turned in the world turns its sun with it (world.ts)
     // the sun follows the look, so the shadow map stays tight around what is in frame
-    const fl = flightAt(f.q, reduce.matches);
-    const look = f.set === 5 ? groups[5].localToWorld(new Vector3(flightRoll.position.x + HALIFAX_CAMPUS[0], -fl.altitude, flightRoll.position.z + HALIFAX_CAMPUS[1] + fl.travel - FLIGHT.distance)) : new Vector3(...f.look);
+    const look = f.set === 5 ? flightWorld.localToWorld(new Vector3(HALIFAX_CAMPUS[0], 0, HALIFAX_CAMPUS[1])) : new Vector3(...f.look);
     sun.position.copy(look).addScaledVector(sunDir, f.set === 5 ? 600 : WALK_SETS.has(f.set) ? 70 : 30);
     sun.target.position.copy(look);
     sun.target.updateMatrixWorld();
@@ -2107,7 +2127,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     }
     const flight = flightAt(q, reduce.matches);
     flightWorld.position.set(0, -flight.altitude - flightRoll.position.y, flight.travel - FLIGHT.distance);
-    flightRoll.rotation.z = flight.bank * D;
+    flightRoll.rotation.z = -flight.bank * D; // a port bank lifts the horizon outside the left window
     veil.style.opacity = String(mainFrame.set === 5 ? 0.7 * flight.veil : 0); // the puffs on the track do most of it; the veil adds the glow
     const lap = laptopAt(q * STAGE_SPAN), page = lap.view;
     if (page !== tourPage) { tourFrom = tourPage; tourSwitched = now; tourPage = page; } // the laptop's page follows the city, the last page fading out over half a second: a cut on the screen read as a flash
@@ -2190,9 +2210,8 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     // the 2020 room stands behind Google's door with the aircraft off its west door: the lawn and the aircraft would stand in
     // one another's way outside it, so each shows only while its own door is open, and the two doors are never open together
     if (mainFrame.set === 4) { groups[3].visible = (roomDoors().lawn?.open ?? 1) > 0.001; groups[5].visible = (roomDoors().bridge?.open ?? 0) > 0.001; }
-    // Floqer's house is outside the apartment's glass (world.ts): drawn only while the stair door is open.
-    // The passage and that door belong to set 0, so closing it never hides the passage behind the brick opening.
-    if (mainFrame.set === 0) groups[12].visible = (roomDoors().home?.open ?? 0) > 0.001;
+    // Floqer is visible from the return passage and through its open door, then disappears from the apartment's window.
+    if (mainFrame.set === 0) groups[12].visible = landed[12] && (mainFrame.cam[0] > BRICK.x || (roomDoors().home?.open ?? 0) > 0.001);
     if (held?.kind === 'hand' && held.ready) drawHand(); else composer.render(); // a thing in hand: the still behind it, the thing over it; the world is not drawn
     phone.render();
     if (!shown) { shown = true; canvas.classList.add('on'); } // the first frame fades in over the page colour
@@ -2238,7 +2257,7 @@ export function mount(root: HTMLElement, canvas: HTMLCanvasElement, chapters: nu
     return live.water.includes(m) || m.alphaTest > 0 || (m instanceof MeshBasicMaterial && m.transparent);
   };
   // the 2020 room's two doors, known by when the scroll opens them: Google's off the lawn (sets.ts, `doorway('google')`) and the west door onto the bridge
-  // and his own front door at the top of Floqer's stair; and Volta's door into the wing
+  // and his own front door at the apartment end of the return passage; and Volta's door into the wing
   let roomDoorsFound: { lawn?: (typeof live.doors)[number]; bridge?: (typeof live.doors)[number]; home?: (typeof live.doors)[number]; wing?: (typeof live.doors)[number] } | undefined;
   const roomDoors = () => {
     if (roomDoorsFound?.lawn && roomDoorsFound.bridge && roomDoorsFound.home && roomDoorsFound.wing) return roomDoorsFound;

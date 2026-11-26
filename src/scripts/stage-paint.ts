@@ -33,7 +33,14 @@ const white = (x: Ctx, w: number, h: number) => { x.fillStyle = '#FFFFFF'; x.fil
  */
 export function painters(images: Images, video: HTMLVideoElement): Record<string, Paint> {
   const mono = '15px ui-monospace, Menlo, monospace';
+  const doorPlate = (word: string): Paint => ({ w: 512, h: 194, frames: [(x, w, h) => {
+    x.fillStyle = '#DED8C8'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = '#62594D'; x.lineWidth = 3; x.strokeRect(9, 9, w - 18, h - 18);
+    x.font = '600 110px ' + SANS; x.fillStyle = '#242723'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(word, w / 2, h * 0.52);
+  }] });
   return {
+    doorEnter: doorPlate('Enter'), doorExit: doorPlate('Exit'),
     campusPhoto: { w: 1600, h: 941, frames: [(x, w, h) => {
       x.fillStyle = '#7F9AA9'; x.fillRect(0, 0, w, h);
       if (images.dalhousie) x.drawImage(images.dalhousie, 0, 0, w, h);
