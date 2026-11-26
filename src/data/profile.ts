@@ -3,10 +3,15 @@
 
 export const profile = {
   name: 'Vansh Sood',
+  ogImage: '/assets/og/vansh.jpg', // 1200 × 630; photo to be supplied
+  headshot: '/assets/og/vansh-square.jpg', // square; photo to be supplied
   role: 'Head of Engineering at Floqer. Two-time founder.',
+  bio: 'Builder and entrepreneur in Toronto.',
+  jobTitle: 'Head of Engineering',
+  alumniOf: [{ name: 'Dalhousie University', url: 'https://www.dal.ca' }],
   // One sentence. Shows up in the hero, the meta description and the curl response.
   summary:
-    'Google Code-in grand prize at 17. Founded Webcube at 17 and grew it to $200K across 45 companies. Co-founded Bean, number four on Product Hunt. Now the orchestration engine behind enterprise GTM automation at Floqer.', // from LinkedIn, 2026-09-01
+    'Google Code-in grand prize at 17. Founded Webcube at 17 and grew it to $140K across 45 companies. Co-founded Bean, number four on Product Hunt. Now the orchestration engine behind enterprise GTM automation at Floqer.', // from LinkedIn, 2026-09-01
   location: 'Toronto, Canada', // Floqer's hacker house downtown, per LinkedIn 2026
   company: { name: 'Floqer', url: 'https://floqer.com' }, // head of engineering, not founder
   bean: { name: 'Bean', url: 'https://beantheapp.com' }, // co-founder and CTO, with Pankrit Jindal

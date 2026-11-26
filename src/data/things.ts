@@ -75,7 +75,7 @@ export const THINGS: Record<string, Thing> = {
   // 4: the 2020 room, Delhi
   webcubeDesk: {
     title: 'Webcube. From this desk.', lane: 'Webcube · 2020 to 24', kind: 'look',
-    lines: ['45 companies, six countries, 25 people, from this desk.', 'Startups brought ideas, we shipped the software. Solo founded in New Delhi at 17 and run through university.', '$200K revenue, 45 companies, 6 countries.'],
+    lines: ['45 companies, seven countries, 25 people, from this desk.', 'Startups brought ideas, we shipped the software. Solo founded in New Delhi at 17 and run through university.', '$140K revenue, 45 companies, 7 countries.'],
   },
   covidLeads: {
     title: 'Covid Leads Delhi.', lane: 'Delhi · 2020', kind: 'look',

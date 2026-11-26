@@ -15,6 +15,7 @@ type Props = {
 const { title, description, topbar = true, footer = true, viewportFitCover = false } = Astro.props;
 const pageTitle = title ? `${title} | ${profile.name}` : `${profile.name}`;
 const desc = description ?? site.description;
+const ogImage = new URL(profile.ogImage, site.url).href;
 // build.format is 'file', so pathname is "/archive.html" at build time.
 // The URL Vercel actually serves has no extension, and that is what must be canonical.
 const clean = Astro.url.pathname.replace(/index\.html$/, '').replace(/\.html$/, '');
@@ -25,8 +26,11 @@ const person = {
   '@id': `${site.url}/#person`,
   name: profile.name,
   url: site.url,
-  jobTitle: profile.role,
+  image: new URL(profile.headshot, site.url).href,
+  description: profile.bio,
+  jobTitle: profile.jobTitle,
   worksFor: { '@type': 'Organization', name: profile.company.name, url: profile.company.url },
+  alumniOf: profile.alumniOf.map(school => ({ '@type': 'EducationalOrganization', name: school.name, url: school.url })),
   sameAs: [...profile.sameAs],
 };
 
@@ -61,7 +65,14 @@ const path = Astro.url.pathname.replace(/\/$/, '');
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content={profile.name} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={profile.name} />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={profile.name} />
 
     <link rel="preload" as="font" type="font/woff2" href="/fonts/space-grotesk.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter.woff2" crossorigin />

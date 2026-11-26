@@ -45,8 +45,8 @@ export const timeline: Milestone[] = [
     span: 'to 24',
     lane: 'Webcube',
     title: 'A studio, founded at 17',
-    body: 'Startups brought ideas, we shipped the software. Solo founded in New Delhi at 17 and run through university: 45 portfolio companies across six countries, 25 developers at the peak. The same year, Covid Leads Delhi connected 20,000 people with beds and oxygen in two months.',
-    stat: '$200K revenue · 45 companies · 6 countries · 20,000 people helped',
+    body: 'Startups brought ideas, we shipped the software. Solo founded in New Delhi at 17 and run through university: 45 portfolio companies across seven countries, 25 developers at the peak. The same year, Covid Leads Delhi connected 20,000 people with beds and oxygen in two months.',
+    stat: '$140K revenue · 45 companies · 7 countries · 20,000 people helped',
     mark: '/assets/timeline/webcube.png',
   },
   {

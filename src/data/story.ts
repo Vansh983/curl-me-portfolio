@@ -62,10 +62,10 @@ export const chapters: Chapter[] = [
     place: 'Webcube, Delhi',
     title: 'Dropped out to build Webcube',
     paras: [
-      'Back in Delhi I started a B.Tech at MSIT and dropped out six months in to build Webcube. Startups brought the ideas, we built the software. I was 17 and solo. It grew to 45 companies across six countries, $200K in revenue and 25 developers at the peak, and I kept running it through university.',
+      'Back in Delhi I started a B.Tech at MSIT and dropped out six months in to build Webcube. Startups brought the ideas, we built the software. I was 17 and solo. It grew to 45 companies across seven countries, $140K in revenue and 25 developers at the peak, and I kept running it through university.',
       'When Covid hit Delhi we built Covid Leads Delhi: 52 volunteers connecting patients with beds, oxygen and plasma. 20,000 people used it in two months.',
     ],
-    figures: ['$200K revenue', '45 companies', '6 countries', '20,000 people'],
+    figures: ['$140K revenue', '45 companies', '7 countries', '20,000 people'],
   },
   {
     id: 'halifax',
