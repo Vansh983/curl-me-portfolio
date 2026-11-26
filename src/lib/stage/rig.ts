@@ -1,0 +1,446 @@
+// Fixed-count geometry. A rig is params in, positions out, and the vertex count never
+// depends on the params. That is what lets station keys become GPU morph targets.
+// Non-indexed triangles: three vertices each, so normals are flat per face.
+// Every vertex also carries a uv (default: a white corner of the actor's texture) and a
+// colour (default white), so one mesh can be many colours and carry painted detail.
+
+export type V3 = [number, number, number];
+export type UV = [number, number];
+type UVRect = [number, number, number, number]; // u0 v0 u1 v1
+export type Geo = { pos: Float32Array; uv: Float32Array; col: Float32Array };
+/** One cross-section of a loft: centre, the two in-plane unit axes, and the radius along each. */
+export interface Ring { c: V3; u: V3; v: V3; ru: number; rv: number }
+
+const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const len = (a: V3) => Math.hypot(a[0], a[1], a[2]);
+const norm = (a: V3): V3 => {
+  const l = len(a);
+  return l < 1e-9 ? [0, 1, 0] : [a[0] / l, a[1] / l, a[2] / l];
+};
+const madd = (a: V3, b: V3, k: number): V3 => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k];
+
+/** sRGB hex to linear rgb 0..1 (three reads vertex colours as linear). */
+export function linear(hex: string): V3 {
+  const h = hex.replace('#', '');
+  const c = h.length === 3 ? h.split('').map((x) => x + x).join('') : h;
+  const f = (i: number) => {
+    const s = parseInt(c.slice(i, i + 2), 16) / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return [f(0), f(2), f(4)];
+}
+
+/** Standard uv corners for a quad a,b,c,d inside a rect: a bottom-left, c top-right. */
+export const rect = (r: UVRect): [UV, UV, UV, UV] => [[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]];
+const WHITE: UV = [0.01, 0.01];
+
+/** A local frame along d: side and up perpendicular, right-handed (side, up, d). */
+function frame(d: V3): { side: V3; up: V3 } {
+  const up0: V3 = Math.abs(d[1]) < 0.99 ? [0, 1, 0] : [0, 0, 1];
+  const side = norm(cross(up0, d));
+  return { side, up: cross(d, side) };
+}
+
+/**
+ * Ear clipping of a simple polygon given clockwise in (x, z) (negative signed area, the order
+ * `extrude` uses): triangles as index triples, wound so that they face +y. A polygon that is not
+ * simple degrades to a fan of whatever is left rather than failing.
+ */
+export function earcut(pts: Array<[number, number]>): Array<[number, number, number]> {
+  const idx = pts.map((_, i) => i);
+  const out: Array<[number, number, number]> = [];
+  const cross = (a: [number, number], b: [number, number], c: [number, number]) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const inTri = (p: [number, number], a: [number, number], b: [number, number], c: [number, number]) => cross(a, b, p) <= 0 && cross(b, c, p) <= 0 && cross(c, a, p) <= 0;
+  let guard = 0;
+  while (idx.length > 3 && guard++ < 4000) {
+    let clipped = false;
+    for (let n = 0; n < idx.length; n++) {
+      const i0 = idx[(n + idx.length - 1) % idx.length], i1 = idx[n], i2 = idx[(n + 1) % idx.length];
+      const a = pts[i0], b = pts[i1], c = pts[i2];
+      if (cross(a, b, c) >= 0) continue; // a reflex corner in a clockwise ring
+      if (idx.some((k) => k !== i0 && k !== i1 && k !== i2 && inTri(pts[k], a, b, c))) continue;
+      out.push([i0, i1, i2]);
+      idx.splice(n, 1);
+      clipped = true;
+      break;
+    }
+    if (!clipped) break;
+  }
+  for (let n = 1; n + 1 < idx.length; n++) out.push([idx[0], idx[n], idx[n + 1]]);
+  return out;
+}
+
+export class Sink {
+  pos: number[] = [];
+  uv: number[] = [];
+  col: number[] = [];
+  private c: V3 = [1, 1, 1];
+
+  /** Colour for every vertex emitted after this call. */
+  color(hex: string): this {
+    this.c = linear(hex);
+    return this;
+  }
+  private push(p: V3, u: UV) {
+    this.pos.push(p[0], p[1], p[2]);
+    this.uv.push(u[0], u[1]);
+    this.col.push(this.c[0], this.c[1], this.c[2]);
+  }
+  /** A triangle with its own colour at each corner (linear rgb): terrain shaded by vertex, not by face. */
+  tric(a: V3, b: V3, c: V3, ca: V3, cb: V3, cc: V3): this {
+    const keep = this.c;
+    this.c = ca; this.push(a, WHITE);
+    this.c = cb; this.push(b, WHITE);
+    this.c = cc; this.push(c, WHITE);
+    this.c = keep;
+    return this;
+  }
+  tri(a: V3, b: V3, c: V3, uv: [UV, UV, UV] = [WHITE, WHITE, WHITE]): this {
+    this.push(a, uv[0]);
+    this.push(b, uv[1]);
+    this.push(c, uv[2]);
+    return this;
+  }
+  /** a,b,c,d counter-clockwise seen from outside. */
+  quad(a: V3, b: V3, c: V3, d: V3, uv?: [UV, UV, UV, UV]): this {
+    if (!uv) return this.tri(a, b, c).tri(a, c, d);
+    return this.tri(a, b, c, [uv[0], uv[1], uv[2]]).tri(a, c, d, [uv[0], uv[2], uv[3]]);
+  }
+  /** Axis-aligned box, 36 vertices. Faces in order +z, -z, +x, -x, +y, -y. Optional uv rects per face. */
+  box(cx: number, cy: number, cz: number, w: number, h: number, d: number, faces: Partial<Record<'pz' | 'nz' | 'px' | 'nx' | 'py' | 'ny', UVRect>> = {}): this {
+    const x0 = cx - w / 2, x1 = cx + w / 2, y0 = cy - h / 2, y1 = cy + h / 2, z0 = cz - d / 2, z1 = cz + d / 2;
+    const r = (k: keyof typeof faces) => (faces[k] ? rect(faces[k]!) : undefined);
+    this.quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], r('pz'));
+    this.quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], r('nz'));
+    this.quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], r('px'));
+    this.quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], r('nx'));
+    this.quad([x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], r('py'));
+    this.quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], r('ny'));
+    return this;
+  }
+  /**
+   * A box with rounded edges and corners, radius r: a slab of furniture, a monitor, a mattress.
+   * Each face is a grid: a flat middle, a thin support strip, and `segs` cells in the band along
+   * each edge, spaced by equal angle so the round is even. The strip keeps the flat middle flat
+   * when normals are smoothed. 6 * (2 * segs + 3)^2 * 6 vertices. Faces meet at 45 degrees round
+   * the edge, so smoothNormals joins them.
+   */
+  rbox(cx: number, cy: number, cz: number, w: number, h: number, d: number, r: number, segs = 2): this {
+    const half: V3 = [w / 2, h / 2, d / 2];
+    const rr = Math.min(r, half[0], half[1], half[2]);
+    const inner: V3 = [half[0] - rr, half[1] - rr, half[2] - rr];
+    const c: V3 = [cx, cy, cz];
+    // grid lines along one in-plane axis, from -half to half: a band, the flat middle, a band
+    const lines = (k: number): number[] => {
+      const out: number[] = [];
+      for (let i = segs; i >= 1; i--) out.push(-inner[k] - rr * Math.tan((i / segs) * (Math.PI / 4)));
+      const e = Math.min(rr, inner[k]) * 0.3;
+      out.push(-inner[k], -inner[k] + e, inner[k] - e, inner[k]);
+      for (let i = 1; i <= segs; i++) out.push(inner[k] + rr * Math.tan((i / segs) * (Math.PI / 4)));
+      return out;
+    };
+    // a point on the plain box surface, moved onto the rounded one: the part outside the inner
+    // box is a direction, and the point sits r along it from the inner box
+    const round = (p: V3): V3 => {
+      const q: V3 = [0, 0, 0], n: V3 = [0, 0, 0];
+      for (let k = 0; k < 3; k++) { q[k] = Math.max(-inner[k], Math.min(inner[k], p[k])); n[k] = p[k] - q[k]; }
+      const l = len(n) || 1;
+      return [c[0] + q[0] + (n[0] / l) * rr, c[1] + q[1] + (n[1] / l) * rr, c[2] + q[2] + (n[2] / l) * rr];
+    };
+    // face k with sign s: in-plane axes (i, j) chosen so i x j points outward
+    const faces: Array<[number, number, number, number]> = [[2, 1, 0, 1], [2, -1, 1, 0], [0, 1, 1, 2], [0, -1, 2, 1], [1, 1, 2, 0], [1, -1, 0, 2]];
+    for (const [k, sgn, i, j] of faces) {
+      const li = lines(i), lj = lines(j);
+      const at = (a: number, b: number): V3 => { const p: V3 = [0, 0, 0]; p[k] = sgn * half[k]; p[i] = a; p[j] = b; return round(p); };
+      for (let a = 0; a < li.length - 1; a++)
+        for (let b = 0; b < lj.length - 1; b++)
+          this.quad(at(li[a], lj[b]), at(li[a + 1], lj[b]), at(li[a + 1], lj[b + 1]), at(li[a], lj[b + 1]));
+    }
+    return this;
+  }
+  /** A box from a to b (a limb or a leaning slab), half-widths rw (sideways) and rd (the other way). 36 vertices. */
+  bone(a: V3, b: V3, rw: number, rd: number): this {
+    const d = norm(sub(b, a));
+    const { side, up } = frame(d);
+    const c = (base: V3, s: number, u: number): V3 => madd(madd(base, side, s * rw), up, u * rd);
+    const A = (s: number, u: number) => c(a, s, u), B = (s: number, u: number) => c(b, s, u);
+    this.quad(B(-1, -1), B(1, -1), B(1, 1), B(-1, 1));
+    this.quad(A(1, -1), A(-1, -1), A(-1, 1), A(1, 1));
+    this.quad(B(1, -1), A(1, -1), A(1, 1), B(1, 1));
+    this.quad(A(-1, -1), B(-1, -1), B(-1, 1), A(-1, 1));
+    this.quad(B(-1, 1), B(1, 1), A(1, 1), A(-1, 1));
+    this.quad(A(-1, -1), A(1, -1), B(1, -1), B(-1, -1));
+    return this;
+  }
+  /** A rounded limb from a to b, radius r: segs*6 side vertices plus two caps of rings*segs*6. */
+  capsule(a: V3, b: V3, r: number, segs = 8, rings = 3): this {
+    const d = norm(sub(b, a));
+    const { side, up } = frame(d);
+    const ring = (base: V3, j: number, alpha: number, sign: number): V3 => {
+      const th = (j / segs) * Math.PI * 2;
+      const rr = r * Math.cos(alpha);
+      return madd(madd(madd(base, side, rr * Math.cos(th)), up, rr * Math.sin(th)), d, sign * r * Math.sin(alpha));
+    };
+    for (let j = 0; j < segs; j++) this.quad(ring(a, j, 0, 1), ring(a, j + 1, 0, 1), ring(b, j + 1, 0, 1), ring(b, j, 0, 1));
+    for (let i = 0; i < rings; i++) {
+      const a0 = (i / rings) * (Math.PI / 2), a1 = ((i + 1) / rings) * (Math.PI / 2);
+      for (let j = 0; j < segs; j++) {
+        this.quad(ring(b, j, a0, 1), ring(b, j + 1, a0, 1), ring(b, j + 1, a1, 1), ring(b, j, a1, 1));
+        this.quad(ring(a, j + 1, a0, -1), ring(a, j, a0, -1), ring(a, j, a1, -1), ring(a, j + 1, a1, -1));
+      }
+    }
+    return this;
+  }
+  /**
+   * Sphere (or a cap of one), segsW * segsH * 6 vertices. phiMax 1 is the full sphere, 0.5 the top half.
+   * uv is equirectangular inside `r`: u around (seam at +x), v from the bottom.
+   */
+  sphere(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, segsW = 24, segsH = 12, r?: UVRect, phiMax = 1): this {
+    const p = (i: number, j: number): V3 => {
+      const phi = (i / segsH) * Math.PI * phiMax, th = (j / segsW) * Math.PI * 2;
+      return [cx + rx * Math.sin(phi) * Math.cos(th), cy + ry * Math.cos(phi), cz + rz * Math.sin(phi) * Math.sin(th)];
+    };
+    const uv = (i: number, j: number): UV => (r ? [r[0] + (r[2] - r[0]) * (j / segsW), r[3] - (r[3] - r[1]) * (i / segsH)] : WHITE);
+    for (let i = 0; i < segsH; i++)
+      for (let j = 0; j < segsW; j++)
+        this.quad(p(i, j), p(i, j + 1), p(i + 1, j + 1), p(i + 1, j), [uv(i, j), uv(i, j + 1), uv(i + 1, j + 1), uv(i + 1, j)]);
+    return this;
+  }
+  /**
+   * A skin over a run of rings: each pair of neighbours is joined by a band of quads, so a limb,
+   * a neck, a hand or a shoe is one continuous surface rather than parts touching. Close an end
+   * with a ring of radius 0.001. (rings.length - 1) * segs * 6 vertices. uv: u around, v along.
+   */
+  loft(rings: Ring[], segs = 12, r?: UVRect): this {
+    const n = rings.length - 1;
+    const p = (i: number, j: number): V3 => {
+      const th = (j / segs) * Math.PI * 2;
+      const g = rings[i];
+      return madd(madd(g.c, g.u, g.ru * Math.cos(th)), g.v, g.rv * Math.sin(th));
+    };
+    const uv = (i: number, j: number): UV => (r ? [r[0] + (r[2] - r[0]) * (j / segs), r[1] + (r[3] - r[1]) * (i / n)] : WHITE);
+    // rings are right-handed (u x v points along the path), so this order faces outward
+    for (let i = 0; i < n; i++)
+      for (let j = 0; j < segs; j++)
+        this.quad(p(i, j), p(i, j + 1), p(i + 1, j + 1), p(i + 1, j), [uv(i, j), uv(i, j + 1), uv(i + 1, j + 1), uv(i + 1, j)]);
+    return this;
+  }
+  /** Cylinder on the y axis, centre (cx, cy, cz), segs * 12 vertices. */
+  cylinder(cx: number, cy: number, cz: number, r: number, h: number, segs = 24): this {
+    const y0 = cy - h / 2, y1 = cy + h / 2;
+    const ring = (j: number, y: number): V3 => {
+      const th = (j / segs) * Math.PI * 2;
+      return [cx + r * Math.cos(th), y, cz + r * Math.sin(th)];
+    };
+    for (let j = 0; j < segs; j++) {
+      this.quad(ring(j, y0), ring(j, y1), ring(j + 1, y1), ring(j + 1, y0));
+      this.tri([cx, y1, cz], ring(j + 1, y1), ring(j, y1));
+      this.tri([cx, y0, cz], ring(j, y0), ring(j + 1, y0));
+    }
+    return this;
+  }
+  /**
+   * Surface of revolution around a vertical axis at (cx, cz), base at cy. profile is [radius, height][]
+   * from bottom to top, scaled by sx and sz (elliptical). shear leans the top toward -z.
+   * (profile.length - 1) * segs * 6 vertices. uv: u around with the -z front at 0 and the +z back at 0.5,
+   * v from bottom to top, inside `r`.
+   */
+  lathe(profile: [number, number][], cx: number, cy: number, cz: number, sx: number, sz: number, shear = 0, segs = 32, r?: UVRect): this {
+    const n = profile.length - 1;
+    const p = (i: number, j: number): V3 => {
+      const th = (j / segs) * Math.PI * 2 - Math.PI / 2;
+      const [rad, y] = profile[i];
+      return [cx + rad * sx * Math.cos(th), cy + y, cz + rad * sz * Math.sin(th) - shear * y];
+    };
+    // u runs the other way round so lettering on the back reads correctly from behind
+    const uv = (i: number, j: number): UV => (r ? [r[0] + (r[2] - r[0]) * (1 - j / segs), r[1] + (r[3] - r[1]) * (i / n)] : WHITE);
+    for (let i = 0; i < n; i++)
+      for (let j = 0; j < segs; j++)
+        this.quad(p(i, j), p(i + 1, j), p(i + 1, j + 1), p(i, j + 1), [uv(i, j), uv(i + 1, j), uv(i + 1, j + 1), uv(i, j + 1)]);
+    return this;
+  }
+  /**
+   * A footprint pulled up from y0 to y1: one quad per edge facing out, and a flat roof if `cap` is
+   * given (into `cap`, which may be this). The ring may run either way. uv on the sides: u along the
+   * perimeter and v up, in units of `per` metres, from (u0, v0), so a window tile keeps its size.
+   */
+  extrude(ring: Array<[number, number]>, y0: number, y1: number, uvs?: { u0: number; v0: number; perU: number; perV: number }, cap?: Sink, bottom?: Sink): this {
+    let area = 0;
+    for (let i = 0; i < ring.length; i++) { const a = ring[i], b = ring[(i + 1) % ring.length]; area += a[0] * b[1] - b[0] * a[1]; }
+    const pts = area > 0 ? [...ring].reverse() : ring; // sides face out and the roof faces up in this order
+    let along = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length];
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const uv = uvs ? rect([uvs.u0 + along / uvs.perU, uvs.v0 + y0 / uvs.perV, uvs.u0 + (along + l) / uvs.perU, uvs.v0 + y1 / uvs.perV]) : undefined;
+      this.quad([a[0], y0, a[1]], [b[0], y0, b[1]], [b[0], y1, b[1]], [a[0], y1, a[1]], uv);
+      along += l;
+    }
+    if (cap) for (const [i, j, k] of earcut(pts)) cap.tri([pts[i][0], y1, pts[i][1]], [pts[j][0], y1, pts[j][1]], [pts[k][0], y1, pts[k][1]]);
+    if (bottom) for (const [i, j, k] of earcut(pts)) bottom.tri([pts[k][0], y0, pts[k][1]], [pts[j][0], y0, pts[j][1]], [pts[i][0], y0, pts[i][1]]); // the floor of the solid, facing down
+    return this;
+  }
+  /** Rotate every vertex from index `start` (in vertices) around the vertical line through (cx, cz). */
+  rotateY(cx: number, cz: number, rad: number, start = 0): this {
+    const c = Math.cos(rad), s = Math.sin(rad);
+    for (let i = start * 3; i < this.pos.length; i += 3) {
+      const x = this.pos[i] - cx, z = this.pos[i + 2] - cz;
+      this.pos[i] = cx + x * c + z * s;
+      this.pos[i + 2] = cz - x * s + z * c;
+    }
+    return this;
+  }
+  /** Rotate around the x axis through (cy, cz). */
+  rotateX(cy: number, cz: number, rad: number, start = 0): this {
+    const c = Math.cos(rad), s = Math.sin(rad);
+    for (let i = start * 3; i < this.pos.length; i += 3) {
+      const y = this.pos[i + 1] - cy, z = this.pos[i + 2] - cz;
+      this.pos[i + 1] = cy + y * c - z * s;
+      this.pos[i + 2] = cz + y * s + z * c;
+    }
+    return this;
+  }
+  /** Rotate around the z axis through (cx, cy). */
+  rotateZ(cx: number, cy: number, rad: number, start = 0): this {
+    const c = Math.cos(rad), s = Math.sin(rad);
+    for (let i = start * 3; i < this.pos.length; i += 3) {
+      const x = this.pos[i] - cx, y = this.pos[i + 1] - cy;
+      this.pos[i] = cx + x * c - y * s;
+      this.pos[i + 1] = cy + x * s + y * c;
+    }
+    return this;
+  }
+  /** Rotate around an arbitrary unit axis through `o` (Rodrigues). */
+  rotateAxis(o: V3, axis: V3, rad: number, start = 0): this {
+    const [ax, ay, az] = norm(axis), c = Math.cos(rad), s = Math.sin(rad), t = 1 - c;
+    for (let i = start * 3; i < this.pos.length; i += 3) {
+      const x = this.pos[i] - o[0], y = this.pos[i + 1] - o[1], z = this.pos[i + 2] - o[2];
+      const dot = ax * x + ay * y + az * z;
+      this.pos[i] = o[0] + x * c + (ay * z - az * y) * s + ax * dot * t;
+      this.pos[i + 1] = o[1] + y * c + (az * x - ax * z) * s + ay * dot * t;
+      this.pos[i + 2] = o[2] + z * c + (ax * y - ay * x) * s + az * dot * t;
+    }
+    return this;
+  }
+  translate(dx: number, dy: number, dz: number, start = 0): this {
+    for (let i = start * 3; i < this.pos.length; i += 3) {
+      this.pos[i] += dx;
+      this.pos[i + 1] += dy;
+      this.pos[i + 2] += dz;
+    }
+    return this;
+  }
+  /** Vertex count so far (for the `start` of the transforms). */
+  get count(): number {
+    return this.pos.length / 3;
+  }
+  out(): Geo {
+    return { pos: Float32Array.from(this.pos), uv: Float32Array.from(this.uv), col: Float32Array.from(this.col) };
+  }
+}
+
+/**
+ * Rings along a polyline, one per point, with the radii given. The frame is carried along the
+ * path (each ring's u is the previous one projected onto the new plane, starting from `ref`),
+ * so a bend never twists the skin and the same limb in two poses morphs without spinning.
+ * @param pts ring centres
+ * @param rad [ru, rv] per point
+ * @param ref the direction u starts from (say, outward from the body)
+ */
+export function tube(pts: V3[], rad: Array<[number, number]>, ref: V3): Ring[] {
+  const out: Ring[] = [];
+  let u: V3 = ref;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    let t = sub(b, a);
+    if (len(t) < 1e-9) t = i > 0 ? sub(pts[i], pts[i - 1]) : [0, -1, 0];
+    t = norm(t);
+    const d = u[0] * t[0] + u[1] * t[1] + u[2] * t[2];
+    let uu: V3 = [u[0] - t[0] * d, u[1] - t[1] * d, u[2] - t[2] * d];
+    if (len(uu) < 1e-6) uu = frame(t).side;
+    u = norm(uu);
+    out.push({ c: pts[i], u, v: cross(t, u), ru: rad[i][0], rv: rad[i][1] });
+  }
+  return out;
+}
+
+/**
+ * Smooth normals across faces that meet at less than `maxDeg`, hard across the rest: a limb
+ * rounds off, a table keeps its edge. Vertices are welded by position (a tenth of a
+ * millimetre), contributions are area weighted. Works per key, so morph normals stay right.
+ */
+export function smoothNormals(pos: Float32Array, maxDeg = 62): Float32Array {
+  const nTri = pos.length / 9;
+  const area = new Float32Array(nTri * 3);
+  const unit = new Float32Array(nTri * 3);
+  for (let f = 0; f < nTri; f++) {
+    const i = f * 9;
+    const a: V3 = [pos[i], pos[i + 1], pos[i + 2]], b: V3 = [pos[i + 3], pos[i + 4], pos[i + 5]], c: V3 = [pos[i + 6], pos[i + 7], pos[i + 8]];
+    const v = cross(sub(b, a), sub(c, a));
+    const l = len(v);
+    area.set(v, f * 3);
+    unit.set(l < 1e-12 ? [0, 1, 0] : [v[0] / l, v[1] / l, v[2] / l], f * 3);
+  }
+  const buckets = new Map<string, number[]>();
+  const keyOf = (v: number) => `${Math.round(pos[v * 3] * 1e4)},${Math.round(pos[v * 3 + 1] * 1e4)},${Math.round(pos[v * 3 + 2] * 1e4)}`;
+  const nV = pos.length / 3;
+  for (let v = 0; v < nV; v++) {
+    const k = keyOf(v);
+    const b = buckets.get(k);
+    if (b) b.push(v); else buckets.set(k, [v]);
+  }
+  const cosMax = Math.cos((maxDeg * Math.PI) / 180);
+  const out = new Float32Array(pos.length);
+  for (let v = 0; v < nV; v++) {
+    const f = Math.floor(v / 3);
+    const fx = unit[f * 3], fy = unit[f * 3 + 1], fz = unit[f * 3 + 2];
+    let x = 0, y = 0, z = 0;
+    for (const w of buckets.get(keyOf(v))!) {
+      const g = Math.floor(w / 3);
+      if (unit[g * 3] * fx + unit[g * 3 + 1] * fy + unit[g * 3 + 2] * fz < cosMax) continue;
+      x += area[g * 3]; y += area[g * 3 + 1]; z += area[g * 3 + 2];
+    }
+    const l = Math.hypot(x, y, z);
+    if (l < 1e-12) { x = fx; y = fy; z = fz; } else { x /= l; y /= l; z /= l; }
+    out[v * 3] = x; out[v * 3 + 1] = y; out[v * 3 + 2] = z;
+  }
+  return out;
+}
+
+/** One flat normal per triangle, repeated for its three vertices. Zero-area triangles get (0,1,0). */
+export function flatNormals(pos: Float32Array): Float32Array {
+  const n = new Float32Array(pos.length);
+  for (let i = 0; i < pos.length; i += 9) {
+    const a: V3 = [pos[i], pos[i + 1], pos[i + 2]];
+    const b: V3 = [pos[i + 3], pos[i + 4], pos[i + 5]];
+    const c: V3 = [pos[i + 6], pos[i + 7], pos[i + 8]];
+    const v = cross(sub(b, a), sub(c, a));
+    const l = len(v);
+    const u: V3 = l < 1e-12 ? [0, 1, 0] : [v[0] / l, v[1] / l, v[2] / l];
+    for (let k = 0; k < 3; k++) n.set(u, i + k * 3);
+  }
+  return n;
+}
+
+/**
+ * Box-projected uv in metres: each vertex takes the two world coordinates across its normal's
+ * main axis, so a scanned surface tiles evenly over a built prop that carries no uv of its own.
+ */
+export function boxUv(pos: Float32Array, nor: Float32Array): Float32Array {
+  const uv = new Float32Array((pos.length / 3) * 2);
+  for (let i = 0; i < pos.length / 3; i++) {
+    const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
+    const ax = Math.abs(nor[i * 3]), ay = Math.abs(nor[i * 3 + 1]), az = Math.abs(nor[i * 3 + 2]);
+    if (ay >= ax && ay >= az) { uv[i * 2] = x; uv[i * 2 + 1] = z; }
+    else if (ax >= az) { uv[i * 2] = z; uv[i * 2 + 1] = y; }
+    else { uv[i * 2] = x; uv[i * 2 + 1] = y; }
+  }
+  return uv;
+}
+
+/** True when every uv is the same point: a prop built with no map in mind. */
+export function flatUv(uv: Float32Array): boolean {
+  for (let i = 2; i < uv.length; i += 2) if (uv[i] !== uv[0] || uv[i + 1] !== uv[1]) return false;
+  return true;
+}

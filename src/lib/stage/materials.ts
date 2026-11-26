@@ -1,0 +1,336 @@
+// Designed surfaces: a colour, a roughness, and at most a faint grain (a procedural normal map
+// from surface.ts), a painted colour map (tiles, pavers, drawn on a canvas at runtime), or a
+// scanned surface (assets.ts: its relief and roughness, and its colour for floors and wood). Every set has its own palette: warm for 2010, cool and clean for
+// 2013, bright for 2018. uv on shells and built props is in metres; `tile` is metres per repeat.
+import type { Kind } from './surface.ts';
+import flightMap from './halifax-map.json' with { type: 'json' };
+
+export interface Mat {
+  color: string;
+  rough: number;
+  metal?: number;
+  grain?: Kind; // a faint normal map, tiled every `tile` metres
+  amp?: number; // normal strength, 0..1 (default 0.25)
+  paint?: 'brickFront' | 'planks' | 'planksPale' | 'tiles' | 'pavers' | 'windows' | 'nightSky' | 'facade' | 'pitch' | 'windowsDay'; // a painted colour map, tiled every `tile` metres
+  tex?: string; // a scanned surface from assets.ts: its relief and roughness, and its colour when it ships one; tiled every `tile` metres
+  sheen?: number; // cloth: the soft rim light of fibres, 0..1
+  clearcoat?: number; // lacquer, car paint, glossy plastic: a clear layer over the colour, 0..1
+  clearcoatRough?: number; // default 0.15
+  vary?: number; // roughness wander across the surface, 0..1 (default 0.2; a scanned surface brings its own)
+  tile: number;
+  emissive?: string; // glows on its own
+  emissivePower?: number;
+  bakePower?: number; // its glow as a lamp in the bake, when that differs from how bright it is drawn (default: emissivePower)
+  unlit?: boolean; // a basic material: the map or colour is the light (screens, the city at night)
+  fog?: false; // outside the room's fog, kilometres away
+  inside?: true; // seen from inside (a sky dome): back faces
+  tint?: true; // takes the piece's vertex colours (the city: each building its own brightness)
+  alpha?: number; // see-through: a pane of glass; kept live, never baked
+  env?: number; // how much of the room's reflection it takes, 0..1 (default 1): a matt black ceiling takes almost none
+  layer?: number; // flat ground layers on the same plane, kilometres off: drawn over what is under them (polygon offset), higher wins
+}
+
+export const MATS: Record<string, Mat> = {
+  ...Object.fromEntries(flightMap.tiles.map((_, i) => [`flightMap${i}`, { color: '#FFFFFF', rough: 1, unlit: true, fog: false, tile: 1 }])),
+  cabinWall: { color: '#E3E1D8', rough: 0.42, clearcoat: 0.22, tile: 1 },
+  cabinPanel: { color: '#D6D8D6', rough: 0.5, clearcoat: 0.15, clearcoatRough: 0.4, tile: 1 }, // the E175's sidewalls and crown: light grey panels
+  cabinDado: { color: '#8C9096', rough: 0.6, tile: 1 }, // the dado, the PSU strip, the seat pockets
+  cabinBin: { color: '#EAEAE6', rough: 0.45, clearcoat: 0.2, clearcoatRough: 0.35, tile: 1 }, // the bins and the seat shells
+  cabinRunner: { color: '#26313F', rough: 1, tex: 'dirty_carpet', amp: 0.5, tile: 0.6 }, // the aisle runner
+  seatLeather: { color: '#1F2B3F', rough: 0.55, clearcoat: 0.25, clearcoatRough: 0.5, tile: 1 }, // dark blue leather
+  headrestCloth: { color: '#F4F2EC', rough: 0.95, tex: 'cotton_jersey', amp: 0.4, tile: 0.2 }, // the headrest covers
+  cabinSeat: { color: '#233E59', rough: 0.88, tex: 'wool_boucle', amp: 0.4, sheen: 0.6, tile: 0.35 },
+  cabinFloor: { color: '#303D49', rough: 1, tex: 'dirty_carpet', amp: 0.6, tile: 0.6 },
+  lectureWall: { color: '#E8E2D6', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 },
+  lectureFloor: { color: '#A7A49B', rough: 0.85, grain: 'speckle', amp: 0.1, tile: 1 },
+  auditoriumFabric: { color: '#763348', rough: 0.91, tex: 'wool_boucle', amp: 0.45, sheen: 0.65, tile: 0.35 },
+  auditoriumCarpet: { color: '#4A4B50', rough: 1, tex: 'dirty_carpet', amp: 0.45, tile: 0.6 },
+  auditoriumOak: { color: '#B99A75', rough: 0.55, tex: 'oak_veneer_01', amp: 0.35, clearcoat: 0.18, tile: 1.83 },
+  acousticPanel: { color: '#484951', rough: 1, tex: 'wool_boucle', amp: 0.3, tile: 0.7 },
+  // 2022, the crossing: the cabin, the wing, and Halifax in daylight 400 m down, lit by the sun and hazed by the set's fog
+  cabinGlass: { color: '#DCE9F2', rough: 0.05, clearcoat: 1, clearcoatRough: 0.02, alpha: 0.16, tile: 1 },
+  bridgeWall: { color: '#8E949B', rough: 0.55, clearcoat: 0.15, clearcoatRough: 0.3, tile: 1 },
+  bridgeFloor: { color: '#2E3134', rough: 0.95, grain: 'speckle', amp: 0.2, tile: 0.5 },
+  wingSkin: { color: '#C9CDD1', rough: 0.42, metal: 0.15, clearcoat: 0.25, clearcoatRough: 0.25, tile: 1 },
+  flightGround: { color: '#737B5E', rough: 1, tile: 1 },
+  halifaxWall: { color: '#FFFFFF', rough: 0.85, tile: 3.6, tint: true, paint: 'facade' },
+  halifaxGlazing: { color: '#c4d0d4', rough: 0.44, metal: 0.09, tile: 68, tint: true, paint: 'windowsDay' },
+  halifaxRoof: { color: '#FFFFFF', rough: 0.9, tile: 1, tint: true },
+  seaWater: { color: '#22485F', rough: 0.12, metal: 0.05, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1, layer: 1 },
+  parkGreen: { color: '#5E8A45', rough: 1, tile: 1, layer: 2 },
+  woodGreen: { color: '#33552E', rough: 1, tile: 1, layer: 2 },
+  streetAsphalt: { color: '#45474A', rough: 0.95, tile: 1, layer: 3 },
+  campusLawn: { color: '#5C8C44', rough: 1, tile: 1, layer: 2 },
+  campusPaving: { color: '#B6B2A8', rough: 0.9, tile: 1, layer: 4 },
+  campusTurf: { color: '#FFFFFF', rough: 1, tile: 1, paint: 'pitch', layer: 5 },
+  copperRoof: { color: '#5E8C7A', rough: 0.6, metal: 0.2, tile: 1 },
+  // the tour's promenade: the water on one side, his things on the other
+  sailWhite: { color: '#F5F4EF', rough: 0.55, tile: 1 },
+  pavement: { color: '#FFFFFF', rough: 0.9, tex: 'concrete_pavement', amp: 0.55, tile: 2 },
+  stageOak: { color: '#8B6A45', rough: 0.9, tex: 'plank_flooring_02', amp: 0.4, tile: 1.98 }, // the stage floor: matte boards (the veneer's roughness map is glossy and threw the room back as a white streak)
+  terraceWall: { color: '#D3CABA', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 }, // the house from outside: rendered, a shade under the sun so it never blooms
+  boothOff: { color: '#DAD8D0', rough: 0.6, clearcoat: 0.1, tile: 1 }, // the booth's white in daylight
+  terrain: { color: '#FFFFFF', rough: 1, tile: 1, tint: true }, // the North Shore: its colours by height in the vertices
+  towerDay: { color: '#FFFFFF', rough: 0.7, paint: 'windowsDay', tile: 1, tint: true }, // downtown Toronto by day, across the water
+  towerTopDay: { color: '#8E9096', rough: 0.9, tile: 1 },
+  handrail: { color: '#9EA3A8', rough: 0.35, metal: 0.8, tile: 1 }, // the terrace balustrade's steel
+  logoBoard: { color: '#F4F3EF', rough: 0.55, tile: 1 },
+  logoBoardDark: { color: '#15161A', rough: 0.55, tile: 1 },
+  bridgeGreen: { color: '#3E6B4F', rough: 0.55, metal: 0.4, tile: 1 }, // the Macdonald's painted steel
+  parchment: { color: '#F1E9D6', rough: 0.85, grain: 'weave', amp: 0.15, tile: 0.1, emissive: '#F1E9D6', emissivePower: 0.22 }, // a little of its own light: the hall is dark and it is paper
+  ribbonGold: { color: '#C9A227', rough: 0.45, metal: 0.3, tile: 1 },
+  ribbonBlack: { color: '#17161A', rough: 0.6, tile: 1 },
+  // 2025, the tour's walk (walk.ts): the promenade's paving a city, the quay, the rail, the lamps, the land, the snow
+  paveVancouver: { color: '#C9CDD2', rough: 0.5, tex: 'granite_tile', amp: 0.7, clearcoat: 0.35, clearcoatRough: 0.18, tile: 2.3 }, // grey granite, wet from the morning's rain
+  paveToronto: { color: '#FFFFFF', rough: 0.85, tex: 'rectangular_paving', amp: 0.8, tile: 2.0 },
+  paveHalifax: { color: '#FFFFFF', rough: 0.9, tex: 'weathered_brown_planks', amp: 0.9, tile: 1.8 }, // the boardwalk's timber
+  walkGranite: { color: '#A9A8A4', rough: 0.75, grain: 'speckle', amp: 0.2, tile: 0.6 }, // the coping, the kerbs, the bands, the sills
+  quayWall: { color: '#55585B', rough: 0.9, grain: 'plaster', amp: 0.4, tile: 2.2 },
+  walkLawn: { color: '#FFFFFF', rough: 1, tex: 'leafy_grass', amp: 0.55, tile: 2.0, layer: 2 }, // its season is the walk's (stage-run.ts)
+  snowForm: { color: '#EEF2F8', rough: 0.95, tex: 'snow_02', amp: 0.8, tile: 2.0 }, // snow with a shape of its own: the drifts, the snow along a limb; it comes on with the walk's cover
+  walkSnowFar: { color: '#DDE3EE', rough: 1, tile: 1 }, // snow a long way off: the island, the hill
+  citySlush: { color: '#7C818A', rough: 1, tile: 1 }, // the ground of the town out of Volta's glass: lots and yards trodden and plowed, grey, not a field of snow
+  citySidewalk: { color: '#6B6D70', rough: 0.9, grain: 'speckle', amp: 0.2, tile: 0.6 }, // the sidewalks along it: wet concrete at dusk, darker than the snow on the banks
+  walkBark: { color: '#FFFFFF', rough: 1, tex: 'bark_brown_02', amp: 1.0, tile: 1.0 },
+  walkWater: { color: '#1E3B4A', rough: 0.08, metal: 0, tile: 1, layer: 1 }, // its own shader at runtime (stage-run.ts): the swell, the sky in it
+  railOak: { color: '#B08457', rough: 0.6, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1.83 },
+  lampPost: { color: '#7A7F86', rough: 0.4, metal: 0.85, tile: 1 }, // galvanised: a post that passes close should not be a black bar
+  towerGlass: { color: '#FFFFFF', rough: 0.35, metal: 0.2, paint: 'windowsDay', tile: 1, tint: true }, // Vancouver's glass towers
+  lampLight: { color: '#FFF3DC', rough: 0.4, emissive: '#FFD9A0', emissivePower: 0, tile: 1 }, // brought up by the walk's script
+  houseBoards: { color: '#4E4A46', rough: 0.85, tex: 'weathered_brown_planks', amp: 0.9, tile: 1.8 }, // dark stained boards, upright
+  houseRoof: { color: '#26282B', rough: 0.5, metal: 0.5, tile: 1 },
+  houseSoffit: { color: '#B99A75', rough: 0.6, tex: 'oak_veneer_01', amp: 0.35, tile: 1.83 },
+  trackBed: { color: '#9C9A95', rough: 0.9, grain: 'plaster', amp: 0.2, tile: 1.5, layer: 3 },
+  trackRail: { color: '#8C8F94', rough: 0.3, metal: 0.9, tile: 1, layer: 4 },
+  voltaBrick: { color: '#FFFFFF', rough: 0.9, tex: 'red_brick_03', amp: 0.9, tile: 1.0 },
+  // Volta's floor as it is (docs/rebuild/40-volta-interior-reference.md): light warm grey walls, warm grey carpet tile, white columns,
+  // sills, mullions and furniture, pale maple planks behind the reception desk, everything overhead painted black
+  voltaWall: { color: '#CFC8BC', rough: 0.9, tex: 'plastered_wall_04', amp: 0.15, tile: 3.2 },
+  voltaWhite: { color: '#E6E3DC', rough: 0.55, clearcoat: 0.12, clearcoatRough: 0.4, tile: 1 }, // columns, the sill, the mullions, table legs, the high tables
+  voltaBlack: { color: '#1B1B1D', rough: 0.5, env: 0.35, tile: 1 }, // the ring lights' bodies, the linear lights, the booth, the bulkhead over the glass
+  voltaBase: { color: '#55524E', rough: 0.7, tile: 1 }, // the baseboard, the columns' feet
+  voltaTableTop: { color: '#C3BCAF', rough: 0.5, grain: 'speckle', amp: 0.08, clearcoat: 0.15, clearcoatRough: 0.4, tile: 1 }, // the flip-top tables: pale grey woodgrain
+  voltaWoodA: { color: '#CDAA84', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.12, clearcoatRough: 0.5, tile: 0.7 }, // the plank wall and the desk: maple, three tones (plain colours: the oak scan's own colour made them orange)
+  voltaWoodB: { color: '#C09A75', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.12, clearcoatRough: 0.5, tile: 0.7 },
+  voltaWoodC: { color: '#B08F72', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.12, clearcoatRough: 0.5, tile: 0.7 },
+  voltaBar: { color: '#2B2A2A', rough: 0.45, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1 }, // the bar ledge under the side window
+  voltaLime: { color: '#A9A83C', rough: 0.95, tex: 'wool_boucle', amp: 0.4, sheen: 0.5, tile: 0.35 }, // the cube ottomans
+  voltaTeal: { color: '#4FB4D0', rough: 0.95, tex: 'wool_boucle', amp: 0.4, sheen: 0.5, tile: 0.35 },
+  voltaRed: { color: '#B13A2E', rough: 0.95, tex: 'wool_boucle', amp: 0.4, sheen: 0.5, tile: 0.35 },
+  voltaWalnut: { color: '#6B4A33', rough: 0.55, tex: 'oak_veneer_01', amp: 0.35, clearcoat: 0.2, tile: 1.83 }, // the side table's cone
+  voltaBell: { color: '#B3261E', rough: 0.4, clearcoat: 0.4, clearcoatRough: 0.2, tile: 1 }, // the fire bells on the columns
+  voltaDuct: { color: '#1D1B1A', rough: 0.95, env: 0.04, tile: 1 }, // the open ceiling: slab, ducts and trays all painted black, matt (taking the room's reflection, it read pale from the door)
+  voltaDoor: { color: '#4E4E4E', rough: 0.5, clearcoat: 0.15, clearcoatRough: 0.4, tile: 1 }, // Volta's doors: flat charcoal
+  stripLight: { color: '#F6F8FF', rough: 0.5, emissive: '#EEF3FF', emissivePower: 3.2, tile: 1 }, // the long white strips
+  ringLight: { color: '#FFE9C8', rough: 0.5, emissive: '#FFDDB4', emissivePower: 1.2, bakePower: 1.9, tile: 1 }, // the ring lights' inner faces, warm. Drawn dimmer than they light the room: two metres across and overhead, their bloom laid a pale veil over the black ceiling
+  paperWhite: { color: '#F4F2EC', rough: 0.8, tile: 1 },
+  voltaFloor: { color: '#8C877F', rough: 1, tex: 'dirty_carpet', amp: 0.35, tile: 0.6 }, // warm grey carpet tile
+  doorDark: { color: '#2A2522', rough: 0.55, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.4, tile: 1.83 }, // his front door: dark stained oak
+  windowDark: { color: '#141A22', rough: 0.12, metal: 0.2, clearcoat: 0.8, clearcoatRough: 0.06, tile: 1 },
+  windowLit: { color: '#3A2E20', rough: 0.4, emissive: '#FFC27A', emissivePower: 0, tile: 1 }, // a window with the light on inside, brought up as the day goes
+  towerDusk: { color: '#FFFFFF', rough: 1, paint: 'windows', tile: 1, unlit: true, tint: true }, // downtown at dusk: dark walls, lit windows, in the fog with everything else
+  planeWhite: { color: '#F1F0EC', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.2, tile: 1 },
+  planeBlue: { color: '#1F3F7A', rough: 0.4, clearcoat: 0.4, tile: 1 },
+  planeYellow: { color: '#F2B82B', rough: 0.45, clearcoat: 0.3, tile: 1 },
+  propDisc: { color: '#2A2C30', rough: 0.6, alpha: 0.22, tile: 1 },
+  ferryHull: { color: '#1B2F5C', rough: 0.5, clearcoat: 0.2, tile: 1 },
+  lightRed: { color: '#B5262B', rough: 0.5, tile: 1 },
+  // 2024, Sydney: the hacker house. A plywood table on trestles, white walls, timber underfoot
+  plywood: { color: '#D8C08E', rough: 0.62, grain: 'speckle', amp: 0.12, clearcoat: 0.12, clearcoatRough: 0.35, tile: 1 },
+  trestle: { color: '#C9B48A', rough: 0.7, tile: 1 },
+  quayStone: { color: '#4A4A48', rough: 0.9, tile: 1 },
+  boothWhite: { color: '#F2F1EC', rough: 0.6, clearcoat: 0.1, tile: 1 },
+  // the tour's rooms: expo carpet
+  expoCarpet: { color: '#3E4B63', rough: 1, tex: 'dirty_carpet', amp: 0.4, tile: 0.6 },
+  expoCarpetDark: { color: '#2E3340', rough: 1, tex: 'dirty_carpet', amp: 0.4, tile: 0.6 },
+  oldPlastic: { color: '#2C2D30', rough: 0.62, clearcoat: 0.08, clearcoatRough: 0.5, tile: 1 }, // the black plastic of a 2010s monitor
+  oldPlasticPale: { color: '#9A9891', rough: 0.7, tile: 1 }, // the greyed beige one
+  airBed: { color: '#2A3446', rough: 0.35, clearcoat: 0.5, clearcoatRough: 0.25, tile: 1 }, // flocked PVC, a little sheen
+  airBedFlock: { color: '#3B4457', rough: 0.95, sheen: 0.4, tile: 1 },
+  bedding: { color: '#D9D6CF', rough: 0.95, tex: 'wool_boucle', amp: 0.3, sheen: 0.5, tile: 0.35 },
+  // Floqer's house (docs/rebuild/43): the raised air bed, grey bedding, white trestles, an oak standing desk, a white tower, cans and their cases, the foam mark
+  airBedCharcoal: { color: '#3A3D44', rough: 0.4, clearcoat: 0.4, clearcoatRough: 0.3, tile: 1 },
+  airBedGrey: { color: '#858990', rough: 0.95, sheen: 0.4, tile: 1 },
+  beddingGrey: { color: '#8E9198', rough: 0.95, tex: 'wool_boucle', amp: 0.3, sheen: 0.5, tile: 0.35 },
+  trestleWhite: { color: '#E9E7E1', rough: 0.6, tile: 1 },
+  deskOak: { color: '#B98E5E', rough: 0.55, grain: 'grain', amp: 0.3, clearcoat: 0.15, clearcoatRough: 0.4, tile: 0.7 },
+  towerWhite: { color: '#ECECEA', rough: 0.4, clearcoat: 0.3, clearcoatRough: 0.3, tile: 1 },
+  canSilver: { color: '#AEBBD2', rough: 0.3, metal: 0.8, tile: 1 },
+  canBlack: { color: '#1E2520', rough: 0.35, metal: 0.6, tile: 1 },
+  canRed: { color: '#C8232C', rough: 0.35, metal: 0.5, tile: 1 },
+  caseRed: { color: '#C4262E', rough: 0.3, clearcoat: 0.6, clearcoatRough: 0.2, tile: 1 }, // a tray of cans in shrink wrap
+  caseBlue: { color: '#2F6FD0', rough: 0.3, clearcoat: 0.6, clearcoatRough: 0.2, tile: 1 },
+  foamBlack: { color: '#19191B', rough: 1, env: 0.1, tile: 1 }, // acoustic foam: it takes no shine at all
+  foamOrange: { color: '#F83903', rough: 0.9, env: 0.2, tile: 1 },
+  // Old Town out of Floqer's windows: brick fronts with their windows (each building its own brick, by vertex colour), tar roofs, the street
+  torontoBrick: { color: '#FFFFFF', rough: 0.9, paint: 'brickFront', tile: 1, tint: true },
+  torontoRoof: { color: '#57585C', rough: 1, tile: 1 },
+  torontoRoad: { color: '#45474B', rough: 0.95, tile: 1 },
+  torontoWalk: { color: '#A3A29D', rough: 0.9, tile: 1 },
+  torontoCar: { color: '#FFFFFF', rough: 0.35, clearcoat: 0.6, clearcoatRough: 0.15, tile: 1, tint: true },
+  cableWhite: { color: '#E8E6E0', rough: 0.55, tile: 1 },
+  cableRed: { color: '#B8262A', rough: 0.55, tile: 1 },
+  powerStrip: { color: '#EAE8E2', rough: 0.5, clearcoat: 0.2, tile: 1 },
+  sydneyWall: { color: '#F1ECE3', rough: 0.9, tex: 'plastered_wall_04', amp: 0.18, tile: 3.2 },
+  sydneyFloor: { color: '#B08A5E', rough: 0.55, tex: 'plank_flooring_02', amp: 0.4, clearcoat: 0.2, clearcoatRough: 0.3, tile: 1.98 },
+  clockFace: { color: '#F4F1E6', rough: 0.5, emissive: '#F4F1E6', emissivePower: 0.4, tile: 1 },
+  treeCanopy: { color: '#FFFFFF', rough: 1, tile: 1, tint: true },
+  treeTrunk: { color: '#4A3A2A', rough: 1, tile: 1 },
+  flightSky: { color: '#A8CCDE', rough: 1, unlit: true, fog: false, inside: true, tile: 1 },
+  // now, Toronto: warm white walls, pale oak, black desk, charcoal chair, a navy duvet
+  condoWall: { color: '#33343A', rough: 0.9, tex: 'plastered_wall_04', amp: 0.3, tile: 3.2 },
+  condoBrick: { color: '#4A4644', rough: 0.95, tex: 'dark_brick_wall', amp: 0.9, tile: 1.05 },
+  skirting: { color: '#E6E3DC', rough: 0.45, clearcoat: 0.3, clearcoatRough: 0.3, tile: 1 },
+  ledStrip: { color: '#FFE2B8', rough: 0.5, emissive: '#FFD9A0', emissivePower: 3, tile: 1 },
+  cabinStrip: { color: '#F2F5FA', rough: 0.5, emissive: '#EEF3FF', emissivePower: 2.2, tile: 1 },
+  bathTile: { color: '#E3E5E2', rough: 0.22, paint: 'tiles', tile: 0.3, clearcoat: 0.5, clearcoatRough: 0.2 },
+  chrome: { color: '#DADCE0', rough: 0.12, metal: 1, tile: 1 },
+  doorPaint: { color: '#EDEAE3', rough: 0.4, clearcoat: 0.25, clearcoatRough: 0.3, tile: 1 },
+  tvGlass: { color: '#06070A', rough: 0.08, clearcoat: 1, clearcoatRough: 0.05, tile: 1 },
+  facadeDark: { color: '#2B2D31', rough: 0.85, tex: 'plastered_wall_04', amp: 0.4, tile: 3.2 },
+  condoCeiling: { color: '#2B2C30', rough: 0.95, tile: 1 },
+  condoFloor: { color: '#C9B294', rough: 1, tex: 'herringbone_parquet', amp: 0.6, clearcoat: 0.35, clearcoatRough: 0.3, tile: 3.4 },
+  deskTop: { color: '#1F1F22', rough: 0.45, clearcoat: 0.35, clearcoatRough: 0.25, tile: 1 },
+  deskLeg: { color: '#2A2A2E', rough: 0.4, metal: 0.6, tile: 1 },
+  bezel: { color: '#141416', rough: 0.35, clearcoat: 0.15, tile: 1 },
+  aluminium: { color: '#B9BCC2', rough: 0.35, metal: 0.9, tile: 1 },
+  chairFabric: { color: '#4A4E57', rough: 0.95, tex: 'wool_boucle', amp: 0.8, sheen: 0.6, tile: 0.35 },
+  chairBase: { color: '#17181B', rough: 0.4, metal: 0.5, tile: 1 },
+  tie: { color: '#1F2A4A', rough: 0.7, tile: 1 },
+  pouf: { color: '#5B7BB4', rough: 0.95, tex: 'wool_boucle', amp: 0.8, sheen: 0.5, tile: 0.35 },
+  mattress: { color: '#F2F0EA', rough: 0.9, grain: 'weave', amp: 0.15, sheen: 0.3, tile: 0.4 },
+  duvet: { color: '#2F4562', rough: 0.95, tex: 'polar_fleece', amp: 0.8, sheen: 0.8, tile: 0.27 },
+  pillow: { color: '#F6F4EE', rough: 0.9, tex: 'polar_fleece', amp: 0.6, sheen: 0.6, tile: 0.27 },
+  bedFrame: { color: '#C9A47E', rough: 0.7, tex: 'oak_veneer_01', amp: 0.5, clearcoat: 0.15, tile: 1.83 },
+  rugGrey: { color: '#5B5F66', rough: 0.98, tex: 'dirty_carpet', amp: 0.9, sheen: 0.3, tile: 0.6 },
+  skin: { color: '#C68E6A', rough: 0.7, tile: 1 },
+  tee: { color: '#141416', rough: 0.9, grain: 'weave', amp: 0.15, tile: 0.15 },
+  hoodie: { color: '#202127', rough: 1, grain: 'weave', amp: 0.2, tile: 0.12 },
+  jeans: { color: '#26334A', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.15 },
+  hair: { color: '#17120F', rough: 0.55, grain: 'strand', amp: 0.3, tile: 0.08 },
+  glassFrame: { color: '#1A1A1A', rough: 0.4, metal: 0.3, tile: 1 },
+  windowFrame: { color: '#2A2A2E', rough: 0.5, metal: 0.4, tile: 1 },
+  powerLed: { color: '#4BD1FF', rough: 0.4, tile: 1 },
+  lanyard: { color: '#EA4335', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.05 },
+  book0: { color: '#2B2D33', rough: 0.7, tile: 1 }, book1: { color: '#4A3B7A', rough: 0.7, tile: 1 }, book2: { color: '#1E5A7A', rough: 0.7, tile: 1 }, book3: { color: '#8A3A3A', rough: 0.7, tile: 1 },
+  book4: { color: '#3A6A4A', rough: 0.7, tile: 1 }, book5: { color: '#E9E2D0', rough: 0.8, tile: 1 }, book6: { color: '#20242C', rough: 0.7, tile: 1 }, book7: { color: '#B8862B', rough: 0.6, tile: 1 },
+  // the city outside the window at night, kilometres away: unlit, outside the fog
+  tower: { color: '#FFFFFF', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false, tint: true },
+  towerReflect: { color: '#3A4666', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false },
+  towerTop: { color: '#0A0D18', rough: 1, unlit: true, tile: 1, fog: false },
+  lake: { color: '#070A16', rough: 1, unlit: true, tile: 1, fog: false },
+  cnShaft: { color: '#7E8CA2', rough: 1, unlit: true, tint: true, tile: 1, fog: false }, // the concrete as it stands in Floqer's photograph (doc 51): a cool grey, #8393ab at the SkyPod to #45607e low down; it was white (#D6D8DE) until 2026-10-19, and red for an hour
+  cnPod: { color: '#A9B3C2', rough: 1, unlit: true, tint: true, tile: 1, fog: false }, // the pod's pale decks and radome (#788ba4 in the photograph)
+  cnLight: { color: '#FF4A4A', rough: 0.5, emissive: '#FF3030', emissivePower: 4, tile: 1, fog: false },
+  cnShaftDay: { color: '#B9BCC2', rough: 0.9, tile: 1 }, // the same tower by day from Front Street, lit by the sun and the sky
+  cnPodDay: { color: '#E8E6E0', rough: 0.8, tile: 1 },
+  dome: { color: '#9BAAC0', rough: 0.9, unlit: true, tint: true, tile: 1, fog: false },
+  nightSky: { color: '#FFFFFF', rough: 1, paint: 'nightSky', tile: 1, unlit: true, fog: false, inside: true },
+  towerFar: { color: '#A9B2CC', rough: 1, paint: 'windows', tile: 1, unlit: true, fog: false, tint: true },
+  // 2010, the room: cream distemper, teak planks, a red rug, cotton at the window
+  roomWall: { color: '#F6E7CF', rough: 0.92, tex: 'plastered_wall_04', amp: 0.35, tile: 3.2 },
+  roomCeiling: { color: '#FAF6EE', rough: 0.95, tile: 1 },
+  roomFloor: { color: '#FFFFFF', rough: 1, tex: 'plank_flooring_02', amp: 0.7, clearcoat: 0.1, clearcoatRough: 0.4, tile: 1.98 },
+  rug: { color: '#C2463B', rough: 0.98, tex: 'dirty_carpet', amp: 0.9, sheen: 0.3, tile: 0.6 },
+  curtain: { color: '#EBDFC7', rough: 0.9, tex: 'cotton_jersey', amp: 0.7, sheen: 0.4, tile: 0.26 },
+  tvWood: { color: '#7A5A42', rough: 0.7, tex: 'oak_veneer_01', amp: 0.5, clearcoat: 0.2, tile: 1.83 },
+  shelfWood: { color: '#F2E2C8', rough: 0.7, tex: 'oak_veneer_01', amp: 0.5, clearcoat: 0.2, tile: 1.83 },
+  // the original white Xbox 360, standing
+  xboxWhite: { color: '#EDEDE8', rough: 0.3, clearcoat: 0.5, clearcoatRough: 0.2, tile: 1 },
+  xboxGrey: { color: '#C9C9C4', rough: 0.4, tile: 1 },
+  xboxChrome: { color: '#D8D8D6', rough: 0.25, metal: 0.8, tile: 1 },
+  xboxGreen: { color: '#7BD88F', rough: 0.4, emissive: '#5CE07A', emissivePower: 1.2, tile: 1 },
+  // anime figures on the shelf: flat bright plastic
+  figOrange: { color: '#F28C28', rough: 0.45, clearcoat: 0.4, tile: 1 },
+  figBlue: { color: '#2E4A9E', rough: 0.45, clearcoat: 0.4, tile: 1 },
+  figRed: { color: '#C8302A', rough: 0.45, clearcoat: 0.4, tile: 1 },
+  figBlack: { color: '#1C1C22', rough: 0.45, tile: 1 },
+  figYellow: { color: '#F2D23C', rough: 0.45, clearcoat: 0.4, tile: 1 },
+  figGreen: { color: '#4A6B3F', rough: 0.45, tile: 1 },
+  figWhite: { color: '#EDEDEA', rough: 0.45, tile: 1 },
+  figSkin: { color: '#F1C9A5', rough: 0.5, tile: 1 },
+  hairBlack: { color: '#15151A', rough: 0.5, tile: 1 },
+  hairYellow: { color: '#F5D142', rough: 0.5, tile: 1 },
+  hairOrange: { color: '#F07A2A', rough: 0.5, tile: 1 },
+  figBase: { color: '#2A2A2E', rough: 0.4, tile: 1 },
+  // the passage: plainer, a little darker
+  passageWall: { color: '#E6DFD2', rough: 0.92, tex: 'plastered_wall_04', amp: 0.35, tile: 3.2 },
+  passageFloor: { color: '#CFC7BA', rough: 0.7, grain: 'speckle', amp: 0.15, tile: 0.8 },
+  // 2013, the lab: off-white walls, pale grey tiles, white ceiling
+  labWall: { color: '#E8E7E2', rough: 0.9, tex: 'plastered_wall_04', amp: 0.25, tile: 3.2 },
+  labCeiling: { color: '#EEF0F2', rough: 0.95, paint: 'tiles', tile: 0.6 }, // suspended ceiling tiles
+  partition: { color: '#8E9298', rough: 0.98, tex: 'wool_boucle', amp: 0.6, sheen: 0.3, tile: 0.35 },
+  labFloor: { color: '#FFFFFF', rough: 0.35, paint: 'tiles', tile: 1.2 },
+  desk: { color: '#D9D3C4', rough: 0.55, tile: 1 },
+  keys: { color: '#EFEAE0', rough: 0.5, tile: 1 },
+  board: { color: '#F4F4F2', rough: 0.5, tile: 1 },
+  alu: { color: '#C9CCD0', rough: 0.35, metal: 0.9, tile: 1 },
+  tray: { color: '#DADDE0', rough: 0.4, metal: 0.6, tile: 1 },
+  tubeGlass: { color: '#F6FAFF', rough: 0.3, tile: 1 },
+  bulb: { color: '#FFE6B0', rough: 0.4, tile: 1 },
+  // 2019, the Googleplex: the lawn, the statues in their candy colours, the letters, the blocks
+  lawn: { color: '#FFFFFF', rough: 1, tex: 'leafy_grass', amp: 0.55, tile: 2.0 }, // no layer: with a polygon offset the grass 12 mm under the 2010 room's floor drew over it, seen from the lab (2026-10-22)
+  tableWhite: { color: '#F3F2EE', rough: 0.35, clearcoat: 0.3, clearcoatRough: 0.2, tile: 1 }, // white laminate: Volta's lectern
+  campusWall: { color: '#D2CBBB', rough: 0.9, tex: 'plastered_wall_04', amp: 0.2, tile: 3.2 }, // the blocks' render, cream; a shade down since the 2020 room's block faces the sun and the walk comes up to it: lighter, it burned out
+  campusPane: { color: '#2C3A46', rough: 0.15, metal: 0.3, clearcoat: 0.8, clearcoatRough: 0.05, tile: 1 }, // the upper windows, dark glass
+  android: { color: '#A4C639', rough: 0.5, clearcoat: 0.35, clearcoatRough: 0.2, tile: 1 }, // the green of 2019's statues
+  droidEye: { color: '#F6F6F4', rough: 0.4, tile: 1 },
+  plinth: { color: '#8A8A86', rough: 0.9, grain: 'plaster', amp: 0.2, tile: 1 },
+  candyPink: { color: '#F0A2C6', rough: 0.4, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
+  candyRed: { color: '#D8322E', rough: 0.4, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
+  candyYellow: { color: '#F2C53D', rough: 0.4, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
+  candyBlue: { color: '#3D7BD9', rough: 0.4, clearcoat: 0.5, clearcoatRough: 0.15, tile: 1 },
+  chocolate: { color: '#4A2E20', rough: 0.55, tile: 1 },
+  cookie: { color: '#B47A45', rough: 0.85, tile: 1 },
+  icing: { color: '#FBF8F2', rough: 0.5, tile: 1 },
+  wafer: { color: '#C8955A', rough: 0.8, tile: 1 },
+  gBlue: { color: '#4285F4', rough: 0.45, clearcoat: 0.3, tile: 1 },
+  gRed: { color: '#EA4335', rough: 0.45, clearcoat: 0.3, tile: 1 },
+  gYellow: { color: '#FBBC05', rough: 0.45, clearcoat: 0.3, tile: 1 },
+  gGreen: { color: '#34A853', rough: 0.45, clearcoat: 0.3, tile: 1 },
+  bikeYellow: { color: '#F2C324', rough: 0.35, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1 },
+  bikeBlue: { color: '#2B6CC4', rough: 0.35, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1 },
+  bikeGreen: { color: '#3BA55D', rough: 0.35, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1 },
+  bikeRed: { color: '#D8322E', rough: 0.35, clearcoat: 0.6, clearcoatRough: 0.1, tile: 1 },
+  cloud: { color: '#FFFFFF', rough: 1, unlit: true, tile: 1, fog: false },
+  gold: { color: '#D4AF37', rough: 0.34, metal: 1, tile: 1 },
+  conifer: { color: '#2E5733', rough: 1, tile: 1 },
+  concrete: { color: '#B9B6AE', rough: 0.9, grain: 'plaster', amp: 0.15, tile: 1.5 },
+  bridge: { color: '#8F959C', rough: 0.55, metal: 0.4, tile: 1 }, // grey steel: the Vancouver bridges
+  pier: { color: '#EEE7D9', rough: 0.85, grain: 'plaster', amp: 0.1, tile: 2 },
+  hedge: { color: '#3B6A36', rough: 0.95, grain: 'pebble', amp: 0.5, tile: 0.4 },
+  lampGlobe: { color: '#F6F1E4', rough: 0.4, emissive: '#FFF3D6', emissivePower: 0.3, tile: 1 },
+  water: { color: '#2F6E93', rough: 0.5, grain: 'ripple', amp: 0.35, tile: 6 },
+  carGlass: { color: '#1E2A36', rough: 0.1, metal: 0.3, vary: 0, tile: 1 },
+  tyre: { color: '#17181A', rough: 0.9, tile: 1 },
+  badgeCard: { color: '#F4F4F2', rough: 0.6, tile: 1 },
+  lanyardGreen: { color: '#34A853', rough: 0.8, tile: 1 },
+  hull: { color: '#17282F', rough: 0.5, tile: 1 },
+  mast: { color: '#8B6B4A', rough: 0.6, tile: 1 },
+  sail: { color: '#F2EFE6', rough: 0.6, tile: 1 },
+  frameBlack: { color: '#1A1A1A', rough: 0.5, tile: 1 },
+  frameWood: { color: '#5C4033', rough: 0.6, tile: 1 },
+  rod: { color: '#8A6E4E', rough: 0.5, metal: 0.2, tile: 1 },
+  // 2020, the Delhi room at night: a pale wall gone grey in lamp light, a cheap wide desk, cardboard, paper, cloth
+  delhiWall: { color: '#D9CDB8', rough: 0.92, tex: 'plastered_wall_04', amp: 0.35, tile: 3.2 },
+  delhiCeiling: { color: '#D8D2C6', rough: 0.95, tile: 1 },
+  deskLaminate: { color: '#B99A72', rough: 0.55, tex: 'oak_veneer_01', amp: 0.4, clearcoat: 0.25, clearcoatRough: 0.3, tile: 1.83 },
+  bracket: { color: '#2A2A2E', rough: 0.5, metal: 0.6, tile: 1 },
+  cardboard: { color: '#B58B5A', rough: 0.95, grain: 'weave', amp: 0.1, tile: 0.4 },
+  paper: { color: '#F2EFE8', rough: 0.85, tile: 1 },
+  cloth0: { color: '#8A2E2E', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 }, cloth1: { color: '#3B4A6B', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 },
+  cloth2: { color: '#E8E2D2', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 }, cloth3: { color: '#4A4A4E', rough: 0.95, grain: 'weave', amp: 0.2, tile: 0.12 },
+  plaqueWood: { color: '#3E2A1E', rough: 0.45, clearcoat: 0.4, clearcoatRough: 0.2, tile: 1 },
+  plaquePlate: { color: '#D9C58A', rough: 0.3, metal: 0.9, tile: 1 },
+  silver: { color: '#D8DADF', rough: 0.25, metal: 1, tile: 1 },
+  acrylic: { color: '#DCE6F0', rough: 0.05, clearcoat: 1, clearcoatRough: 0.03, tile: 1 },
+  ribbon: { color: '#1F3F8F', rough: 0.9, grain: 'weave', amp: 0.2, tile: 0.1 },
+  binPlastic: { color: '#2E3138', rough: 0.55, clearcoat: 0.2, tile: 1 },
+  cable: { color: '#111214', rough: 0.6, tile: 1 },
+};
+
+export const mat = (name: string): Mat => {
+  const m = MATS[name];
+  if (!m) throw new Error(`no material ${name}`);
+  return m;
+};
