@@ -1,100 +1,242 @@
 ---
-// Lists projects by year with category filters.
 import Base from '../layouts/Base.astro';
-import { byYear, projects } from '../data/projects';
-import { profile } from '../data/profile';
+import { archive } from '../data/archive';
 
-const slug = (c: string) => c.toLowerCase().replace('machine learning', 'ml').replace(/\s+/g, '');
-const filters = [
-  ['all', 'all'],
-  ['web', 'web'],
-  ['mobile', 'mobile'],
-  ['cloud', 'cloud'],
-  ['ml', 'machine learning'],
-  ['cli', 'cli'],
-];
+const categories = ['All', 'Web', 'Mobile', 'Cloud', 'Machine Learning'];
+const years = [...new Set(archive.map((card) => card.year))].sort().reverse();
 ---
 
-<Base
-  title="Archive"
-  description={`Every project ${profile.name} has shipped since 2017, ${projects.length} of them.`}
->
-  <h1 class="block">Archive</h1>
-  <p class="mut small">{projects.length} projects since 2017. Filter is CSS, no JavaScript.</p>
+<Base title="Archive" description="Vansh Sood’s project archive, 2017 to 2023." topbar={false} footer={false}>
+  <div class="archive">
+    <header>
+      <h1>Vansh's Archives</h1>
+      <form id="archive-filters" aria-label="Filter projects" hidden>
+        <fieldset>
+          <legend class="sr-only">Category</legend>
+          {categories.map((category) => (
+            <label>
+              <input class="sr-only" type="radio" name="category" value={category} checked={category === 'All'} />
+              <span>{category}</span>
+            </label>
+          ))}
+        </fieldset>
+        <label class="year">
+          <span class="sr-only">Select Year</span>
+          <select name="year">
+            <option value="">Select Year</option>
+            {years.map((year) => <option>{year}</option>)}
+          </select>
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M1.65 4.65a.5.5 0 0 1 .7 0L8 10.29l5.65-5.64a.5.5 0 0 1 .7.7l-6 6a.5.5 0 0 1-.7 0l-6-6a.5.5 0 0 1 0-.7Z" />
+          </svg>
+        </label>
+        <button type="button" aria-label="Reset filters" title="Reset filters">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 4v6h6m16 10v-6h-6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+        </button>
+      </form>
+    </header>
 
-  <div class="arch">
-    <div class="filters">
-      {
-        filters.map(([id, label], i) => (
-          <>
-            <input type="radio" name="cat" id={`f-${id}`} checked={i === 0} />
-            <label for={`f-${id}`}>{label}</label>
-          </>
-        ))
-      }
+    <div class="gallery">
+      {archive.map((card, index) => {
+        const Card = card.url ? 'a' : 'article';
+        return (
+          <Card class="card" data-year={card.year} data-categories={card.category.join('|')}
+            href={card.url ?? undefined} target={card.url ? '_blank' : undefined} rel={card.url ? 'noopener' : undefined}>
+            <img src={`/assets/archive/${card.image}`} alt="" loading={index < 3 ? 'eager' : 'lazy'} />
+            <div class="caption">
+              <h2>{card.title}</h2>
+              <ul>{card.tags.map((tag) => <li>{tag}</li>)}</ul>
+            </div>
+          </Card>
+        );
+      })}
     </div>
 
-    <div class="list">
-      {
-        byYear.map((p) => (
-          <div class="row" data-cat={p.category.map(slug).join(' ')}>
-            <span class="yr">{p.year}</span>
-            <span>{p.url ? <a href={p.url}>{p.title}</a> : p.title}</span>
-            <span class="meta">{p.tags.slice(0, 3).join(', ')}</span>
-          </div>
-        ))
-      }
-    </div>
+    <a class="back" href="/">Back to Portfolio</a>
   </div>
 </Base>
 
+<script>
+  const form = document.querySelector<HTMLFormElement>('#archive-filters')!;
+  const cards = document.querySelectorAll<HTMLElement>('.gallery .card');
+
+  function filterCards() {
+    const fields = new FormData(form);
+    const category = String(fields.get('category'));
+    const year = fields.get('year');
+    for (const card of cards) {
+      const matchesCategory = category === 'All' || card.dataset.categories!.split('|').includes(category);
+      card.hidden = !matchesCategory || (!!year && card.dataset.year !== year);
+    }
+  }
+
+  form.addEventListener('change', filterCards);
+  form.querySelector('button')!.addEventListener('click', () => {
+    form.reset();
+    filterCards();
+  });
+  window.addEventListener('pageshow', filterCards);
+  form.hidden = false;
+</script>
+
 <style>
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 24px 0 10px;
+  @font-face {
+    font-family: 'Bebas Neue';
+    src: url('/fonts/bebas-neue.ttf') format('truetype');
+    font-display: swap;
   }
-  .filters input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
+  @font-face {
+    font-family: Montserrat;
+    src: url('/fonts/montserrat.woff2') format('woff2');
+    font-weight: 400 800;
+    font-display: swap;
   }
-  .filters label {
-    font-family: var(--f-mono);
-    font-size: var(--t-label);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border: 1px solid var(--rule);
-    padding: 5px 9px;
-    color: var(--mut);
+  :global(.shell) { max-width: none; padding: 0; }
+  .archive {
+    min-height: 100vh;
+    padding: 0 16px 96px;
+    background: #0f172a;
+    color: white;
+    font: 400 16px/1.5 Montserrat, sans-serif;
+    font-synthesis: weight;
+  }
+  header, form:not([hidden]), fieldset { display: flex; align-items: center; }
+  header { justify-content: space-between; padding: 16px 0; }
+  h1, .back { font-family: 'Bebas Neue', sans-serif; font-weight: 700; letter-spacing: normal; }
+  h1 { color: #e5e7eb; opacity: .8; font-size: 48px; line-height: 1; text-wrap: wrap; }
+  fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+  fieldset span {
+    display: block;
+    padding: 0 16px 8px;
+    color: #6b7280;
     cursor: pointer;
   }
-  .filters label:hover {
-    color: var(--tx);
-    border-color: var(--mut);
+  fieldset label:hover span { color: #9ca3af; }
+  input:checked + span { border-bottom: 2px solid #0284c7; color: #0284c7; }
+  .archive :focus-visible, input:focus-visible + span { outline: 2px solid #38bdf8; outline-offset: 2px; }
+  .year { position: relative; margin-left: 16px; }
+  select {
+    appearance: none;
+    field-sizing: content;
+    white-space: nowrap;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    color: #111827;
+    padding: 7px 38px 7px 11px;
+    font: 600 14px/20px Montserrat, sans-serif;
+    cursor: pointer;
   }
-  .filters input:focus-visible + label {
-    outline: 2px solid var(--acc);
-    outline-offset: 2px;
+  @supports (appearance: base-select) {
+    select, select::picker(select) { appearance: base-select; }
+    select::picker-icon, option::checkmark { display: none; }
+    select::picker(select) {
+      inset-inline: auto anchor(right);
+      margin-top: 8px;
+      width: 14rem;
+      padding: 4px 0;
+      border: 0;
+      border-radius: 6px;
+      background: white;
+      box-shadow: 0 10px 15px rgb(0 0 0 / 12%);
+    }
+    option { padding: 8px 16px; color: #374151; font: 400 14px/20px Montserrat, sans-serif; }
+    option:hover, option:focus { background: #f3f4f6; }
+    option[value=''] { display: none; }
   }
-
-  .arch:has(#f-web:checked) label[for='f-web'],
-  .arch:has(#f-mobile:checked) label[for='f-mobile'],
-  .arch:has(#f-cloud:checked) label[for='f-cloud'],
-  .arch:has(#f-ml:checked) label[for='f-ml'],
-  .arch:has(#f-cli:checked) label[for='f-cli'],
-  .arch:has(#f-all:checked) label[for='f-all'] {
-    background: var(--acc);
-    color: var(--acc-tx);
-    border-color: var(--acc);
+  .year svg {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #111827;
+    pointer-events: none;
   }
-
-  .arch:has(#f-web:checked) .row:not([data-cat~='web']),
-  .arch:has(#f-mobile:checked) .row:not([data-cat~='mobile']),
-  .arch:has(#f-cloud:checked) .row:not([data-cat~='cloud']),
-  .arch:has(#f-ml:checked) .row:not([data-cat~='ml']),
-  .arch:has(#f-cli:checked) .row:not([data-cat~='cli']) {
-    display: none;
+  button {
+    display: grid;
+    place-items: center;
+    margin-left: 16px;
+    border: 0;
+    background: transparent;
+    color: #e5e7eb;
+    padding: 0;
+    cursor: pointer;
   }
+  button:hover { color: #9ca3af; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .gallery { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+  .card {
+    position: relative;
+    height: 400px;
+    margin: 16px 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 6px;
+    color: white;
+    background: #0f172a;
+  }
+  .card:hover { color: white; background: #0f172a; }
+  article.card { cursor: not-allowed; }
+  .card img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .card::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 35%); }
+  .caption {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    padding: 32px 8px;
+    transform: translateY(50px);
+    transition: transform .3s ease-in-out;
+  }
+  h2 { font: 700 24px/32px Montserrat, sans-serif; letter-spacing: normal; text-wrap: wrap; }
+  ul { display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+  li {
+    margin: 8px 8px 0 0;
+    border: 1px solid white;
+    border-radius: 12px;
+    background: #ffffff36;
+    padding: 4px 12px;
+    font: 700 12px/16px Montserrat, sans-serif;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .card:is(:hover, :focus-visible) .caption { transform: none; }
+  .card:is(:hover, :focus-visible) li { opacity: 1; }
+  .back {
+    position: fixed;
+    right: 32px;
+    bottom: 40px;
+    z-index: 2;
+    border: 0;
+    border-radius: 6px;
+    background: white;
+    color: #0284c7;
+    padding: 8px 16px;
+    font-size: 36px;
+    line-height: 40px;
+    opacity: .7;
+  }
+  .back:hover { background: white; color: #0284c7; }
+  @media (max-width: 767px) { fieldset { display: none; } }
+  @media (max-width: 359px) {
+    h1 { font-size: 36px; }
+    .year, button { margin-left: 8px; }
+  }
+  @media (min-width: 768px) {
+    .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .back { right: 80px; }
+  }
+  @media (min-width: 1024px) { .archive { padding-inline: 64px; } }
 </style>
