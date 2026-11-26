@@ -1,0 +1,25 @@
+---
+// Hosts the graphic journey and the desktop stage template.
+import Base from '../layouts/Base.astro';
+import GraphicWalk from '../components/GraphicWalk.astro';
+import TextJourney from '../components/TextJourney.astro';
+---
+
+<Base topbar={false} footer={false} viewportFitCover>
+  <GraphicWalk />
+  {/* Template contents cannot request their images or preloads until first shown. */}
+  <template id="home-stage-template"><TextJourney /></template>
+  <div id="home-stage" hidden></div>
+</Base>
+
+<style>
+  :global(main.shell) { max-width: none; padding: 0; }
+  #home-stage { background: var(--bg); }
+  #home-stage[hidden] { display: none; }
+  /* Keep the fixed controls visible while the rest of the paused stage has no height. */
+  :global(html[data-home-view='graphic'] #home-stage .journey > :not(.mode)) { display: none; }
+</style>
+
+<script>
+  import '../scripts/home-view';
+</script>

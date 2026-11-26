@@ -1,0 +1,97 @@
+---
+// Draws the pixel walker and the props used by its activities.
+const INK: Record<string, string> = { h: '#282a27', s: '#c9996d', k: '#252c29', o: '#3d4842', j: '#526575', w: '#ede7d3' };
+const torso = [
+  '....hhhhhh....', '...hhhhhhhh...', '...hhhhhhhh...',
+  '...hhssssss...', '...ssskssks...', '...ssssssss...',
+  '....ssssss....', '....oooooo....', '...oooooooo...',
+  '...oooooooo...', '...oooooooo...', '...oooooooo...',
+  '...oooooooo...', '....jjjjjj....', '....jjjjjj....',
+];
+const legs = {
+  idle: ['....jj..jj....', '....jj..jj....', '....jj..jj....', '....jj..jj....', '....jj..jj....', '....jj..jj....', '....jj..jj....', '...www..www...'],
+  mid: ['....jj..jj....', '...jj....jj...', '...jj....jj...', '...jj....jj...', '..jj.....jj...', '..jj.....jj...', '..jj.....jj...', '.www.....www..'],
+  step: ['....jj..jj....', '...jj....jj...', '...jj....jj...', '..jj......jj..', '..jj......jj..', '.jj........jj.', '.jj........jj.', 'www........www'],
+  jump: ['....jj..jj....', '...jj....jj...', '..jj......jj..', '..jj......jj..', '..ww......ww..', '...ww....ww...', '..............', '..............'],
+};
+const pixels = (rows: string[], start = 0) => rows.flatMap((row, y) =>
+  Array.from(row).flatMap((color, x) => color === '.' ? [] : [{ x, y: y + start, fill: INK[color] }]));
+const frames = [legs.idle, legs.mid, legs.step, legs.step.map(row => [...row].reverse().join('')), legs.jump];
+---
+<button class="me" id="me" type="button" aria-label="Make Vansh jump" data-step="idle" data-activity="walk">
+  <svg viewBox="0 0 14 23" aria-hidden="true" class="sprite" shape-rendering="crispEdges">
+    {pixels(torso).map(pixel => <rect {...pixel} width="1" height="1" />)}
+    <g fill="none" stroke="#35433b" stroke-width=".35">
+      <rect x="4" y="4" width="2.4" height="1.4" rx=".3" />
+      <rect x="7.8" y="4" width="2.4" height="1.4" rx=".3" />
+      <path d="M6.4 4.5h1.4" />
+    </g>
+    {frames.map((rows, i) => <g class={`legs legs-${i}`}>{pixels(rows, 15).map(pixel => <rect {...pixel} width="1" height="1" />)}</g>)}
+    <g class="arm arm-left">
+      <path d="M2 8h2v4H2z" fill="#3d4842" />
+      <!-- The closed laptop shares the arm's jump and the sprite's direction. -->
+      <g class="held held-carry-laptop">
+        <path d="M0 12h6v8H0z" fill="#9eafa5" stroke="#344649" stroke-width=".4" />
+        <path d="M5.2 12.3v7.4M.6 19.2h4.6" fill="none" stroke="#dce1ce" stroke-width=".3" />
+        <path d="M2 15.5h1.5V17H2z" fill="#e8e8d6" />
+      </g>
+      <path d="M2 12h2v2H2z" fill="#c9996d" />
+    </g>
+    <g class="arm arm-right">
+      <path d="M10 8h2v4h-2z" fill="#3d4842" /><path d="M10 12h2v2h-2z" fill="#c9996d" />
+    </g>
+    <g class="held held-laptop">
+      <path d="M8 11h10v6H8z" fill="#9eafa5" stroke="#344649" stroke-width=".45" />
+      <path d="M7 17h12v1H7z" fill="#d9ddca" stroke="#344649" stroke-width=".4" />
+      <path d="M9 11.6h8m-8 5h8m-4.8.6h1.6" fill="none" stroke="#dce1ce" stroke-width=".3" />
+      <path d="M12 13h2v2h-2z" fill="#e8e8d6" />
+      <path d="M5 12v3h4v2H3v-5z" fill="#c9996d" />
+    </g>
+    <g class="held held-pointer">
+      <path d="M11 10h4V8h2V6h2v3h-2v3h-6z" fill="#c9996d" />
+      <path d="M18 7l8-10" fill="none" stroke="#8b7054" stroke-width=".65" />
+    </g>
+    <g class="held held-mic">
+      <path d="M10 10h3V8h2v4h-5z" fill="#c9996d" />
+      <path d="M14 5h1v5h-1z" fill="#344649" />
+      <rect x="13" y="4" width="3" height="3" rx="1" fill="#647b74" />
+      <path d="M3 10H0V8h-2v4h5z" fill="#c9996d" />
+    </g>
+    <g class="held held-suitcase">
+      <path d="M0 13v4h-3v2" fill="none" stroke="#344649" stroke-width=".55" />
+      <rect x="-6" y="17" width="6" height="6" rx=".6" fill="#b27e59" stroke="#344649" stroke-width=".4" />
+      <path d="M-4 18v4m2-4v4" stroke="#d1ac79" stroke-width=".5" />
+      <path d="M-5 23v1m4-1v1" stroke="#344649" stroke-width="1" />
+    </g>
+    <g class="held held-degree" shape-rendering="geometricPrecision">
+      <path d="M4 7h6l2 13H2z" fill="#34494a" stroke="#293b3c" stroke-width=".4" />
+      <path d="M4 7l3 3 3-3-1 7-2-2-2 2z" fill="#c4a156" />
+      <path d="M3 0v2q4 2 8 0V0" fill="#4a6060" />
+      <path d="M0 0l7-2.5L14 0 7 2.5z" fill="#34494a" stroke="#293b3c" stroke-width=".35" />
+      <path d="M13 0v4m-.5 0h1" fill="none" stroke="#c4a156" stroke-width=".4" />
+      <rect x="9" y="13" width="8" height="2.5" rx="1" fill="#ece8d3" stroke="#56635b" stroke-width=".3" />
+      <path d="M12 13v2.5m1-2.5v2.5" stroke="#b39557" stroke-width=".4" />
+      <path d="M10 11v3h2v1h-3v-4z" fill="#c9996d" />
+    </g>
+  </svg>
+</button>
+
+<style is:global>
+  .me .held { display: none; }
+  .me[data-activity="walk"] .held-carry-laptop,
+  [data-activity="sell"] .held-laptop,
+  [data-activity="teach"] .held-pointer,
+  [data-activity="present"] .held-mic,
+  [data-activity="travel"] .held-suitcase,
+  [data-activity="graduate"] .held-degree { display: block; }
+  [data-activity="sell"] .arm-left,
+  [data-activity="teach"] .arm-right,
+  [data-activity="present"] .arm,
+  [data-activity="graduate"] .arm-right { visibility: hidden; }
+  #me[data-jumping="true"] .legs, #me.jump .legs { display: none; }
+  #me[data-jumping="true"] .legs-4, #me.jump .legs-4 { display: block; }
+  [data-jumping="true"] .arm-left { transform: rotate(45deg); transform-origin: 3px 9px; }
+  [data-jumping="true"][data-activity="walk"] .arm-right { transform: rotate(-45deg); transform-origin: 11px 9px; }
+  .me.jump .arm-left { transform: rotate(125deg); transform-origin: 3px 9px; }
+  .me.jump[data-activity="walk"] .arm-right { transform: rotate(-125deg); transform-origin: 11px 9px; }
+</style>

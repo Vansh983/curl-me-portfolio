@@ -1,0 +1,668 @@
+---
+// The journey stage. A full-bleed sticky three.js world behind the chapter text.
+// Chapters are the timeline entries; the stage's stations sit on the first chapters
+// and the camera holds after the last station. Spec: docs/rebuild/13-journey-real-spec.md.
+import { timeline } from '../data/timeline';
+import { profile } from '../data/profile';
+import { deliveryUrl } from '../lib/stage/delivery';
+
+type Props = { textOnTop?: boolean };
+const { textOnTop = false } = Astro.props;
+const chapters = timeline;
+const n = chapters.length;
+const socialLinks = ['GitHub', 'LinkedIn', 'X'].flatMap(label => {
+  const link = profile.links.find(link => link.label === label);
+  return link ? [link] : [];
+});
+---
+
+<section class="journey" data-n={n} data-text-on-top={textOnTop || undefined}>
+  {/* the sets the canvas waits for come down with the page, not after the renderer: the apartment, the bedroom, the lab and the lawn (stage-run.ts, FIRST) */}
+  {[0, 1, 2, 3].map((i) => <link rel="preload" as="fetch" crossorigin="anonymous" fetchpriority={i === 0 ? 'high' : 'auto'} href={deliveryUrl(`/assets/stage/baked/set${i}.glb`)} />)}
+  {[0, 1, 2, 3].map((i) => <link rel="preload" as="image" crossorigin="anonymous" fetchpriority={i === 0 ? 'high' : 'auto'} href={deliveryUrl(`/assets/stage/baked/set${i}_lm.webp`)} />)}
+  <div class="stage" aria-hidden="true">
+    <img class="opening" src={deliveryUrl('/assets/stage/preview.webp')} width="1440" height="900" alt="" fetchpriority="high" />
+    <canvas class="gl"></canvas>
+  </div>
+
+  <div class="preparation" hidden>
+    <svg class="preparation-ring" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <circle class="track" cx="12" cy="12" r="9" />
+      <circle class="arc" cx="12" cy="12" r="9" pathLength="1" />
+    </svg>
+    <span class="preparation-loading" aria-hidden="true">Loading 3D</span>
+    <span role="status" aria-live="polite" data-load-status>Loading the journey</span>
+    <button type="button" data-skip-stage><span class="preparation-loading">Skip</span><span class="preparation-error">Read without 3D</span></button>
+    <button type="button" data-retry-stage hidden>Try 3D again</button>
+  </div>
+
+  <div class="mode" role="group" aria-label="How to move through the journey">
+    <svg width="0" height="0" class="mode-symbols" aria-hidden="true">
+      <symbol id="i-scroll" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="5" /><path d="M12 7v4" /></symbol>
+      <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8" /><path d="M9 21l2.5-6-2.5-3 1-5 3.5 1.5 2 3 3 1M11.5 15l3 2 1 4M10 7L7 9v3" /></symbol>
+      <symbol id="i-graphic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 15l5-4 4 3 3-2 6 4" /><circle cx="16" cy="9" r="1.3" /></symbol>
+      <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h10" /></symbol>
+      <symbol id="i-blog" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z" /><path d="M13.5 6.5l4 4" /></symbol>
+      <symbol id="i-github" viewBox="0 0 16 16"><path class="fl" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" /></symbol>
+      <symbol id="i-linkedin" viewBox="0 0 24 24"><path class="fl" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path class="fl" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" /></symbol>
+      <symbol id="i-cafe" viewBox="0 0 24 24"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z" /><path d="M17 10.5h1.5a2.5 2.5 0 0 1 0 5H17" /><path d="M8.5 3.5c-.6.8.6 1.7 0 2.5M12.5 3.5c-.6.8.6 1.7 0 2.5" /></symbol>
+    </svg>
+    <div class="links" role="group" aria-label="Links">
+      <a class="ctl" href="/blog" aria-label="Writing" aria-describedby="tip-writing">
+        <svg aria-hidden="true"><use href="#i-blog" /></svg>
+        <span class="mode-tip" id="tip-writing" role="tooltip">Writing</span>
+      </a>
+      {socialLinks.map(link => (
+        <a class="ctl" href={link.href} target="_blank" rel="noopener noreferrer" aria-label={`${link.label} (opens in a new tab)`} aria-describedby={`tip-${link.label.toLowerCase()}`}>
+          <svg aria-hidden="true"><use href={`#i-${link.label.toLowerCase()}`} /></svg>
+          <span class="mode-tip" id={`tip-${link.label.toLowerCase()}`} role="tooltip">{link.label}</span>
+        </a>
+      ))}
+      <button type="button" class="ctl soon" aria-label="Cafes, coming soon" aria-describedby="tip-cafes">
+        <svg aria-hidden="true"><use href="#i-cafe" /></svg>
+        <span class="mode-tip" id="tip-cafes" role="tooltip"><b>Cafes</b> · coming soon</span>
+      </button>
+    </div>
+    <div class="mode-segments" data-on="0">
+      <span class="mode-thumb" aria-hidden="true"></span>
+      {[
+        ['scroll', 'Scroll', 'Scroll the page to move through the rooms.'],
+        ['walk', 'Walk', 'Walk the rooms yourself with W A S D.'],
+        ['graphic', 'Graphic', 'The flat drawn version of the story.'],
+      ].map(([mode, label, tip]) => (
+        <button type="button" data-mode={mode === 'graphic' ? undefined : mode} data-view={mode} aria-label={label} aria-pressed={mode === 'scroll' ? 'true' : 'false'} aria-describedby={`tip-${mode}`}>
+          <svg aria-hidden="true"><use href={`#i-${mode}`} /></svg>{label}
+          <span class="mode-tip" id={`tip-${mode}`} role="tooltip">{tip}</span>
+        </button>
+      ))}
+    </div>
+    <button type="button" class="text-toggle" data-text-toggle aria-label="Show text" aria-pressed="true" aria-describedby="tip-text">
+      <svg aria-hidden="true"><use href="#i-text" /></svg>
+      <span class="mode-tip" id="tip-text" role="tooltip">Hide or show the text.</span>
+    </button>
+  </div>
+  <div class="keys" data-roam-keys role="group" aria-label="Walk controls">
+    <span class="found" data-found></span>
+    <div class="keycaps">
+      {[
+        [
+          ['KeyW', 'W', 'Move forward'], ['KeyA', 'A', 'Move left'],
+          ['KeyS', 'S', 'Move backward'], ['KeyD', 'D', 'Move right'],
+        ],
+        [
+          ['ShiftLeft', 'Shift', 'Run'], ['KeyE', 'E', 'Open or put back'],
+          ['Escape', 'Esc', 'Leave Walk'], ['MouseLook', '', 'Look with the mouse'],
+        ],
+      ].map((keys, i) => (
+        <div class={i === 0 ? 'wasd' : 'side'}>
+          {keys.map(([code, label, action]) => (
+            <button type="button" class:list={['keycap', { wide: code === 'ShiftLeft' || code === 'Escape' }]} data-roam-key={code} aria-label={action} title={action}>
+              <span class="key-face">
+                {label ? <span data-key-label>{label}</span> : <svg width="18" height="24" viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="1" width="14" height="22" rx="7" /><path d="M9 1v8M2 9h14" /></svg>}
+              </span>
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+  <p class="prompt" data-roam-prompt hidden></p>
+  {/* a thing picked up: its words beside it (stage-run.ts fills it); the lane, the title, the lines, his photographs, a link */}
+  <aside class="thing" data-thing role="dialog" tabindex="-1" hidden></aside>
+
+  <div class:list={['wall', { 'chapter-measure': textOnTop }]} aria-hidden={textOnTop || undefined} inert={textOnTop}>
+    {chapters.map((m, i) => (
+      <article class={textOnTop ? 'chapter-size' : 'ch'} id={textOnTop ? undefined : `ch-${i + 1}`} data-i={i}>
+        <div class="tx">
+          {i === 0 && Astro.slots.has('hero') ? (
+            <slot name="hero" />
+          ) : (
+            <>
+              <span class="yr">
+                {m.year}
+                {m.span && <span class="mut"> {m.span}</span>}
+              </span>
+              {m.lane && <span class="lane label">{m.lane}</span>}
+              <h3>{m.title}</h3>
+              <p>{m.body}</p>
+              {m.stat && <p class="stat">{m.stat}</p>}
+            </>
+          )}
+        </div>
+      </article>
+    ))}
+  </div>
+  {textOnTop && <div class="wall">
+    {chapters.map((_, i) => <article class="ch" id={`ch-${i + 1}`} data-i={i} />)}
+  </div>}
+  {textOnTop && <div class="text-wall">
+    <div class="text-viewport">
+      <div class="tx text-column"><slot name="text" /></div>
+    </div>
+  </div>}
+</section>
+
+<style>
+  .journey {
+    position: relative;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+  }
+  .stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    width: 100%;
+    overflow: clip;
+    contain: paint;
+    z-index: 0;
+    background: var(--bg);
+  }
+  .gl {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    position: absolute;
+    inset: 0;
+  }
+  .opening { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .preparation {
+    position: fixed;
+    left: var(--pad);
+    right: var(--pad);
+    bottom: 28px;
+    z-index: 5;
+    width: fit-content;
+    max-width: calc(100% - 2 * var(--pad));
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 11px;
+    padding: 9px 16px 9px 12px;
+    color: #ededed;
+    background: rgba(20, 21, 26, .72);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 999px;
+    font-family: var(--f-body);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 18px;
+    transition: opacity .7s ease, transform .7s ease, visibility 0s;
+  }
+  .preparation[hidden], .preparation button[hidden] { display: none; }
+  .preparation-ring { flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+  .preparation-ring .track { opacity: .22; }
+  .preparation-ring .arc {
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--load-progress, 0));
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset .35s ease;
+  }
+  .journey:not([data-stage='error']) .preparation [data-load-status] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .preparation-error,
+  .journey[data-stage='error'] .preparation-ring,
+  .journey[data-stage='error'] .preparation-loading { display: none; }
+  .journey[data-stage='error'] .preparation-error { display: inline; }
+  .preparation button {
+    color: rgba(237, 237, 237, .62);
+    font: inherit;
+    font-weight: 400;
+    border: 0;
+    padding: 0;
+    margin-left: 5px;
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .preparation button:focus-visible { outline: 2px solid #ededed; outline-offset: 4px; }
+  .journey[data-stage='ready'] .preparation {
+    opacity: 0;
+    transform: translateY(8px);
+    visibility: hidden;
+    pointer-events: none;
+    transition-delay: 0s, 0s, .7s;
+  }
+  .journey[data-stage='skipped'] .preparation { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .preparation, .preparation-ring .arc { transition: none; }
+    .journey[data-stage='ready'] .preparation { transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .gl { transition: none; } }
+  .gl.on {
+    opacity: 1;
+  }
+  /* Mock C: the same glass pill and light thumb in either view and theme. */
+  .mode, .keys, .prompt { display: none; }
+  @media (min-width: 1025px) {
+    .mode {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--f-body);
+    }
+    .mode-symbols { position: absolute; }
+    .links, .mode-segments, .text-toggle {
+      border-radius: 999px;
+      background: rgba(20, 21, 26, .72);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, .12);
+    }
+    .mode-segments { position: relative; display: flex; padding: 4px; }
+    .links { display: flex; padding: 4px; gap: 2px; }
+    :global(html[data-home-view='graphic']) .mode .links { display: none; }
+    .links .ctl { width: 34px; height: 34px; border: 0; border-radius: 999px; background: none; }
+    .links .ctl:hover { color: #fff; background: rgba(255, 255, 255, .08); }
+    .links .ctl.soon { color: #7d818b; }
+    .links .ctl.soon::after { content: ''; position: absolute; top: 6px; right: 6px; width: 5px; height: 5px; border-radius: 50%; background: #e8b04b; }
+    .mode-thumb {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      height: 34px;
+      width: 96px;
+      border-radius: 999px;
+      background: #f3f3f1;
+      transition: transform .28s cubic-bezier(.3, 1.3, .5, 1);
+    }
+    .mode-segments[data-on='1'] .mode-thumb { transform: translateX(96px); }
+    .mode-segments[data-on='2'] .mode-thumb { transform: translateX(192px); }
+    .mode button, .mode a {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font: 500 12px/1.3 var(--f-body);
+      letter-spacing: .02em;
+      color: #c9ccd3;
+      padding: 0;
+      cursor: pointer;
+      transition: color .2s;
+    }
+    .mode-segments button { width: 96px; height: 34px; border: 0; border-radius: 999px; background: none; z-index: 1; }
+    .mode button[aria-pressed='true'] { color: #111; }
+    .mode .text-toggle { width: 42px; height: 42px; }
+    .mode .text-toggle[aria-pressed='true'] { background: #f3f3f1; }
+    .mode .text-toggle:disabled { opacity: .45; cursor: default; }
+    .mode .text-toggle[hidden] { display: none; }
+    .mode button:focus-visible, .mode a:focus-visible { outline: 2px solid #f3f3f1; outline-offset: 3px; box-shadow: 0 0 0 4px #111; }
+    .mode button svg, .mode a svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
+    }
+    .fl { fill: currentColor; stroke: none; }
+    .links .ctl svg, .mode-segments button svg { width: 15px; height: 15px; }
+    .mode button:not(:disabled):hover svg, .mode a:hover svg { transform: scale(1.18) translateY(-1px); }
+    .mode-tip {
+      position: absolute;
+      top: 46px;
+      right: 0;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: #f3f3f1;
+      color: #555;
+      font: 400 12px/1.3 var(--f-body);
+      letter-spacing: normal;
+      white-space: nowrap;
+      text-align: left;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity .16s, transform .16s;
+      z-index: 5;
+    }
+    .links .mode-tip b { font-weight: 500; color: #111; }
+    .mode a:hover .mode-tip, .mode a:focus-visible .mode-tip,
+    .mode button:not(:disabled):hover .mode-tip,
+    .mode button:focus-visible .mode-tip { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mode-thumb, .mode button, .mode a, .mode button svg, .mode a svg, .mode-tip { transition: none; }
+    .mode button:not(:disabled):hover svg, .mode a:hover svg, .mode-tip { transform: none; }
+  }
+  @media (min-width: 1025px) {
+    .journey[data-mode='walk'] .keys {
+      position: fixed;
+      left: 20px;
+      bottom: 20px;
+      z-index: 6;
+      display: block;
+      font-family: var(--f-mono);
+      font-size: var(--t-label);
+      letter-spacing: 0.06em;
+      color: #111111;
+      pointer-events: none;
+    }
+    .keycaps { display: flex; align-items: flex-end; gap: 14px; }
+    .wasd { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 48px); gap: 7px; }
+    .side { display: flex; gap: 7px; }
+    .keycap {
+      appearance: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      height: 48px;
+      min-width: 48px;
+      padding: 0;
+      border: 0;
+      border-radius: 9px;
+      background: #0a0a0c;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, .45);
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      pointer-events: auto;
+    }
+    .keycap.wide { min-width: 74px; padding: 0 14px; }
+    .keycap[data-roam-key='KeyW'] { grid-column: 2; grid-row: 1; }
+    .keycap[data-roam-key='KeyA'] { grid-column: 1; grid-row: 2; }
+    .keycap[data-roam-key='KeyS'] { grid-column: 2; grid-row: 2; }
+    .keycap[data-roam-key='KeyD'] { grid-column: 3; grid-row: 2; }
+    .key-face {
+      position: absolute;
+      inset: 0 0 5px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 7px 9px;
+      border-radius: 9px;
+      font: 600 13px/1 var(--f-body);
+      letter-spacing: normal;
+      color: #ecece8;
+      background: linear-gradient(180deg, #3a3c44 0%, #26272d 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), inset 0 -2px 0 rgba(0, 0, 0, .35);
+      transition: transform 110ms ease-out;
+      isolation: isolate;
+    }
+    .keycap.wide .key-face { font-size: 11px; }
+    .key-face::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(180deg, #55585f 0%, #3d3f46 100%); box-shadow: inherit; opacity: 0; transition: opacity 110ms ease-out; }
+    .keycap:global(.is-down) .key-face { transform: translateY(4px); transition-duration: 40ms; }
+    .keycap:global(.is-down) .key-face::before { opacity: 1; transition-duration: 40ms; }
+    .keycap:focus-visible { outline: 2px solid #ecece8; outline-offset: 3px; box-shadow: 0 0 0 3px #0a0a0c, 0 6px 14px rgba(0, 0, 0, .45); }
+    .keys[data-locked] .keycap { pointer-events: none; }
+    .keys .found { display: block; width: fit-content; margin-bottom: 8px; padding: 4px 8px; border-radius: 6px; color: #ecece8; background: rgba(20, 21, 26, .72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+    .keys .found:empty { display: none; }
+    .journey[data-mode='walk'] .prompt:not([hidden]) {
+      position: fixed;
+      left: 50%;
+      top: 62%;
+      transform: translateX(-50%);
+      z-index: 6;
+      display: block;
+      margin: 0;
+      padding: 8px 14px;
+      font-family: var(--f-mono);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: var(--tx);
+      background: var(--bg);
+      border: 1px solid var(--tx);
+      pointer-events: none;
+    }
+    .journey:global(.held)[data-mode='walk'] .prompt:not([hidden]) { top: auto; bottom: 150px; } /* above the keycaps and found count, clear of the words and their link */
+    .prompt::before { content: 'E'; margin-right: 10px; padding: 1px 6px; border: 1px solid var(--tx); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .key-face, .key-face::before { transition: none; }
+    .keycap:global(.is-down) .key-face { transform: none; }
+  }
+  /* the words beside a thing in hand (built in stage-run.ts, so their selectors are global): the right half of the frame, no box, a soft fade to the page behind them; upright, the lower half under the thing */
+  .thing {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    padding: 72px clamp(24px, 6vw, 96px) 72px clamp(24px, 4vw, 64px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    color: var(--tx);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 82%, transparent) 30%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    outline: 0;
+  }
+  .thing.on { opacity: 1; }
+  .thing[hidden] { display: none; }
+  .thing > :global(:first-child) { margin-top: auto; }
+  .thing > :global(:last-child) { margin-bottom: auto; }
+  .thing :global(h3) { font-size: clamp(22px, 2.1vw, 30px); line-height: 1.2; margin: 0 0 18px; }
+  .thing :global(p) { max-width: 44ch; margin: 0 0 12px; line-height: 1.55; }
+  .thing :global(img) { display: block; width: min(100%, 420px); height: auto; aspect-ratio: 4 / 3; object-fit: cover; margin: 6px 0 18px; }
+  .thing :global(a) { display: inline-block; margin-top: 8px; font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; text-transform: uppercase; color: var(--tx); text-decoration: underline; text-underline-offset: 3px; }
+  .thing :global(a:focus-visible) { outline: 2px solid var(--tx); outline-offset: 3px; }
+  @media (max-width: 48rem) {
+    .thing { top: 50%; left: 0; padding: 28px var(--pad) 28px; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg) 82%, transparent) 24%); }
+    .thing > :global(:first-child) { margin-top: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .thing { transition: none; } }
+  /* the wall lets pointer events through to the stage everywhere except on the text itself */
+  .wall {
+    position: relative;
+    z-index: 1;
+    margin-top: -100svh;
+    padding: 0 var(--pad);
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .journey:global(.phone-focus) .wall, .journey:global(.held) .wall { opacity: 0; }
+  .chapter-measure {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    margin-top: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  /* A separate layer leaves every chapter spacer (and the stage timing) intact. */
+  .text-wall {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .text-viewport {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    padding: 0 var(--pad);
+    overflow: hidden;
+    overflow: clip;
+  }
+  .text-column { will-change: transform; }
+  .journey:global(.held) .text-wall { opacity: 0; }
+  .journey:global(.held) .text-column { pointer-events: none; }
+  @media (min-width: 1025px) {
+    .journey[data-text-hidden] .text-wall,
+    .journey[data-mode='preparing'] .text-wall,
+    .journey[data-mode='walk'] .text-wall { visibility: hidden; }
+    /* Also cover a Walk choice made before the stage is ready. Keep layout for the slide. */
+    .journey:has(.mode [data-mode='walk'][aria-pressed='true']) .text-wall { visibility: hidden; }
+  }
+  .tx {
+    pointer-events: auto;
+  }
+  /* the caption that follows the pointer over a hotspot */
+  .stage :global(.veil) { position: absolute; inset: 0; background: #EEF2F5; opacity: 0; pointer-events: none; }
+  .stage :global(.cap) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    max-width: 34ch;
+    padding: 6px 10px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    color: var(--tx);
+    background: var(--bg);
+    border: 1px solid var(--tx);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s, transform 0.15s;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .stage :global(.cap.on) {
+    opacity: 1;
+    transform: none;
+  }
+  .ch, .chapter-size {
+    min-height: 100svh;
+    padding-top: 18svh;
+  }
+  /* the tour's cities (Vancouver on) run over the whole of their chapters on the stage, so their cards sit lower in
+     their articles: each card comes up the screen while its city is walked, not the city before */
+  .ch[data-i='8'],
+  .ch[data-i='9'],
+  .ch[data-i='10'],
+  .ch[data-i='11'] {
+    padding-top: 72svh;
+  }
+  .chapter-size[data-i='8'], .chapter-size[data-i='9'],
+  .chapter-size[data-i='10'], .chapter-size[data-i='11'] { padding-top: 72svh; }
+  /* the last card runs three chapter lengths: the walk out of the hall and into Floqer's office happens under it (LAST_SPAN in shot.ts) */
+  .ch[data-i='3'], .chapter-size[data-i='3'] {
+    min-height: 210svh; /* two chapter lengths: the Android lawn, the letters, back up the lawn to the 2020 room's door */
+  }
+  /* the tour's three cards run five chapter lengths between them (CARD_SPAN in shot.ts): the walk is 58 m, a city each, then Volta's room */
+  .ch[data-i='8'], .chapter-size[data-i='8'] { min-height: 150svh; }
+  .ch[data-i='10'], .chapter-size[data-i='10'] { min-height: 250svh; }
+  .ch[data-i='12'], .chapter-size[data-i='12'] {
+    min-height: 570svh; /* LAST_SPAN chapter lengths of walk (a chapter is a card, a little over a viewport) and a viewport more, so the stage stays pinned to the end of it */
+  }
+  @media (min-width: 48.001rem) {
+    .ch:first-child, .chapter-size:first-child {
+      padding-top: 13svh;
+    }
+  }
+  .tx {
+    pointer-events: auto;
+    max-width: min(var(--measure), 46ch);
+    padding: 18px 28px 18px 0;
+    background: color-mix(in srgb, var(--bg) 74%, transparent);
+    -webkit-mask: linear-gradient(90deg, #000 86%, transparent);
+    mask: linear-gradient(90deg, #000 86%, transparent);
+  }
+  @media (min-width: 1025px) {
+    .text-viewport { padding-left: 0; }
+    .text-column {
+      position: relative;
+      --reading-size: 22px;
+      width: 50vw;
+      max-width: calc(22.5em + var(--pad) + 1em);
+      font-family: var(--f-body);
+      font-weight: 300;
+      font-size: var(--reading-size);
+      line-height: 1.5;
+      color: #ededed; /* The approved fade stays dark in either page theme. */
+      padding-left: var(--pad);
+      padding-right: 1em;
+      text-shadow: 0 1px 3px rgba(6, 7, 10, .8), 0 0 12px rgba(6, 7, 10, .55);
+      background: none;
+      -webkit-mask: none;
+      mask: none;
+    }
+    .text-column::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 122%; /* Mock B's 78:64 fade-to-column ratio, beyond the words. */
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(6, 7, 10, .62) 0%, rgba(6, 7, 10, .46) 55%, rgba(6, 7, 10, 0) 100%);
+    }
+    .text-column :global(.about-link), .text-column :global(.about-tag), .text-column :global(.about-card) { text-shadow: none; }
+  }
+  .yr {
+    display: block;
+    font-family: var(--f-display);
+    font-weight: 300;
+    font-size: 54px;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+  }
+  .yr .mut {
+    font-family: var(--f-mono);
+    font-size: var(--t-label);
+    letter-spacing: 0.09em;
+  }
+  .lane {
+    display: block;
+    margin: 10px 0 6px;
+  }
+  .tx h3 {
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+  .stat {
+    margin-top: 10px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--mut);
+  }
+  @media (max-width: 48rem) {
+    .ch, .chapter-size {
+      padding-top: 52svh;
+    }
+    .tx {
+      max-width: none;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+    }
+    .yr {
+      font-size: 40px;
+    }
+  }
+  @media print {
+    .journey[data-text-on-top] .wall { display: none; }
+    .text-wall { position: static; }
+    .text-viewport { position: static; height: auto; overflow: visible; }
+    .text-column { transform: none !important; }
+    .stage {
+      display: none;
+    }
+    .wall {
+      margin-top: 0;
+    }
+    .ch {
+      min-height: 0;
+      padding-top: 0;
+    }
+  }
+</style>

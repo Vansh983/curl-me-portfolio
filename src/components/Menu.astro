@@ -1,0 +1,158 @@
+---
+// Command menu. Vanilla, no library. The index is a static JSON file built
+// from the same data as the pages, fetched on first open and then cached.
+---
+
+<dialog id="menu" aria-label="Command menu">
+  <input id="menu-input" type="text" placeholder="jump to..." autocomplete="off" spellcheck="false" />
+  <ul id="menu-list"></ul>
+  <div class="hint">
+    <span>&#8593;&#8595; move</span><span>&#8629; open</span><span>esc close</span>
+  </div>
+</dialog>
+
+<style>
+  dialog {
+    width: min(520px, calc(100vw - 32px));
+    margin: 12vh auto auto;
+    padding: 0;
+    border: 1px solid var(--tx);
+    background: var(--bg);
+    color: var(--tx);
+  }
+  dialog::backdrop {
+    background: color-mix(in srgb, var(--tx) 34%, transparent);
+  }
+  input {
+    width: 100%;
+    font-family: var(--f-mono);
+    font-size: 14px;
+    padding: 13px 15px;
+    background: none;
+    color: var(--tx);
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    outline: none;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    max-height: 46vh;
+    overflow-y: auto;
+  }
+  li {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 8px 10px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  li .k {
+    font-family: var(--f-mono);
+    font-size: var(--t-label);
+    color: var(--mut);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  li[aria-selected='true'] {
+    background: var(--acc);
+    color: var(--acc-tx);
+  }
+  li[aria-selected='true'] .k {
+    color: var(--acc-tx);
+    opacity: 0.75;
+  }
+  .hint {
+    display: flex;
+    gap: 14px;
+    padding: 8px 15px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mut);
+  }
+</style>
+
+<script>
+  type Item = { title: string; href: string; kind: string };
+
+  const dlg = document.getElementById('menu') as HTMLDialogElement | null;
+  const input = document.getElementById('menu-input') as HTMLInputElement | null;
+  const list = document.getElementById('menu-list') as HTMLUListElement | null;
+  if (dlg && input && list) {
+    let items: Item[] = [];
+    let hits: Item[] = [];
+    let sel = 0;
+
+    async function load() {
+      if (items.length) return;
+      try {
+        items = await (await fetch('/search.json')).json();
+      } catch {
+        items = [{ title: 'Home', href: '/', kind: 'page' }];
+      }
+    }
+
+    function draw() {
+      const q = input!.value.trim().toLowerCase();
+      hits = (q ? items.filter((i) => (i.title + ' ' + i.kind).toLowerCase().includes(q)) : items).slice(0, 8);
+      if (sel >= hits.length) sel = Math.max(0, hits.length - 1);
+      list!.innerHTML =
+        hits
+          .map(
+            (i, n) =>
+              `<li role="option" aria-selected="${n === sel}" data-href="${i.href}">${i.title}<span class="k">${i.kind}</span></li>`
+          )
+          .join('') || '<li class="k">no matches</li>';
+    }
+
+    function go() {
+      const hit = hits[sel];
+      if (hit) location.href = hit.href;
+    }
+
+    async function open() {
+      await load();
+      input!.value = '';
+      sel = 0;
+      draw();
+      if (!dlg!.open) dlg!.showModal();
+      input!.focus();
+    }
+
+    document.getElementById('menu-open')?.addEventListener('click', open);
+    addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        open();
+      }
+    });
+    input.addEventListener('input', () => {
+      sel = 0;
+      draw();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        sel = Math.min(hits.length - 1, sel + 1);
+        draw();
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        sel = Math.max(0, sel - 1);
+        draw();
+        e.preventDefault();
+      } else if (e.key === 'Enter') {
+        go();
+        e.preventDefault();
+      }
+    });
+    list.addEventListener('click', (e) => {
+      const li = (e.target as HTMLElement).closest('li');
+      const href = li?.getAttribute('data-href');
+      if (href) location.href = href;
+    });
+  }
+</script>

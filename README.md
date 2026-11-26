@@ -1,72 +1,25 @@
-# Vansh Sood's Portfolio
+# vanshsood.com
 
-> The original site is preserved on the [`curl-era` branch](https://github.com/Vansh983/curl-me-portfolio/tree/curl-era) (tag `last-curl`). `main` is being rebuilt from scratch.
+Vansh Sood's personal site, built with Astro and three.js. The home page pairs his story with a graphic walk on small screens and a 3D journey on desktop. Walk mode lets visitors explore the rooms and pick things up.
 
-Welcome to my personal portfolio! I'm Vansh Sood, a Tech Founder, Creative Developer, and Computer Science student. This portfolio showcases my expertise in software development and animations, featuring a variety of projects that reflect my creative and technical skills.
+The original Next.js site is archived on the [`curl-era` branch](https://github.com/Vansh983/curl-me-portfolio/tree/curl-era).
 
-## About Me
+## Run it
 
-- **Tech Founder:** Involved in founding tech ventures, applying technical and business skills.
-- **Creative Developer:** Passionate about graphics and animations.
-- **Computer Science Student:** Pursuing a degree, constantly learning and applying new technologies.
+- Use Node 22.12 or later.
+- In a fresh clone, run `npm ci`.
+- Start the site: `npm run dev -- --port 4321`.
+- Before a commit run `npm run check && npm run build && npm test`.
+- Serve that output: `npm run preview -- --port 4322`.
 
-## Portfolio Overview
+Vercel deploys `main`. Ongoing work uses `canary`. `curl vanshsood.com` returns the terminal profile through the root middleware.
 
-This portfolio reflects my skills in graphic design and animation. Each project is a blend of creativity and technical expertise.
+## Find things
 
-### Technologies Used
+See [CLAUDE.md](CLAUDE.md#map) for the detailed repository map.
 
-- **Next.js:** For server-side rendering and efficient React project handling.
-- **Tailwind CSS:** For responsive and aesthetically pleasing designs.
-- **TypeScript:** For static typing, enhancing code scalability and maintainability.
-- **GSAP (GreenSock Animation Platform):** For high-performance, professional-grade animations.
+## Work on it
 
-## Getting Started
-
-This portfolio is hosted [here - include a link to your portfolio]. Explore my projects and feel free to reach out for questions or collaboration opportunities.
-
-### Clone the Repository
-
-To clone the repository and view the code on your local machine:
-
-```bash
-git clone git@github.com:Vansh983/curl-me-portfolio.git
-cd curl-me-portfolio
-```
-
-### Installation
-
-After cloning the repository, install the required dependencies:
-
-```bash
-yarn
-```
-
-### Running Locally
-
-To run the project locally:
-
-```bash
-yarn dev
-```
-
-Navigate to `http://localhost:3000` to view the project in your browser.
-
-## Contributing
-
-Contributions are welcome! If you have ideas or improvements for my projects, here's how you can contribute:
-
-1. **Fork the Repository:** Create your own fork of the repo.
-2. **Create a Branch:** Make your changes in a new branch.
-3. **Make Changes:** Implement your changes or improvements.
-4. **Submit a Pull Request:** Open a PR against the main branch with a clear list of what you've done.
-
-Please ensure to follow the project's coding standards and write quality code.
-
-## Contact
-
-Connect with me for new projects, ideas, or opportunities:
-
-- **Email:** [vanshsood.com]
-- **LinkedIn:** [https://www.linkedin.com/in/vanshsood/]
-- **GitHub:** [https://github.com/Vansh983]
+- Agents start with [CLAUDE.md](CLAUDE.md). `AGENTS.md` points to the same file.
+- Read the [stage playbook](docs/rebuild/38-stage-playbook.md) before changing the 3D journey or its tools.
+- The [round index](docs/rebuild/README.md) links the research and decisions behind the site. Reference photographs live in `docs/rebuild/ref/` and are not shipped.

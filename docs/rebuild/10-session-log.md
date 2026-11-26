@@ -1,0 +1,303 @@
+# Session log: the journey stage
+
+## 2026-08-30, night: the first scene is now
+
+Vansh: "the first view should be what I am currently doing." Set 0 is a condo thirty floors up
+in Toronto at night: him at a black desk in the corner, side on, two monitors (code, Floqer) and a
+laptop (a terminal), a desk lamp and steel shelves with books behind, a single bed along a
+5 m window with the CN Tower and the skyline painted outside (`CITY_PAINT.toronto`). The
+2010 room follows through a door on its -x wall; the dolly now has four sets and three doorways.
+
+- **Him.** Quaternius's Animated Base Character (CC-BY 3.0, via Poly Pizza, 121 KB after
+  keeping only `Sitting_Idle_Loop`). Untextured, so every vertex takes the colour of the bone that
+  moves it most: skin for head, neck, forearms and hands; a black tee; jeans; shoes
+  (`OUTFIT` in `stage-run.ts`, a varying set in `skinbase_vertex`). Hair and glasses are code-built
+  and ride `DEF-head`, placed in world terms then handed to the bone. The sitting idle plays.
+- **Assets** now allow `source: 'url'` with a licence and `anims` to keep; `scripts/stage-assets.mjs`
+  trims clips with `@gltf-transform/core` (added as a dev dependency). 4.0 MB total, 17 models.
+- **Review aids.** `?cam=x,y,z,lx,ly,lz` pins the camera; `?debug` logs every placed object's
+  bounds (found `steel_frame_shelves_01` exported in centimetres, placed at scale 0.1, and the plank
+  painters leaving black cells at the tile's left edge).
+- Dolly continuity test now checks the turn rate (under 2 degrees per 1/1000 of scroll) as well as
+  the step. Timeline gained a `Now` entry at index 0; the hero slot covers its words.
+- Still to do here: his hands on the keyboard (a typing pose over the idle), the Floqer screen
+  reads washed, the chair could be a real model.
+
+## 2026-08-30, later: designed surfaces, light enough for a phone
+
+Vansh on the scans: "like some horror game", and the page had become too heavy to load. The
+open world and the dolly stay; the photographs go.
+
+- **Surfaces are designed, not photographed** (`materials.ts`): a colour, a roughness, at most a
+  faint procedural grain (a 128 px normal from `surface.ts`) or a colour map drawn on a canvas at
+  runtime (`SURFACE_PAINT`: teak planks, pale lab tiles, plaza pavers). One palette per set: warm
+  cream and teak for 2010, off-white and grey tile for 2013, pale pavers and deep blue for 2018.
+  The worn scans (bookshelf, plaster, lino, carpet) are gone; a clean teak shelf is built in code.
+- **Light is made in code.** `RoomEnvironment` (three's studio room) through PMREM for the two
+  interiors, tinted by a hemisphere per set; a gradient dome (deep blue overhead to a pale
+  horizon, pavers below) for the plaza, also the environment. No HDRI files. One sun still casts.
+- **Weight.** Assets 3.2 MB (was 21): thirteen models, textures capped at 512 or 256 px, the tree
+  simplified to 1 MB. Stage chunk 179 KB gz. No occlusion pass; shadow map 1024; pixel ratio
+  capped at 1.25; at rest the loop idles at 30 fps. Measured 8.3 ms a frame in every set at
+  2880 x 1800 (was 8 to 75).
+- `npm test` 55, including "the whole set stays under 4 MB".
+
+## 2026-08-30: real light, real things, one dolly
+
+"It needs to be natural, like it needs to look real." Spec `13-journey-real-spec.md`, plan
+`14-journey-real-plan.md`. The morph engine, the toon-to-PBR shading and the code-built props
+are gone; what stands in the scene is scanned, and what lights it is a photograph.
+
+- **Assets.** `src/lib/stage/assets.ts` names 28 Poly Haven CC0 things (3 HDRIs, 15 models,
+  10 scanned surface sets). `npm run stage:assets` fetches them through the Poly Haven API,
+  runs gltf-transform (meshopt, webp, 1k or 512 textures, the tree simplified from 1.6 M
+  triangles to about a tenth), writes `public/assets/stage/` and `CREDITS.md`. 23.3 MB on
+  disk, committed; sources cached under `.cache/`.
+- **Light.** One HDRI per set is the environment; the plaza's is also the sky, on a dome
+  inside the set so it is there when seen through the lab door. One directional sun per set
+  casts the shadows (PCF, 2048). No hemisphere, no fills, no bloom, no grade. ACES, GTAO, FXAA.
+- **World.** `sets.ts`: three sets along +x, each a shell (floor, walls with holes, ceiling,
+  built by `shell.ts` with uv in metres so the scans land at real scale) plus placements.
+  `built.ts` covers what has no scan: the TV cabinet, the rug, curtains, the passage, keyboards,
+  the whiteboard, banner, photos, tube light, the plaza slab, the sign and counter, the trophy,
+  the bay, the bridge, the boats. Painted canvases (window, whiteboard, banner, posters, sign,
+  Notepad) live in `stage-paint.ts`.
+- **Motion.** Nothing morphs. `dolly.ts` runs one centripetal CatmullRom through ten keys:
+  room, door, passage, lab, door, plaza. A pair of keys marks a doorway; inside it the
+  environment dips to 12 percent and at the midpoint the set swaps (environment, sun, fog,
+  exposure) while the frame is door jamb. Fan spins up, TV plays, curtains breathe (vertex
+  wind), the tube light catches with three flickers on entering the lab, the water ripples.
+- **Figure.** Off camera by his choice; `figure3d.ts` stays in the tree, unmounted, until the
+  avatar decision.
+- **Cost.** Stage chunk 187.5 KB gz (was 165; GLTF, HDR and meshopt loaders). On this machine at
+  2880 x 1800, pixel ratio 1.5: room 8.5 ms, lab 16.3 ms, plaza 8.3 ms median. Nine point lights
+  on the lab monitors cost 75 ms a frame; only the television keeps its light.
+- `npm test` 55: manifest and files, sets, dolly continuity and doorway windows, shells (area
+  removed by openings, normals and winding inward), built props.
+- Known: the view out of the Delhi window is still the painted skyline; the lab plaster
+  (`white_plaster_02`) reads grimy; the Marin hills in the HDRI sit below the code bridge.
+
+## 2026-08-29: the body, lofted
+
+He looked like parts glued together because he was: capsules touching a lathe, spheres for
+hands, flat normals on everything. Same rig contract (fixed vertex counts, morph keys), new body.
+
+- **Lofts.** `Sink.loft(rings)` skins a run of cross-sections; `tube(points, radii, ref)` lays
+  the rings along a path with a carried frame (no twist between poses). `rounded()` turns each
+  joint into a quadratic arc, so a knee or an elbow bends instead of creasing.
+- **One skin per limb.** Each arm runs from inside the torso over the deltoid, through a rounded
+  elbow and the wrist, into a flat palm, knuckles and fingers, with a thumb off the palm's front
+  edge. Each leg from inside the pelvis through a rounded knee to the ankle, tucking into a shoe
+  that is a loft along the foot with a flat sole. Sleeves start inside the torso and end at a
+  cuff set by `sleeve` (short in 2010 and 2018, to the wrist in 2013), then turn inside the arm.
+- **Neck and head.** One loft: neck, chin pushed forward, jaw, cheeks, temples, crown. A head is
+  narrower than it is deep (0.8 : 0.94 of `headR`). The shirt's collar turns down inside so the
+  neck rises out of an opening; the hem turns in under the trousers. The shoulder joint sits at
+  the torso's widest ring, not its top. Proportions: torso 0.31 H, upper arm 0.155, forearm
+  0.135, hand 0.09, head radius H/16 to H/12 by age.
+- **Smooth normals.** `smoothNormals(pos, 62°)` welds by position and averages across faces that
+  meet below 62 degrees, per key: limbs round off, tables keep their edges. Everything uses it.
+- **Less shading.** Occlusion at half strength and a smaller radius, bump amplitudes cut by two
+  thirds, sun shadows softer, the grade nearly neutral. The first pass read as dirt.
+- Reviewing the figure: a turntable page (`dev-figure.astro`, kept in the session scratchpad,
+  drop into `src/pages/` to use) renders one key from `?k=` at angle `?a=`; `turn.mjs` stitches
+  six angles into a contact sheet. Look at the model, not the stage, when the model is the question.
+
+## 2026-08-29: physically based render
+
+The stage looked like solids glued together because it was lit like solids glued together: toon
+ramps, flat facets, no occlusion, no environment. The geometry did not change; the render did.
+
+- **Materials.** Every lit actor is a `MeshStandardMaterial` now, with a real roughness, metalness
+  and environment weight per station (`src/lib/stage/surface.ts`). Twenty surfaces: distemper,
+  plaster, sealed board, floor planks, cotton weave, cut pile, moulded ABS, brushed steel, cast
+  gold, cork, ceramic, plaza concrete, skin, hair, leaf, glass, water. `MATERIAL` in `world.ts`
+  says what each thing is made of; the floor changes under him, boards to concrete.
+- **Surface detail.** Each material carries a procedural height field packed into one RGBA map
+  (rgb the tangent-space normal, alpha the height) and sampled **triplanar by world position**, so
+  no rig needed a second uv set and a grain stays the same millimetres wherever it lands. The
+  height also modulates roughness, which is what puts a sheen on a plank edge and holds it in a
+  pit. Fields tile seamlessly (wrapping lattice noise) and are generated deterministically.
+- **Light.** `src/lib/stage/env.ts` holds one spec per station: hemisphere, a sun that casts, two
+  shadowless fills, fog, exposure, and four emissive panels that are convolved into an image-based
+  light. Every number and colour blends between stations, so the warm Delhi dusk cools into
+  fluorescent and opens onto the bay without a cut. The environment map itself is rebuilt in
+  sixteen steps a gap.
+- **Pipeline.** `EffectComposer`: render to half float, GTAO ambient occlusion, a narrow bloom,
+  ACES tone mapping, a grade pass (saturation back after ACES, a little contrast, a soft vignette),
+  then FXAA. FXAA over SMAA saves 37 KB gz and holds up on the bridge cables.
+- **Outlines.** The always-on ink hull is off (`INK_OUTLINE`); the render carries its own edges.
+  The hull is still there for the hover highlight.
+- **Cost.** 165 KB gz for the lazy stage chunk (was 135). Measured 45 fps over 2880x1800 and 90
+  over 2160x1350, so retina renders at pixel ratio 1.5. Below that a pacer drops a quarter step at
+  a time, checks whether the frame actually got faster, and stands down if it did not (a frame lost
+  to the page compositor is not one a smaller buffer can win back).
+- `npm test` covers the height fields (range, tiling, direction, packed normals) and the light
+  (blend endpoints, continuity, the hold past the last station).
+
+## 2026-08-27: stage v2, three.js
+
+The CSS layer engine below is gone (reference point: tag `pre-3d`, commit `d2c696e`). The stage is a `<canvas>` driven by `src/scripts/stage-run.ts`, loaded lazily (135 KB gz three chunk, 1 KB entry). Spec: [11-journey-3d-spec.md](./11-journey-3d-spec.md), plan: [12-journey-3d-plan.md](./12-journey-3d-plan.md).
+
+- Every object is a rig in `src/lib/stage/` (params in, positions out, fixed vertex count). Station keys are GPU morph targets. No opacity anywhere: things morph, grow, sink, or the camera travels.
+- Two stations: the 2010 bedroom and the 2013 lab. The camera holds in the lab for chapters 3 to 8 until their stations exist.
+- Firefox needs no fallback any more; scroll progress is JS, WebGL is everywhere. Reduced motion snaps between stations.
+- Detail pass (same day): rounded body (capsules, a textured torso lathe), hair cap to the nape with ears, kid proportions in both keys, and every v1 detail back: Barcelona MESSI 10 shirt, controller that becomes the mouse, nuggets and ketchup, panelled football, dusk window with rooftops and curtains, the Steve Jobs quote poster, twelve named spines plus the game case, Xbox ring and logo, socket and wire, CoD HUD, Notepad, keyboard, wall clock. Per-vertex colour and painted canvas textures (`painters()` in `stage-run.ts`) carry the detail; `mix` textures blend by station progress.
+- Lab system (same day): the Steve Jobs poster morphs into the Converge Clan team photo (`public/assets/story/cc.jpg`, from the old site's last story card) on a cork notice board, a CONVERGE CLAN banner grows up top, plus the whiteboard with marker writing, lino tiles (wood planks in the bedroom), tube lights, CPU tower, chairs and keyboards on the lab row.
+- 2018 station (same day): the room opens (walls sink with gravity easing, ceiling, fan and tubes lift away), the floor becomes a plaza by the bay, the Golden Gate rises out of the water, palms, a lamp post, the Google San Francisco sign, hills, sky dome, sun, clouds, two boats. He turns to the camera at 17 with glasses, the Google tee, lanyard and badge, the Code-in trophy up (a lathe cup that grows out of the mouse).
+- Choreography: every actor has a timing window and curve per gap (`src/lib/stage/ease.ts`, `timing` in `world.ts`). Drops land with a bounce (lab row, chair, keyboard, tower), exits sink with quadratic acceleration, the ball rolls out with the right spin (rotation = distance / radius), boats heave and roll on their own clock, clouds drift, the camera is a critically damped spring.
+- Rendering: one sun with soft shadows that follows the subject, distance fog outdoors, outlines with constant width on screen (offset scales with view depth in the shader), lambert floors and walls with a colour floor so they never go grey.
+- Hotspots: pointer over an object shows a caption (`cap` per station in `world.ts`), the outline turns accent, click opens `href` where one exists (the TV, the Google sign). The text wall is `pointer-events: none` except the text boxes.
+- Portrait: the look pulls toward the station's `subject`, and the frustum is cropped from a taller one (`setViewOffset`) so the subject sits in the upper half above the text. No media queries in the stage.
+- `src/lib/scenes/*.svg`, `morph.ts`, `figure.ts` and the old illustrations in `public/assets/scenes` stay as reference until the last chapter is rebuilt.
+- Add a station: a `Station` in `STATIONS`, one more key and colour per actor in `ACTORS` (`src/lib/stage/world.ts`); `npm test` checks the counts and the camera continuity.
+- Screenshots for review: `node shoot.mjs <w> <h> [dark] [p1,p2,...]` in the scratchpad used playwright-core against `npm run dev`; the Chrome extension was not connected this session.
+
+Everything below this line describes the v1 CSS engine and is kept for the record.
+
+2026-08-25, branch `canary`. Everything below is built and committed. Dev server: `npm run dev`, then `http://localhost:4321`.
+
+## What exists now
+
+A full-bleed sticky scene on the home page. The reader scrolls, the text column moves over it, and the scene changes in 3D: layers at different depths, a camera that rotates and dollies, and drawings that morph into the next chapter's drawings.
+
+Two chapters are built:
+
+1. **Delhi bedroom, Xbox 360** — you from behind, cross-legged on the rug, controller in hand, Call of Duty zombies on the TV, Steve Jobs poster, book spines, chai and nuggets, football, Xbox 360 with the World at War case. The site's name and intro sit on this first screen.
+2. **2013 school computer lab** — the bedroom morphs into it: the wall recolours warm to cold, the TV becomes a beige CRT with Notepad and `<!DOCTYPE html>`, you go from the floor to a chair in a white shirt and tie, a row of lab machines slides in.
+
+The 2018 (Google Code-in, San Francisco) and 2020 (Webcube, Covid Leads) chapters from the earlier passes are still in the data but currently sit after the lab; they use the old bridge illustration and the ink scenery.
+
+## The three engines
+
+### 1. Layers in 3D (`Journey.astro`)
+
+Each chapter is a list of layers. A layer is one SVG (inlined, so its insides can animate) or one image, placed in a 1600 by 900 design space with a `z` depth.
+
+```ts
+{ id: 'tv', inline: 'k-tv', x: 620, y: 330, w: 520, z: -430, motion: 'rise', range: 'entry 0% entry 55%' }
+```
+
+- `perspective: 1400px` on the world, `perspective-origin` at the figure. A layer at depth `z` is scaled back up by `(1400 - z) / 1400`, so the composition is exact at rest and depth only shows as parallax when the camera moves.
+- The camera is one CSS animation on the section's own view timeline: `rotateY(-7deg)` to `rotateY(7deg)` plus a translate and a dolly across the whole section.
+- The world is scaled by `--k` (set in JS) to cover any viewport, anchored bottom right.
+
+### 2. Motions (CSS scroll timelines, zero JS)
+
+Every chapter declares `view-timeline: --ch-N block`; the section declares `timeline-scope`. Layers and any group inside an inlined SVG carry `data-motion` and pick the chapter's timeline up through a `--tl` custom property.
+
+Motions available: `rise, pop, slide-l, slide-r, drift-l, drift-r, sail, drop, swing-in, burst, spin, shamble, flicker, pulse, sway, tilt, steam, roll, dusk, fly` (`fly` follows an `offset-path`). Paths with `pathLength="1"` draw themselves on. `data-loop="spin"` runs on its own clock instead of scroll (the ceiling fan).
+
+Support: Chrome/Edge 115+, Safari 26+. Firefox has no scroll timelines; a ~0.5 KB script keeps `data-chapter` current and CSS under `@supports not (...)` shows the right layers statically.
+
+### 3. Morphing (`src/lib/morph.ts`, 116 lines, tested)
+
+Two SVGs with the same element structure are paired at build time, element by element: every number, colour, `d` string and text run that differs is recorded. At scroll time the plan is applied to the live DOM at progress `t`.
+
+- `pairSvgs(a, b)` returns `null` if the files do not line up (different tag order, or a `d` whose command letters differ), and the layer falls back to a crossfade. A test asserts the authored pairs line up.
+- Path morphing works because both files use the same command sequence; only the numbers move.
+- Colours interpolate in RGB, text swaps at the halfway point, the layer's `x/y/width` interpolate too.
+
+Current pairs: `k-room -> lab-room`, `k-tv -> lab-monitor`, `k-kid -> lab-kid`, `k-fan -> k-fan` (stays).
+
+## Files
+
+| File | What it is |
+|---|---|
+| `src/components/Journey.astro` | the stage: layer rendering, camera, all motion CSS, the fallback, the runtime |
+| `src/lib/morph.ts` | SVG pairing and application, pure, unit tested |
+| `src/lib/figure.ts` | the parametric character (height, pose, walk, turn, props). **Currently unused** on the stage, see "dead ends" |
+| `src/lib/lerp.ts` | numeric interpolation and scroll to chapter mapping |
+| `src/data/timeline.ts` | chapters plus their layer lists |
+| `src/lib/scenes/k-*.svg` | the bedroom: room, fan, poster, shelf, TV, Xbox, kid, floor |
+| `src/lib/scenes/lab-*.svg` | the lab: room, monitor, kid, row of machines |
+| `src/lib/scenes/bg-*.svg`, `sc-*.svg`, `plane.svg` | the 2018 and 2020 scenery |
+| `public/assets/scenes/*.svg` | your old illustrations, converted from JSX: bridge, baadal (clouds), sun, boats, curtain, doc |
+| `scripts/render.mjs` | renders any keyframe or scene to PNG in `.renders/` for checking |
+| `tests/*.test.ts` | 13 tests, `npm test` |
+
+## Reused from your old branches
+
+`main` had hand-drawn scenes as JSX components. Converted to plain SVG and copied into `public/assets/scenes/`:
+
+- `bridge.svg` — the Golden Gate, 427 paths, full colour. Used in the 2018 chapter, swings in on `rotateY`.
+- `baadal.svg` (clouds), `sun.svg`, `boat-left.svg`, `boat-right.svg` — sky and water layers.
+- `curtain.svg`, `doc.svg` — the theatre curtain and the medical team illustration (the latter used for Covid Leads).
+- Bebas Neue from `main` is now at `public/fonts/bebas-neue.ttf` for the Call of Duty wordmark.
+
+## Real photos and logos
+
+Slots are wired. Drop the file and it appears automatically; until it exists the drawing shows instead (a build-time `existsSync` check strips the missing `<image>`).
+
+| Drop at | Appears on |
+|---|---|
+| `public/assets/scenes/jobs.jpg` | the phone-free Steve Jobs portrait above the TV |
+| `public/assets/scenes/xbox-360-logo.png` | the compact standing Xbox beside the TV |
+| `public/assets/scenes/football.svg` | the rolling football on the bedroom floor |
+| `public/assets/scenes/zombies-gameplay.mp4` | the muted gameplay loop inside the TV |
+
+Same pattern for any future photo: add `<image href="/assets/scenes/x.png" .../>` inside the scene SVG.
+
+## Commits
+
+```
+7abf94c feat: morph the bedroom into the 2013 computer lab, hero on the first chapter, football, photo and logo slots
+6dce69f feat: bedroom details, Steve Jobs poster, book spines, Call of Duty, nuggets, visible Xbox 360, fan on its own clock
+3adccb3 fix: crossfade chapters in the middle of the gap
+a3a1f28 feat: open the journey in the Delhi bedroom, Xbox 360 and zombies, in 3D layers
+c7a4b75 feat: rebuild the stage as 3D layers with the old illustrations and a scroll camera
+29bba4d feat: choreograph the 2018 scene and walk the figure through it
+a8060e7 feat: draw the figure as a filled ink illustration and match the scenery
+33bbfe2 feat: add the journey stage with the 2018 and 2020 chapters
+91d517f feat: add the parametric stroke figure, lerp, and the render tool
+c6a4aea docs: add the journey stage research, spec and plan
+```
+
+50 files, +6521 lines.
+
+## Research and planning docs
+
+| Doc | What is in it |
+|---|---|
+| `07-journey-stage.md` | 10 routes ranked with measured bundle sizes, the art pipeline, the stack re-check |
+| `07-research/r1..r7.md` | the raw evidence from seven parallel research passes, every claim sourced |
+| `08-journey-stage-spec.md` | the design spec |
+| `09-journey-stage-plan.md` | the 10-task implementation plan |
+
+Key findings that shaped the build: CSS `d: path()` has no Safari support (so morphing is JS, 116 lines, no library); Lightning CSS folds `animation-timeline` into the `animation` shorthand (`cssMinify: 'esbuild'` fixes it, verified); scroll timelines are Chrome 115+ and Safari 26+, 85% global, Firefox needs the fallback.
+
+## Decisions you made along the way
+
+1. Stack is not locked to Astro. Re-checked six frameworks; Astro still ranked first (0 KB baseline vs Next's 114 KB), and it is what the branch runs.
+2. No stick figures. Filled, illustrated drawings with proper colour.
+3. Animation must be choreography, not one rotating arm. Things move through space.
+4. You review the live page, not PNG renders.
+5. The scenes are your story, taken from `timeline.ts` and the old `main` branch, never generic.
+6. The first screen is the bedroom, with your name introduced on it. White wall, not brown.
+7. Football, not cricket. Real photos for people (Steve Jobs) and real logos.
+8. One chapter perfected at a time, then carry the style forward.
+
+## Dead ends, kept in the tree
+
+`src/lib/figure.ts` (279 lines) is a parametric character: one function, params for height, head ratio, hair, glasses, beard, sleeve, collar, lean, arm angles, leg stance, prop, face, position, facing, turn, walk phase. It draws a filled figure whose every part interpolates, and it walks with a real cycle.
+
+It is no longer on the stage. You wanted hand-authored characters per scene instead, so `k-kid.svg` and `lab-kid.svg` replaced it. The file and its tests stay because the same idea now lives in `morph.ts` at the SVG level, and the parametric approach may come back for a chapter that needs a walk cycle across the screen.
+
+## How to work on this
+
+```bash
+npm run dev                 # the site
+npm test                    # 13 unit tests
+npm run check               # astro check, 0 errors
+npm run render -- --help    # rasterise a scene for inspection
+```
+
+Add a chapter: write its SVGs into `src/lib/scenes/`, add a `scene.layers` list to the entry in `src/data/timeline.ts`. To morph a layer into the next chapter, add `to: { inline, x, y, w }` and keep the two files' element order identical; `npm test` tells you if they do not line up.
+
+## Open, next
+
+- The story markdown. Every chapter's words are placeholder until it lands.
+- Chapters after the lab: 2018 San Francisco, 2020 Webcube, 2022 Halifax, 2023 teaching, 2024 Bean, 2025 Floqer. The 2018 and 2020 scenes exist but predate the morph engine and the real-photo direction.
+- Continue reviewing the first-scene composition at desktop and mobile sizes.
+- Mobile layout for the new stage has not been reviewed.
+- Firefox fallback path has not been checked in a real Firefox.
